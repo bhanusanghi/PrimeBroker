@@ -24,8 +24,10 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
     constructor() {}
 
     function openMarginAccount() external returns (address) {
-        //MarginAccount.new()
-        // approve tokens max
+        /**MarginAccount.new()
+         approve tokens max
+        
+        **/
     }
 
     function closeMarginAccount() external {}

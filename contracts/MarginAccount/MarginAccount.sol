@@ -20,11 +20,31 @@ contract MarginAccount {
 
     function addCollateral() external {}
 
-    function RemoveCollateral() external {}
+    function RemoveCollateral() external {
+        /**
+        check margin, open positions
+        withdraw
+         */
+    }
 
-    function openPosition() external {}
+    function openPosition() external {
+        /**
+        check margin and open positions
+         */
+    }
 
-    function closePosition() external {}
+    function updatePosition() external {
+        /**
+        check margin and increase/decrease positions
+         */
+    }
+
+    function closePosition() external {
+        /**
+        preview close on origin, if true close or revert
+        take fees and interest
+         */
+    }
 
     function Liquidate() external {}
 }
