@@ -17,4 +17,14 @@ contract MarginAccount {
     }
 
     constructor() {}
+
+    function addCollateral() external {}
+
+    function RemoveCollateral() external {}
+
+    function openPosition() external {}
+
+    function closePosition() external {}
+
+    function Liquidate() external {}
 }
