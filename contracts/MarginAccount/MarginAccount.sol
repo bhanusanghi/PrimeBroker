@@ -26,7 +26,7 @@ contract MarginAccount {
         address protocol;
         PositionType positionType;
     }
-
+    position[] positions;
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public totalLev;
@@ -36,6 +36,23 @@ contract MarginAccount {
     }
 
     constructor() {}
+
+    function getLeverage() public view returns (uint256, uint256) {
+        return (totalInternalLev, (totalLev - totalInternalLev));
+    }
+    function calLeverage() external returns(uint256, uint256){
+        // only margin/riskmanager
+        uint256 len = positions.length;
+        uint256 intLev;
+        uint256 extLev;
+        for (uint i =0;,i<len,i++){
+            intLev+=positions[i].internalLev;
+            extLev+=positions[i].externalLev;
+        }
+        totalInternalLev = intlev;
+        totalLev = intLev+extLev;
+        return (intLev,extLev);
+    }
 
     function addCollateral() external {
         // convert
