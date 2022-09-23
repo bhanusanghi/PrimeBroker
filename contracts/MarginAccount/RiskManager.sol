@@ -28,6 +28,8 @@ contract RiskManager is ACLTrait, ReentrancyGuard {
     }
 
     function AllowNewTrade(bytes calldata data) external returns (bool) {
+      // total asset value+total derivatives value(excluding margin)
+      // total leverage ext,int
         return true;
     }
 
@@ -40,9 +42,12 @@ contract RiskManager is ACLTrait, ReentrancyGuard {
         }
     }
 
-    function _derivativesPositionValue(address marginAccount) private {
-      //
+    function _derivativesPositionValue(address marginAccount) private returns(uint256){
+      uint256 amount;
+      // for each protocol or iterate on positions and get value of positions
+      return amount;
     }
+
 
     function TotalPositionValue() external {}
 
