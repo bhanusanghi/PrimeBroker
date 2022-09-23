@@ -11,7 +11,7 @@ import {ZeroAddressException} from "../interfaces/IErrors.sol";
 
 import "hardhat/console.sol";
 
-contract MarginManager is ACLTrait, ReentrancyGuard {
+contract RiskManager is ACLTrait, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
 
@@ -23,15 +23,15 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
 
     constructor() {}
 
-    function openMarginAccount() external returns (address) {
-        /**MarginAccount.new()
-         approve tokens max
-        
-        **/
+    function AllowNewTrade() external returns (bool) {
+        return true;
     }
 
-    function closeMarginAccount() external {}
+    function _spotAssetValue() private {}
 
-    function _approveTokens() private {}
-    // function transferAccount(address from, address to) external {}
+    function _derivativesPositionValue() private {}
+
+    function TotalPositionValue() external {}
+
+    function TotalLeverage() external {}
 }

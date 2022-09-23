@@ -12,39 +12,57 @@ import {ZeroAddressException} from "../interfaces/IErrors.sol";
 import "hardhat/console.sol";
 
 contract MarginAccount {
+    using SafeERC20 for IERC20;
+    using Address for address;
+
+    enum PositionType {
+        LONG,
+        SHORT
+    } // add more
+
+    struct position {
+        uint256 internalLev;
+        uint256 externalLev;
+        address protocol;
+        PositionType positionType;
+    }
+
+    address public marginManager;
+    uint256 public totalInternalLev;
+    uint256 public totalLev;
+
     modifier xyz() {
         _;
     }
 
     constructor() {}
 
-    function addCollateral() external {}
-
-    function RemoveCollateral() external {
-        /**
-        check margin, open positions
-        withdraw
-         */
+    function addCollateral() external {
+        // convert
+        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function openPosition() external {
-        /**
-        check margin and open positions
-         */
+    function approveToProtocol(address token, address protocol)
+        external
+    // onylMarginmanager
+    {
+        IERC20(token).approve(protocol, type(uint256).max);
     }
 
-    function updatePosition() external {
-        /**
-        check margin and increase/decrease positions
-         */
+    function transferTokens(
+        address token,
+        address to,
+        uint256 amount // onlyMarginManager
+    ) external {
+        IERC20(token).safeTransfer(to, amount);
     }
 
-    function closePosition() external {
-        /**
-        preview close on origin, if true close or revert
-        take fees and interest
-         */
-    }
+    function executeTx(address destination, bytes memory data)
+        external
+        returns (bytes memory)
+    {
+        // onlyMarginManager
 
-    function Liquidate() external {}
+        return destination.functionCall(data);
+    }
 }
