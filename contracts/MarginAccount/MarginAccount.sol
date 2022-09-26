@@ -12,39 +12,76 @@ import {ZeroAddressException} from "../interfaces/IErrors.sol";
 import "hardhat/console.sol";
 
 contract MarginAccount {
+    using SafeERC20 for IERC20;
+    using Address for address;
+
+    enum PositionType {
+        LONG,
+        SHORT
+    } // add more
+
+    struct position {
+        uint256 internalLev;
+        uint256 externalLev;
+        address protocol;
+        PositionType positionType;
+    }
+    position[] positions;
+    address public marginManager;
+    uint256 public totalInternalLev;
+    uint256 public totalLev;
+
     modifier xyz() {
         _;
     }
 
     constructor() {}
 
-    function addCollateral() external {}
-
-    function RemoveCollateral() external {
-        /**
-        check margin, open positions
-        withdraw
-         */
+    function getLeverage() public view returns (uint256, uint256) {
+        return (totalInternalLev, (totalLev - totalInternalLev));
+    }
+    function calLeverage() external returns(uint256, uint256){
+        // only margin/riskmanager
+        uint256 len = positions.length;
+        uint256 intLev;
+        uint256 extLev;
+        for (uint i =0;,i<len,i++){
+            intLev+=positions[i].internalLev;
+            extLev+=positions[i].externalLev;
+        }
+        totalInternalLev = intlev;
+        totalLev = intLev+extLev;
+        return (intLev,extLev);
     }
 
-    function openPosition() external {
-        /**
-        check margin and open positions
-         */
+    function addCollateral() external {
+        // convert
+        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function updatePosition() external {
-        /**
-        check margin and increase/decrease positions
-         */
+    function approveToProtocol(address token, address protocol)
+        external
+    // onylMarginmanager
+    {
+        IERC20(token).approve(protocol, type(uint256).max);
     }
 
-    function closePosition() external {
-        /**
-        preview close on origin, if true close or revert
-        take fees and interest
-         */
+    function transferTokens(
+        address token,
+        address to,
+        uint256 amount // onlyMarginManager
+    ) external {
+        IERC20(token).safeTransfer(to, amount);
     }
 
-    function Liquidate() external {}
+    function executeTx(address destination, bytes memory data)
+        external
+        returns (bytes memory)
+    {
+        // onlyMarginManager
+        bytes memory returnData =destination.functionCall(data);
+        // make post trade chnges
+        // add new position in array, update leverage int, ext
+        return returnData;
+    }
 }
