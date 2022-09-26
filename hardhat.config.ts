@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
       {
         enabled: true,
         url: process.env.OPTIMISM_MAINNET_KEY || '',
-        // blockNumber: number,
+        blockNumber: 513665,
       }
     },
 

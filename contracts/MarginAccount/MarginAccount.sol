@@ -79,7 +79,7 @@ contract MarginAccount {
         returns (bytes memory)
     {
         // onlyMarginManager
-        bytes memory returnData =destination.functionCall(data);
+        bytes memory returnData = destination.functionCall(data);
         // make post trade chnges
         // add new position in array, update leverage int, ext
         return returnData;
