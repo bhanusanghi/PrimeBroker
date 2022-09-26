@@ -8,7 +8,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {ACLTrait} from "../core/ACLTrait.sol";
 import {RiskManager} from "./RiskManager.sol";
 import {ZeroAddressException} from "../interfaces/IErrors.sol";
-
+import {MarginAccount} from "./MarginAccount.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is ACLTrait, ReentrancyGuard {
@@ -19,8 +19,7 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
     address public riskManager;
     address public vault;
     uint256 public liquidationPenaulty;
-
-    // mapping(address => address) public creditAccounts;
+    mapping(address => address) public marginAccounts;
     mapping(address => uint256) public collatralRatio; // non-zero means allowed
     // function transferAccount(address from, address to) external {}
     modifier xyz() {
@@ -67,9 +66,11 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
     }
 
     function openMarginAccount() external returns (address) {
-        /**MarginAccount.new()
-         approve tokens max
-        **/
+        require(marginAccounts[msg.sender]==address(0x0))
+        MarginAccount acc = new MarginAccount();
+        marginAccounts[msg.sender] = address(acc);
+        // acc.setparams
+        // approve
     }
 
     function RemoveCollateral() external {

@@ -5,9 +5,9 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {ACLTrait} from "../core/ACLTrait.sol";
-import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
-import {ZeroAddressException} from "../Interfaces/IErrors.sol";
+// import {ACLTrait} from "../core/ACLTrait.sol";
+import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
+import {ZeroAddressException} from "../../Interfaces/IErrors.sol";
 
 import "hardhat/console.sol";
 
@@ -15,12 +15,13 @@ contract RiskManager is ACLTrait, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     IPriceOracle public priceOracle;
-    mapping(address => address) public override creditAccounts;
     address[] public allowedTokens;
     modifier xyz() {
         _;
     }
-
+    // protocol to riskManager mapping
+    // perpfi address=> perpfiRisk manager
+    mapping(address => address) public riskManagers;
     constructor() {}
     function setPriceOracle(addres oracle) external {
       // onlyOwner
