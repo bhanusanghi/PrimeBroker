@@ -17,10 +17,11 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
     RiskManager public riskManager;
     address public vault;
     address public riskManager;
-    address public vault;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
     mapping(address => uint256) public collatralRatio; // non-zero means allowed
+    // allowed protocols set
+    EnumerableSet.AddressSet private allowedProtocols;
     // function transferAccount(address from, address to) external {}
     modifier xyz() {
         _;
@@ -44,7 +45,22 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
         // onlyOwner
         riskManager = RiskManager(riskmgr);
     }
-
+    // function set(address p){}
+    function openMarginAccount() external returns (address) {
+        require(marginAccounts[msg.sender]==address(0x0))
+        MarginAccount acc = new MarginAccount();
+        marginAccounts[msg.sender] = address(acc);
+        // acc.setparams
+        // approve
+    }
+    function closeMarginAccount() external {
+        /**
+        close positions
+        take interest
+        return funds
+        burn contract account and remove mappings
+         */
+    }
     function addPosition() external {
         /**
         if RiskManager.AllowNewTrade
@@ -64,13 +80,13 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
         take fees and interest
          */
     }
-
-    function openMarginAccount() external returns (address) {
-        require(marginAccounts[msg.sender]==address(0x0))
-        MarginAccount acc = new MarginAccount();
-        marginAccounts[msg.sender] = address(acc);
-        // acc.setparams
-        // approve
+    function liquidatePosition() external {
+        /**
+        riskManager.isliquidatable()
+        close on the venue
+        take interest 
+        add penaulty
+         */
     }
 
     function RemoveCollateral() external {
@@ -80,7 +96,11 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
          */
     }
 
-    function closeMarginAccount() external {}
+
+    function calcCreditAccountAccruedInterest(address marginacc) public view returns (uint256) {
+        return 1;
+    }
+
 
     function _approveTokens() private {}
 }
