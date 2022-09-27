@@ -5,13 +5,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {ACLTrait} from "../core/ACLTrait.sol";
 import {RiskManager} from "./RiskManager.sol";
 import {ZeroAddressException} from "../interfaces/IErrors.sol";
 import {MarginAccount} from "./MarginAccount.sol";
 import "hardhat/console.sol";
 
-contract MarginManager is ACLTrait, ReentrancyGuard {
+contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     RiskManager public riskManager;
@@ -45,14 +44,17 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
         // onlyOwner
         riskManager = RiskManager(riskmgr);
     }
+
     // function set(address p){}
     function openMarginAccount() external returns (address) {
-        require(marginAccounts[msg.sender]==address(0x0))
+        require(marginAccounts[msg.sender] == address(0x0));
         MarginAccount acc = new MarginAccount();
         marginAccounts[msg.sender] = address(acc);
+        return address(acc);
         // acc.setparams
         // approve
     }
+
     function closeMarginAccount() external {
         /**
         close positions
@@ -61,6 +63,7 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
         burn contract account and remove mappings
          */
     }
+
     function addPosition() external {
         /**
         if RiskManager.AllowNewTrade
@@ -80,6 +83,7 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
         take fees and interest
          */
     }
+
     function liquidatePosition() external {
         /**
         riskManager.isliquidatable()
@@ -96,11 +100,13 @@ contract MarginManager is ACLTrait, ReentrancyGuard {
          */
     }
 
-
-    function calcCreditAccountAccruedInterest(address marginacc) public view returns (uint256) {
+    function calcCreditAccountAccruedInterest(address marginacc)
+        public
+        view
+        returns (uint256)
+    {
         return 1;
     }
-
 
     function _approveTokens() private {}
 }

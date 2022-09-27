@@ -31,38 +31,47 @@ contract MarginAccount {
     uint256 public totalInternalLev;
     uint256 public totalLev;
 
+    // mapping(address => boolean) whitelistedTokens;
+    address underlyingToken;
+
     modifier xyz() {
         _;
     }
 
-    constructor() {}
+    constructor(address underlyingToken) {
+        marginManager = msg.sender;
+        underlyingToken = underlyingToken;
+    }
 
     function getLeverage() public view returns (uint256, uint256) {
         return (totalInternalLev, (totalLev - totalInternalLev));
     }
-    function calLeverage() external returns(uint256, uint256){
+
+    function calLeverage() external returns (uint256, uint256) {
         // only margin/riskmanager
         uint256 len = positions.length;
         uint256 intLev;
         uint256 extLev;
-        for (uint i =0;,i<len,i++){
-            intLev+=positions[i].internalLev;
-            extLev+=positions[i].externalLev;
+        for (uint256 i = 0; i < len; i++) {
+            intLev += positions[i].internalLev;
+            extLev += positions[i].externalLev;
         }
         totalInternalLev = intlev;
-        totalLev = intLev+extLev;
-        return (intLev,extLev);
+        totalLev = intLev + extLev;
+        return (intLev, extLev);
     }
 
-    function addCollateral() external {
+    function addCollateral(uint256 amount) external {
         // convert
-        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(underlyingToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
     }
 
-    function approveToProtocol(address token, address protocol)
-        external
-    // onylMarginmanager
-    {
+    function approveToProtocol(address token, address protocol) external {
+        // onylMarginmanager
         IERC20(token).approve(protocol, type(uint256).max);
     }
 

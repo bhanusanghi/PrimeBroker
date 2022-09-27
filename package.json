@@ -28,6 +28,7 @@
     "typescript": ">=4.5.0"
   },
   "dependencies": {
+    "@defi-wonderland/smock": "^2.3.0",
     "@openzeppelin/contracts": "^4.7.3"
   }
 }
