@@ -1,7 +1,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import "../interfaces/IVault.sol";
+import {IVault} from "../interfaces/IVault.sol";
 import "../interfaces/IInterestRateModel.sol";
 import "./LPToken.sol";
 import "../Libraries/Errors.sol";
