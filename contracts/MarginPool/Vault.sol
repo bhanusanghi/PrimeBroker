@@ -1,15 +1,17 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import "../interfaces/IInterestRateModel.sol";
+import {IVault} from "../Interfaces/IVault.sol";
+import "../Interfaces/IInterestRateModel.sol";
 import "./LPToken.sol";
 import "../Libraries/Errors.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
-import {SECONDS_PER_YEAR} from "../libraries/Constants.sol";
+import {SECONDS_PER_YEAR} from "../Libraries/Constants.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // contract Vault is IVault, ERC4626 {
 contract Vault is ERC4626 {
@@ -59,7 +61,7 @@ contract Vault is ERC4626 {
         address _lpTokenAddress,
         address _interestRateModelAddress,
         uint256 maxExpectedLiquidity
-    ) ERC4626(IERC20Metadata(_asset)) {
+    ) ERC4626(IERC20Metadata(_asset)) ERC20("name", "symbol") {
         require(
             _asset != address(0) &&
                 _lpTokenAddress != address(0) &&

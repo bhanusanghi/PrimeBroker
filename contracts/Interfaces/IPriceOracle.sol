@@ -1,6 +1,6 @@
 pragma solidity ^0.8.10;
 
-interface IPriceOracle is IPriceOracleEvents, IPriceOracleExceptions {
+interface IPriceOracle {
     function convertToUSD(uint256 amount, address token)
         external
         view

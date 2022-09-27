@@ -37,21 +37,22 @@ contract MarginAccount {
     function getLeverage() public view returns (uint256, uint256) {
         return (totalInternalLev, (totalLev - totalInternalLev));
     }
-    function calLeverage() external returns(uint256, uint256){
+
+    function calLeverage() external returns (uint256, uint256) {
         // only margin/riskmanager
         uint256 len = positions.length;
         uint256 intLev;
         uint256 extLev;
-        for (uint i =0;,i<len,i++){
-            intLev+=positions[i].internalLev;
-            extLev+=positions[i].externalLev;
+        for (uint256 i = 0; i < len; i++) {
+            intLev += positions[i].internalLev;
+            extLev += positions[i].externalLev;
         }
-        totalInternalLev = intlev;
-        totalLev = intLev+extLev;
-        return (intLev,extLev);
+        totalInternalLev = intLev;
+        totalLev = intLev + extLev;
+        return (intLev, extLev);
     }
 
-    function addCollateral(address token) external {
+    function addCollateral(address token, uint256 amount) external {
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
 
@@ -75,7 +76,7 @@ contract MarginAccount {
         returns (bytes memory)
     {
         // onlyMarginManager
-        bytes memory returnData =destination.functionCall(data);
+        bytes memory returnData = destination.functionCall(data);
         // make post trade chnges
         // add new position in array, update leverage int, ext
         return returnData;
