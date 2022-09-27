@@ -15,13 +15,22 @@ interface IVault is IERC4626 {
     // Emits each time when borrow forbidden for credit manager
     event BorrowForbidden(address indexed creditManager);
 
-    // Emits after expected liquidity limit update
-    // event NewExpectedLiquidityLimit(uint256 newLimit);
+    // Emits each time when Credit Manager borrows money from pool
+    event Borrow(
+        address indexed creditManager,
+        address indexed creditAccount,
+        uint256 amount
+    );
 
-    // Emits each time when withdraw fee is udpated
-    // event NewWithdrawFee(uint256 fee);
+    // Emits each time when Credit Manager repays money from pool
+    event Repay(
+        address indexed creditManager,
+        uint256 borrowedAmount,
+        uint256 profit,
+        uint256 loss
+    );
 
-    function lend(uint256 amount, address borrower) external;
+    function borrow(uint256 amount, address borrower) external;
 
     function repay(
         uint256 amount,
