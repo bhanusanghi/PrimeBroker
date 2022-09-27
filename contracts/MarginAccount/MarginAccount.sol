@@ -53,7 +53,7 @@ contract MarginAccount {
             intLev += positions[i].internalLev;
             extLev += positions[i].externalLev;
         }
-        totalInternalLev = intlev;
+        totalInternalLev = intLev;
         totalLev = intLev + extLev;
         return (intLev, extLev);
     }

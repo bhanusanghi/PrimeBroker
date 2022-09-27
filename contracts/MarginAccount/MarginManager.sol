@@ -17,6 +17,7 @@ contract MarginManager is ReentrancyGuard {
     // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
+    mapping(address => bool) public allowedUnderlyingTokens;
     mapping(address => uint256) public collatralRatio; // non-zero means allowed
     // allowed protocols set
     EnumerableSet.AddressSet private allowedProtocols;
@@ -45,9 +46,13 @@ contract MarginManager is ReentrancyGuard {
     }
 
     // function set(address p){}
-    function openMarginAccount() external returns (address) {
+    function openMarginAccount(address underlyingToken)
+        external
+        returns (address)
+    {
         require(marginAccounts[msg.sender] == address(0x0));
-        MarginAccount acc = new MarginAccount();
+        require(allowedUnderlyingTokens[underlyingToken] == true);
+        MarginAccount acc = new MarginAccount(underlyingToken);
         marginAccounts[msg.sender] = address(acc);
         return address(acc);
         // acc.setparams
