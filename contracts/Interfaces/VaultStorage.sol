@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {IInterestRateModel} from "./IInterestRateModel.sol";
 
 abstract contract VaultStorage {
     uint256 totalBorrowed;

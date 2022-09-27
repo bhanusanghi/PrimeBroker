@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-import {IClearingHouse} from "../interfaces/Perp/IClearingHouse.sol";
+import {IClearingHouse} from "../Interfaces/Perp/IClearingHouse.sol";
 
 contract Perp {
     IClearingHouse perpfi;
@@ -25,6 +25,6 @@ contract Perp {
         external
         returns (uint256 base, uint256 quote)
     {
-      return perpfi.closePosition(params)
+        return perpfi.closePosition(params);
     }
 }

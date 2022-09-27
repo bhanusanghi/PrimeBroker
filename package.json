@@ -5,6 +5,11 @@
   "repository": "git@github.com:GigaBrain-finance/core-contracts.git",
   "author": "bhanusanghi <bhanussanghi@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf typechain && rm -rf artifacts && rm -rf cache",
+    "test": "hardhat test",
+    "compile": "hardhat compile --show-stack-traces"
+  },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
     "@ethersproject/providers": "^5.4.7",
@@ -17,7 +22,7 @@
     "@typechain/hardhat": "^6.1.2",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^9.1.0",
-    "@types/node": ">=12.0.0",
+    "@types/node": "^18.7.23",
     "chai": "^4.2.0",
     "ethers": "^5.4.7",
     "hardhat": "^2.11.2",
