@@ -38,6 +38,7 @@
     "@types/lodash": "4.14.170",
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.7.23",
+    "dotenv": "16.0.2",
     "bignumber.js": "9.0.1",
     "chai": "^4.2.0",
     "eslint-config-prettier": "8.5.0",

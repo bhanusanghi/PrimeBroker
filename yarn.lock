@@ -4198,6 +4198,11 @@
   dependencies:
     "no-case" "^2.2.0"
 
+"dotenv@16.0.2":
+  "integrity" "sha512-JvpYKUmzQhYoIFgK2MOnF3bciIZoItIIoryihy0rIA+H4Jy0FmgyKYAHCTN98P5ybGSJcIFbh6QKeJdtZd1qhA=="
+  "resolved" "https://registry.npmjs.org/dotenv/-/dotenv-16.0.2.tgz"
+  "version" "16.0.2"
+
 "dotignore@~0.1.2":
   "version" "0.1.2"
   dependencies:

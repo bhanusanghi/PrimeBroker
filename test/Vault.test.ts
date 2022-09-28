@@ -22,12 +22,10 @@ describe("Vault test", () => {
   describe("vault", () => {
 
     it("test", async () => {
-      console.log('yolo');
       // expect(await vault.getBalanceByToken(alice.address, usdc.address)).to.be.eq(
       //   parseUnits("1000", usdcDecimals),
       // )
       // expect(await vault.getBalanceByToken(bob.address, weth.address)).to.be.eq(parseEther("10"))
     })
   })
-
 })
