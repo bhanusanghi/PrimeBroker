@@ -19,7 +19,7 @@ contract MarginAccount {
 
     struct position {
         uint256 internalLev;
-        uint256 externalLev;
+        uint256 externalLev; //@note for future use only
         address protocol;
         PositionType positionType;
     }
@@ -27,6 +27,7 @@ contract MarginAccount {
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public totalLev;
+    uint256 public totalBorrowed;
 
     modifier xyz() {
         _;
@@ -42,13 +43,13 @@ contract MarginAccount {
         // only margin/riskmanager
         uint256 len = positions.length;
         uint256 intLev;
-        uint256 extLev;
+        uint256 extLev = 0; // for future use
         for (uint256 i = 0; i < len; i++) {
             intLev += positions[i].internalLev;
-            extLev += positions[i].externalLev;
+            // extLev += positions[i].externalLev;
         }
         totalInternalLev = intLev;
-        totalLev = intLev + extLev;
+        // totalLev = intLev + extLev;
         return (intLev, extLev);
     }
 

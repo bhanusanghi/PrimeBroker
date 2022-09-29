@@ -10,5 +10,15 @@ import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
 import "hardhat/console.sol";
 
 contract BaseProtocolRiskManager {
-    // function getPositionValue(address marginAcc) public {}
+    function getTotalPnL(address marginAcc) public virtual returns (int256);
+
+    function getTotalPositionSize(address marginAcc)
+        public
+        virtual
+        returns (uint256);
+
+    function getTotalAssetsValue(address marginAcc)
+        public
+        virtual
+        returns (uint256);
 }
