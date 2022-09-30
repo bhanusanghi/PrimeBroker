@@ -72,7 +72,10 @@ contract MarginManager is ReentrancyGuard {
             protocolAddress,
             data
         );
-        //vault.approve/transfer
+        if (tokensToTransfer > 0) {
+            //vault.approve/transfer
+        }
+
         bytes memory returnData = MarginAccount(marginacc).execMultiTx(
             destinations,
             dataArray
@@ -85,9 +88,9 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function updatePosition(address protocol, bytes calldata data) external {
-        if (riskManager.NewTrade(data)) {
-            //marginacc.execute
-        }
+        // if (riskManager.NewTrade(data)) {
+        //marginacc.execute
+        // }
     }
 
     function closePosition() external {

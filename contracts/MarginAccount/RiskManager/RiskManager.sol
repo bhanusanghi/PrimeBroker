@@ -28,7 +28,11 @@ contract RiskManager is ReentrancyGuard {
         priceOracle = IPriceOracle(oracle);
     }
 
-    function NewTrade(bytes calldata data)
+    function NewTrade(
+        address marginAcc,
+        address protocolAddress,
+        bytes calldata data
+    )
         external
         returns (
             address[] destinations,
@@ -39,14 +43,15 @@ contract RiskManager is ReentrancyGuard {
         destinations[0] = "0x0";
         dataArray[0] = data; // might need to copy it so maybe send back pointers
         tokens = 100;
-        // total asset value+total derivatives value(excluding margin)
-        // total leverage ext,int
+        uint256 spot = _spotAssetValue(marginAcc);
+        (uint256 margin, int256 unRealizedPnL) = _derivativesPositionValue(
+            marginAcc
+        );
         /**
-        _spotAssetValue + total
         AB = Account Balance ( spot asset value)
-        UP = Unrealised PnL ()
-        IM = Initial Margin
-        MM = Maintenance Margin
+        UP = Unrealised PnL (unRealizedPnL)
+        MIP = Margin in Positions (margin from all positions)
+        MM = Maintenance Margin % 30% for now
         AB+UP-IM-MM>0
          */
         return ();
@@ -66,11 +71,11 @@ contract RiskManager is ReentrancyGuard {
 
     function _derivativesPositionValue(address marginAccount)
         private
-        returns (uint256)
+        returns (uint256, int256)
     {
         uint256 amount;
         // for each protocol or iterate on positions and get value of positions
-        return amount;
+        return (0, 0);
     }
 
     function TotalPositionValue() external {}
