@@ -82,4 +82,19 @@ contract MarginAccount {
         // add new position in array, update leverage int, ext
         return returnData;
     }
+
+    function execMultiTx(address[] destinations, bytes[] memory dataArray)
+        external
+        returns (bytes memory returnData)
+    {
+        // onlyMarginManager
+        uint len = destinations.length;
+        for(uint i=0;i<len;,i++){
+            destinations[i].functionCall(dataArray[i]);
+            // update Positions array
+            // make post trade chnges
+        }
+        // add new position in array, update leverage int, ext
+        return returnData;
+    }
 }
