@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-import {IClearingHouse} from "../Interfaces/Perp/IClearingHouse.sol";
+import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 
 contract Perp {
     IClearingHouse perpfi;

@@ -9,7 +9,8 @@ import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
 import {BaseProtocolRiskManager} from "./BaseProtocolRiskManager.sol";
 import "hardhat/console.sol";
 
-contract PerpfiRiskManager is BaseProtocolRiskManager {
+contract PerpfiRiskManager {
+    // is BaseProtocolRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
 }

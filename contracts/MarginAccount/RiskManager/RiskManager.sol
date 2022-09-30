@@ -28,10 +28,28 @@ contract RiskManager is ReentrancyGuard {
         priceOracle = IPriceOracle(oracle);
     }
 
-    function AllowNewTrade(bytes calldata data) external returns (bool) {
+    function NewTrade(bytes calldata data)
+        external
+        returns (
+            address[] destinations,
+            bytes[] memory dataArray,
+            uint256 tokens
+        )
+    {
+        destinations[0] = "0x0";
+        dataArray[0] = data; // might need to copy it so maybe send back pointers
+        tokens = 100;
         // total asset value+total derivatives value(excluding margin)
         // total leverage ext,int
-        return true;
+        /**
+        _spotAssetValue + total
+        AB = Account Balance ( spot asset value)
+        UP = Unrealised PnL ()
+        IM = Initial Margin
+        MM = Maintenance Margin
+        AB+UP-IM-MM>0
+         */
+        return ();
     }
 
     function _spotAssetValue(address marginAccount) private {
