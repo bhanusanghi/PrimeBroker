@@ -26,10 +26,26 @@ contract SNXRiskManager is BaseProtocolRiskManager {
         virtual
         returns (uint256);
 
-    function txDataDecoder(bytes memory data) public view {
-        // market key : 32bytes
-        // call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
-        // sizeDelta  : 64 bytes
-        //
+    function previewPosition(bytes memory data) public {
+        /**
+        (marketKey, sizeDelta) = txDataDecoder(data)
+        if long check with snx for available margin
+        
+
+       */
+    }
+
+    function txDataDecoder(bytes memory data)
+        public
+        view
+        returns (bytes32 marketKey, int256 sizeDelta)
+    {
+        /**  market key : 32bytes
+          : for this assuming single position => transfer margin and/or open close
+           call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
+           4 bytes function sig
+           sizeDelta  : 64 bytes
+           32 bytes tracking code, or we can append hehe
+        */
     }
 }
