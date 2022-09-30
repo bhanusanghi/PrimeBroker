@@ -14,7 +14,8 @@ contract MarginAccount {
 
     enum PositionType {
         LONG,
-        SHORT
+        SHORT,
+        Spot
     } // add more
 
     struct position {
@@ -22,6 +23,9 @@ contract MarginAccount {
         uint256 externalLev; //@note for future use only
         address protocol;
         PositionType positionType;
+        uint256 notionalValue;
+        uint256 marketValue;
+        uint256 underlyingMarginValue;
     }
     position[] positions;
     address public marginManager;
@@ -30,7 +34,7 @@ contract MarginAccount {
     uint256 public totalBorrowed;
 
     // mapping(address => boolean) whitelistedTokens;
-    address underlyingToken;
+    address public underlyingToken;
 
     modifier xyz() {
         _;
@@ -92,13 +96,13 @@ contract MarginAccount {
         return returnData;
     }
 
-    function execMultiTx(address[] destinations, bytes[] memory dataArray)
-        external
-        returns (bytes memory returnData)
-    {
+    function execMultiTx(
+        address[] calldata destinations,
+        bytes[] memory dataArray
+    ) external returns (bytes memory returnData) {
         // onlyMarginManager
-        uint len = destinations.length;
-        for(uint i=0;i<len;,i++){
+        uint256 len = destinations.length;
+        for (uint256 i = 0; i < len; i++) {
             destinations[i].functionCall(dataArray[i]);
             // update Positions array
             // make post trade chnges

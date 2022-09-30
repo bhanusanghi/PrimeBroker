@@ -5,16 +5,15 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {RiskManager} from "./RiskManager/RiskManager.sol";
+import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {MarginAccount} from "./MarginAccount.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
-    RiskManager public riskManager;
+    IRiskManager public riskManager;
     address public vault;
-    // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
     mapping(address => bool) public allowedUnderlyingTokens;
@@ -42,7 +41,7 @@ contract MarginManager is ReentrancyGuard {
 
     function SetRiskManager(address riskmgr) external {
         // onlyOwner
-        riskManager = RiskManager(riskmgr);
+        riskManager = IRiskManager(riskmgr);
     }
 
     // function set(address p){}
@@ -82,11 +81,12 @@ contract MarginManager is ReentrancyGuard {
     function addPosition(address protocolAddress, bytes memory data) external {
         address[] destinations;
         bytes[] memory dataArray;
-        uint256 tokensToTransfer;
+        uint256 tokensToTransfer; // transfer these many tokens from vault to credit account.
         address marginacc = marginAccounts[msg.sender];
         (destinations, dataArray, tokensToTransfer) = riskManager.NewTrade(
             marginacc,
             protocolAddress,
+            protocolName,
             data
         );
         //vault.approve/transfer
