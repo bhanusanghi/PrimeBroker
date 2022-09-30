@@ -4,11 +4,11 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers"
 import "@openzeppelin/hardhat-upgrades"
 import "@typechain/hardhat"
-import "@nomiclabs/hardhat-waffle";
 import "hardhat-contract-sizer"
 import "hardhat-dependency-compiler"
 import "hardhat-gas-reporter"
 import "solidity-coverage"
+require("dotenv").config()
 
 const config: HardhatUserConfig = {
   solidity: "0.8.17",
@@ -26,7 +26,7 @@ const config: HardhatUserConfig = {
       {
         enabled: true,
         url: process.env.OPTIMISM_MAINNET_KEY || '',
-        blockNumber: 513665,
+        // blockNumber: 513665,
       }
     }
 
@@ -44,7 +44,13 @@ const config: HardhatUserConfig = {
     //   url: "http://localhost:8545",
     //   // accounts: [privateKey1, privateKey2, ...]
     // },
-  }
+  },
+  paths: {
+    // tests: "./test",
+  },
+  mocha: {
+    timeout: 100000000
+  },
 };
 
 export default config;

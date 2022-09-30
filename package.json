@@ -41,7 +41,6 @@
     "bignumber.js": "9.0.1",
     "chai": "^4.2.0",
     "eslint-config-prettier": "8.5.0",
-    "ethereum-waffle": "^3.4.4",
     "ethers": "^5.7.1",
     "hardhat": "^2.11.2",
     "hardhat-contract-sizer": "2.5.1",
@@ -72,6 +71,7 @@
     "@openzeppelin/contracts-upgradeable": "3.4.2",
     "@perp/perp-oracle-contract": "0.4.3",
     "@uniswap/v3-core": "https://github.com/Uniswap/uniswap-v3-core/tarball/v1.0.0",
-    "@uniswap/v3-periphery": "1.0.1"
+    "@uniswap/v3-periphery": "1.0.1",
+    "dotenv": "^16.0.2"
   }
 }

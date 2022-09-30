@@ -50,13 +50,24 @@ contract MarginManager is ReentrancyGuard {
         external
         returns (address)
     {
-        require(marginAccounts[msg.sender] == address(0x0));
-        require(allowedUnderlyingTokens[underlyingToken] == true);
+        require(
+            marginAccounts[msg.sender] == address(0x0),
+            "MM: Acc already exists"
+        );
+        require(
+            allowedUnderlyingTokens[underlyingToken] == true,
+            "MM: Underlying token invalid"
+        );
         MarginAccount acc = new MarginAccount(underlyingToken);
         marginAccounts[msg.sender] = address(acc);
         return address(acc);
         // acc.setparams
         // approve
+    }
+
+    function toggleAllowedUnderlyingToken(address token) external {
+        require(token != address(0x0), "MM: Invalid token");
+        allowedUnderlyingTokens[token] = !allowedUnderlyingTokens[token];
     }
 
     function closeMarginAccount() external {
