@@ -157,73 +157,88 @@ const openPositionData = async (sizeDelta: any, trackingCode: any) => {
 
 describe("Margin Manager", () => {
   describe("Open a new account", () => {
+    let accAddress: any;
+    let marginAcc: any;
+    // let accAddress;
+    // let accAddress;
+    const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
+    const testamt = ethers.BigNumber.from("110000000000000000000000");
+    let IERC20ABI: any;
     before("Fork Network", async () => {
       await forkAtBlock(9000000);
     });
     beforeEach("Setup", async () => {
       // mint sUSD to test accounts, and deploy contracts
       await setup();
-    });
-
-    it("Margin manager.open new account", async () => {
       await marginManager.openMarginAccount();
-      const accAddress = await marginManager.marginAccounts(account0.address)
-      const marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
-      const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
-      const testamt = ethers.BigNumber.from("110000000000000000000000");
-      const IERC20ABI = (
+      accAddress = await marginManager.marginAccounts(account0.address)
+      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
+      IERC20ABI = (
         await artifacts.readArtifact(
           "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
         )
       ).abi;
+
       sUSD = new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
       await sUSD.approve(accAddress, testamt)
       await marginAcc.addCollateral(synthSUSDAddress, testamt)
+
+
+    });
+
+    it("Margin manager.open new account", async () => {
       let balance = await sUSD.balanceOf(accAddress);
       expect(balance).to.equal(testamt);
     });
     it("MarginAccount add new position", async () => {
-      await marginManager.openMarginAccount();
-      const accAddress = await marginManager.marginAccounts(account0.address)
-      const marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
-      const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
-      const testamt = ethers.BigNumber.from("110000000000000000000000");
-      const sizeDelta = ethers.BigNumber.from("10000000000000000000000");
-      const IERC20ABI = (
-        await artifacts.readArtifact(
-          "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
-        )
-      ).abi;
-      sUSD = new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
       await sUSD.approve(accAddress, testamt)
       await marginAcc.addCollateral(synthSUSDAddress, testamt)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
 
-      // console.log(myContract)
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
-      console.log(fmAddress)
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
-      // console.log(futuresManager)
       const UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
       const trData = await transferMarginData(accAddress, testamt)
+      const sizeDelta = ethers.BigNumber.from("10000000000000000000000");
       const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       console.log("transferMargin:", trData, "openPositionData", posData)
-      // let o = await marginAcc.executeTx(UNI_MARKET, trData)
-      // let o1 = await marginAcc.executeTx(UNI_MARKET, posData)
-      // const out = await marginManager.addPosition(UNI_MARKET, data)
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       console.log(await uniFutures.accessibleMargin(accAddress))
       const out = await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
       console.log(await uniFutures.accessibleMargin(accAddress))
-      // 
-      /**
-       * {UNI_MARKET:trData, UNI_MARKET:posData}
-       *  for each
-       *      trData.first4bytes= switch case(snx) 
-       *        case : transfer margin do this
-       *    
-       */
-      // console.log(o, o1)
+    });
+    it("MarginAccount close position", async () => {
+      await sUSD.approve(accAddress, testamt)
+      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
+
+      const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
+      const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
+      const UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
+      const trData = await transferMarginData(accAddress, testamt)
+      let sizeDelta = ethers.BigNumber.from("10000000000000000000000");
+      const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      console.log("transferMargin:", trData, "openPositionData", posData)
+      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
+      let Position = await uniFutures.positions(accAddress)
+      console.log(Position)
+      expect(Position.size).to.equal(sizeDelta);
+      sizeDelta = sizeDelta.mul(-1);
+      const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      console.log(posData2)
+      const out = await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
+      //   struct Position {
+      //     uint64 id;
+      //     uint64 lastFundingIndex;
+      //     uint128 margin;
+      //     uint128 lastPrice;
+      //     int128 size;
+      // }
+      Position = await uniFutures.positions(accAddress);
+      console.log(Position)
+      expect(Position.size).to.equal(BigNumber.from('0'));
+      console.log(await uniFutures.accessibleMargin(accAddress))
     });
   });
 });
