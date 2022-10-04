@@ -36,7 +36,21 @@ enum txMetaType {
   ERC20_TRANSFER,
   EXTERNAL_PROTOCOL
 }
-
+/**
+ * @notice fork network at block number given
+ */
+const forkAtBlock = async (block?: number) => {
+  await network.provider.request({
+    method: "hardhat_reset",
+    params: [
+      {
+        forking: {
+          jsonRpcUrl: process.env.ARCHIVE_NODE_URL_L2
+        },
+      },
+    ],
+  });
+};
 async function initializeContractsFixture(): Promise<Contracts> {
   // init contracts registry
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
@@ -90,6 +104,7 @@ const fundPerpVault = async (account: SignerWithAddress, amount: BigNumber) => {
 describe("MarginManager", () => {
   beforeEach(async () => {
     // await resetFork();
+    await forkAtBlock();
     [admin, bob] = await ethers.getSigners()
     contracts = await initializeContractsFixture();
     // contracts = await loadFixture(initializeContractsFixture);
@@ -137,7 +152,8 @@ describe("MarginManager", () => {
       // console.log("Finished static call, expectedBase - ", expectedBase.toString());
 
 
-      // await contracts.perp.clearingHouse.connect(bob).openPosition(openPositionParams)
+      let data = await contracts.perp.clearingHouse.connect(bob).openPosition(openPositionParams)
+      console.log(data)
       // ).to.emit(contracts.perp.clearingHouse, "PositionChanged")
       // .withArgs(
       //   bob.address, // trader
@@ -153,7 +169,7 @@ describe("MarginManager", () => {
       console.log(bob.address)
       console.log(baseToken)
       // console.log(contracts.perp.accountBalance)
-      let accBalance = await contracts.perp.accountBalance.getAccountInfo(bob.address, baseToken);
+      let accBalance = await contracts.perp.accountBalance.connect(bob).getAccountInfo(bob.address, baseToken);
       console.log("accBalance");
       console.log(accBalance);
 
