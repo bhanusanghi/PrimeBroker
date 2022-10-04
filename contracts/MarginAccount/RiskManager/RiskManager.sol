@@ -48,20 +48,17 @@ contract RiskManager is ReentrancyGuard {
         SNXRiskManager rm = new SNXRiskManager();
         uint256 transferAmount;
         (transferAmount, tokens) = rm.txDataDecoder(data);
-        console.log("waah vapas aa gya in risk m", transferAmount, tokens);
         // if (
         //     ((int256(spot) + unRealizedPnL) * 2) >
         //     int256(transferAmount + totalDebt)
         // ) {
         // @todo use proper lib for it
         MarginAccount(marginAcc).execMultiTx(destinations, data);
-        console.log("execute tx done in riskmanager");
         // }
         // swtich case
         // if (aandu bandu formula+tokens_to_transfer> minimum margin){
         //
         // }
-        console.log("out riskmanager");
         /**
         AB = Account Balance ( spot asset value)
         UP = Unrealised PnL (unRealizedPnL)

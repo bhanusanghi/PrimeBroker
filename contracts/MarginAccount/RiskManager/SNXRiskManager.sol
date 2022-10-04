@@ -57,12 +57,9 @@ contract SNXRiskManager is BaseProtocolRiskManager {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
                 amount = abi.decode(data[i][4:], (uint256));
-                console.log("in TM", amount);
             } else if (funSig == OP) {
                 totalPosition = abi.decode(data[i][4:], (uint256));
-                console.log("in OP", totalPosition);
             }
         }
-        console.log(amount, totalPosition);
     }
 }
