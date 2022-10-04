@@ -6,13 +6,17 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
+import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {ITypes} from "../Interfaces/ITypes.sol";
+
 import {MarginAccount} from "./MarginAccount.sol";
 import "hardhat/console.sol";
 
-contract MarginManager is ReentrancyGuard {
+contract MarginManager is ITypes, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     IRiskManager public riskManager;
+    IContractRegistry public contractRegistry;
     address public vault;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
@@ -21,11 +25,14 @@ contract MarginManager is ReentrancyGuard {
     // allowed protocols set
     EnumerableSet.AddressSet private allowedProtocols;
     // function transferAccount(address from, address to) external {}
+
     modifier xyz() {
         _;
     }
 
-    constructor() {}
+    constructor(IContractRegistry _contractRegistry) {
+        contractRegistry = _contractRegistry;
+    }
 
     function SetCollatralRatio(address token, uint256 value)
         external
@@ -78,22 +85,47 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
-    function addPosition(address protocolAddress, bytes memory data) external {
-        address[] destinations;
-        bytes[] memory dataArray;
+    // let's assume we allow only 5 tx at max
+    function addPosition(
+        bytes32[] memory contractName,
+        txMetaType[] memory transactionMetadata,
+        address[] memory contractAddress,
+        bytes[] memory data
+    ) external {
+        console.log("Started tx");
+        address[] memory destinations = new address[](5);
+        bytes[] memory dataArray = new bytes[](5);
         uint256 tokensToTransfer; // transfer these many tokens from vault to credit account.
         address marginacc = marginAccounts[msg.sender];
-        (destinations, dataArray, tokensToTransfer) = riskManager.NewTrade(
+        require(marginacc != address(0x0), "MM: No MarginAccount");
+        require(
+            transactionMetadata.length == contractName.length,
+            "MM: No Array parity"
+        );
+        require(
+            transactionMetadata.length == contractAddress.length,
+            "MM: No Array parity"
+        );
+        require(
+            transactionMetadata.length == data.length,
+            "MM: No Array parity"
+        );
+        console.log("verifying trade now");
+        (destinations, dataArray, tokensToTransfer) = riskManager.verifyTrade(
             marginacc,
-            protocolAddress,
-            protocolName,
+            contractName,
+            transactionMetadata,
+            contractAddress,
             data
         );
+        console.log("trade verified, executing next");
+
         //vault.approve/transfer
         bytes memory returnData = MarginAccount(marginacc).execMultiTx(
             destinations,
             dataArray
         );
+
         // do something with returnData or remove
         /**
         if RiskManager.AllowNewTrade
@@ -102,9 +134,9 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function updatePosition(address protocol, bytes calldata data) external {
-        if (riskManager.NewTrade(data)) {
-            //marginacc.execute
-        }
+        // if (riskManager.verifyTrade(data)) {
+        //marginacc.execute
+        // }
     }
 
     function closePosition() external {

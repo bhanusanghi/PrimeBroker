@@ -23,20 +23,25 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
 
-    bytes32 protocolName;
-    address contractRegistry;
+    // store whitelistedAddresses
+    // bytes32 protocolName;
+    // address contractRegistry;
     uint256 public immutable WAD = 10**18;
 
-    constructor(bytes32 _protocolName, address _contractRegistry) {
-        protocolName = _protocolName;
-        contractRegistry = _contractRegistry;
-    }
+    // constructor(bytes32 _protocolName, address _contractRegistry) {
+    constructor() {}
 
-    function allowTrade(
+    // function verifyTokenTransfer()
+
+    function verifyTrade(
         address _marginAccount,
         address _protocolAddress,
         bytes memory _data
     ) public returns (TradeResult memory tradeResult) {
+        // add access control
+        // add a check for protocol address using whitelisted addresses above
+        // require(protocolName === )
+
         tradeResult.marginAccount = _marginAccount;
         tradeResult.protocol = _protocolAddress;
         tradeResult.Token = IMarginAccount(_marginAccount).underlyingToken();
@@ -50,6 +55,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         resultingPosition.notionalValue;
         resultingPosition.marketValue;
         resultingPosition.underlyingMarginValue;
+
+        tradeResult.resultingPositions = new Position[](1);
         tradeResult.resultingPositions[0] = resultingPosition;
         tradeResult.finalHealthFactor = 2 * WAD;
         // checks with the protocol to see what would be the final Trade Result on executing the calldata.

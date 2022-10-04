@@ -6,7 +6,7 @@ contract ContractRegistry is IContractRegistry, AccessControl {
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
     mapping(bytes32 => address) contractRegistry;
 
-    constructor(address registrar) {
+    constructor() {
         _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 

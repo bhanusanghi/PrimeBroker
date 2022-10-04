@@ -7,7 +7,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
-import {IProtocolRiskManger} from "../Interfaces/IProtocolRiskManager.sol";
+import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
 
@@ -17,7 +17,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     IPriceOracle public priceOracle;
     address[] public whitelistedTokens;
 
-    ContractRegistry contractRegistery;
+    IContractRegistry contractRegistery;
 
     modifier xyz() {
         _;
@@ -26,7 +26,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // perpfi address=> perpfiRisk manager
     mapping(address => address) public riskManagers;
 
-    constructor(ContractRegistry _contractRegistery) {
+    constructor(IContractRegistry _contractRegistery) {
         contractRegistery = _contractRegistery;
     }
 
@@ -35,47 +35,72 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         priceOracle = IPriceOracle(oracle);
     }
 
-    function NewTrade(
-        address _marginacc,
-        address _protocolAddress,
-        bytes32 _protocolName,
-        bytes memory _data
+    function verifyTrade(
+        address _marginAccount,
+        bytes32[] memory _contractName,
+        txMetaType[] memory _transactionMetadata,
+        address[] memory _contractAddress,
+        bytes[] memory _data
     )
         public
         override(IRiskManager)
         returns (
-            address[] memory destinations,
+            address[] memory destination,
             bytes[] memory dataArray,
             uint256 tokens
         )
     {
-        // fetch adapter address using protocol name from contract registry.
-        IProtocolRiskManger protocolRiskManager = IProtocolRiskManger(
-            contractRegistery.getContractByName(protocolName)
+        TradeResult[] memory tradeResult = new TradeResult[](
+            _transactionMetadata.length
         );
+        destination = new address[](_transactionMetadata.length);
+        dataArray = new bytes[](_transactionMetadata.length);
 
-        TradeResult memory tradeResult = protocolRiskManager.allowTrade(
-            _marginAccount,
-            _protocolAddress,
-            _data
-        );
-        // get all such trade results and then check if final position can be opened. Add up amounts needed from different TradeResults and return the value of tokens.
-        // need an oracle to check how many actual USDC(underlying) tokens need to be sent from the vault.
+        for (uint256 i = 0; i < _transactionMetadata.length; i++) {
+            if (_transactionMetadata[i] == txMetaType.ERC20_APPROVAL) {
+                // verify tx type
+                // allow directly.
+                // tradeResult[i] = protocolRiskManager.verifyTrade(
+                //     _marginAccount,
+                //     _contractAddress[i],
+                //     _data[i]
+                // );
+                destination[i] = _contractAddress[i];
+                dataArray[i] = _data[i];
+                tokens += 0;
+            } else if (
+                // txMetadata[i].txType == txMetaType.ERC20_TRANSFER
+                false
+            ) {
+                // do something
+                // verifyTokenTransfer
+            } else {
+                // fetch adapter address using protocol name from contract registry.
+                IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+                    contractRegistery.getContractByName(_contractName[i])
+                );
+                // check whitelist of protocol addresses here or in verifyTrade at protocol risk manager.
+                tradeResult[i] = protocolRiskManager.verifyTrade(
+                    _marginAccount,
+                    _contractAddress[i],
+                    _data[i]
+                );
 
-        destinations = [_protocolAddress];
-        dataArray = [_data];
-        tokens = [0];
-
-        // total asset value+total derivatives value(excluding margin)
-        // total leverage ext,int
-        /**
-        _spotAssetValue + total
-        AB = Account Balance ( spot asset value)
-        UP = Unrealised PnL ()
-        IM = Initial Margin
-        MM = Maintenance Margin
-        AB+UP-IM-MM>0
-         */
+                destination[i] = _contractAddress[i];
+                dataArray[i] = _data[i];
+                tokens += 0;
+                // get all such trade results and then check if final position can be opened. Add up amounts needed from different TradeResults and return the value of tokens.
+                // need an oracle to check how many actual USDC(underlying) tokens need to be sent from the vault.
+            }
+            // create final data here now
+            // for (uint256 j = 0; j < _transactionMetadata.length; j++) {
+            //     // actually check the trade results in total and see if we should allow or not.
+            //     // for now let's assume yes.
+            //     destination[i] = tradeResult[i].;
+            //     dataArray = _data;
+            //     tokens = 0;
+            // }
+        }
     }
 
     function _spotAssetValue(address marginAccount) private {
