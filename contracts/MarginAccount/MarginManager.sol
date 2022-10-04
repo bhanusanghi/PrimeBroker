@@ -49,6 +49,7 @@ contract MarginManager is ReentrancyGuard {
         require(marginAccounts[msg.sender] == address(0x0));
         MarginAccount acc = new MarginAccount();
         marginAccounts[msg.sender] = address(acc);
+        return address(acc);
         // acc.setparams
         // approve
     }
@@ -62,24 +63,26 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
-    function addPosition(address protocolAddress, bytes memory data) external {
-        address[] destinations;
-        bytes[] memory dataArray;
-        uint256 tokensToTransfer;
+    function addPosition(
+        address protocolAddress,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external {
         address marginacc = marginAccounts[msg.sender];
-        (destinations, dataArray, tokensToTransfer) = riskManager.NewTrade(
+        uint256 tokensToTransfer = riskManager.NewTrade(
             marginacc,
             protocolAddress,
+            destinations,
             data
         );
         if (tokensToTransfer > 0) {
             //vault.approve/transfer
         }
 
-        bytes memory returnData = MarginAccount(marginacc).execMultiTx(
-            destinations,
-            dataArray
-        );
+        // bytes memory returnData = MarginAccount(marginacc).execMultiTx(
+        //     destinations,
+        //     dataArray
+        // );
         // do something with returnData or remove
         /**
         if RiskManager.AllowNewTrade

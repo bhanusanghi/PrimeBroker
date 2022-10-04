@@ -6,7 +6,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
-
+import {SNXRiskManager} from "./SNXRiskManager.sol";
+import {MarginAccount} from "../MarginAccount.sol";
 import "hardhat/console.sol";
 
 contract RiskManager is ReentrancyGuard {
@@ -31,22 +32,31 @@ contract RiskManager is ReentrancyGuard {
     function NewTrade(
         address marginAcc,
         address protocolAddress,
-        bytes calldata data
-    )
-        external
-        returns (
-            address[] destinations,
-            bytes[] memory dataArray,
-            uint256 tokens
-        )
-    {
-        destinations[0] = "0x0";
-        dataArray[0] = data; // might need to copy it so maybe send back pointers
+        address[] memory destinations,
+        bytes[] memory data
+    ) external returns (uint256 tokens) {
+        //calls {dest:calldata}
+        // snxRiskManager.varifyData(calls)=> snx.sported tx enumerate check if data is correct, tokens_to_transfer
+        // destinations[0] = address(0);
+        // dataArray[0] = data; // might need to copy it so maybe send back pointers
         tokens = 100;
         uint256 spot = _spotAssetValue(marginAcc);
         (uint256 margin, int256 unRealizedPnL) = _derivativesPositionValue(
             marginAcc
         );
+        SNXRiskManager rm = new SNXRiskManager();
+        uint256 transferAmount;
+        (transferAmount, tokens) = rm.txDataDecoder(data);
+        console.log("waah vapas aa gya in risk m", transferAmount, tokens);
+        if (transferAmount >= spot) {
+            MarginAccount(marginAcc).execMultiTx(destinations, data);
+            console.log("execute tx done in riskmanager");
+        }
+        // swtich case
+        // if (aandu bandu formula+tokens_to_transfer> minimum margin){
+        //
+        // }
+        console.log("out riskmanager");
         /**
         AB = Account Balance ( spot asset value)
         UP = Unrealised PnL (unRealizedPnL)
@@ -54,19 +64,21 @@ contract RiskManager is ReentrancyGuard {
         MM = Maintenance Margin % 30% for now
         AB+UP-IM-MM>0
          */
-        return ();
+        // return ();
     }
 
-    function _spotAssetValue(address marginAccount) private {
+    function _spotAssetValue(address marginAccount) private returns (uint256) {
         uint256 totalAmount = 0;
         uint256 len = allowedTokens.length;
         for (uint256 i = 0; i < len; i++) {
             address token = allowedTokens[i];
-            totalAmount += priceOracle.convertToUSD(
-                IERC20(token).balanceOf(marginAccount),
-                token
-            );
+            totalAmount += IERC20(token).balanceOf(marginAccount) * 1; // hardcode usd price
+            // priceOracle.convertToUSD(
+            //     IERC20(token).balanceOf(marginAccount),
+            //     token
+            // );
         }
+        return totalAmount;
     }
 
     function _derivativesPositionValue(address marginAccount)
