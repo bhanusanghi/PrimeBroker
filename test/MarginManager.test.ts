@@ -180,14 +180,13 @@ describe("Margin Manager", () => {
       sUSD = new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
       await sUSD.approve(accAddress, testamt)
       await marginAcc.addCollateral(synthSUSDAddress, testamt)
-
-
     });
 
     it("Margin manager.open new account", async () => {
       let balance = await sUSD.balanceOf(accAddress);
       expect(balance).to.equal(testamt);
     });
+
     it("MarginAccount add new position", async () => {
       await sUSD.approve(accAddress, testamt)
       await marginAcc.addCollateral(synthSUSDAddress, testamt)
@@ -248,6 +247,26 @@ describe("Margin Manager", () => {
       expect(Position.size).to.equal(sizeDelta);
       await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [await openPositionData(sizeDelta.mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))])
       Position = await uniFutures.positions(accAddress);
+      expect(Position.size).to.equal(BigNumber.from('0'));
+    });
+
+    it("MarginAccount take a short", async () => {
+      await sUSD.approve(accAddress, testamt)
+      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
+      const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
+      const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
+      const UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
+      const trData = await transferMarginData(accAddress, testamt)
+      let sizeDelta = ethers.BigNumber.from("10000000000000000000000");
+      const posData1 = await openPositionData(sizeDelta.mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))
+      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData1])
+      const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
+      let Position = await uniFutures.positions(accAddress)
+      expect(Position.size).to.equal(sizeDelta.mul(-1));
+      const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
+      Position = await uniFutures.positions(accAddress)
       expect(Position.size).to.equal(BigNumber.from('0'));
     });
   });
