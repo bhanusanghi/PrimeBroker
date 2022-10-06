@@ -18,6 +18,8 @@ contract RiskManager is ReentrancyGuard {
     modifier xyz() {
         _;
     }
+    uint256 public initialMarginFactor = 35; //in percent
+    // 1000-> 2800$
     // protocol to riskManager mapping
     // perpfi address=> perpfiRisk manager
     mapping(address => address) public riskManagers;
@@ -40,20 +42,26 @@ contract RiskManager is ReentrancyGuard {
         // destinations[0] = address(0);
         // dataArray[0] = data; // might need to copy it so maybe send back pointers
         tokens = 100;
-        uint256 spot = _spotAssetValue(marginAcc);
-        (uint256 margin, int256 unRealizedPnL) = _derivativesPositionValue(
-            marginAcc
-        );
+        int256 positionSize;
+        uint256 freeMargin = getFreeMargin(marginAcc);
         uint256 totalDebt = 1; // keep a total debt var in margin account
         SNXRiskManager rm = new SNXRiskManager();
         uint256 transferAmount;
-        (transferAmount, tokens) = rm.txDataDecoder(data);
+        (transferAmount, positionSize) = rm.txDataDecoder(data);
+        if (freeMargin >= uint256(absVal(positionSize))) {
+            MarginAccount(marginAcc).execMultiTx(destinations, data);
+            MarginAccount(marginAcc).updatePosition(
+                protocolAddress,
+                positionSize,
+                transferAmount
+            ); // @todo update it with vault-MM link
+        }
         // if (
         //     ((int256(spot) + unRealizedPnL) * 2) >
         //     int256(transferAmount + totalDebt)
         // ) {
         // @todo use proper lib for it
-        MarginAccount(marginAcc).execMultiTx(destinations, data);
+
         // }
         // swtich case
         // if (aandu bandu formula+tokens_to_transfer> minimum margin){
@@ -69,8 +77,32 @@ contract RiskManager is ReentrancyGuard {
         // return ();
     }
 
-    function _spotAssetValue(address marginAccount) private returns (uint256) {
-        uint256 totalAmount = 0;
+    function getFreeMargin(address marginAccount)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 notionalValue;
+        int256 PnL;
+        (notionalValue, PnL) = getPnL(marginAccount);
+        return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
+            initialMarginFactor) -
+            MarginAccount(marginAccount).totalBorrowed());
+
+        /**
+                (asset+PnL)*100/initialMarginFactor
+             */
+    }
+
+    function addAllowedTokens(address token) public {
+        allowedTokens.push(token);
+    }
+
+    function spotAssetValue(address marginAccount)
+        public
+        view
+        returns (uint256 totalAmount)
+    {
         uint256 len = allowedTokens.length;
         for (uint256 i = 0; i < len; i++) {
             address token = allowedTokens[i];
@@ -83,13 +115,18 @@ contract RiskManager is ReentrancyGuard {
         return totalAmount;
     }
 
-    function _derivativesPositionValue(address marginAccount)
-        private
-        returns (uint256, int256)
+    function absVal(int256 val) public view returns (int256) {
+        return val < 0 ? -val : val;
+    }
+
+    function getPnL(address marginAccount)
+        public
+        view
+        returns (uint256 notionalValue, int256 PnL)
     {
         uint256 amount;
         // for each protocol or iterate on positions and get value of positions
-        return (0, 0);
+        return (1, 1);
     }
 
     function TotalPositionValue() external {}

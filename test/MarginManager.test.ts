@@ -82,6 +82,7 @@ const setup = async () => {
   marginManager = await MarginManager.deploy()
   const RiskManager = await ethers.getContractFactory("RiskManager");
   riskManager = await RiskManager.deploy()
+  await riskManager.addAllowedTokens("0xD1599E478cC818AFa42A4839a6C665D9279C3E50")
   await marginManager.SetRiskManager(riskManager.address);
   // // console.log(myContract)
   // const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
@@ -214,6 +215,8 @@ describe("Margin Manager", () => {
       await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       let Position = await uniFutures.positions(accAddress)
+      let freeMargin = await riskManager.getFreeMargin(accAddress);
+      // console.log(Position, freeMargin);
       expect(Position.size).to.equal(sizeDelta);
       sizeDelta = sizeDelta.mul(-1);
       const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
@@ -243,7 +246,6 @@ describe("Margin Manager", () => {
       const posData3 = await openPositionData(sizeDelta.div(2).mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))
       await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData3])
       Position = await uniFutures.positions(accAddress);
-
       expect(Position.size).to.equal(sizeDelta);
       await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [await openPositionData(sizeDelta.mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))])
       Position = await uniFutures.positions(accAddress);
