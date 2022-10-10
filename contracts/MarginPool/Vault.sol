@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 // contract Vault is IVault, ERC4626 {
 contract Vault is ERC4626 {
@@ -60,7 +61,7 @@ contract Vault is ERC4626 {
         address _asset,
         address _lpTokenAddress,
         address _interestRateModelAddress,
-        uint256 maxExpectedLiquidity
+        uint256 _maxExpectedLiquidity
     ) ERC4626(IERC20Metadata(_asset)) ERC20("name", "symbol") {
         require(
             _asset != address(0) &&
@@ -73,7 +74,7 @@ contract Vault is ERC4626 {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
-        maxExpectedLiquidity = maxExpectedLiquidity;
+        maxExpectedLiquidity = _maxExpectedLiquidity;
     }
 
     /** @dev See {IERC4262-deposit}. */
@@ -91,11 +92,19 @@ contract Vault is ERC4626 {
             expectedLiquidity() + assets <= maxExpectedLiquidity,
             Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
         );
+        console.log(expectedLiquidity() + assets, maxExpectedLiquidity);
         uint256 shares = previewDeposit(assets);
+        console.log(_msgSender(), receiver, assets, shares);
         _deposit(_msgSender(), receiver, assets, shares);
-
+        // SafeERC20.safeTransferFrom(
+        //     IERC20Metadata(asset()),
+        //     _msgSender(),
+        //     address(this),
+        //     assets
+        // );
+        console.log("transfer");
         // update borrow Interest Rate.
-        // expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(assets);
+        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(assets);
         _updateBorrowRate(0);
 
         return shares;
@@ -194,9 +203,9 @@ contract Vault is ERC4626 {
     /// @dev Returns current diesel rate in RAY format
     /// More info: https://dev.gearbox.fi/developers/pools/economy#diesel-rate
     function getShareRate_Ray() public view returns (uint256) {
-        uint256 totalSupply = totalSupply();
-        if (totalSupply == 0) return RAY; // T:[PS-1]
-        return (expectedLiquidity() * RAY) / totalSupply; // T:[PS-6]
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply == 0) return RAY; // T:[PS-1]
+        return (expectedLiquidity() * RAY) / _totalSupply; // T:[PS-6]
     }
 
     modifier onlyAllowedLendingCreditManager() {
@@ -214,13 +223,21 @@ contract Vault is ERC4626 {
         _;
     }
 
+    function addlendingAddress(address _lendAddress) public {
+        lendingAllowed[_lendAddress] = true;
+    }
+
+    function addRepayingAddress(address _repayAddress) public {
+        repayingAllowed[_repayAddress] = true;
+    }
+
     function lend(uint256 amount, address borrower)
         external
         onlyAllowedLendingCreditManager
     {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount);
-
+        console.log("inside vault");
         // update total borrowed
         totalBorrowed = totalBorrowed.add(amount);
         // update expectedLiquidityLU
@@ -228,12 +245,14 @@ contract Vault is ERC4626 {
         // update interest rate;
         _updateBorrowRate(0);
         // transfer
-        SafeERC20.safeTransferFrom(
-            IERC20(asset()),
-            address(this),
-            borrower,
-            amount
+        console.log(
+            "lend amount",
+            amount,
+            IERC20(asset()).balanceOf(address(this))
         );
+        // SafeERC20.safeApprove(IERC20(asset()), borrower, amount);
+        IERC20(asset()).transfer(borrower, amount);
+        console.log("post approve");
         emit Borrow(msg.sender, borrower, amount);
     }
 

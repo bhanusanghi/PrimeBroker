@@ -8,12 +8,14 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {MarginAccount} from "../MarginAccount.sol";
+import {Vault} from "../../MarginPool/Vault.sol";
 import "hardhat/console.sol";
 
 contract RiskManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     IPriceOracle public priceOracle;
+    Vault public vault;
     address[] public allowedTokens;
     modifier xyz() {
         _;
@@ -29,6 +31,10 @@ contract RiskManager is ReentrancyGuard {
     function setPriceOracle(address oracle) external {
         // onlyOwner
         priceOracle = IPriceOracle(oracle);
+    }
+
+    function setVault(address _vault) external {
+        vault = Vault(_vault);
     }
 
     function NewTrade(
@@ -48,13 +54,23 @@ contract RiskManager is ReentrancyGuard {
         SNXRiskManager rm = new SNXRiskManager();
         uint256 transferAmount;
         (transferAmount, positionSize) = rm.txDataDecoder(data);
-        if (freeMargin >= uint256(absVal(positionSize))) {
+        // if (freeMargin >= uint256(absVal(positionSize))) {
+        console.log(freeMargin, transferAmount, "f");
+        if (freeMargin >= transferAmount) {
+            vault.lend(transferAmount, marginAcc);
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             MarginAccount(marginAcc).updatePosition(
                 protocolAddress,
                 positionSize,
                 transferAmount
             ); // @todo update it with vault-MM link
+
+            //         function repay(
+            // uint256 borrowedAmount, // exact amount that is returned as principle
+            // uint256 loss,
+            // uint256 profit
+        } else {
+            revert("margin kam pad gya na");
         }
         // if (
         //     ((int256(spot) + unRealizedPnL) * 2) >
