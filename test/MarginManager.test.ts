@@ -37,7 +37,9 @@ const GELATO_OPS = "0xB3f5503f93d5Ef84b06993a1975B9D21B962892F";
 let marginBaseSettings: Contract;
 let marginManager: Contract;
 let marginAccount: Contract;
-let riskManager: Contract
+let riskManager: Contract;
+let vault: Contract;
+let LPToken: Contract;
 // test accounts
 let account0: SignerWithAddress;
 let account1: SignerWithAddress;
@@ -74,65 +76,27 @@ const setup = async () => {
   await mintToAccountSUSD(account0.address, MINT_AMOUNT);
 
   // // mint account1 $100_000 sUSD
-  // await mintToAccountSUSD(account1.address, MINT_AMOUNT);
+  await mintToAccountSUSD(account0.address, MINT_AMOUNT);
 
   // // Deploy Settings
 
+  const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
+  const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);
+  const _LPToken = await ethers.getContractFactory("LPToken");
+  LPToken = await _LPToken.deploy("GIGABRAIN vault", "GBV", 18);
+  const VaultFactory = await ethers.getContractFactory("Vault");
+  vault = await VaultFactory.deploy("0xD1599E478cC818AFa42A4839a6C665D9279C3E50", LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy()
   const RiskManager = await ethers.getContractFactory("RiskManager");
   riskManager = await RiskManager.deploy()
+  await vault.addRepayingAddress(riskManager.address)
+  await vault.addlendingAddress(riskManager.address)
+  // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
   await riskManager.addAllowedTokens("0xD1599E478cC818AFa42A4839a6C665D9279C3E50")
+  await riskManager.setVault(vault.address)
+  console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
-  // // console.log(myContract)
-  // const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
-  // console.log(fmAddress)
-  // const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
-  // // console.log(futuresManager)
-  // const out = await futuresManager.marketForKey(MARKET_KEY_sUNI)
-  // // console.log(out)
-  // const uniFutures = await ethers.getContractAt("IFuturesMarket", out, account0)
-  // console.log(await uniFutures.marketSize())
-  // const CODE = ethers.utils.formatBytes32String("GIGABRAINs")
-
-
-  // "mint" accountAddress specified amount of sUSD
-  // // MultiCollateralSynth contract address for sUSD
-  // const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
-  // const ISynthABI = (
-  //   await artifacts.readArtifact("contracts/Interfaces/SNX/ISynth.sol:ISynth")
-  // ).abi;
-  // const testamt = ethers.BigNumber.from("110000000000000000000000");
-  // const synth = new ethers.Contract(synthSUSDAddress, ISynthABI, account0);
-  // await synth.approve(out, testamt)
-  // console.log("pre")
-  // const data = await uniFutures.transferMargin(testamt)
-  // console.log("pre", JSON.stringify(data))
-  // console.log(await uniFutures.accessibleMargin(account0.address))
-  // const out1 = await uniFutures.modifyPositionWithTracking(ethers.BigNumber.from("10000000000000000000000"), CODE);
-  // console.log(await uniFutures.accessibleMargin(account0.address), "\n\n", out1)
-  // console.log(await uniFutures.closePositionWithTracking(CODE))
-  // console.log(await uniFutures.accessibleMargin(account0.address), "\n\n")
-  // console.log(out1)
-  // console.log("post")
-  // marginBaseSettings = await MarginBaseSettings.deploy(
-  //   KWENTA_TREASURY,
-  //   tradeFee,
-  //   limitOrderFee,
-  //   stopLossFee
-  // );
-
-  // // Deploy Account Factory
-  // const MarginAccountFactory = await ethers.getContractFactory(
-  //   "MarginAccountFactory"
-  // );
-  // marginAccountFactory = await MarginAccountFactory.deploy(
-  //   "1.0.0",
-  //   SUSD_PROXY,
-  //   ADDRESS_RESOLVER,
-  //   marginBaseSettings.address,
-  //   GELATO_OPS
-  // );
 };
 const transferMarginData = async (address: any, amount: any) => {
   const IFuturesMarketABI = (
@@ -168,22 +132,25 @@ describe("Margin Manager", () => {
     });
     beforeEach("Setup", async () => {
       // mint sUSD to test accounts, and deploy contracts
-      await setup();
-      await marginManager.openMarginAccount();
-      accAddress = await marginManager.marginAccounts(account0.address)
-      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
       IERC20ABI = (
         await artifacts.readArtifact(
           "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
         )
       ).abi;
 
-      sUSD = new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
+      await setup();
+
+      sUSD = await new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
+      await marginManager.openMarginAccount();
+      accAddress = await marginManager.marginAccounts(account0.address)
+      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
       await sUSD.approve(accAddress, testamt)
-      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      await sUSD.approve(vault.address, MINT_AMOUNT)
+      await vault.deposit(MINT_AMOUNT, account0.address)
     });
 
     it("Margin manager.open new account", async () => {
+      await marginAcc.addCollateral(synthSUSDAddress, testamt)
       let balance = await sUSD.balanceOf(accAddress);
       expect(balance).to.equal(testamt);
     });
@@ -215,7 +182,7 @@ describe("Margin Manager", () => {
       await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       let Position = await uniFutures.positions(accAddress)
-      let freeMargin = await riskManager.getFreeMargin(accAddress);
+      // let freeMargin = await riskManager.getFreeMargin(accAddress);
       // console.log(Position, freeMargin);
       expect(Position.size).to.equal(sizeDelta);
       sizeDelta = sizeDelta.mul(-1);
@@ -266,10 +233,10 @@ describe("Margin Manager", () => {
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       let Position = await uniFutures.positions(accAddress)
       expect(Position.size).to.equal(sizeDelta.mul(-1));
-      const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
-      Position = await uniFutures.positions(accAddress)
-      expect(Position.size).to.equal(BigNumber.from('0'));
+      // const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      // await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
+      // Position = await uniFutures.positions(accAddress)
+      // expect(Position.size).to.equal(BigNumber.from('0'));
     });
   });
 });

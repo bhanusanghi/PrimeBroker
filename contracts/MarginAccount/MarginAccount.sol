@@ -85,6 +85,22 @@ contract MarginAccount {
         totalBorrowed += newDebt;
     }
 
+    function getPositionsValue()
+        public
+        returns (uint256 totalNotional, int256 PnL)
+    {
+        // only riskmanagger
+        uint256 len = positions.length;
+        for (uint256 i = 0; i < len; i++) {
+            totalNotional += absVal(positions[i].notionalValue);
+        }
+        PnL = 1; // @todo fix me
+    }
+
+    function absVal(int256 val) public view returns (uint256) {
+        return uint256(val < 0 ? -val : val);
+    }
+
     function transferTokens(
         address token,
         address to,

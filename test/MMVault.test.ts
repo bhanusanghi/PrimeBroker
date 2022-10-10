@@ -102,55 +102,6 @@ const setup = async () => {
   await riskManager.setVault(vault.address)
   console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
-  // // console.log(myContract)
-  // const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
-  // console.log(fmAddress)
-  // const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
-  // // console.log(futuresManager)
-  // const out = await futuresManager.marketForKey(MARKET_KEY_sUNI)
-  // // console.log(out)
-  // const uniFutures = await ethers.getContractAt("IFuturesMarket", out, account0)
-  // console.log(await uniFutures.marketSize())
-  // const CODE = ethers.utils.formatBytes32String("GIGABRAINs")
-
-
-  // "mint" accountAddress specified amount of sUSD
-  // // MultiCollateralSynth contract address for sUSD
-  // const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
-  // const ISynthABI = (
-  //   await artifacts.readArtifact("contracts/Interfaces/SNX/ISynth.sol:ISynth")
-  // ).abi;
-  // const testamt = ethers.BigNumber.from("110000000000000000000000");
-  // const synth = new ethers.Contract(synthSUSDAddress, ISynthABI, account0);
-  // await synth.approve(out, testamt)
-  // console.log("pre")
-  // const data = await uniFutures.transferMargin(testamt)
-  // console.log("pre", JSON.stringify(data))
-  // console.log(await uniFutures.accessibleMargin(account0.address))
-  // const out1 = await uniFutures.modifyPositionWithTracking(ethers.BigNumber.from("10000000000000000000000"), CODE);
-  // console.log(await uniFutures.accessibleMargin(account0.address), "\n\n", out1)
-  // console.log(await uniFutures.closePositionWithTracking(CODE))
-  // console.log(await uniFutures.accessibleMargin(account0.address), "\n\n")
-  // console.log(out1)
-  // console.log("post")
-  // marginBaseSettings = await MarginBaseSettings.deploy(
-  //   KWENTA_TREASURY,
-  //   tradeFee,
-  //   limitOrderFee,
-  //   stopLossFee
-  // );
-
-  // // Deploy Account Factory
-  // const MarginAccountFactory = await ethers.getContractFactory(
-  //   "MarginAccountFactory"
-  // );
-  // marginAccountFactory = await MarginAccountFactory.deploy(
-  //   "1.0.0",
-  //   SUSD_PROXY,
-  //   ADDRESS_RESOLVER,
-  //   marginBaseSettings.address,
-  //   GELATO_OPS
-  // );
 };
 const transferMarginData = async (address: any, amount: any) => {
   const IFuturesMarketABI = (
