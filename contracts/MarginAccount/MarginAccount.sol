@@ -28,15 +28,16 @@ contract MarginAccount {
         uint256 externalLev; //@note for future use only
         address protocol;
         PositionType positionType;
-        uint256 notionalValue;
+        int256 notionalValue;
         uint256 marketValue;
         uint256 underlyingMarginValue;
     }
+    address public baseToken; //usdt/c
     position[] positions;
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public totalLev;
-    uint256 public totalBorrowed;
+    uint256 public totalBorrowed; // in usd terms
 
     modifier xyz() {
         _;
@@ -48,20 +49,6 @@ contract MarginAccount {
         return (totalInternalLev, (totalLev - totalInternalLev));
     }
 
-    function calLeverage() external returns (uint256, uint256) {
-        // only margin/riskmanager
-        uint256 len = positions.length;
-        uint256 intLev;
-        uint256 extLev = 0; // for future use
-        for (uint256 i = 0; i < len; i++) {
-            intLev += positions[i].internalLev;
-            // extLev += positions[i].externalLev;
-        }
-        totalInternalLev = intLev;
-        // totalLev = intLev + extLev;
-        return (intLev, extLev);
-    }
-
     function addCollateral(address token, uint256 amount) external {
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
@@ -71,6 +58,47 @@ contract MarginAccount {
     // onylMarginmanager
     {
         IERC20(token).approve(protocol, type(uint256).max);
+    }
+
+    function updatetotalBorrowed(
+        uint256 newDebt // onylMarginmanager
+    ) external {
+        totalBorrowed += newDebt;
+    }
+
+    function updatePosition(
+        address _protocol,
+        int256 size,
+        uint256 newDebt
+    ) public {
+        // only riskmanagger
+        position memory _position = position(
+            0,
+            0,
+            _protocol,
+            PositionType.LONG,
+            size,
+            0,
+            0
+        );
+        positions.push(_position); // instead of array we should use mapping with markets and merge positions
+        totalBorrowed += newDebt;
+    }
+
+    function getPositionsValue()
+        public
+        returns (uint256 totalNotional, int256 PnL)
+    {
+        // only riskmanagger
+        uint256 len = positions.length;
+        for (uint256 i = 0; i < len; i++) {
+            totalNotional += absVal(positions[i].notionalValue);
+        }
+        PnL = 1; // @todo fix me
+    }
+
+    function absVal(int256 val) public view returns (uint256) {
+        return uint256(val < 0 ? -val : val);
     }
 
     function transferTokens(

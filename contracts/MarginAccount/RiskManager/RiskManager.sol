@@ -8,16 +8,20 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {MarginAccount} from "../MarginAccount.sol";
+import {Vault} from "../../MarginPool/Vault.sol";
 import "hardhat/console.sol";
 
 contract RiskManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     IPriceOracle public priceOracle;
+    Vault public vault;
     address[] public allowedTokens;
     modifier xyz() {
         _;
     }
+    uint256 public initialMarginFactor = 35; //in percent
+    // 1000-> 2800$
     // protocol to riskManager mapping
     // perpfi address=> perpfiRisk manager
     mapping(address => address) public riskManagers;
@@ -29,31 +33,65 @@ contract RiskManager is ReentrancyGuard {
         priceOracle = IPriceOracle(oracle);
     }
 
+    function setVault(address _vault) external {
+        vault = Vault(_vault);
+    }
+
     function NewTrade(
         address marginAcc,
         address protocolAddress,
         address[] memory destinations,
         bytes[] memory data
     ) external returns (uint256 tokens) {
-        //calls {dest:calldata}
-        // snxRiskManager.varifyData(calls)=> snx.sported tx enumerate check if data is correct, tokens_to_transfer
-        // destinations[0] = address(0);
-        // dataArray[0] = data; // might need to copy it so maybe send back pointers
         tokens = 100;
-        uint256 spot = _spotAssetValue(marginAcc);
-        (uint256 margin, int256 unRealizedPnL) = _derivativesPositionValue(
-            marginAcc
-        );
-        uint256 totalDebt = 1; // keep a total debt var in margin account
+        int256 positionSize;
+        uint256 totalNotioanl;
+        int256 PnL;
+        (totalNotioanl, PnL) = MarginAccount(marginAcc).getPositionsValue();
+        uint256 freeMargin = getFreeMargin(marginAcc, PnL);
+
         SNXRiskManager rm = new SNXRiskManager();
+        uint256 maxTransferAmount = freeMargin -
+            (totalNotioanl + uint256(positionSize));
         uint256 transferAmount;
-        (transferAmount, tokens) = rm.txDataDecoder(data);
+        (transferAmount, positionSize) = rm.txDataDecoder(data);
+        // if (freeMargin >= uint256(absVal(positionSize))) {
+        console.log(freeMargin, transferAmount, "f");
+        require(
+            freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
+            "Extra margin not allowed"
+        );
+        if (positionSize > 0) {
+            vault.lend(transferAmount, marginAcc);
+            MarginAccount(marginAcc).execMultiTx(destinations, data);
+            MarginAccount(marginAcc).updatePosition(
+                protocolAddress,
+                positionSize,
+                transferAmount
+            ); // @todo update it with vault-MM link
+
+            //         function repay(
+            // uint256 borrowedAmount, // exact amount that is returned as principle
+            // uint256 loss,
+            // uint256 profit
+        } else if (positionSize < 0) {
+            // vault.repay()
+            console.log("repay time");
+            MarginAccount(marginAcc).execMultiTx(destinations, data);
+            MarginAccount(marginAcc).updatePosition(
+                protocolAddress,
+                positionSize,
+                transferAmount
+            );
+        } else {
+            revert("margin kam pad gya na");
+        }
         // if (
         //     ((int256(spot) + unRealizedPnL) * 2) >
         //     int256(transferAmount + totalDebt)
         // ) {
         // @todo use proper lib for it
-        MarginAccount(marginAcc).execMultiTx(destinations, data);
+
         // }
         // swtich case
         // if (aandu bandu formula+tokens_to_transfer> minimum margin){
@@ -69,11 +107,39 @@ contract RiskManager is ReentrancyGuard {
         // return ();
     }
 
-    function _spotAssetValue(address marginAccount) private returns (uint256) {
-        uint256 totalAmount = 0;
+    function getFreeMargin(address marginAccount, int256 PnL)
+        public
+        view
+        returns (uint256)
+    {
+        console.log("hohoho", spotAssetValue(marginAccount));
+        console.log(
+            (uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100)
+        );
+        return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
+            initialMarginFactor) -
+            MarginAccount(marginAccount).totalBorrowed());
+
+        /**
+                (asset+PnL)*100/initialMarginFactor
+             */
+    }
+
+    function addAllowedTokens(address token) public {
+        allowedTokens.push(token);
+    }
+
+    function spotAssetValue(address marginAccount)
+        public
+        view
+        returns (uint256 totalAmount)
+    {
+        // @todo have a seperate variable for vault assets so that lent and deposited assets don't mix up
         uint256 len = allowedTokens.length;
+        console.log("spot val");
         for (uint256 i = 0; i < len; i++) {
             address token = allowedTokens[i];
+            console.log("spot val", IERC20(token).balanceOf(marginAccount));
             totalAmount += IERC20(token).balanceOf(marginAccount) * 1; // hardcode usd price
             // priceOracle.convertToUSD(
             //     IERC20(token).balanceOf(marginAccount),
@@ -83,13 +149,18 @@ contract RiskManager is ReentrancyGuard {
         return totalAmount;
     }
 
-    function _derivativesPositionValue(address marginAccount)
-        private
-        returns (uint256, int256)
+    function absVal(int256 val) public view returns (int256) {
+        return val < 0 ? -val : val;
+    }
+
+    function getPnL(address marginAccount)
+        public
+        view
+        returns (uint256 notionalValue, int256 PnL)
     {
         uint256 amount;
         // for each protocol or iterate on positions and get value of positions
-        return (0, 0);
+        return (1, 1);
     }
 
     function TotalPositionValue() external {}

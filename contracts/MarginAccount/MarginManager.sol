@@ -7,13 +7,14 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {RiskManager} from "./RiskManager/RiskManager.sol";
 import {MarginAccount} from "./MarginAccount.sol";
+import {Vault} from "../MarginPool/Vault.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     RiskManager public riskManager;
-    address public vault;
+    Vault public vault;
     // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
@@ -42,6 +43,11 @@ contract MarginManager is ReentrancyGuard {
     function SetRiskManager(address riskmgr) external {
         // onlyOwner
         riskManager = RiskManager(riskmgr);
+    }
+
+    function SetVault(address _vault) external {
+        // onlyOwner
+        vault = Vault(_vault);
     }
 
     // function set(address p){}
