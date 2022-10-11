@@ -43,7 +43,7 @@ contract SNXRiskManager is BaseProtocolRiskManager {
     function txDataDecoder(bytes[] calldata data)
         public
         view
-        returns (uint256 amount, int256 totalPosition)
+        returns (int256 amount, int256 totalPosition)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -56,7 +56,7 @@ contract SNXRiskManager is BaseProtocolRiskManager {
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = abi.decode(data[i][4:], (uint256));
+                amount = abi.decode(data[i][4:], (int256));
             } else if (funSig == OP) {
                 totalPosition = abi.decode(data[i][4:], (int256));
             }

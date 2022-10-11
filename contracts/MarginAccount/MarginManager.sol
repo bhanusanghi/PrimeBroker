@@ -69,23 +69,35 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
-    function addPosition(
+    function openPosition(
         address protocolAddress,
         address[] memory destinations,
         bytes[] memory data
     ) external {
-        address marginacc = marginAccounts[msg.sender];
-        uint256 tokensToTransfer = riskManager.NewTrade(
-            marginacc,
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        require(
+            !marginAcc.existingPosition(protocolAddress),
+            "Existing position"
+        );
+        int256 tokensToTransfer;
+        int256 positionSize;
+        (tokensToTransfer, positionSize) = riskManager.NewTrade(
+            address(marginAcc),
             protocolAddress,
             destinations,
             data
+        );
+        marginAcc.updatePosition(
+            protocolAddress,
+            positionSize,
+            uint256(absVal(tokensToTransfer)),
+            true
         );
         if (tokensToTransfer > 0) {
             //vault.approve/transfer
         }
 
-        // bytes memory returnData = MarginAccount(marginacc).execMultiTx(
+        // bytes memory returnData = marginAcc.execMultiTx(
         //     destinations,
         //     dataArray
         // );
@@ -96,20 +108,73 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
-    function updatePosition(address protocol, bytes calldata data) external {
-        // if (riskManager.NewTrade(data)) {
-        //marginacc.execute
-        // }
+    function updatePosition(
+        address protocolAddress,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external {
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        require(
+            marginAcc.existingPosition(protocolAddress),
+            "Position doesn't exist"
+        );
+        int256 tokensToTransfer;
+        int256 _currentPositionSize;
+        int256 _oldPositionSize = marginAcc.getPositionValue(protocolAddress);
+        (tokensToTransfer, _currentPositionSize) = riskManager.NewTrade(
+            address(marginAcc),
+            protocolAddress,
+            destinations,
+            data
+        );
+
+        marginAcc.updatePosition(
+            protocolAddress,
+            _oldPositionSize + _currentPositionSize,
+            uint256(absVal(tokensToTransfer)),
+            true
+        );
+        if (tokensToTransfer > 0) {
+            //vault.approve/transfer
+        }
     }
 
-    function closePosition() external {
+    function closePosition(
+        address protocolAddress,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external {
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        // address protocolAddress = marginAcc.positions(positionIndex);
+        require(
+            marginAcc.existingPosition(protocolAddress),
+            "Position doesn't exist"
+        );
+        int256 tokensToTransfer;
+        int256 positionSize;
+        (tokensToTransfer, positionSize) = riskManager.closeTrade(
+            address(marginAcc),
+            protocolAddress,
+            destinations,
+            data
+        );
+        require(
+            marginAcc.removePosition(protocolAddress),
+            "Error in removing position"
+        );
         /**
+        if transfer margin back from protocol then reduce total debt and repay
         preview close on origin, if true close or revert
         take fees and interest
          */
     }
 
-    function liquidatePosition() external {
+    function liquidatePosition(address protocolAddress) external {
+        address marginAcc = marginAccounts[msg.sender];
+        require(
+            MarginAccount(marginAcc).existingPosition(protocolAddress),
+            "Position doesn't exist"
+        );
         /**
         riskManager.isliquidatable()
         close on the venue
@@ -131,6 +196,10 @@ contract MarginManager is ReentrancyGuard {
         returns (uint256)
     {
         return 1;
+    }
+
+    function absVal(int256 val) public view returns (int256) {
+        return val < 0 ? -val : val;
     }
 
     function _approveTokens() private {}

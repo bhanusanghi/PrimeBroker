@@ -142,6 +142,13 @@ describe("Margin Manager", () => {
 
       sUSD = await new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
       await marginManager.openMarginAccount();
+      const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
+      const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
+      const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
+      const UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
+      const ETH_MARKET = await futuresManager.marketForKey(MARKET_KEY_sETH)
+      await riskManager.addNewMarket(UNI_MARKET, 2)
+      await riskManager.addNewMarket(ETH_MARKET, 0)
       accAddress = await marginManager.marginAccounts(account0.address)
       marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
       await sUSD.approve(accAddress, testamt)
@@ -166,7 +173,7 @@ describe("Margin Manager", () => {
       const sizeDelta = ethers.BigNumber.from("10000000000000000000000");
       const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
-      const out = await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      const out = await marginManager.openPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
     });
     it("MarginAccount close position", async () => {
       await sUSD.approve(accAddress, testamt)
@@ -179,15 +186,13 @@ describe("Margin Manager", () => {
       const trData = await transferMarginData(accAddress, testamt)
       let sizeDelta = ethers.BigNumber.from("10000000000000000000000");
       const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      await marginManager.openPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       let Position = await uniFutures.positions(accAddress)
-      // let freeMargin = await riskManager.getFreeMargin(accAddress);
-      // console.log(Position, freeMargin);
       expect(Position.size).to.equal(sizeDelta);
       sizeDelta = sizeDelta.mul(-1);
       const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-      const out = await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
+      const out = await marginManager.closePosition(UNI_MARKET, [UNI_MARKET], [posData2])
       Position = await uniFutures.positions(accAddress);
       expect(Position.size).to.equal(BigNumber.from('0'));
     });
@@ -201,20 +206,20 @@ describe("Margin Manager", () => {
       const trData = await transferMarginData(accAddress, testamt)
       let sizeDelta = ethers.BigNumber.from("10000000000000000000000");
       const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      await marginManager.openPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       let Position = await uniFutures.positions(accAddress)
       expect(Position.size).to.equal(sizeDelta);
       const posData2 = await openPositionData(sizeDelta.div(2), ethers.utils.formatBytes32String("GIGABRAINs"))
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
+      await marginManager.updatePosition(UNI_MARKET, [UNI_MARKET], [posData2])
 
       Position = await uniFutures.positions(accAddress);
       expect(Position.size).to.equal(sizeDelta.add(sizeDelta.div(2)));
       const posData3 = await openPositionData(sizeDelta.div(2).mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData3])
+      await marginManager.updatePosition(UNI_MARKET, [UNI_MARKET], [posData3])
       Position = await uniFutures.positions(accAddress);
       expect(Position.size).to.equal(sizeDelta);
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [await openPositionData(sizeDelta.mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))])
+      await marginManager.closePosition(UNI_MARKET, [UNI_MARKET], [await openPositionData(sizeDelta.mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))])
       Position = await uniFutures.positions(accAddress);
       expect(Position.size).to.equal(BigNumber.from('0'));
     });
@@ -229,14 +234,14 @@ describe("Margin Manager", () => {
       const trData = await transferMarginData(accAddress, testamt)
       let sizeDelta = ethers.BigNumber.from("10000000000000000000000");
       const posData1 = await openPositionData(sizeDelta.mul(-1), ethers.utils.formatBytes32String("GIGABRAINs"))
-      await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData1])
+      await marginManager.openPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData1])
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       let Position = await uniFutures.positions(accAddress)
       expect(Position.size).to.equal(sizeDelta.mul(-1));
-      // const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-      // await marginManager.addPosition(UNI_MARKET, [UNI_MARKET], [posData2])
-      // Position = await uniFutures.positions(accAddress)
-      // expect(Position.size).to.equal(BigNumber.from('0'));
+      const posData2 = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      await marginManager.closePosition(UNI_MARKET, [UNI_MARKET], [posData2])
+      Position = await uniFutures.positions(accAddress)
+      expect(Position.size).to.equal(BigNumber.from('0'));
     });
   });
 });

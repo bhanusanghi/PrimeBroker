@@ -168,7 +168,7 @@ describe("Margin Manager <> Vault", () => {
       const sizeDelta = ethers.BigNumber.from("28000000000000000000000");
       const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
-      const out = await marginManager.addPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      const out = await marginManager.openPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
     });
   });
 });

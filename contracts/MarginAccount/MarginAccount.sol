@@ -17,26 +17,22 @@ contract MarginAccount {
         SHORT
     } // add more
 
-    // struct position {
-    //     uint256 internalLev;
-    //     uint256 externalLev; //@note for future use only
-    //     address protocol;
-    //     PositionType positionType;
-    // }
-    struct position {
+    struct Position {
         uint256 internalLev;
         uint256 externalLev; //@note for future use only
-        address protocol;
         PositionType positionType;
         int256 notionalValue;
         uint256 marketValue;
         uint256 underlyingMarginValue;
     }
+    mapping(address => bool) public existingPosition;
     address public baseToken; //usdt/c
-    position[] positions;
+    // Position[] positions;
+    mapping(address => Position) public positions;
+    // address.MKT
     address public marginManager;
     uint256 public totalInternalLev;
-    uint256 public totalLev;
+    uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
 
     modifier xyz() {
@@ -45,9 +41,9 @@ contract MarginAccount {
 
     constructor() {}
 
-    function getLeverage() public view returns (uint256, uint256) {
-        return (totalInternalLev, (totalLev - totalInternalLev));
-    }
+    // function getLeverage() public view returns (uint256, uint256) {
+    //     return (totalInternalLev, (totalLev - totalInternalLev));
+    // }
 
     function addCollateral(address token, uint256 amount) external {
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
@@ -69,32 +65,28 @@ contract MarginAccount {
     function updatePosition(
         address _protocol,
         int256 size,
-        uint256 newDebt
+        uint256 newDebt,
+        bool newPosition
     ) public {
         // only riskmanagger
-        position memory _position = position(
-            0,
-            0,
-            _protocol,
-            PositionType.LONG,
-            size,
-            0,
-            0
-        );
-        positions.push(_position); // instead of array we should use mapping with markets and merge positions
+        //calcLinearCumulative_RAY .vault
+        positions[_protocol] = Position(0, 0, PositionType.LONG, size, 0, 0);
+        if (newPosition) existingPosition[_protocol] = newPosition;
         totalBorrowed += newDebt;
     }
 
-    function getPositionsValue()
-        public
-        returns (uint256 totalNotional, int256 PnL)
-    {
+    function removePosition(address _protocol) public returns (bool removed) {
         // only riskmanagger
-        uint256 len = positions.length;
-        for (uint256 i = 0; i < len; i++) {
-            totalNotional += absVal(positions[i].notionalValue);
-        }
-        PnL = 1; // @todo fix me
+        // @todo use position data removed flag is temp
+        removed = existingPosition[_protocol];
+        require(removed, "Existing position not found");
+        existingPosition[_protocol] = false;
+        delete positions[_protocol];
+    }
+
+    function getPositionValue(address _protocol) public returns (int256) {
+        // only riskmanagger
+        return positions[_protocol].notionalValue;
     }
 
     function absVal(int256 val) public view returns (uint256) {

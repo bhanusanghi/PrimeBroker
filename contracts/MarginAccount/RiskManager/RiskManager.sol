@@ -25,6 +25,14 @@ contract RiskManager is ReentrancyGuard {
     // protocol to riskManager mapping
     // perpfi address=> perpfiRisk manager
     mapping(address => address) public riskManagers;
+    enum MKT {
+        ETH,
+        BTC,
+        UNI,
+        MATIC
+    }
+    mapping(address => MKT) public ProtocolMarket;
+    address[] public allowedMarkets;
 
     constructor() {}
 
@@ -37,38 +45,35 @@ contract RiskManager is ReentrancyGuard {
         vault = Vault(_vault);
     }
 
+    function addNewMarket(address _newMarket, MKT mkt) public {
+        // only owner
+        ProtocolMarket[_newMarket] = mkt;
+        allowedMarkets.push(_newMarket);
+    }
+
     function NewTrade(
         address marginAcc,
         address protocolAddress,
         address[] memory destinations,
         bytes[] memory data
-    ) external returns (uint256 tokens) {
-        tokens = 100;
-        int256 positionSize;
+    ) external returns (int256 transferAmount, int256 positionSize) {
         uint256 totalNotioanl;
         int256 PnL;
-        (totalNotioanl, PnL) = MarginAccount(marginAcc).getPositionsValue();
+        (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
         uint256 freeMargin = getFreeMargin(marginAcc, PnL);
 
         SNXRiskManager rm = new SNXRiskManager();
         uint256 maxTransferAmount = freeMargin -
             (totalNotioanl + uint256(positionSize));
-        uint256 transferAmount;
         (transferAmount, positionSize) = rm.txDataDecoder(data);
-        // if (freeMargin >= uint256(absVal(positionSize))) {
-        console.log(freeMargin, transferAmount, "f");
         require(
             freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
             "Extra margin not allowed"
         );
         if (positionSize > 0) {
-            vault.lend(transferAmount, marginAcc);
+            vault.lend(absVal(transferAmount), marginAcc);
             MarginAccount(marginAcc).execMultiTx(destinations, data);
-            MarginAccount(marginAcc).updatePosition(
-                protocolAddress,
-                positionSize,
-                transferAmount
-            ); // @todo update it with vault-MM link
+            // @todo update it with vault-MM link
 
             //         function repay(
             // uint256 borrowedAmount, // exact amount that is returned as principle
@@ -76,13 +81,8 @@ contract RiskManager is ReentrancyGuard {
             // uint256 profit
         } else if (positionSize < 0) {
             // vault.repay()
-            console.log("repay time");
+            console.log("short position or close position");
             MarginAccount(marginAcc).execMultiTx(destinations, data);
-            MarginAccount(marginAcc).updatePosition(
-                protocolAddress,
-                positionSize,
-                transferAmount
-            );
         } else {
             revert("margin kam pad gya na");
         }
@@ -107,26 +107,29 @@ contract RiskManager is ReentrancyGuard {
         // return ();
     }
 
-    function getFreeMargin(address marginAccount, int256 PnL)
-        public
-        view
-        returns (uint256)
-    {
-        console.log("hohoho", spotAssetValue(marginAccount));
-        console.log(
-            (uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100)
+    function closeTrade(
+        address _marginAcc,
+        address protocolAddress,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external returns (int256 transferAmount, int256 positionSize) {
+        MarginAccount marginAcc = MarginAccount(_marginAcc);
+        SNXRiskManager rm = new SNXRiskManager();
+        (transferAmount, positionSize) = rm.txDataDecoder(data);
+
+        // console.log(transferAmount, "close pos, tm");
+        int256 _currentPositionSize = marginAcc.getPositionValue(
+            protocolAddress
         );
-        return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
-            initialMarginFactor) -
-            MarginAccount(marginAccount).totalBorrowed());
+        // basically checks for if its closing opposite position
+        // require(positionSize + _currentPositionSize == 0);
 
-        /**
-                (asset+PnL)*100/initialMarginFactor
-             */
-    }
+        marginAcc.execMultiTx(destinations, data);
 
-    function addAllowedTokens(address token) public {
-        allowedTokens.push(token);
+        // if (transferAmout < 0) {
+        //     vault.repay(borrowedAmount, loss, profit);
+        //     update totalDebt
+        // }
     }
 
     function spotAssetValue(address marginAccount)
@@ -149,18 +152,42 @@ contract RiskManager is ReentrancyGuard {
         return totalAmount;
     }
 
-    function absVal(int256 val) public view returns (int256) {
-        return val < 0 ? -val : val;
-    }
-
-    function getPnL(address marginAccount)
+    function getFreeMargin(address marginAccount, int256 PnL)
         public
         view
-        returns (uint256 notionalValue, int256 PnL)
+        returns (uint256)
     {
-        uint256 amount;
-        // for each protocol or iterate on positions and get value of positions
-        return (1, 1);
+        console.log("hohoho", spotAssetValue(marginAccount));
+        console.log(
+            (uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100)
+        );
+        return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
+            initialMarginFactor) -
+            MarginAccount(marginAccount).totalBorrowed());
+
+        /**
+                (asset+PnL)*100/initialMarginFactor
+                */
+    }
+
+    function absVal(int256 val) public view returns (uint256) {
+        return uint256(val < 0 ? -val : val);
+    }
+
+    function addAllowedTokens(address token) public {
+        allowedTokens.push(token);
+    }
+
+    function getPositionsValPnL(address marginAccount)
+        public
+        returns (uint256 totalNotional, int256 PnL)
+    {
+        MarginAccount macc = MarginAccount(marginAccount);
+        uint256 len = allowedMarkets.length;
+        for (uint256 i = 0; i < len; i++) {
+            totalNotional += absVal(macc.getPositionValue(allowedMarkets[i]));
+        }
+        PnL = 1; // @todo fix me rm.getPnl
     }
 
     function TotalPositionValue() external {}
