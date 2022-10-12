@@ -287,7 +287,7 @@ describe("MarginManager", () => {
         ethers.BigNumber.from('0'),
         ethers.BigNumber.from(parsedAmount),
         ethers.BigNumber.from('0'),
-        ethers.BigNumber.from('0'),
+        ethers.constants.MaxUint256,
         ethers.constants.HashZero)
 
       console.log("perpOpenPositionCallData - ", perpOpenPositionCallData)
