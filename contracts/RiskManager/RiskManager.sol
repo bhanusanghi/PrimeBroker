@@ -80,6 +80,7 @@ contract RiskManager is ReentrancyGuard {
         console.log(
             freeMargin,
             (totalNotioanl + uint256(absVal(positionSize))),
+            uint256(absVal(positionSize)),
             "freeMargin and total size"
         );
         require(

@@ -1,6 +1,6 @@
 import { expect } from "chai"
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-import { ethers, network } from "hardhat";
+import { artifacts, ethers, network } from "hardhat";
 import { BigNumber, Contract } from "ethers";
 import { erc20 } from "./integrations/addresses";
 import { MarginManager, MarginAccount, ERC20 } from "../typechain-types";
@@ -9,9 +9,10 @@ import { abi as perpVaultAbi } from "./external/abi/perpVault";
 import { abi as perpClearingHouseAbi } from "./external/abi/clearingHouse";
 import { abi as perpAccountBalanceAbi } from "./external/abi/accountBalance";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { resetFork } from "./utils/helpers";
 import { getVaultDepositCalldata, getErc20ApprovalCalldata } from "./utils/CalldataGenerator";
 import { PERP, ERC20 as ERC20Hash } from "./utils/constants";
+import dotenv from "dotenv";
+dotenv.config();
 
 const ETHER = 10 ** 18
 let vault: Contract;
@@ -54,6 +55,34 @@ const forkAtBlock = async (block?: number) => {
     ],
   });
 };
+const getOpenPerpPositionCalldata = async (
+  baseToken: string,
+  isBaseToQuote: boolean,
+  isExactInput: boolean,
+  oppositeAmountBound: BigNumber,
+  amount: BigNumber,
+  sqrtPriceLimitX96: BigNumber,
+  deadline: BigNumber,
+  referralCode = ethers.constants.HashZero,
+) => {
+  const IClearingHouse = (
+    await artifacts.readArtifact("contracts/Interfaces/Perpfi/IClearingHouse.sol:IClearingHouse")
+  ).abi;
+  const iface = new ethers.utils.Interface(IClearingHouse)
+
+  const data = await iface.encodeFunctionData("openPosition", [{
+    baseToken: baseToken,
+    isBaseToQuote: isBaseToQuote, // quote to base
+    isExactInput: isExactInput,
+    oppositeAmountBound: oppositeAmountBound, // exact output (base)
+    amount: amount,
+    sqrtPriceLimitX96: sqrtPriceLimitX96,
+    deadline: deadline,
+    referralCode: referralCode
+  }])
+  console.log("o", data)
+  return data
+}
 async function initializeContractsFixture(): Promise<Contracts> {
   // init contracts registry
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
@@ -240,12 +269,33 @@ describe("MarginManager", () => {
       //   [erc20.usdc, contracts.perp.vault.address],
       //   [approveAmountCalldata, fundVaultCalldata]
       // )
+      /**    struct OpenPositionParams {
+        address baseToken;
+        bool isBaseToQuote;
+        bool isExactInput;
+        uint256 amount;
+        uint256 oppositeAmountBound;
+        uint256 deadline;
+        uint160 sqrtPriceLimitX96;
+        bytes32 referralCode;
+    } */
+      console.log(parsedAmount, ethers.BigNumber.from(parsedAmount))
+      const perpOpenPositionCallData = await getOpenPerpPositionCalldata(
+        "0x34235C8489b06482A99bb7fcaB6d7c467b92d248",
+        false,
+        true,
+        ethers.BigNumber.from('0'),
+        ethers.BigNumber.from(parsedAmount),
+        ethers.BigNumber.from('0'),
+        ethers.BigNumber.from('0'),
+        ethers.constants.HashZero)
 
+      console.log("perpOpenPositionCallData - ", perpOpenPositionCallData)
       const response = await contracts.marginManager.connect(bob).openPosition(
         contracts.perp.clearingHouse.address,
         [PERP, ERC20Hash],
-        [erc20.usdc, contracts.perp.vault.address],
-        [approveAmountCalldata, fundVaultCalldata]
+        [erc20.usdc, contracts.perp.vault.address, contracts.perp.clearingHouse.address],
+        [approveAmountCalldata, fundVaultCalldata, perpOpenPositionCallData]
       );
     });
   });

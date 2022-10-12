@@ -2413,12 +2413,12 @@ export function getOpenPerpPositionCalldata(
   baseToken: string,
   isBaseToQuote: boolean,
   isExactInput: boolean,
-  oppositeAmountBound: number,
+  oppositeAmountBound: BigNumber,
   amount: BigNumber,
-  sqrtPriceLimitX96: number,
+  sqrtPriceLimitX96: BigNumber,
   deadline: BigNumber,
   referralCode = ethers.constants.HashZero,
 ) {
   let iface = new ethers.utils.Interface(clearing_house_abi);
-  iface.encodeFunctionData("openPosition", [baseToken, isBaseToQuote, isExactInput, oppositeAmountBound, amount, sqrtPriceLimitX96, deadline, referralCode])
+  return iface.encodeFunctionData("openPosition", [baseToken, isBaseToQuote, isExactInput, oppositeAmountBound, amount, sqrtPriceLimitX96, deadline, referralCode])
 }
