@@ -35,6 +35,7 @@ export const mintToAccountSUSD = async (
     ]);
 
     // MultiCollateralSynth contract address for sUSD
+
     const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
     const ISynthABI = (
         await artifacts.readArtifact("contracts/Interfaces/SNX/ISynth.sol:ISynth")

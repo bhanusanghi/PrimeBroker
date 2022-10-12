@@ -5,19 +5,21 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {RiskManager} from "../RiskManager/RiskManager.sol";
+import {MarginAccount} from "../MarginAccount/MarginAccount.sol";
+import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
-
-import {MarginAccount} from "./MarginAccount.sol";
 import "hardhat/console.sol";
 
-contract MarginManager is ITypes, ReentrancyGuard {
+contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
-    IRiskManager public riskManager;
+    RiskManager public riskManager;
     IContractRegistry public contractRegistry;
-    address public vault;
+    Vault public vault;
+    // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
     mapping(address => bool) public allowedUnderlyingTokens;
@@ -25,7 +27,6 @@ contract MarginManager is ITypes, ReentrancyGuard {
     // allowed protocols set
     EnumerableSet.AddressSet private allowedProtocols;
     // function transferAccount(address from, address to) external {}
-
     modifier xyz() {
         _;
     }
@@ -48,34 +49,46 @@ contract MarginManager is ITypes, ReentrancyGuard {
 
     function SetRiskManager(address riskmgr) external {
         // onlyOwner
-        riskManager = IRiskManager(riskmgr);
+        riskManager = RiskManager(riskmgr);
+    }
+
+    function SetVault(address _vault) external {
+        // onlyOwner
+        vault = Vault(_vault);
     }
 
     // function set(address p){}
-    function openMarginAccount(address underlyingToken)
-        external
-        returns (address)
-    {
-        require(
-            marginAccounts[msg.sender] == address(0x0),
-            "MM: Acc already exists"
-        );
-        require(
-            allowedUnderlyingTokens[underlyingToken] == true,
-            "MM: Underlying token invalid"
-        );
-        MarginAccount acc = new MarginAccount(underlyingToken);
+    function openMarginAccount() external returns (address) {
+        require(marginAccounts[msg.sender] == address(0x0));
+        MarginAccount acc = new MarginAccount();
         marginAccounts[msg.sender] = address(acc);
         return address(acc);
         // acc.setparams
         // approve
     }
 
-    function toggleAllowedUnderlyingToken(address token) external {
-        require(token != address(0x0), "MM: Invalid token");
-        allowedUnderlyingTokens[token] = !allowedUnderlyingTokens[token];
-    }
-
+    // function openMarginAccount(address underlyingToken)
+    //     external
+    //     returns (address)
+    // {
+    //     require(
+    //         marginAccounts[msg.sender] == address(0x0),
+    //         "MM: Acc already exists"
+    //     );
+    //     require(
+    //         allowedUnderlyingTokens[underlyingToken] == true,
+    //         "MM: Underlying token invalid"
+    //     );
+    //     MarginAccount acc = new MarginAccount(underlyingToken);
+    //     marginAccounts[msg.sender] = address(acc);
+    //     return address(acc);
+    //     // acc.setparams
+    //     // approve
+    // }
+    //  function toggleAllowedUnderlyingToken(address token) external {
+    //     require(token != address(0x0), "MM: Invalid token");
+    //     allowedUnderlyingTokens[token] = !allowedUnderlyingTokens[token];
+    // }
     function closeMarginAccount() external {
         /**
         close positions
@@ -85,47 +98,40 @@ contract MarginManager is ITypes, ReentrancyGuard {
          */
     }
 
-    // let's assume we allow only 5 tx at max
-    function addPosition(
+    function openPosition(
+        address protocolAddress,
         bytes32[] memory contractName,
-        txMetaType[] memory transactionMetadata,
-        address[] memory contractAddress,
+        address[] memory destinations,
         bytes[] memory data
     ) external {
-        console.log("Started tx");
-        address[] memory destinations = new address[](5);
-        bytes[] memory dataArray = new bytes[](5);
-        uint256 tokensToTransfer; // transfer these many tokens from vault to credit account.
-        address marginacc = marginAccounts[msg.sender];
-        require(marginacc != address(0x0), "MM: No MarginAccount");
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         require(
-            transactionMetadata.length == contractName.length,
-            "MM: No Array parity"
+            !marginAcc.existingPosition(protocolAddress),
+            "Existing position"
         );
-        require(
-            transactionMetadata.length == contractAddress.length,
-            "MM: No Array parity"
-        );
-        require(
-            transactionMetadata.length == data.length,
-            "MM: No Array parity"
-        );
-        console.log("verifying trade now");
-        (destinations, dataArray, tokensToTransfer) = riskManager.verifyTrade(
-            marginacc,
+        int256 tokensToTransfer;
+        int256 positionSize;
+        (tokensToTransfer, positionSize) = riskManager.verifyTrade(
+            address(marginAcc),
+            protocolAddress,
             contractName,
-            transactionMetadata,
-            contractAddress,
+            destinations,
             data
         );
-        console.log("trade verified, executing next");
-
-        //vault.approve/transfer
-        bytes memory returnData = MarginAccount(marginacc).execMultiTx(
-            destinations,
-            dataArray
+        marginAcc.updatePosition(
+            protocolAddress,
+            positionSize,
+            uint256(absVal(tokensToTransfer)),
+            true
         );
+        if (tokensToTransfer > 0) {
+            //vault.approve/transfer
+        }
 
+        // bytes memory returnData = marginAcc.execMultiTx(
+        //     destinations,
+        //     dataArray
+        // );
         // do something with returnData or remove
         /**
         if RiskManager.AllowNewTrade
@@ -133,20 +139,77 @@ contract MarginManager is ITypes, ReentrancyGuard {
          */
     }
 
-    function updatePosition(address protocol, bytes calldata data) external {
-        // if (riskManager.verifyTrade(data)) {
-        //marginacc.execute
-        // }
+    function updatePosition(
+        address protocolAddress,
+        bytes32[] memory contractName,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external {
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        require(
+            marginAcc.existingPosition(protocolAddress),
+            "Position doesn't exist"
+        );
+        int256 tokensToTransfer;
+        int256 _currentPositionSize;
+        int256 _oldPositionSize = marginAcc.getPositionValue(protocolAddress);
+        (tokensToTransfer, _currentPositionSize) = riskManager.verifyTrade(
+            address(marginAcc),
+            protocolAddress,
+            contractName,
+            destinations,
+            data
+        );
+
+        marginAcc.updatePosition(
+            protocolAddress,
+            _oldPositionSize + _currentPositionSize,
+            uint256(absVal(tokensToTransfer)),
+            true
+        );
+        if (tokensToTransfer > 0) {
+            //vault.approve/transfer
+        }
     }
 
-    function closePosition() external {
+    function closePosition(
+        address protocolAddress,
+        bytes32[] memory contractName,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external {
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        // address protocolAddress = marginAcc.positions(positionIndex);
+        require(
+            marginAcc.existingPosition(protocolAddress),
+            "Position doesn't exist"
+        );
+        int256 tokensToTransfer;
+        int256 positionSize;
+        (tokensToTransfer, positionSize) = riskManager.closeTrade(
+            address(marginAcc),
+            protocolAddress,
+            contractName,
+            destinations,
+            data
+        );
+        require(
+            marginAcc.removePosition(protocolAddress),
+            "Error in removing position"
+        );
         /**
+        if transfer margin back from protocol then reduce total debt and repay
         preview close on origin, if true close or revert
         take fees and interest
          */
     }
 
-    function liquidatePosition() external {
+    function liquidatePosition(address protocolAddress) external {
+        address marginAcc = marginAccounts[msg.sender];
+        require(
+            MarginAccount(marginAcc).existingPosition(protocolAddress),
+            "Position doesn't exist"
+        );
         /**
         riskManager.isliquidatable()
         close on the venue
@@ -168,6 +231,10 @@ contract MarginManager is ITypes, ReentrancyGuard {
         returns (uint256)
     {
         return 1;
+    }
+
+    function absVal(int256 val) public view returns (int256) {
+        return val < 0 ? -val : val;
     }
 
     function _approveTokens() private {}

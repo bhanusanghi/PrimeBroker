@@ -13,53 +13,57 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
-contract PerpfiRiskManager is IProtocolRiskManager {
-    using SafeMath for uint256;
-    using Math for uint256;
-    using WadRayMath for uint256;
-    using SafeERC20 for IERC20;
-    using PercentageMath for uint256;
-    // is BaseProtocolRiskManager {
+contract PerpfiRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
+    bytes4 public AP = 0x095ea7b3;
+    bytes4 public OP = 0x47e7ef24;
 
-    // store whitelistedAddresses
-    // bytes32 protocolName;
-    // address contractRegistry;
-    uint256 public immutable WAD = 10**18;
-
-    // constructor(bytes32 _protocolName, address _contractRegistry) {
     constructor() {}
 
-    // function verifyTokenTransfer()
+    // function getTotalPnL(address marginAcc) public returns (int256) {
 
-    function verifyTrade(
-        address _marginAccount,
-        address _protocolAddress,
-        bytes memory _data
-    ) public returns (TradeResult memory tradeResult) {
-        // add access control
-        // add a check for protocol address using whitelisted addresses above
-        // require(protocolName === )
+    // }
 
-        tradeResult.marginAccount = _marginAccount;
-        tradeResult.protocol = _protocolAddress;
-        tradeResult.Token = IMarginAccount(_marginAccount).underlyingToken();
-        tradeResult.TokenAmountNeeded = 1000 * WAD;
+    // function getTotalPositionSize(address marginAcc)
+    //     public
+    //     virtual
+    //     returns (uint256);
 
-        Position memory resultingPosition;
-        resultingPosition.internalLev;
-        resultingPosition.externalLev; //@note for future use only
-        resultingPosition.protocol;
-        resultingPosition.positionType = PositionType.LONG;
-        resultingPosition.notionalValue;
-        resultingPosition.marketValue;
-        resultingPosition.underlyingMarginValue;
+    // function getTotalAssetsValue(address marginAcc)
+    //     public
+    //     virtual
+    //     returns (uint256);
 
-        tradeResult.resultingPositions = new Position[](1);
-        tradeResult.resultingPositions[0] = resultingPosition;
-        tradeResult.finalHealthFactor = 2 * WAD;
-        // checks with the protocol to see what would be the final Trade Result on executing the calldata.
-        // extracts amounts and method type from here. Calls another function in protocol to see what would be the final result on calling the respectve function. The Health Factor etc.
+    function previewPosition(bytes memory data) public {
+        /**
+        (marketKey, sizeDelta) = txDataDecoder(data)
+        if long check with snx for available margin
+
+
+       */
+    }
+
+    function verifyTrade(bytes[] calldata data)
+        public
+        view
+        returns (int256 amount, int256 totalPosition)
+    {
+        /**  market key : 32bytes
+          : for this assuming single position => transfer margin and/or open close
+           call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
+           4 bytes function sig
+           sizeDelta  : 64 bytes
+           32 bytes tracking code, or we can append hehe
+        */
+        uint256 len = data.length; // limit to 2
+        for (uint256 i = 0; i < len; i++) {
+            bytes4 funSig = bytes4(data[i]);
+            if (funSig == AP) {
+                amount = abi.decode(data[i][36:], (int256));
+            } else if (funSig == OP) {
+                totalPosition = abi.decode(data[i][36:], (int256));
+            }
+        }
     }
 }
