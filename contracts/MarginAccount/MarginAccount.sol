@@ -53,13 +53,9 @@ contract MarginAccount {
     //     return (totalInternalLev, (totalLev - totalInternalLev));
     // }
 
-    function addCollateral(uint256 amount) external {
+    function addCollateral(address token, uint256 amount) external {
         // convert
-        IERC20(underlyingToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function approveToProtocol(address token, address protocol) external {
@@ -133,13 +129,13 @@ contract MarginAccount {
         for (uint256 i = 0; i < len; i++) {
             console.log("exec tx - ", i);
             destinations[i].functionCall(dataArray[i]);
-            if (i == 0) {
-                uint256 allowance = IERC20(destinations[i]).allowance(
-                    address(this),
-                    destinations[i + 1]
-                );
-                console.log("allowance", allowance);
-            }
+            // if (i == 0) {
+            //     uint256 allowance = IERC20(destinations[i]).allowance(
+            //         address(this),
+            //         destinations[i + 1]
+            //     );
+            //     console.log("allowance", allowance);
+            // }
             // update Positions array
             // make post trade chnges
         }

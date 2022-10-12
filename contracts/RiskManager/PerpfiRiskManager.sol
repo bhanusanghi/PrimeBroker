@@ -18,6 +18,7 @@ contract PerpfiRiskManager {
     // function getPositionValue(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
     bytes4 public OP = 0x47e7ef24;
+    bytes4 public OpenPosition = 0xa28a2bc0;
 
     constructor() {}
 
@@ -59,10 +60,35 @@ contract PerpfiRiskManager {
         uint256 len = data.length; // limit to 2
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
-            if (funSig == AP) {
-                amount = abi.decode(data[i][36:], (int256));
-            } else if (funSig == OP) {
-                totalPosition = abi.decode(data[i][36:], (int256));
+            // if (funSig == AP) {
+            //     amount = abi.decode(data[i][36:], (int256));
+            // } else if (funSig == OP) {
+            //     totalPosition = abi.decode(data[i][36:], (int256));
+            // } else
+            if (funSig == OpenPosition) {
+                (
+                    address baseToken,
+                    bool isLong,
+                    bool isExactInput,
+                    uint256 _amount,
+                    ,
+                    uint256 deadline,
+                    ,
+
+                ) = abi.decode(
+                        data[i][4:],
+                        (
+                            address,
+                            bool,
+                            bool,
+                            uint256,
+                            uint256,
+                            uint256,
+                            uint160,
+                            bytes32
+                        )
+                    );
+                if (!isLong) amount = -int256(_amount);
             }
         }
     }
