@@ -4,11 +4,13 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers"
 import "@openzeppelin/hardhat-upgrades"
 import "@typechain/hardhat"
+import "@nomiclabs/hardhat-waffle";
 import "hardhat-contract-sizer"
 import "hardhat-dependency-compiler"
 import "hardhat-gas-reporter"
 import "solidity-coverage"
-require("dotenv").config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: "0.8.17",
@@ -16,7 +18,7 @@ const config: HardhatUserConfig = {
     mainnet: {
       timeout: 60000,
       chainId: 1,
-      url: process.env.RPC_URL || `https://mainnet.infura.io/v3/${process.env.MAINNET_KEY}`,
+      url: 'process.env.ARCHIVE_NODE_URL_L2',
     },
     hardhat: {
       allowUnlimitedContractSize: true,
@@ -25,8 +27,9 @@ const config: HardhatUserConfig = {
       forking:
       {
         enabled: true,
-        url: process.env.OPTIMISM_MAINNET_KEY || '',
-        // blockNumber: 513665,
+        // url: process.env.OPTIMISM_MAINNET_KEY || '',process.env.ARCHIVE_NODE_URL_L2 || 
+        url: process.env.ARCHIVE_NODE_URL_L2 || '',
+        // blockNumber: number,
       }
     }
 
@@ -44,13 +47,7 @@ const config: HardhatUserConfig = {
     //   url: "http://localhost:8545",
     //   // accounts: [privateKey1, privateKey2, ...]
     // },
-  },
-  paths: {
-    // tests: "./test",
-  },
-  mocha: {
-    timeout: 100000000
-  },
+  }
 };
 
 export default config;
