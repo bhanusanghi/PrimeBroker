@@ -14,7 +14,8 @@ contract MarginAccount {
 
     enum PositionType {
         LONG,
-        SHORT
+        SHORT,
+        Spot
     } // add more
 
     struct Position {
@@ -35,10 +36,17 @@ contract MarginAccount {
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
 
+    // mapping(address => boolean) whitelistedTokens;
+    address public underlyingToken;
+
     modifier xyz() {
         _;
     }
 
+    // constructor(address underlyingToken) {
+    //     marginManager = msg.sender;
+    //     underlyingToken = underlyingToken;
+    // }
     constructor() {}
 
     // function getLeverage() public view returns (uint256, uint256) {
@@ -46,13 +54,12 @@ contract MarginAccount {
     // }
 
     function addCollateral(address token, uint256 amount) external {
+        // convert
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function approveToProtocol(address token, address protocol)
-        external
-    // onylMarginmanager
-    {
+    function approveToProtocol(address token, address protocol) external {
+        // onylMarginmanager
         IERC20(token).approve(protocol, type(uint256).max);
     }
 
@@ -113,13 +120,22 @@ contract MarginAccount {
     }
 
     function execMultiTx(
-        address[] memory destinations,
+        address[] calldata destinations,
         bytes[] memory dataArray
     ) external returns (bytes memory returnData) {
         // onlyMarginManager
+        console.log("exec txs");
         uint256 len = destinations.length;
         for (uint256 i = 0; i < len; i++) {
+            console.log("exec tx - ", i);
             destinations[i].functionCall(dataArray[i]);
+            // if (i == 0) {
+            //     uint256 allowance = IERC20(destinations[i]).allowance(
+            //         address(this),
+            //         destinations[i + 1]
+            //     );
+            //     console.log("allowance", allowance);
+            // }
             // update Positions array
             // make post trade chnges
         }

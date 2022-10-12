@@ -1,14 +1,13 @@
 pragma solidity ^0.8.10;
 
-import {CollateralShort} from "../../Interfaces/SNX/CollateralShort.sol";
-import {IFuturesMarket} from "../../Interfaces/SNX/IFuturesMarket.sol";
-import {IFuturesMarketManager} from "../../Interfaces/SNX/IFuturesMarketManager.sol";
-import {BaseProtocolRiskManager} from "./BaseProtocolRiskManager.sol";
+import {CollateralShort} from "../Interfaces/SNX/CollateralShort.sol";
+import {IFuturesMarket} from "../Interfaces/SNX/IFuturesMarket.sol";
+import {IFuturesMarketManager} from "../Interfaces/SNX/IFuturesMarketManager.sol";
 import "hardhat/console.sol";
 
 // IAddressResolver
 // FuturesMarketManager
-contract SNXRiskManager is BaseProtocolRiskManager {
+contract SNXRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
     IFuturesMarketManager public futureManager;
@@ -40,7 +39,7 @@ contract SNXRiskManager is BaseProtocolRiskManager {
        */
     }
 
-    function txDataDecoder(bytes[] calldata data)
+    function verifyTrade(bytes[] calldata data)
         public
         view
         returns (int256 amount, int256 totalPosition)

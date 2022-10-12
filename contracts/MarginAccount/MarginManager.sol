@@ -5,19 +5,24 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {RiskManager} from "./RiskManager/RiskManager.sol";
-import {MarginAccount} from "./MarginAccount.sol";
+import {RiskManager} from "../RiskManager/RiskManager.sol";
+import {MarginAccount} from "../MarginAccount/MarginAccount.sol";
 import {Vault} from "../MarginPool/Vault.sol";
+import {IRiskManager} from "../Interfaces/IRiskManager.sol";
+import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {ITypes} from "../Interfaces/ITypes.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     RiskManager public riskManager;
+    IContractRegistry public contractRegistry;
     Vault public vault;
     // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
+    mapping(address => bool) public allowedUnderlyingTokens;
     mapping(address => uint256) public collatralRatio; // non-zero means allowed
     // allowed protocols set
     EnumerableSet.AddressSet private allowedProtocols;
@@ -26,7 +31,9 @@ contract MarginManager is ReentrancyGuard {
         _;
     }
 
-    constructor() {}
+    constructor(IContractRegistry _contractRegistry) {
+        contractRegistry = _contractRegistry;
+    }
 
     function SetCollatralRatio(address token, uint256 value)
         external
@@ -60,6 +67,28 @@ contract MarginManager is ReentrancyGuard {
         // approve
     }
 
+    // function openMarginAccount(address underlyingToken)
+    //     external
+    //     returns (address)
+    // {
+    //     require(
+    //         marginAccounts[msg.sender] == address(0x0),
+    //         "MM: Acc already exists"
+    //     );
+    //     require(
+    //         allowedUnderlyingTokens[underlyingToken] == true,
+    //         "MM: Underlying token invalid"
+    //     );
+    //     MarginAccount acc = new MarginAccount(underlyingToken);
+    //     marginAccounts[msg.sender] = address(acc);
+    //     return address(acc);
+    //     // acc.setparams
+    //     // approve
+    // }
+    //  function toggleAllowedUnderlyingToken(address token) external {
+    //     require(token != address(0x0), "MM: Invalid token");
+    //     allowedUnderlyingTokens[token] = !allowedUnderlyingTokens[token];
+    // }
     function closeMarginAccount() external {
         /**
         close positions
@@ -71,6 +100,7 @@ contract MarginManager is ReentrancyGuard {
 
     function openPosition(
         address protocolAddress,
+        bytes32[] memory contractName,
         address[] memory destinations,
         bytes[] memory data
     ) external {
@@ -81,9 +111,10 @@ contract MarginManager is ReentrancyGuard {
         );
         int256 tokensToTransfer;
         int256 positionSize;
-        (tokensToTransfer, positionSize) = riskManager.NewTrade(
+        (tokensToTransfer, positionSize) = riskManager.verifyTrade(
             address(marginAcc),
             protocolAddress,
+            contractName,
             destinations,
             data
         );
@@ -110,6 +141,7 @@ contract MarginManager is ReentrancyGuard {
 
     function updatePosition(
         address protocolAddress,
+        bytes32[] memory contractName,
         address[] memory destinations,
         bytes[] memory data
     ) external {
@@ -121,9 +153,10 @@ contract MarginManager is ReentrancyGuard {
         int256 tokensToTransfer;
         int256 _currentPositionSize;
         int256 _oldPositionSize = marginAcc.getPositionValue(protocolAddress);
-        (tokensToTransfer, _currentPositionSize) = riskManager.NewTrade(
+        (tokensToTransfer, _currentPositionSize) = riskManager.verifyTrade(
             address(marginAcc),
             protocolAddress,
+            contractName,
             destinations,
             data
         );
@@ -141,6 +174,7 @@ contract MarginManager is ReentrancyGuard {
 
     function closePosition(
         address protocolAddress,
+        bytes32[] memory contractName,
         address[] memory destinations,
         bytes[] memory data
     ) external {
@@ -155,6 +189,7 @@ contract MarginManager is ReentrancyGuard {
         (tokensToTransfer, positionSize) = riskManager.closeTrade(
             address(marginAcc),
             protocolAddress,
+            contractName,
             destinations,
             data
         );

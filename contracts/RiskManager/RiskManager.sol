@@ -5,10 +5,13 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {IPriceOracle} from "../../Interfaces/IPriceOracle.sol";
+import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
-import {MarginAccount} from "../MarginAccount.sol";
-import {Vault} from "../../MarginPool/Vault.sol";
+import {MarginAccount} from "../MarginAccount/MarginAccount.sol";
+import {Vault} from "../MarginPool/Vault.sol";
+import {IRiskManager} from "../Interfaces/IRiskManager.sol";
+import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
+import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
 
 contract RiskManager is ReentrancyGuard {
@@ -20,6 +23,7 @@ contract RiskManager is ReentrancyGuard {
     modifier xyz() {
         _;
     }
+    IContractRegistry contractRegistery;
     uint256 public initialMarginFactor = 35; //in percent
     // 1000-> 2800$
     // protocol to riskManager mapping
@@ -34,7 +38,9 @@ contract RiskManager is ReentrancyGuard {
     mapping(address => MKT) public ProtocolMarket;
     address[] public allowedMarkets;
 
-    constructor() {}
+    constructor(IContractRegistry _contractRegistery) {
+        contractRegistery = _contractRegistery;
+    }
 
     function setPriceOracle(address oracle) external {
         // onlyOwner
@@ -51,21 +57,31 @@ contract RiskManager is ReentrancyGuard {
         allowedMarkets.push(_newMarket);
     }
 
-    function NewTrade(
+    function verifyTrade(
         address marginAcc,
         address protocolAddress,
+        bytes32[] memory _contractName,
         address[] memory destinations,
         bytes[] memory data
     ) external returns (int256 transferAmount, int256 positionSize) {
         uint256 totalNotioanl;
         int256 PnL;
+        // TradeResult memory tradeResult = new TradeResult();
+        // fetch adapter address using protocol name from contract registry.
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            contractRegistery.getContractByName(_contractName[0])
+        );
         (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
         uint256 freeMargin = getFreeMargin(marginAcc, PnL);
 
-        SNXRiskManager rm = new SNXRiskManager();
         uint256 maxTransferAmount = freeMargin -
             (totalNotioanl + uint256(positionSize));
-        (transferAmount, positionSize) = rm.txDataDecoder(data);
+        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(data);
+        console.log(
+            freeMargin,
+            (totalNotioanl + uint256(absVal(positionSize))),
+            "freeMargin and total size"
+        );
         require(
             freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
             "Extra margin not allowed"
@@ -73,7 +89,7 @@ contract RiskManager is ReentrancyGuard {
         if (positionSize > 0) {
             vault.lend(absVal(transferAmount), marginAcc);
             MarginAccount(marginAcc).execMultiTx(destinations, data);
-            // @todo update it with vault-MM link
+            // @todo update it with vault-MM link`
 
             //         function repay(
             // uint256 borrowedAmount, // exact amount that is returned as principle
@@ -110,13 +126,16 @@ contract RiskManager is ReentrancyGuard {
     function closeTrade(
         address _marginAcc,
         address protocolAddress,
+        bytes32[] memory _contractName,
         address[] memory destinations,
         bytes[] memory data
     ) external returns (int256 transferAmount, int256 positionSize) {
         MarginAccount marginAcc = MarginAccount(_marginAcc);
-        SNXRiskManager rm = new SNXRiskManager();
-        (transferAmount, positionSize) = rm.txDataDecoder(data);
 
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            contractRegistery.getContractByName(_contractName[0])
+        );
+        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(data);
         // console.log(transferAmount, "close pos, tm");
         int256 _currentPositionSize = marginAcc.getPositionValue(
             protocolAddress
