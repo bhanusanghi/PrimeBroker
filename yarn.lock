@@ -914,10 +914,15 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-3.4.2.tgz#2c2a1b0fa748235a1f495b6489349776365c51b3"
   integrity sha512-mDlBS17ymb2wpaLcrqRYdnBAmP1EwqhOXMvqWk2c5Q1N1pm5TkiCtXM9Xzznh4bYsQBq0aIWEkFFE2+iLSN1Tw==
 
-"@openzeppelin/contracts@3.4.1-solc-0.7-2":
-  version "3.4.1-solc-0.7-2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.1-solc-0.7-2.tgz#371c67ebffe50f551c3146a9eec5fe6ffe862e92"
-  integrity sha512-tAG9LWg8+M2CMu7hIsqHPaTyG4uDzjr6mhvH96LvOpLZZj6tgzTluBt+LsCf1/QaYrlis6pITvpIaIhE+iZB+Q==
+"@openzeppelin/contracts-v0.7@npm:@openzeppelin/contracts@v3.4.2":
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.2.tgz#d81f786fda2871d1eb8a8c5a73e455753ba53527"
+  integrity sha512-z0zMCjyhhp4y7XKAcDAi3Vgms4T2PstwBdahiO0+9NaGICQKjynK3wduSRplTgk4LXmoO1yfDGO5RbjKYxtuxA==
+
+"@openzeppelin/contracts@3.4.2-solc-0.7":
+  version "3.4.2-solc-0.7"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.2-solc-0.7.tgz#38f4dbab672631034076ccdf2f3201fab1726635"
+  integrity sha512-W6QmqgkADuFcTLzHL8vVoNBtkwjvQRpYIAom7KiUNoLKghyx3FgH0GBjt8NRvigV1ZmMOBllvE1By1C+bi8WpA==
 
 "@openzeppelin/contracts@^4.7.3":
   version "4.7.3"
@@ -1496,12 +1501,12 @@
   version "1.0.0"
   resolved "https://github.com/Uniswap/uniswap-v3-core/tarball/v1.0.0#b3712e2b235ad2eeb7a0dfcac216a659cc450e28"
 
-"@uniswap/v3-periphery@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.1.tgz#3d111ba4d33a6ac07d729c72a4a43298f92056ec"
-  integrity sha512-1Q4DVWNWfRumbNrBJgebLOUULGng5g3uky5suu4Cc7GtA1+JmEnw3J2VOrJSv2zn1LOPjURhZgU5T7NiIl2yeA==
+"@uniswap/v3-periphery@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.4.2.tgz#4ecf7d93db975c385a2cadb0d79a7a9e7f956c83"
+  integrity sha512-V7rGquOu/C11082nkWb/NkQ5Qpd6Softrjf398EtpQe7wIfOasgq8fJEk1JMBQXBpYjmZNDMdh9AV0Bgag01zw==
   dependencies:
-    "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
+    "@openzeppelin/contracts" "3.4.2-solc-0.7"
     "@uniswap/lib" "^4.0.1-alpha"
     "@uniswap/v2-core" "1.0.1"
     "@uniswap/v3-core" "1.0.0"
