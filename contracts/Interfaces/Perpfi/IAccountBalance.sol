@@ -2,7 +2,14 @@
 pragma solidity ^0.8.10;
 pragma abicoder v2;
 
-import {AccountMarket} from "../lib/AccountMarket.sol";
+library AccountMarket {
+    /// @param lastTwPremiumGrowthGlobalX96 the last time weighted premiumGrowthGlobalX96
+    struct Info {
+        int256 takerPositionSize;
+        int256 takerOpenNotional;
+        int256 lastTwPremiumGrowthGlobalX96;
+    }
+}
 
 interface IAccountBalance {
     /// @param vault The address of the vault contract
