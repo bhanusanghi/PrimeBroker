@@ -5,6 +5,7 @@ import { BigNumber, Contract } from "ethers";
 import { mintToAccountSUSD } from "./utils/helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import dotenv from "dotenv";
+import { SNXUNI, TRANSFERMARGIN } from "./utils/constants";
 import { boolean } from "hardhat/internal/core/params/argumentTypes";
 
 import { MarginManager, MarginAccount, RiskManager } from "../typechain-types";
@@ -40,6 +41,7 @@ let marginAccount: Contract;
 let riskManager: Contract;
 let vault: Contract;
 let LPToken: Contract;
+let contractRegistry: Contract;
 // test accounts
 let account0: SignerWithAddress;
 let account1: SignerWithAddress;
@@ -85,6 +87,10 @@ const setup = async () => {
           address _interestRateModelAddress,
           uint256 maxExpectedLiquidity
    */
+  const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
+  contractRegistry = await contractRegistryFactory.deploy()
+  const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
+  const sNXRiskManager = await SNXRiskManager.deploy()
   const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
   const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);
   const _LPToken = await ethers.getContractFactory("LPToken");
@@ -92,9 +98,9 @@ const setup = async () => {
   const VaultFactory = await ethers.getContractFactory("Vault");
   vault = await VaultFactory.deploy("0xD1599E478cC818AFa42A4839a6C665D9279C3E50", LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
   const MarginManager = await ethers.getContractFactory("MarginManager");
-  marginManager = await MarginManager.deploy()
+  marginManager = await MarginManager.deploy(contractRegistry.address)
   const RiskManager = await ethers.getContractFactory("RiskManager");
-  riskManager = await RiskManager.deploy()
+  riskManager = await RiskManager.deploy(contractRegistry.address)
   await vault.addRepayingAddress(riskManager.address)
   await vault.addlendingAddress(riskManager.address)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
@@ -102,6 +108,7 @@ const setup = async () => {
   await riskManager.setVault(vault.address)
   console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
+  await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
 };
 const transferMarginData = async (address: any, amount: any) => {
   const IFuturesMarketABI = (
@@ -168,7 +175,7 @@ describe("Margin Manager <> Vault", () => {
       const sizeDelta = ethers.BigNumber.from("28000000000000000000000");
       const posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
-      const out = await marginManager.openPosition(UNI_MARKET, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      const out = await marginManager.openPosition(UNI_MARKET, [SNXUNI, SNXUNI], [UNI_MARKET, UNI_MARKET], [trData, posData])
     });
   });
 });
