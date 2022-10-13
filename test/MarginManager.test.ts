@@ -94,8 +94,8 @@ const setup = async () => {
   contractRegistry = await contractRegistryFactory.deploy()
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
-  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy()
-  const sNXRiskManager = await SNXRiskManager.deploy(SUSD_PROXY)
+  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc)
+  const sNXRiskManager = await SNXRiskManager.deploy(erc20.sUSD)
   const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
   const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);
   const _LPToken = await ethers.getContractFactory("LPToken");
@@ -129,12 +129,12 @@ const setup = async () => {
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
-  const usdcHolder = await ethers.getImpersonatedSigner("0xebe80f029b1c02862b9e8a70a7e5317c06f62cae");
+  const usdcHolder = await ethers.getImpersonatedSigner("0x625E7708f30cA75bfd92586e17077590C60eb4cD");
   const usdcHolderBalance = await usdc.balanceOf(usdcHolder.address)
-  console.log(usdcHolderBalance)
-  await usdc.connect(usdcHolder).transfer(account0.address, ethers.utils.parseUnits("500000", 6))
-  const VAULT_AMOUNT = ethers.utils.parseUnits("200000", 6)
-  console.log(await usdc.balanceOf(usdcHolder.address))
+  console.log(usdcHolderBalance, "yaha")
+  await usdc.connect(usdcHolder).transfer(account0.address, ethers.utils.parseUnits("1", 6))
+  const VAULT_AMOUNT = ethers.utils.parseUnits("1", 6)
+  console.log("heh", await usdc.balanceOf(usdcHolder.address))
   await usdc.approve(perpVault.address, VAULT_AMOUNT)
   await perpVault.deposit(erc20.usdc, VAULT_AMOUNT)
 };
@@ -187,6 +187,7 @@ describe("Margin Manager", () => {
       accAddress = await marginManager.marginAccounts(account0.address)
       marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
       await sUSD.approve(accAddress, testamt)
+      console.log("here")
       await sUSD.approve(vault.address, MINT_AMOUNT)
       await vault.deposit(MINT_AMOUNT, account0.address)
 

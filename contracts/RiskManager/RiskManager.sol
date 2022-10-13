@@ -93,19 +93,22 @@ contract RiskManager is ReentrancyGuard {
 
             address tokenIn = vault.asset();
             address tokenOut = protocolRiskManager.getBaseToken();
+            if (tokenIn != tokenOut) {
+                IExchange.SwapParams memory params = IExchange.SwapParams({
+                    tokenIn: tokenIn,
+                    tokenOut: tokenOut,
+                    amountIn: 0,
+                    amountOut: absVal(transferAmount),
+                    isExactInput: false,
+                    sqrtPriceLimitX96: 0
+                });
 
-            IExchange.SwapParams memory params = IExchange.SwapParams({
-                tokenIn: tokenIn,
-                tokenOut: tokenOut,
-                amountIn: 0,
-                amountOut: absVal(transferAmount),
-                isExactInput: false,
-                sqrtPriceLimitX96: 0
-            });
-
-            uint256 amountOut = MarginAccount(marginAcc).swap(params);
-            require(amountOut == absVal(transferAmount), "RM: Bad exchange.");
-
+                uint256 amountOut = MarginAccount(marginAcc).swap(params);
+                require(
+                    amountOut == absVal(transferAmount),
+                    "RM: Bad exchange."
+                );
+            }
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             // @todo update it with vault-MM link`
 
