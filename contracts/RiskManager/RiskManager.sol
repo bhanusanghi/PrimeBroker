@@ -92,14 +92,15 @@ contract RiskManager is ReentrancyGuard {
 
             address tokenIn = vault.asset();
             address tokenOut = protocolRiskManager.baseToken();
-
-            MarginAccount(marginAcc).swapTokens(
-                tokenIn,
-                tokenOut,
-                0,
-                transferAmount,
-                false
-            );
+            if (tokenIn != tokenOut) {
+                MarginAccount(marginAcc).swapTokens(
+                    tokenIn,
+                    tokenOut,
+                    0,
+                    transferAmount,
+                    false
+                );
+            }
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             // @todo update it with vault-MM link`
 
