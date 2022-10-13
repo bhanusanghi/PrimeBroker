@@ -88,7 +88,19 @@ contract RiskManager is ReentrancyGuard {
             "Extra margin not allowed"
         );
         if (positionSize > 0) {
-            vault.lend(absVal(transferAmount), marginAcc);
+            vault.lend(absVal(transferAmount + (100 * 10**6)), marginAcc);
+
+            address tokenIn = vault.asset();
+            address tokenOut = protocolRiskManager.baseToken();
+            if (tokenIn != tokenOut) {
+                MarginAccount(marginAcc).swapTokens(
+                    tokenIn,
+                    tokenOut,
+                    0,
+                    transferAmount,
+                    false
+                );
+            }
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             // @todo update it with vault-MM link`
 
