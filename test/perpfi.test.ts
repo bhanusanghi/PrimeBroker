@@ -9,7 +9,7 @@ import { abi as perpVaultAbi } from "./external/abi/perpVault";
 import { abi as perpClearingHouseAbi } from "./external/abi/clearingHouse";
 import { abi as perpAccountBalanceAbi } from "./external/abi/accountBalance";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { getVaultDepositCalldata, getErc20ApprovalCalldata } from "./utils/CalldataGenerator";
+import { getVaultDepositCalldata, getErc20ApprovalCalldata, getOpenPerpPositionCalldata } from "./utils/CalldataGenerator";
 import { PERP, ERC20 as ERC20Hash } from "./utils/constants";
 import dotenv from "dotenv";
 dotenv.config();
@@ -55,34 +55,7 @@ const forkAtBlock = async (block?: number) => {
     ],
   });
 };
-const getOpenPerpPositionCalldata = async (
-  baseToken: string,
-  isBaseToQuote: boolean,
-  isExactInput: boolean,
-  oppositeAmountBound: BigNumber,
-  amount: BigNumber,
-  sqrtPriceLimitX96: BigNumber,
-  deadline: BigNumber,
-  referralCode = ethers.constants.HashZero,
-) => {
-  const IClearingHouse = (
-    await artifacts.readArtifact("contracts/Interfaces/Perpfi/IClearingHouse.sol:IClearingHouse")
-  ).abi;
-  const iface = new ethers.utils.Interface(IClearingHouse)
 
-  const data = await iface.encodeFunctionData("openPosition", [{
-    baseToken: baseToken,
-    isBaseToQuote: isBaseToQuote, // quote to base
-    isExactInput: isExactInput,
-    oppositeAmountBound: oppositeAmountBound, // exact output (base)
-    amount: amount,
-    sqrtPriceLimitX96: sqrtPriceLimitX96,
-    deadline: deadline,
-    referralCode: referralCode
-  }])
-  console.log("o", data)
-  return data
-}
 async function initializeContractsFixture(): Promise<Contracts> {
   // init contracts registry
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
@@ -248,7 +221,7 @@ describe("MarginManager", () => {
     //   console.log("Account data", accountData)
     // });
 
-    it.only("should allow funding vault using margin account.", async () => {
+    it("should allow funding vault using margin account.", async () => {
       const parsedAmount = ethers.utils.parseUnits("10000", 6)
 
       // bob funds CreditAccount with usdc.
