@@ -57,6 +57,8 @@ const forkAtBlock = async (block?: number) => {
 };
 
 async function initializeContractsFixture(): Promise<Contracts> {
+  // optimism address
+
   // init contracts registry
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
   const contractRegistry = await contractRegistryFactory.deploy()
@@ -65,8 +67,9 @@ async function initializeContractsFixture(): Promise<Contracts> {
   const riskManagerFactory = await ethers.getContractFactory("RiskManager");
   const riskManager = await riskManagerFactory.deploy(contractRegistry.address)
 
+
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
-  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy()
+  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc)
 
   // Add to contract registry
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)

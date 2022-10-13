@@ -90,7 +90,7 @@ const setup = async () => {
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
   contractRegistry = await contractRegistryFactory.deploy()
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
-  const sNXRiskManager = await SNXRiskManager.deploy()
+  const sNXRiskManager = await SNXRiskManager.deploy(SUSD_PROXY)
   const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
   const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);
   const _LPToken = await ethers.getContractFactory("LPToken");
