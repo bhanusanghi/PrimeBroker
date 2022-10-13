@@ -138,8 +138,8 @@ contract MarginAccount {
     ) public returns (uint256 amountOut) {
         // add acl check
         require(address(exchange) != address(0), "MA: Exchange not set");
-        require(tokenIn != address(0), "MA: TokenIn error");
-        require(tokenOut != address(0), "MA: tokenOut error");
+        require(_tokenIn != address(0), "MA: TokenIn error");
+        require(_tokenOut != address(0), "MA: tokenOut error");
 
         if (_isExactInput) {
             require(_amountIn > 0, "MA: Invalid amountIn");

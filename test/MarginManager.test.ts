@@ -114,8 +114,7 @@ const setup = async () => {
   ).abi;
   perpClearingHouse = new ethers.Contract(metadata.contracts.ClearingHouse.address, IClearingHouse, account0);
   accountBalance = new ethers.Contract(metadata.contracts.AccountBalance.address, IAccountBalance);
-  await riskManager.addAllowedTokens(erc20.usdc)
-  vault = await VaultFactory.deploy("0xD1599E478cC818AFa42A4839a6C665D9279C3E50", LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
+  vault = await VaultFactory.deploy(erc20.usdc, LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy(contractRegistry.address)
   const RiskManager = await ethers.getContractFactory("RiskManager");
@@ -124,12 +123,22 @@ const setup = async () => {
   await vault.addlendingAddress(riskManager.address)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
   await riskManager.addAllowedTokens("0xD1599E478cC818AFa42A4839a6C665D9279C3E50")
+  await riskManager.addAllowedTokens(erc20.usdc)
   await riskManager.setVault(vault.address)
   console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
+  const usdcHolder = await ethers.getImpersonatedSigner("0xebe80f029b1c02862b9e8a70a7e5317c06f62cae");
+  const usdcHolderBalance = await usdc.balanceOf(usdcHolder.address)
+  console.log(usdcHolderBalance)
+  await usdc.connect(usdcHolder).transfer(account0.address, ethers.utils.parseUnits("500000", 6))
+  const VAULT_AMOUNT = ethers.utils.parseUnits("200000", 6)
+  console.log(await usdc.balanceOf(usdcHolder.address))
+  await usdc.approve(perpVault.address, VAULT_AMOUNT)
+  await perpVault.deposit(erc20.usdc, VAULT_AMOUNT)
 };
+
 const transferMarginData = async (address: any, amount: any) => {
   const IFuturesMarketABI = (
     await artifacts.readArtifact("contracts/Interfaces/SNX/IFuturesMarket.sol:IFuturesMarket")
@@ -172,7 +181,7 @@ describe("Margin Manager", () => {
       ).abi;
 
       await setup();
-
+      console.log("setup done")
       sUSD = await new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)

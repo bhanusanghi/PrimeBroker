@@ -16,8 +16,9 @@ contract SNXRiskManager {
     bytes4 public OP = 0xa28a2bc0;
 
     constructor(address _baseToken) {
-        baseToken = _baseToken
+        baseToken = _baseToken;
     }
+
     // function getTotalPnL(address marginAcc) public returns (int256) {
 
     // }
