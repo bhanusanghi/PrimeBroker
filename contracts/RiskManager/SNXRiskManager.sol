@@ -16,8 +16,9 @@ contract SNXRiskManager {
     bytes4 public OP = 0xa28a2bc0;
 
     constructor(address _baseToken) {
-        baseToken = _baseToken
+        baseToken = _baseToken;
     }
+
     // function getTotalPnL(address marginAcc) public returns (int256) {
 
     // }
@@ -31,6 +32,10 @@ contract SNXRiskManager {
     //     public
     //     virtual
     //     returns (uint256);
+
+    function getBaseToken() external view returns (address) {
+        return baseToken;
+    }
 
     function previewPosition(bytes memory data) public {
         /**

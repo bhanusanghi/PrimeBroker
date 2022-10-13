@@ -6,4 +6,6 @@ interface IProtocolRiskManager is ITypes {
         external
         view
         returns (int256 amount, int256 totalPosition);
+
+    function getBaseToken() external view returns (address);
 }

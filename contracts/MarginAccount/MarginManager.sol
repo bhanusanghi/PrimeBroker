@@ -60,7 +60,9 @@ contract MarginManager is ReentrancyGuard {
     // function set(address p){}
     function openMarginAccount() external returns (address) {
         require(marginAccounts[msg.sender] == address(0x0));
-        MarginAccount acc = new MarginAccount();
+        // Uniswap router to be removed later.
+        address router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+        MarginAccount acc = new MarginAccount(router);
         marginAccounts[msg.sender] = address(acc);
         return address(acc);
         // acc.setparams

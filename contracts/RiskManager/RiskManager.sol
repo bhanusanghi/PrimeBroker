@@ -12,6 +12,7 @@ import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IExchange} from "../Interfaces/IExchange.sol";
 import "hardhat/console.sol";
 
 contract RiskManager is ReentrancyGuard {
@@ -91,15 +92,20 @@ contract RiskManager is ReentrancyGuard {
             vault.lend(absVal(transferAmount + (100 * 10**6)), marginAcc);
 
             address tokenIn = vault.asset();
-            address tokenOut = protocolRiskManager.baseToken();
+            address tokenOut = protocolRiskManager.getBaseToken();
 
-            MarginAccount(marginAcc).swapTokens(
-                tokenIn,
-                tokenOut,
-                0,
-                transferAmount,
-                false
-            );
+            IExchange.SwapParams memory params = IExchange.SwapParams({
+                tokenIn: tokenIn,
+                tokenOut: tokenOut,
+                amountIn: 0,
+                amountOut: absVal(transferAmount),
+                isExactInput: false,
+                sqrtPriceLimitX96: 0
+            });
+
+            uint256 amountOut = MarginAccount(marginAcc).swap(params);
+            require(amountOut == absVal(transferAmount), "RM: Bad exchange.");
+
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             // @todo update it with vault-MM link`
 
