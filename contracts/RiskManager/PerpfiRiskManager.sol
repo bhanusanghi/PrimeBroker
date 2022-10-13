@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
-contract PerpfiRiskManager {
+contract PerpfiRiskManager is IProtocolRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
@@ -46,6 +46,10 @@ contract PerpfiRiskManager {
 
 
        */
+    }
+
+    function getBaseToken() external view returns (address) {
+        return baseToken;
     }
 
     function verifyTrade(bytes[] calldata data)

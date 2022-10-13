@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 import {IExchange} from "../Interfaces/IExchange.sol";
@@ -11,18 +11,42 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
 contract UniExchange is IExchange {
     // Keep a list of supported input and output assets here.
-    IContractRegistry contractRegistry;
-    ISwapRouter router;
+    IContractRegistry public contractRegistry;
+    ISwapRouter public router;
 
-    constructor(ISwapRouter _router, IContractRegistry _contractRegistry) {
-        router = _router;
-        contractRegistry = _contractRegistry;
+    constructor(
+        address _router // , IContractRegistry _contractRegistry
+    ) {
+        require(_router != address(0), "MA:Bad Router address");
+        router = ISwapRouter(_router);
+        // contractRegistry = _contractRegistry;
     }
 
     function swap(SwapParams memory _swapParams)
         external
         returns (uint256 amountOut)
     {
+        require(_swapParams.tokenIn != address(0), "MA: TokenIn error");
+        require(_swapParams.tokenOut != address(0), "MA: tokenOut error");
+
+        if (_swapParams.isExactInput) {
+            require(_swapParams.amountIn > 0, "MA: Invalid amountIn");
+            // approve tokenIn amount to uniswap.
+            IERC20(_swapParams.tokenIn).approve(
+                address(router),
+                _swapParams.amountIn
+            );
+        } else {
+            require(
+                _swapParams.amountOut > 0,
+                "MA: Invalid _swapParams.amountOut"
+            );
+            // approve tokenOut amount to uniswap.
+            IERC20(_swapParams.tokenOut).approve(
+                address(router),
+                _swapParams.amountOut
+            );
+        }
         // check token in and token out validity or safely assume validity check has passed in the calling contract.
         uint24 feeTier = _getFeeTier();
         // check if direct path exists.

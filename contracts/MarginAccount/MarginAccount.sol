@@ -6,10 +6,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
+import {UniExchange} from "../Exchange/UniExchange.sol";
 
 import "hardhat/console.sol";
 
-contract MarginAccount {
+contract MarginAccount is UniExchange {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -40,9 +41,6 @@ contract MarginAccount {
     // mapping(address => boolean) whitelistedTokens;
     address public underlyingToken;
 
-    // to be removed later.
-    IExchange public uniExchange;
-
     modifier xyz() {
         _;
     }
@@ -51,17 +49,16 @@ contract MarginAccount {
     //     marginManager = msg.sender;
     //     underlyingToken = underlyingToken;
     // }
-    constructor() {}
+    constructor(address _router)
+        //  address _contractRegistry
+        UniExchange(_router)
+    {
+        require(_router != address(0));
+    }
 
     // function getLeverage() public view returns (uint256, uint256) {
     //     return (totalInternalLev, (totalLev - totalInternalLev));
     // }
-
-    function setExchange(address _exchange) {
-        // acl modifier
-        require(_exchange != address(0));
-        exchange = IExchange(_exchange);
-    }
 
     function addCollateral(address token, uint256 amount) external {
         // convert
@@ -127,37 +124,6 @@ contract MarginAccount {
         // make post trade chnges
         // add new position in array, update leverage int, ext
         return returnData;
-    }
-
-    function swapTokens(
-        address _tokenIn,
-        address _tokenOut,
-        uint256 _amountIn,
-        uint256 _amountOut,
-        bool _isExactInput
-    ) public returns (uint256 amountOut) {
-        // add acl check
-        require(address(exchange) != address(0), "MA: Exchange not set");
-        require(_tokenIn != address(0), "MA: TokenIn error");
-        require(_tokenOut != address(0), "MA: tokenOut error");
-
-        if (_isExactInput) {
-            require(_amountIn > 0, "MA: Invalid amountIn");
-            // approve tokenIn and amount to uniswap.
-            IERC20(_tokenIn).approve(I, amount);
-        } else {
-            require(_amountOut > 0, "MA: Invalid _amountOut");
-        }
-
-        SwapParams memory params = new SwapParams({
-            tokenIn: _tokenIn,
-            tokenOut: _tokenOut,
-            amountIn: _amountIn,
-            amountOut: _amountOut,
-            isExactInput: _isExactInput,
-            sqrtPriceLimitX96: 0
-        });
-        amountOut = uniExchange.swap(params);
     }
 
     function execMultiTx(

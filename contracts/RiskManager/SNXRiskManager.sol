@@ -33,6 +33,10 @@ contract SNXRiskManager {
     //     virtual
     //     returns (uint256);
 
+    function getBaseToken() external view returns (address) {
+        return baseToken;
+    }
+
     function previewPosition(bytes memory data) public {
         /**
         (marketKey, sizeDelta) = txDataDecoder(data)
