@@ -1,0 +1,18 @@
+pragma solidity ^0.8.10;
+
+/// @title IExchange interface
+/// @dev Interface for swapping assets
+interface IExchange {
+    struct SwapParams {
+        address tokenIn;
+        address tokenOut;
+        uint256 amountIn;
+        uint256 amountOut;
+        bool isExactInput;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    function swap(SwapParams calldata _swapParams)
+        external
+        returns (uint256 amountOut);
+}
