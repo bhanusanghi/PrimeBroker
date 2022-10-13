@@ -1,6 +1,18 @@
-import { BigNumber } from "@ethersproject/bignumber";
-import { artifacts, ethers, network } from "hardhat";
-
+import { expect } from "chai"
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+import { artifacts, ethers, network, waffle } from "hardhat";
+import { BigNumber, Contract } from "ethers";
+import { erc20 } from "../integrations/addresses";
+import { MarginManager, MarginAccount, ERC20, RiskManager } from "../../typechain-types";
+import { metadata } from "../integrations/PerpfiOptimismMetadata";
+import { abi as perpVaultAbi } from "../external/abi/perpVault";
+import { abi as perpClearingHouseAbi } from "../external/abi/clearingHouse";
+import { abi as perpAccountBalanceAbi } from "../external/abi/accountBalance";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { PERP, ERC20 as ERC20Hash, SNXUNI, TRANSFERMARGIN } from "./constants";
+import { boolean } from "hardhat/internal/core/params/argumentTypes";
+import dotenv from "dotenv";
+dotenv.config();
 /*
  * mint sUSD and transfer to account address specified:
  *
