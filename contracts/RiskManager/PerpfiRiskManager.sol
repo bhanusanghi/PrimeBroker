@@ -19,8 +19,11 @@ contract PerpfiRiskManager {
     bytes4 public AP = 0x095ea7b3;
     bytes4 public OP = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
-
-    constructor() {}
+    address public baseToken;
+   
+    constructor(address _baseToken) {
+        baseToken = _baseToken
+    }
 
     // function getTotalPnL(address marginAcc) public returns (int256) {
 

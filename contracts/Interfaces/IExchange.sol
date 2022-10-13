@@ -12,7 +12,7 @@ interface IExchange {
         uint160 sqrtPriceLimitX96;
     }
 
-    function swap(SwapParams calldata _swapParams)
+    function swap(SwapParams memory _swapParams)
         external
         returns (uint256 amountOut);
 }

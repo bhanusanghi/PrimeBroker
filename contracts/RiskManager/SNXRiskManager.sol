@@ -11,11 +11,13 @@ contract SNXRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
     IFuturesMarketManager public futureManager;
+    address public baseToken;
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
 
-    constructor() {}
-
+    constructor(address _baseToken) {
+        baseToken = _baseToken
+    }
     // function getTotalPnL(address marginAcc) public returns (int256) {
 
     // }

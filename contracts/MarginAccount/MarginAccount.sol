@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IExchange} from "../Interfaces/IExchange.sol";
 
 import "hardhat/console.sol";
 
@@ -39,6 +40,9 @@ contract MarginAccount {
     // mapping(address => boolean) whitelistedTokens;
     address public underlyingToken;
 
+    // to be removed later.
+    IExchange public uniExchange;
+
     modifier xyz() {
         _;
     }
@@ -52,6 +56,12 @@ contract MarginAccount {
     // function getLeverage() public view returns (uint256, uint256) {
     //     return (totalInternalLev, (totalLev - totalInternalLev));
     // }
+
+    function setExchange(address _exchange) {
+        // acl modifier
+        require(_exchange != address(0));
+        exchange = IExchange(_exchange);
+    }
 
     function addCollateral(address token, uint256 amount) external {
         // convert
@@ -117,6 +127,37 @@ contract MarginAccount {
         // make post trade chnges
         // add new position in array, update leverage int, ext
         return returnData;
+    }
+
+    function swapTokens(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn,
+        uint256 _amountOut,
+        bool _isExactInput
+    ) public returns (uint256 amountOut) {
+        // add acl check
+        require(address(exchange) != address(0), "MA: Exchange not set");
+        require(tokenIn != address(0), "MA: TokenIn error");
+        require(tokenOut != address(0), "MA: tokenOut error");
+
+        if (_isExactInput) {
+            require(_amountIn > 0, "MA: Invalid amountIn");
+            // approve tokenIn and amount to uniswap.
+            IERC20(_tokenIn).approve(I, amount);
+        } else {
+            require(_amountOut > 0, "MA: Invalid _amountOut");
+        }
+
+        SwapParams memory params = new SwapParams({
+            tokenIn: _tokenIn,
+            tokenOut: _tokenOut,
+            amountIn: _amountIn,
+            amountOut: _amountOut,
+            isExactInput: _isExactInput,
+            sqrtPriceLimitX96: 0
+        });
+        amountOut = uniExchange.swap(params);
     }
 
     function execMultiTx(
