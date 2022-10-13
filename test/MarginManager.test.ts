@@ -3,9 +3,11 @@ import { expect } from "chai";
 import { artifacts, ethers, network, waffle } from "hardhat";
 import { BigNumber, Contract } from "ethers";
 import { mintToAccountSUSD } from "./utils/helpers";
+import { metadata } from "./integrations/PerpfiOptimismMetadata";
+import { erc20 } from "./integrations/addresses";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import dotenv from "dotenv";
-import { SNXUNI, TRANSFERMARGIN } from "./utils/constants";
+import { SNXUNI, PERP, TRANSFERMARGIN } from "./utils/constants";
 import { boolean } from "hardhat/internal/core/params/argumentTypes";
 
 import { MarginManager, MarginAccount, RiskManager } from "../typechain-types";
@@ -45,7 +47,8 @@ let contractRegistry: Contract;
 // test accounts
 let account0: SignerWithAddress;
 let account1: SignerWithAddress;
-
+let perpClearingHouse: Contract;
+let accountBalance: Contract;
 /*///////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
 ///////////////////////////////////////////////////////////////*/
@@ -91,11 +94,27 @@ const setup = async () => {
   contractRegistry = await contractRegistryFactory.deploy()
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
   const sNXRiskManager = await SNXRiskManager.deploy()
+  const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
+  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy()
   const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
   const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);
   const _LPToken = await ethers.getContractFactory("LPToken");
   LPToken = await _LPToken.deploy("GIGABRAIN vault", "GBV", 18);
   const VaultFactory = await ethers.getContractFactory("Vault");
+  const usdc = (await ethers.getContractFactory("ERC20")).attach(erc20.usdc);
+  const IPerpVault = (
+    await artifacts.readArtifact("contracts/Interfaces/Perpfi/IVault.sol:IVault")
+  ).abi;
+  const perpVault = new ethers.Contract(metadata.contracts.Vault.address, IPerpVault);
+  const IClearingHouse = (
+    await artifacts.readArtifact("contracts/Interfaces/Perpfi/IClearingHouse.sol:IClearingHouse")
+  ).abi;
+  const IAccountBalance = (
+    await artifacts.readArtifact("contracts/Interfaces/Perpfi/IAccountBalance.sol:IAccountBalance")
+  ).abi;
+  perpClearingHouse = new ethers.Contract(metadata.contracts.ClearingHouse.address, IClearingHouse, account0);
+  accountBalance = new ethers.Contract(metadata.contracts.AccountBalance.address, IAccountBalance);
+  await riskManager.addAllowedTokens(erc20.usdc)
   vault = await VaultFactory.deploy("0xD1599E478cC818AFa42A4839a6C665D9279C3E50", LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy(contractRegistry.address)
@@ -109,6 +128,7 @@ const setup = async () => {
   console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
+  await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
 };
 const transferMarginData = async (address: any, amount: any) => {
   const IFuturesMarketABI = (
