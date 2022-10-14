@@ -143,7 +143,7 @@ const setup = async () => {
   const usdcHolder = await ethers.getImpersonatedSigner("0x7F5c764cBc14f9669B88837ca1490cCa17c31607");
   // const sUsdHolder = await ethers.getImpersonatedSigner("0xa5f7a39e55d7878bc5bd754ee5d6bd7a7662355b");
   const usdcHolderBalance = await usdc.balanceOf(usdcHolder.address)
-  sUSD = (await ethers.getContractFactory("ERC20")).attach(erc20.sUSD);
+  // sUSD = (await ethers.getContractFactory("ERC20")).attach(erc20.sUSD);
   // const susdHolderBalance = await sUSD.balanceOf(sUsdHolder.address)
   console.log(usdcHolderBalance, "yaha")
   // console.log(susdHolderBalance, "yaha")
@@ -199,21 +199,21 @@ describe("Margin Manager", () => {
     beforeEach("Setup", async () => {
       // mint sUSD to test accounts, and deploy contracts
 
-      IERC20ABI = (
+      await setup();
+      console.log("setup done")
+      const IERC20ABI = (
         await artifacts.readArtifact(
           "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
         )
       ).abi;
-
-      await setup();
-      console.log("setup done")
-      // sUSD = await new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
+      sUSD = await new ethers.Contract(synthSUSDAddress, IERC20ABI, account0);
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)
       marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
       console.log("here bt")
-      await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
-      await sUSD.approve(accAddress, testamt)
+      // await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
+
+      // await sUSD.approve(accAddress, testamt)
       console.log("here")
     });
     // it("test swap"), async () => {
@@ -221,8 +221,10 @@ describe("Margin Manager", () => {
     // }
     it("MarginAccount add new position using vault", async () => {
 
-      await sUSD.approve(accAddress, ethers.BigNumber.from("10000000000000000000000"))
-      await marginAcc.addCollateral(synthSUSDAddress, ethers.BigNumber.from("10000000000000000000000"))
+      await usdc.approve(accAddress, ethers.utils.parseUnits("2000", 6))
+      console.log('hehe here1')
+      await marginAcc.addCollateral(usdc.address, ethers.utils.parseUnits("2000", 6))
+      console.log('hehe here2')
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)

@@ -84,10 +84,10 @@ contract RiskManager is ReentrancyGuard {
             uint256(absVal(positionSize)),
             "freeMargin and total size"
         );
-        require(
-            freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
-            "Extra margin not allowed"
-        );
+        // require(
+        //     freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
+        //     "Extra margin not allowed"
+        // );
         if (positionSize > 0) {
             vault.lend(
                 ((absVal(transferAmount) / 10**12) + (100 * 10**6)),
@@ -105,10 +105,10 @@ contract RiskManager is ReentrancyGuard {
                     isExactInput: false,
                     sqrtPriceLimitX96: 0
                 });
-                MarginAccount(marginAcc).approveToProtocol(
-                    tokenIn,
-                    0xE592427A0AEce92De3Edee1F18E0157C05861564
-                );
+                // MarginAccount(marginAcc).approveToProtocol(
+                //     tokenIn,
+                //     0xE592427A0AEce92De3Edee1F18E0157C05861564
+                // );
                 console.log("approved to uni");
                 uint256 amountOut = MarginAccount(marginAcc).swap(params);
                 require(
