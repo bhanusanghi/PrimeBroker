@@ -9,6 +9,7 @@ import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import { SNXUNI, TRANSFERMARGIN } from "./utils/constants";
 import { MarginManager, MarginAccount, RiskManager } from "../typechain-types";
 import { transferMarginDataSNX, openPositionDataSNX } from "./utils/CalldataGenerator"
+import { erc20 } from "./integrations/addresses";
 dotenv.config();
 
 // constants
@@ -95,7 +96,7 @@ const setup = async () => {
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy(contractRegistry.address)
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
-  const sNXRiskManager = await SNXRiskManager.deploy()
+  const sNXRiskManager = await SNXRiskManager.deploy(erc20.usdc)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
   await riskManager.addAllowedTokens("0xD1599E478cC818AFa42A4839a6C665D9279C3E50")
   await riskManager.setVault(vault.address)
