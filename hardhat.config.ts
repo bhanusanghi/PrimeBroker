@@ -47,7 +47,10 @@ const config: HardhatUserConfig = {
     //   url: "http://localhost:8545",
     //   // accounts: [privateKey1, privateKey2, ...]
     // },
-  }
+  },
+  mocha: {
+    timeout: 100000000
+  },
 };
 
 export default config;

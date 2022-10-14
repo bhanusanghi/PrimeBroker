@@ -7,9 +7,9 @@ import { metadata } from "./integrations/PerpfiOptimismMetadata";
 import { erc20 } from "./integrations/addresses";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import dotenv from "dotenv";
-import { SNXUNI, PERP, TRANSFERMARGIN } from "./utils/constants";
+import { SNXUNI, PERP, TRANSFERMARGIN, ERC20 } from "./utils/constants";
 import { boolean } from "hardhat/internal/core/params/argumentTypes";
-
+import { perpOpenPositionCallData, getVaultDepositCalldata, getErc20ApprovalCalldata } from "./utils/CalldataGenerator";
 import { MarginManager, MarginAccount, RiskManager } from "../typechain-types";
 dotenv.config();
 
@@ -50,6 +50,7 @@ let account1: SignerWithAddress;
 let perpClearingHouse: Contract;
 let accountBalance: Contract;
 let usdc: Contract;
+let perpVault: Contract;
 /*///////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
 ///////////////////////////////////////////////////////////////*/
@@ -106,7 +107,7 @@ const setup = async () => {
   const IPerpVault = (
     await artifacts.readArtifact("contracts/Interfaces/Perpfi/IVault.sol:IVault")
   ).abi;
-  const perpVault = new ethers.Contract(metadata.contracts.Vault.address, IPerpVault, account0);
+  perpVault = new ethers.Contract(metadata.contracts.Vault.address, IPerpVault, account0);
   const IClearingHouse = (
     await artifacts.readArtifact("contracts/Interfaces/Perpfi/IClearingHouse.sol:IClearingHouse")
   ).abi;
@@ -238,6 +239,35 @@ describe("Margin Manager", () => {
       // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
 
       const out = await marginManager.openPosition(UNI_MARKET, [SNXUNI, SNXUNI], [UNI_MARKET, UNI_MARKET], [trData, posData])
+      const parsedAmount = ethers.utils.parseUnits("1000", 6)
+      await usdc.transfer(marginAcc.address, parsedAmount)
+
+      // fundCreditAccount with vAave for now.
+
+      const approveAmountCalldata = await getErc20ApprovalCalldata(perpVault.address, parsedAmount);
+      console.log("approveAmountCalldata - ", approveAmountCalldata);
+
+      const fundVaultCalldata = await getVaultDepositCalldata(erc20.usdc, parsedAmount);
+      console.log("fundVaultCalldata - ", fundVaultCalldata);
+      console.log(parsedAmount, ethers.BigNumber.from(parsedAmount))
+      const _perpOpenPositionCallData = await perpOpenPositionCallData(
+        "0x34235C8489b06482A99bb7fcaB6d7c467b92d248",
+        false,
+        true,
+        ethers.BigNumber.from('0'),
+        ethers.BigNumber.from(parsedAmount),
+        ethers.BigNumber.from('0'),
+        ethers.constants.MaxUint256,
+        ethers.constants.HashZero)
+
+      console.log("perpOpenPositionCallData - ", _perpOpenPositionCallData)
+      const response = await marginManager.openPosition(
+        perpClearingHouse.address,
+        [PERP, ERC20],
+        [erc20.usdc, perpVault.address, perpClearingHouse.address],
+        [approveAmountCalldata, fundVaultCalldata, _perpOpenPositionCallData]
+      );
+      console.log(await marginAcc.positions(perpClearingHouse.address), await marginAcc.positions(UNI_MARKET))
     });
   });
 });
