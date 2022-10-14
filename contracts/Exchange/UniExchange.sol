@@ -8,6 +8,7 @@ import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import "hardhat/console.sol";
 
 contract UniExchange is IExchange {
     // Keep a list of supported input and output assets here.
@@ -26,6 +27,7 @@ contract UniExchange is IExchange {
         external
         returns (uint256 amountOut)
     {
+        console.log(msg.sender, address(this), "in swap this");
         require(_swapParams.tokenIn != address(0), "MA: TokenIn error");
         require(_swapParams.tokenOut != address(0), "MA: tokenOut error");
 
@@ -42,7 +44,7 @@ contract UniExchange is IExchange {
                 "MA: Invalid _swapParams.amountOut"
             );
             // approve tokenOut amount to uniswap.
-            IERC20(_swapParams.tokenOut).approve(
+            IERC20(_swapParams.tokenIn).approve(
                 address(router),
                 _swapParams.amountOut
             );
@@ -61,7 +63,7 @@ contract UniExchange is IExchange {
                         tokenIn: _swapParams.tokenIn,
                         tokenOut: _swapParams.tokenOut,
                         fee: feeTier,
-                        recipient: msg.sender,
+                        recipient: address(this),
                         deadline: block.timestamp,
                         amountIn: _swapParams.amountIn,
                         amountOutMinimum: 0, //amountOutMinimum
@@ -74,7 +76,7 @@ contract UniExchange is IExchange {
                         tokenIn: _swapParams.tokenIn,
                         tokenOut: _swapParams.tokenOut,
                         fee: feeTier,
-                        recipient: msg.sender,
+                        recipient: address(this),
                         deadline: block.timestamp,
                         amountOut: _swapParams.amountOut,
                         amountInMaximum: 0, //amountInMaximum

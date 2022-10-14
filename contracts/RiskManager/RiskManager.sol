@@ -90,31 +90,29 @@ contract RiskManager is ReentrancyGuard {
         // );
         if (positionSize > 0) {
             vault.lend(
-                ((absVal(transferAmount) / 10**12) + (100 * 10**6)),
+                ((absVal(transferAmount)) / 10**12 + (100 * 10**6)),
                 marginAcc
             );
-
             address tokenIn = vault.asset();
             address tokenOut = protocolRiskManager.getBaseToken();
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: 0,
-                    amountOut: absVal(transferAmount),
-                    isExactInput: false,
+                    amountIn: ((absVal(transferAmount)) /
+                        10**12 +
+                        (100 * 10**6)),
+                    amountOut: 0,
+                    isExactInput: true,
                     sqrtPriceLimitX96: 0
                 });
-                // MarginAccount(marginAcc).approveToProtocol(
-                //     tokenIn,
-                //     0xE592427A0AEce92De3Edee1F18E0157C05861564
-                // );
                 console.log("approved to uni");
                 uint256 amountOut = MarginAccount(marginAcc).swap(params);
-                require(
-                    amountOut == absVal(transferAmount),
-                    "RM: Bad exchange."
-                );
+                console.log(amountOut, "amountOut");
+                // require(
+                //     amountOut == (absVal(transferAmount)),
+                //     "RM: Bad exchange."
+                // );
             }
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             // @todo update it with vault-MM link`
