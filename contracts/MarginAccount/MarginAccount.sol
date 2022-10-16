@@ -101,6 +101,9 @@ contract MarginAccount is UniExchange {
     function getPositionValue(address _protocol) public returns (int256) {
         // only riskmanagger
         return positions[_protocol].notionalValue;
+        // and pnl
+        // send protocol risk manager address
+        // protocol rm . getPnl(address(this), _protocol)
     }
 
     function absVal(int256 val) public view returns (uint256) {

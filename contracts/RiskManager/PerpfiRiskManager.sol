@@ -52,6 +52,22 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
+    function getPnL(address account, address protocol)
+        public
+        view
+        returns (int256)
+    {
+        // IAccountbalance
+        //    function getPnlAndPendingFee(address trader)
+        // external
+        // view
+        // returns (
+        //     int256 owedRealizedPnl,
+        //     int256 unrealizedPnl,
+        //     uint256 pendingFee
+        // );
+    }
+
     function verifyTrade(bytes[] calldata data)
         public
         view
