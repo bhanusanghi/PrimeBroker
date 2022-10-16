@@ -95,9 +95,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                         )
                     );
                 console.log(_amount, _baseToken, "in perprm");
-                if (isShort) {
-                    totalPosition = -int256(_amount);
-                }
+                totalPosition = isShort ? -int256(_amount) : int256(_amount);
             }
         }
     }
