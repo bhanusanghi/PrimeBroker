@@ -89,19 +89,14 @@ contract RiskManager is ReentrancyGuard {
         //     "Extra margin not allowed"
         // );
         if (positionSize > 0) {
-            vault.lend(
-                ((absVal(transferAmount)) / 10**12 + (100 * 10**6)),
-                marginAcc
-            );
+            vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
             address tokenIn = vault.asset();
             address tokenOut = protocolRiskManager.getBaseToken();
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: ((absVal(transferAmount)) /
-                        10**12 +
-                        (100 * 10**6)),
+                    amountIn: ((absVal(transferAmount)) + (100 * 10**6)),
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0

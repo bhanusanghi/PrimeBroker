@@ -58,13 +58,14 @@ let perpVault: Contract;
 /**
  * @notice fork network at block number given
  */
-const forkAtBlock = async (block?: number) => {
+const forkAtBlock = async (block: number) => {
   await network.provider.request({
     method: "hardhat_reset",
     params: [
       {
         forking: {
           jsonRpcUrl: process.env.ARCHIVE_NODE_URL_L2,
+          blockNumber: block,
         },
       },
     ],
@@ -194,7 +195,7 @@ describe("Margin Manager", () => {
     const testamt = ethers.utils.parseUnits("1000", 18);
     let IERC20ABI: any;
     before("Fork Network", async () => {
-      await forkAtBlock();
+      await forkAtBlock(29697063);
     });
     beforeEach("Setup", async () => {
       // mint sUSD to test accounts, and deploy contracts

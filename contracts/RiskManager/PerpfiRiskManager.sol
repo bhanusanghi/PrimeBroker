@@ -73,8 +73,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 (
-                    address baseToken,
-                    bool isLong,
+                    address _baseToken,
+                    bool isShort,
                     bool isExactInput,
                     uint256 _amount,
                     ,
@@ -94,8 +94,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                console.log(_amount, baseToken, "in perprm");
-                if (!isLong) {
+                console.log(_amount, _baseToken, "in perprm");
+                if (isShort) {
                     totalPosition = -int256(_amount);
                 }
             }
