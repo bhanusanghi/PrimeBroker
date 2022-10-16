@@ -12,6 +12,7 @@ contract SNXRiskManager {
     // function getPositionValue(address marginAcc) public override {}
     IFuturesMarketManager public futureManager;
     address public baseToken;
+    uint256 public vaultAssetDecimals = 10**6; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
 
@@ -35,6 +36,10 @@ contract SNXRiskManager {
 
     function getBaseToken() external view returns (address) {
         return baseToken;
+    }
+
+    function _normaliseDeciamals(int256 amount) private view returns (int256) {
+        return amount / 10**12;
     }
 
     function previewPosition(bytes memory data) public {
@@ -62,9 +67,11 @@ contract SNXRiskManager {
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = abi.decode(data[i][4:], (int256));
+                amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
-                totalPosition = abi.decode(data[i][4:], (int256));
+                totalPosition = _normaliseDeciamals(
+                    abi.decode(data[i][4:], (int256))
+                );
             }
         }
     }

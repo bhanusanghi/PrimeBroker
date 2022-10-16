@@ -9,6 +9,7 @@ import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import { SNXUNI, TRANSFERMARGIN } from "./utils/constants";
 import { MarginManager, MarginAccount, RiskManager } from "../typechain-types";
 import { transferMarginDataSNX, openPositionDataSNX } from "./utils/CalldataGenerator"
+import { erc20 } from "./integrations/addresses";
 dotenv.config();
 
 // constants
@@ -91,13 +92,13 @@ const setup = async () => {
   const VaultFactory = await ethers.getContractFactory("Vault");
   const RiskManager = await ethers.getContractFactory("RiskManager");
   riskManager = await RiskManager.deploy(contractRegistry.address)
-  vault = await VaultFactory.deploy("0xD1599E478cC818AFa42A4839a6C665D9279C3E50", LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
+  vault = await VaultFactory.deploy(erc20.sUSD, LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy(contractRegistry.address)
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
-  const sNXRiskManager = await SNXRiskManager.deploy()
+  const sNXRiskManager = await SNXRiskManager.deploy(erc20.sUSD)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
-  await riskManager.addAllowedTokens("0xD1599E478cC818AFa42A4839a6C665D9279C3E50")
+  await riskManager.addAllowedTokens(erc20.sUSD)
   await riskManager.setVault(vault.address)
 
   await vault.addRepayingAddress(riskManager.address)

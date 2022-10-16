@@ -84,28 +84,31 @@ contract RiskManager is ReentrancyGuard {
             uint256(absVal(positionSize)),
             "freeMargin and total size"
         );
-        require(
-            freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
-            "Extra margin not allowed"
-        );
+        // require(
+        //     freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
+        //     "Extra margin not allowed"
+        // );
         if (positionSize > 0) {
-            vault.lend(absVal(transferAmount + (100 * 10**6)), marginAcc);
-
+            vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
             address tokenIn = vault.asset();
             address tokenOut = protocolRiskManager.getBaseToken();
-
-            IExchange.SwapParams memory params = IExchange.SwapParams({
-                tokenIn: tokenIn,
-                tokenOut: tokenOut,
-                amountIn: 0,
-                amountOut: absVal(transferAmount),
-                isExactInput: false,
-                sqrtPriceLimitX96: 0
-            });
-
-            uint256 amountOut = MarginAccount(marginAcc).swap(params);
-            require(amountOut == absVal(transferAmount), "RM: Bad exchange.");
-
+            if (tokenIn != tokenOut) {
+                IExchange.SwapParams memory params = IExchange.SwapParams({
+                    tokenIn: tokenIn,
+                    tokenOut: tokenOut,
+                    amountIn: ((absVal(transferAmount)) + (100 * 10**6)),
+                    amountOut: 0,
+                    isExactInput: true,
+                    sqrtPriceLimitX96: 0
+                });
+                console.log("approved to uni");
+                uint256 amountOut = MarginAccount(marginAcc).swap(params);
+                console.log(amountOut, "amountOut");
+                // require(
+                //     amountOut == (absVal(transferAmount)),
+                //     "RM: Bad exchange."
+                // );
+            }
             MarginAccount(marginAcc).execMultiTx(destinations, data);
             // @todo update it with vault-MM link`
 

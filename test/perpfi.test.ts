@@ -224,56 +224,56 @@ describe("MarginManager", () => {
     //   console.log("Account data", accountData)
     // });
 
-    it("should allow funding vault using margin account.", async () => {
-      const parsedAmount = ethers.utils.parseUnits("10000", 6)
+    // it("should allow funding vault using margin account.", async () => {
+    //   const parsedAmount = ethers.utils.parseUnits("10000", 6)
 
-      // bob funds CreditAccount with usdc.
-      await contracts.erc20.usdc.connect(bob).transfer(contracts.marginAccount.address, parsedAmount)
+    //   // bob funds CreditAccount with usdc.
+    //   await contracts.erc20.usdc.connect(bob).transfer(contracts.marginAccount.address, parsedAmount)
 
-      // fundCreditAccount with vAave for now.
+    //   // fundCreditAccount with vAave for now.
 
-      const approveAmountCalldata = await getErc20ApprovalCalldata(contracts.perp.vault.address, parsedAmount);
-      console.log("approveAmountCalldata - ", approveAmountCalldata);
+    //   const approveAmountCalldata = await getErc20ApprovalCalldata(contracts.perp.vault.address, parsedAmount);
+    //   console.log("approveAmountCalldata - ", approveAmountCalldata);
 
-      const fundVaultCalldata = await getVaultDepositCalldata(erc20.usdc, parsedAmount);
-      console.log("fundVaultCalldata - ", fundVaultCalldata);
+    //   const fundVaultCalldata = await getVaultDepositCalldata(erc20.usdc, parsedAmount);
+    //   console.log("fundVaultCalldata - ", fundVaultCalldata);
 
-      // console.log(
-      //   [ERC20Hash, PERP],
-      //   [BigNumber.from(0), BigNumber.from(2)],
-      //   // [txMetaType.ERC20_APPROVAL, txMetaType.EXTERNAL_PROTOCOL,],
-      //   [erc20.usdc, contracts.perp.vault.address],
-      //   [approveAmountCalldata, fundVaultCalldata]
-      // )
-      /**    struct OpenPositionParams {
-        address baseToken;
-        bool isBaseToQuote;
-        bool isExactInput;
-        uint256 amount;
-        uint256 oppositeAmountBound;
-        uint256 deadline;
-        uint160 sqrtPriceLimitX96;
-        bytes32 referralCode;
-    } */
-      console.log(parsedAmount, ethers.BigNumber.from(parsedAmount))
-      const perpOpenPositionCallData = await getOpenPerpPositionCalldata(
-        "0x34235C8489b06482A99bb7fcaB6d7c467b92d248",
-        false,
-        true,
-        ethers.BigNumber.from('0'),
-        ethers.BigNumber.from(parsedAmount),
-        ethers.BigNumber.from('0'),
-        ethers.constants.MaxUint256,
-        ethers.constants.HashZero)
+    //   // console.log(
+    //   //   [ERC20Hash, PERP],
+    //   //   [BigNumber.from(0), BigNumber.from(2)],
+    //   //   // [txMetaType.ERC20_APPROVAL, txMetaType.EXTERNAL_PROTOCOL,],
+    //   //   [erc20.usdc, contracts.perp.vault.address],
+    //   //   [approveAmountCalldata, fundVaultCalldata]
+    //   // )
+    //   /**    struct OpenPositionParams {
+    //     address baseToken;
+    //     bool isBaseToQuote;
+    //     bool isExactInput;
+    //     uint256 amount;
+    //     uint256 oppositeAmountBound;
+    //     uint256 deadline;
+    //     uint160 sqrtPriceLimitX96;
+    //     bytes32 referralCode;
+    // } */
+    //   console.log(parsedAmount, ethers.BigNumber.from(parsedAmount))
+    //   const perpOpenPositionCallData = await getOpenPerpPositionCalldata(
+    //     "0x34235C8489b06482A99bb7fcaB6d7c467b92d248",
+    //     false,
+    //     true,
+    //     ethers.BigNumber.from('0'),
+    //     ethers.BigNumber.from(parsedAmount),
+    //     ethers.BigNumber.from('0'),
+    //     ethers.constants.MaxUint256,
+    //     ethers.constants.HashZero)
 
-      console.log("perpOpenPositionCallData - ", perpOpenPositionCallData)
-      const response = await contracts.marginManager.connect(bob).openPosition(
-        contracts.perp.clearingHouse.address,
-        [PERP, ERC20Hash],
-        [erc20.usdc, contracts.perp.vault.address, contracts.perp.clearingHouse.address],
-        [approveAmountCalldata, fundVaultCalldata, perpOpenPositionCallData]
-      );
-    });
+    //   console.log("perpOpenPositionCallData - ", perpOpenPositionCallData)
+    //   const response = await contracts.marginManager.connect(bob).openPosition(
+    //     contracts.perp.clearingHouse.address,
+    //     [PERP, ERC20Hash],
+    //     [erc20.usdc, contracts.perp.vault.address, contracts.perp.clearingHouse.address],
+    //     [approveAmountCalldata, fundVaultCalldata, perpOpenPositionCallData]
+    //   );
+    // });
   });
 
   // bytes32[] memory contractName,
