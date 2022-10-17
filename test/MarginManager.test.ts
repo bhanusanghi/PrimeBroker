@@ -97,7 +97,7 @@ const setup = async () => {
   console.log("hehe")
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
-  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc)
+  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc, metadata.contracts.AccountBalance.address)
   const sNXRiskManager = await SNXRiskManager.deploy(erc20.sUSD)
   const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
   const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);

@@ -56,6 +56,14 @@ contract SNXRiskManager {
         view
         returns (int256)
     {
+        IFuturesMarket market = IFuturesMarket(protocol);
+        int256 notionalValue;
+        int256 funding;
+        int256 PnL;
+        (notionalValue, ) = market.notionalValue(account);
+        (funding, ) = market.accruedFunding(account);
+        (PnL, ) = market.profitLoss(account);
+        return PnL - funding;
         // profitLoss
         // accruedFunding
         //         function notionalValue(address account) external view returns (int value, bool invalid) {

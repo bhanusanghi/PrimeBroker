@@ -69,7 +69,7 @@ async function initializeContractsFixture(): Promise<Contracts> {
 
 
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
-  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc)
+  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc, metadata.contracts.AccountBalance.address)
 
   // Add to contract registry
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)

@@ -122,6 +122,7 @@ contract MarginManager is ReentrancyGuard {
         );
         marginAcc.updatePosition(
             protocolAddress,
+            contractRegistry.getContractByName(contractName[0]), // make sure this is correct?
             positionSize,
             uint256(absVal(tokensToTransfer)),
             true
@@ -165,6 +166,7 @@ contract MarginManager is ReentrancyGuard {
 
         marginAcc.updatePosition(
             protocolAddress,
+            contractRegistry.getContractByName(contractName[0]),
             _oldPositionSize + _currentPositionSize,
             uint256(absVal(tokensToTransfer)),
             true

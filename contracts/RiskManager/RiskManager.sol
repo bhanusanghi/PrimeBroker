@@ -225,9 +225,12 @@ contract RiskManager is ReentrancyGuard {
         MarginAccount macc = MarginAccount(marginAccount);
         uint256 len = allowedMarkets.length;
         for (uint256 i = 0; i < len; i++) {
-            totalNotional += absVal(macc.getPositionValue(allowedMarkets[i]));
+            int256 notional;
+            int256 _pnl;
+            (notional, _pnl) = macc.getPositionValPnL(allowedMarkets[i]);
+            totalNotional += absVal(notional);
+            PnL += _pnl;
         }
-        PnL = 1; // @todo fix me rm.getPnl
     }
 
     function TotalPositionValue() external {}
