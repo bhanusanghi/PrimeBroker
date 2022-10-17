@@ -120,9 +120,18 @@ contract MarginAccount is UniExchange {
         returns (int256, int256)
     {
         // only riskmanagger
-        int256 PnL = BaseProtocolRiskManager(positions[_protocol].riskManager)
-            .getPnL(address(this), _protocol);
-        return (positions[_protocol].notionalValue, PnL);
+        if (positions[_protocol].notionalValue != 0) {
+            console.log(
+                "getting pnl",
+                positions[_protocol].riskManager,
+                _protocol
+            );
+            int256 PnL = BaseProtocolRiskManager(
+                positions[_protocol].riskManager
+            ).getPnL(address(this), _protocol);
+            return (positions[_protocol].notionalValue, PnL);
+        }
+        return (positions[_protocol].notionalValue, 0);
         // and pnl
         // send protocol risk manager address
         // protocol rm . getPnl(address(this), _protocol)
