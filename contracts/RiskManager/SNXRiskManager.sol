@@ -51,6 +51,41 @@ contract SNXRiskManager {
        */
     }
 
+    function getPnL(address account, address protocol)
+        public
+        view
+        returns (int256)
+    {
+        IFuturesMarket market = IFuturesMarket(protocol);
+        int256 notionalValue;
+        int256 funding;
+        int256 PnL;
+        (notionalValue, ) = market.notionalValue(account);
+        (funding, ) = market.accruedFunding(account);
+        (PnL, ) = market.profitLoss(account);
+        return PnL - funding;
+        // profitLoss
+        // accruedFunding
+        //         function notionalValue(address account) external view returns (int value, bool invalid) {
+        //     (uint price, bool isInvalid) = assetPrice();
+        //     return (_notionalValue(positions[account].size, price), isInvalid);
+        // }
+        // /*
+        //  * The PnL of a position is the change in its notional value. Funding is not taken into account.
+        //  */
+        // function profitLoss(address account) external view returns (int pnl, bool invalid) {
+        //     (uint price, bool isInvalid) = assetPrice();
+        //     return (_profitLoss(positions[account], price), isInvalid);
+        // }
+        // /*
+        //  * The funding accrued in a position since it was opened; this does not include PnL.
+        //  */
+        // function accruedFunding(address account) external view returns (int funding, bool invalid) {
+        //     (uint price, bool isInvalid) = assetPrice();
+        //     return (_accruedFunding(positions[account], price), isInvalid);
+        // }
+    }
+
     function verifyTrade(bytes[] calldata data)
         public
         view

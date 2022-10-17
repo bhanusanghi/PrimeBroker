@@ -1,4 +1,4 @@
-// pragma solidity ^0.8.10;
+pragma solidity ^0.8.10;
 
 // import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 // import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,16 +9,10 @@
 
 // import "hardhat/console.sol";
 
-// contract BaseProtocolRiskManager {
-//     function getTotalPnL(address marginAcc) public virtual returns (int256);
-
-//     function getTotalPositionSize(address marginAcc)
-//         public
-//         virtual
-//         returns (uint256);
-
-//     function getTotalAssetsValue(address marginAcc)
-//         public
-//         virtual
-//         returns (uint256);
-// }
+contract BaseProtocolRiskManager {
+    function getPnL(address account, address protocol)
+        public
+        view
+        returns (int256)
+    {}
+}
