@@ -45,5 +45,6 @@ interface IVault {
 
     function calcLinearCumulative_RAY() external view returns (uint256);
 
+    function asset() external view returns (address);
     // setters
 }

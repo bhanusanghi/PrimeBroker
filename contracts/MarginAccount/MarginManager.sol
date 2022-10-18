@@ -15,6 +15,8 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
 import {IVault} from "../Interfaces/IVault.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
+import {IExchange} from "../Interfaces/IExchange.sol";
+
 import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
@@ -112,39 +114,56 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+
         require(
             !marginAcc.existingPosition(protocolAddress),
             "Existing position"
         );
-        int256 tokensToTransfer;
+        int256 transferAmount;
         int256 positionSize;
-        (tokensToTransfer, positionSize) = riskManager.verifyTrade(
+        address tokenOut;
+        (transferAmount, positionSize, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
             protocolAddress,
             contractName,
             destinations,
             data
         );
-        marginAcc.updatePosition(
-            protocolAddress,
-            contractRegistry.getContractByName(contractName[0]), // make sure this is correct?
-            positionSize,
-            uint256(absVal(tokensToTransfer)),
-            true
-        );
-        if (tokensToTransfer > 0) {
-            //vault.approve/transfer
-        }
+        // find actual transfer amount and find exchange price using oracle.
+        address tokenIn = vault.asset();
+        // vault.lend(() + (100 * 10**6)), marginAcc);
 
-        // bytes memory returnData = marginAcc.execMultiTx(
-        //     destinations,
-        //     dataArray
-        // );
-        // do something with returnData or remove
-        /**
-        if RiskManager.AllowNewTrade
-            open positions
-         */
+        // temp increase tokens to transfer. assuming USDC.
+        if (transferAmount > 0) {
+            increaseDebt(
+                address(marginAcc),
+                uint256(absVal(transferAmount) + (100 * 10**6))
+            );
+            if (tokenIn != tokenOut) {
+                IExchange.SwapParams memory params = IExchange.SwapParams({
+                    tokenIn: tokenIn,
+                    tokenOut: tokenOut,
+                    amountIn: uint256((absVal(transferAmount)) + (100 * 10**6)),
+                    amountOut: 0,
+                    isExactInput: true,
+                    sqrtPriceLimitX96: 0
+                });
+                uint256 amountOut = MarginAccount(marginAcc).swap(params);
+                console.log(amountOut, "amountOut");
+                // require(
+                //     amountOut == (absVal(transferAmount)),
+                //     "RM: Bad exchange."
+                // );
+                marginAcc.execMultiTx(destinations, data);
+                marginAcc.updatePosition(
+                    protocolAddress,
+                    contractRegistry.getContractByName(contractName[0]), // make sure this is correct?
+                    positionSize,
+                    uint256(absVal(transferAmount)),
+                    true
+                );
+            }
+        } else {}
     }
 
     function updatePosition(
@@ -160,14 +179,16 @@ contract MarginManager is ReentrancyGuard {
         );
         int256 tokensToTransfer;
         int256 _currentPositionSize;
+        address tokenOut;
         int256 _oldPositionSize = marginAcc.getPositionValue(protocolAddress);
-        (tokensToTransfer, _currentPositionSize) = riskManager.verifyTrade(
-            address(marginAcc),
-            protocolAddress,
-            contractName,
-            destinations,
-            data
-        );
+        (tokensToTransfer, _currentPositionSize, tokenOut) = riskManager
+            .verifyTrade(
+                address(marginAcc),
+                protocolAddress,
+                contractName,
+                destinations,
+                data
+            );
 
         marginAcc.updatePosition(
             protocolAddress,
@@ -288,7 +309,7 @@ contract MarginManager is ReentrancyGuard {
     /// @param amount Amount to increase borrowed amount
     /// @return newBorrowedAmount Updated amount
     function increaseDebt(address borrower, uint256 amount)
-        public
+        internal
         returns (uint256 newBorrowedAmount)
     {
         // acl check
