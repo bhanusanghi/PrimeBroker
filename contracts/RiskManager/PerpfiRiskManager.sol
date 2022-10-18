@@ -11,6 +11,7 @@ import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
@@ -20,9 +21,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public OP = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
     address public baseToken;
+    IAccountBalance accountBalance;
 
-    constructor(address _baseToken) {
+    constructor(address _baseToken, address _accountBalance) {
         baseToken = _baseToken;
+        accountBalance = IAccountBalance(_accountBalance);
     }
 
     // function getTotalPnL(address marginAcc) public returns (int256) {
@@ -52,6 +55,28 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
+    function getPnL(address account, address protocol)
+        public
+        view
+        returns (int256)
+    {
+        int256 owedRealizedPnl;
+        int256 unrealizedPnl;
+        uint256 pendingFee;
+        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
+            .getPnlAndPendingFee(account);
+        console.log(pendingFee);
+        // IAccountbalance
+        //    function getPnlAndPendingFee(address trader)
+        // external
+        // view
+        // returns (
+        //     int256 owedRealizedPnl,
+        //     int256 unrealizedPnl,
+        //     uint256 pendingFee
+        // );
+    }
+
     function verifyTrade(bytes[] calldata data)
         public
         view
@@ -73,8 +98,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 (
-                    address baseToken,
-                    bool isLong,
+                    address _baseToken,
+                    bool isShort,
                     bool isExactInput,
                     uint256 _amount,
                     ,
@@ -94,10 +119,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                console.log(_amount, baseToken, "in perprm");
-                if (!isLong) {
-                    totalPosition = -int256(_amount);
-                }
+                console.log(_amount, _baseToken, "in perprm");
+                totalPosition = isShort ? -int256(_amount) : int256(_amount);
             }
         }
     }

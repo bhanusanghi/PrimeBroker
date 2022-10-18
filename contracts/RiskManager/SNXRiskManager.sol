@@ -12,6 +12,7 @@ contract SNXRiskManager {
     // function getPositionValue(address marginAcc) public override {}
     IFuturesMarketManager public futureManager;
     address public baseToken;
+    uint256 public vaultAssetDecimals = 10**6; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
 
@@ -37,6 +38,10 @@ contract SNXRiskManager {
         return baseToken;
     }
 
+    function _normaliseDeciamals(int256 amount) private view returns (int256) {
+        return amount / 10**12;
+    }
+
     function previewPosition(bytes memory data) public {
         /**
         (marketKey, sizeDelta) = txDataDecoder(data)
@@ -44,6 +49,41 @@ contract SNXRiskManager {
 
 
        */
+    }
+
+    function getPnL(address account, address protocol)
+        public
+        view
+        returns (int256)
+    {
+        IFuturesMarket market = IFuturesMarket(protocol);
+        int256 notionalValue;
+        int256 funding;
+        int256 PnL;
+        (notionalValue, ) = market.notionalValue(account);
+        (funding, ) = market.accruedFunding(account);
+        (PnL, ) = market.profitLoss(account);
+        return PnL - funding;
+        // profitLoss
+        // accruedFunding
+        //         function notionalValue(address account) external view returns (int value, bool invalid) {
+        //     (uint price, bool isInvalid) = assetPrice();
+        //     return (_notionalValue(positions[account].size, price), isInvalid);
+        // }
+        // /*
+        //  * The PnL of a position is the change in its notional value. Funding is not taken into account.
+        //  */
+        // function profitLoss(address account) external view returns (int pnl, bool invalid) {
+        //     (uint price, bool isInvalid) = assetPrice();
+        //     return (_profitLoss(positions[account], price), isInvalid);
+        // }
+        // /*
+        //  * The funding accrued in a position since it was opened; this does not include PnL.
+        //  */
+        // function accruedFunding(address account) external view returns (int funding, bool invalid) {
+        //     (uint price, bool isInvalid) = assetPrice();
+        //     return (_accruedFunding(positions[account], price), isInvalid);
+        // }
     }
 
     function verifyTrade(bytes[] calldata data)
@@ -62,9 +102,11 @@ contract SNXRiskManager {
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = abi.decode(data[i][4:], (int256));
+                amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
-                totalPosition = abi.decode(data[i][4:], (int256));
+                totalPosition = _normaliseDeciamals(
+                    abi.decode(data[i][4:], (int256))
+                );
             }
         }
     }

@@ -8,7 +8,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
-
+import {BaseProtocolRiskManager} from "../RiskManager/BaseProtocolRiskManager.sol";
 import "hardhat/console.sol";
 
 contract MarginAccount is IMarginAccount, UniExchange {
@@ -28,6 +28,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         int256 notionalValue;
         uint256 marketValue;
         uint256 underlyingMarginValue;
+        address riskManager;
     }
     mapping(address => bool) public existingPosition;
     address public baseToken; //usdt/c
@@ -79,13 +80,22 @@ contract MarginAccount is IMarginAccount, UniExchange {
 
     function updatePosition(
         address _protocol,
+        address _riskManager,
         int256 size,
         uint256 newDebt,
         bool newPosition
     ) public {
         // only riskmanagger
         //calcLinearCumulative_RAY .vault
-        positions[_protocol] = Position(0, 0, PositionType.LONG, size, 0, 0);
+        positions[_protocol] = Position(
+            0,
+            0,
+            PositionType.LONG,
+            size,
+            0,
+            0,
+            _riskManager
+        );
         if (newPosition) existingPosition[_protocol] = newPosition;
         totalBorrowed += newDebt;
     }
@@ -100,8 +110,32 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     function getPositionValue(address _protocol) public returns (int256) {
-        // only riskmanagger
         return positions[_protocol].notionalValue;
+        // and pnl
+        // send protocol risk manager address
+        // protocol rm . getPnl(address(this), _protocol)
+    }
+
+    function getPositionValPnL(address _protocol)
+        public
+        returns (int256, int256)
+    {
+        // only riskmanagger
+        if (positions[_protocol].notionalValue != 0) {
+            console.log(
+                "getting pnl",
+                positions[_protocol].riskManager,
+                _protocol
+            );
+            int256 PnL = BaseProtocolRiskManager(
+                positions[_protocol].riskManager
+            ).getPnL(address(this), _protocol);
+            return (positions[_protocol].notionalValue, PnL);
+        }
+        return (positions[_protocol].notionalValue, 0);
+        // and pnl
+        // send protocol risk manager address
+        // protocol rm . getPnl(address(this), _protocol)
     }
 
     function absVal(int256 val) public view returns (uint256) {
