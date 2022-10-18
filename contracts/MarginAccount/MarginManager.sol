@@ -3,6 +3,8 @@ pragma solidity ^0.8.10;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {RiskManager} from "../RiskManager/RiskManager.sol";
@@ -11,14 +13,17 @@ import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
+import {IVault} from "../Interfaces/IVault.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
+    using SafeMath for uint256;
     RiskManager public riskManager;
     IContractRegistry public contractRegistry;
-    Vault public vault;
+    IVault public vault;
     // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
@@ -225,6 +230,141 @@ contract MarginManager is ReentrancyGuard {
         check margin, open positions
         withdraw
          */
+    }
+
+    /// @dev Calculates margin account interest accrued
+    /// More: https://dev.gearbox.fi/developers/credit/economy#interest-rate-accrued
+    ///
+    /// @param _marginAccount Credit account address
+    function calcMarginAccountAccruedInterest(address _marginAccount)
+        public
+        view
+        returns (uint256 borrowedAmount, uint256 borrowedAmountWithInterest)
+    {
+        (
+            uint256 _borrowedAmount,
+            uint256 cumulativeIndexAtOpen,
+            uint256 cumulativeIndexNow
+        ) = _getMarginAccountDetails(_marginAccount); // F:[CM-44]
+
+        borrowedAmount = _borrowedAmount;
+        borrowedAmountWithInterest =
+            (borrowedAmount * cumulativeIndexNow) /
+            cumulativeIndexAtOpen; // F:[CM-44]
+    }
+
+    /// @dev Gets margin account generic parameters
+    /// @param _marginAccount Credit account address
+    /// @return borrowedAmount Amount which pool lent to credit account
+    /// @return cumulativeIndexAtOpen Cumulative index at open. Used for interest calculation
+    function _getMarginAccountDetails(address _marginAccount)
+        internal
+        view
+        returns (
+            uint256 borrowedAmount,
+            uint256 cumulativeIndexAtOpen,
+            uint256 cumulativeIndexNow
+        )
+    {
+        borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed(); // F:[CM-45]
+        cumulativeIndexAtOpen = IMarginAccount(_marginAccount)
+            .cumulativeIndexAtOpen(); // F:[CM-45]
+        cumulativeIndexNow = IVault(vault).calcLinearCumulative_RAY(); // F:[CM-45]
+    }
+
+    /// @dev Manages debt size for borrower:
+    ///
+    /// - Increase case:
+    ///   + Increase debt by tranferring funds from the pool to the credit account
+    ///   + Updates cunulativeIndex to accrue interest rate.
+    ///
+    /// - Decresase debt:
+    ///   + Repay particall debt + all interest accrued at the moment + all fees accrued at the moment
+    ///   + Updates cunulativeIndex to cumulativeIndex now
+    ///
+    /// @param borrower Borrowed address
+    /// @param amount Amount to increase borrowed amount
+    /// @return newBorrowedAmount Updated amount
+    function increaseDebt(address borrower, uint256 amount)
+        public
+        returns (uint256 newBorrowedAmount)
+    {
+        // acl check
+        address marginAccount = marginAccounts[borrower];
+        require(marginAccount != address(0), "MM: Margin account not found");
+        (
+            uint256 borrowedAmount,
+            uint256 cumulativeIndexAtOpen,
+            uint256 cumulativeIndexNow
+        ) = _getMarginAccountDetails(marginAccount);
+
+        newBorrowedAmount = borrowedAmount + amount;
+
+        // TODO add this check later.
+
+        // if (
+        //     newBorrowedAmount < minBorrowedAmount ||
+        //     newBorrowedAmount > maxBorrowedAmount
+        // ) revert BorrowAmountOutOfLimitsException(); // F:[CM-17]
+
+        uint256 newCumulativeIndex;
+        // Computes new cumulative index which accrues previous debt
+        newCumulativeIndex =
+            (cumulativeIndexNow * cumulativeIndexAtOpen * newBorrowedAmount) /
+            (cumulativeIndexNow *
+                borrowedAmount +
+                amount *
+                cumulativeIndexAtOpen);
+
+        // Lends more money from the pool
+        vault.lend(amount, marginAccount);
+        // Set parameters for new margin account
+        IMarginAccount(marginAccount).updateBorrowData(
+            newBorrowedAmount,
+            newCumulativeIndex
+        );
+    }
+
+    function decreaseDebt(address borrower, uint256 amount)
+        public
+        returns (uint256 newBorrowedAmount)
+    {
+        // add acl check
+        address marginAccount = marginAccounts[borrower];
+        require(marginAccount != address(0), "MM: Margin account not found");
+
+        (
+            uint256 borrowedAmount,
+            uint256 cumulativeIndexAtOpen,
+            uint256 cumulativeIndexNow
+        ) = _getMarginAccountDetails(marginAccount);
+
+        // Computes interest rate accrued at the moment
+        uint256 interestAccrued = (borrowedAmount * cumulativeIndexNow) /
+            cumulativeIndexAtOpen -
+            borrowedAmount;
+
+        newBorrowedAmount = borrowedAmount - amount;
+
+        // hardcoded values . To be removed later.
+        uint256 feeInterest = 0;
+        uint256 PERCENTAGE_FACTOR = 1;
+
+        // Computes profit which comes from interest rate
+        uint256 profit = (interestAccrued.mul(feeInterest)) / PERCENTAGE_FACTOR;
+
+        // Calls repaymarginAccount to update pool values
+        vault.repay(amount, interestAccrued, profit, 0);
+
+        // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
+        // to make precise calculation
+        uint256 newCumulativeIndex = vault.calcLinearCumulative_RAY();
+        //
+        // Set parameters for new credit account
+        IMarginAccount(marginAccount).updateBorrowData(
+            newBorrowedAmount,
+            newCumulativeIndex
+        );
     }
 
     function calcCreditAccountAccruedInterest(address marginacc)
