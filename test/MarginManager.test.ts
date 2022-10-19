@@ -129,16 +129,20 @@ const setup = async () => {
     await artifacts.readArtifact("contracts/MarginPool/Vault.sol:Vault")
   ).abi;
   vault = new ethers.Contract(vault_deployed.address, VAULT_ABI, account0)
+  console.log(await vault.asset(), "Vault asset");
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy(contractRegistry.address, MarketManager.address)
   const RiskManager = await ethers.getContractFactory("RiskManager");
   riskManager = await RiskManager.deploy(contractRegistry.address, MarketManager.address)
   await vault.addRepayingAddress(riskManager.address)
   await vault.addlendingAddress(riskManager.address)
+  await vault.addRepayingAddress(marginManager.address)
+  await vault.addlendingAddress(marginManager.address)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
   await riskManager.addAllowedTokens(erc20.sUSD)
   await riskManager.addAllowedTokens(erc20.usdc)
   await riskManager.setVault(vault.address)
+  await marginManager.setVault(vault.address)
   console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)

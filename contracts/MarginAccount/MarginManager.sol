@@ -14,7 +14,7 @@ import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
-import {IVault} from "../Interfaces/IVault.sol";
+
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 
@@ -66,9 +66,10 @@ contract MarginManager is ReentrancyGuard {
         riskManager = RiskManager(riskmgr);
     }
 
-    function SetVault(address _vault) external {
+    function setVault(address _vault) external {
         // onlyOwner
         vault = Vault(_vault);
+        console.log(vault.asset(), "while setting up the vault");
     }
 
     // function set(address p){}
@@ -133,7 +134,7 @@ contract MarginManager is ReentrancyGuard {
         int256 tokensToTransfer;
         int256 positionSize;
         address tokenOut;
-        (transferAmount, positionSize, tokenOut) = riskManager.verifyTrade(
+        (tokensToTransfer, positionSize, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
             protocolAddress,
             protocolRiskManager,
@@ -143,48 +144,48 @@ contract MarginManager is ReentrancyGuard {
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
         // vault.lend(() + (100 * 10**6)), marginAcc);
-        marginAcc.updatePosition(
-            protocolAddress,
-            marketKey, // make sure this is correct?
-            positionSize,
-            uint256(absVal(tokensToTransfer)),
-            true
-        );
-        if (tokensToTransfer > 0) {
-            //vault.approve/transfer
-        }
 
         // temp increase tokens to transfer. assuming USDC.
-        if (transferAmount > 0) {
+        if (tokensToTransfer > 0 || tokensToTransfer < 0) {
             increaseDebt(
                 address(marginAcc),
-                uint256(absVal(transferAmount) + (100 * 10**6))
+                uint256(absVal(tokensToTransfer) + (100 * 10**6))
             );
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256((absVal(transferAmount)) + (100 * 10**6)),
+                    amountIn: uint256(
+                        (absVal(tokensToTransfer)) + (100 * 10**6)
+                    ),
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
                 });
-                uint256 amountOut = MarginAccount(marginAcc).swap(params);
+                uint256 amountOut = marginAcc.swap(params);
                 console.log(amountOut, "amountOut");
                 // require(
                 //     amountOut == (absVal(transferAmount)),
                 //     "RM: Bad exchange."
                 // );
-                marginAcc.execMultiTx(destinations, data);
-                marginAcc.updatePosition(
-                    protocolAddress,
-                    contractRegistry.getContractByName(contractName[0]), // make sure this is correct?
-                    positionSize,
-                    uint256(absVal(transferAmount)),
-                    true
-                );
             }
-        } else {}
+            marginAcc.execMultiTx(destinations, data);
+            marginAcc.updatePosition(
+                protocolAddress,
+                marketKey, // make sure this is correct?
+                positionSize,
+                uint256(absVal(tokensToTransfer)),
+                true
+            );
+        } else {
+            // @todo fix wrt risk manager
+            // vault.repay()
+            // console.log("short position or close position");
+            // MarginAccount(marginAcc).execMultiTx(destinations, data);
+        }
+        // else {
+        //     revert("margin kam pad gya na");
+        // }
     }
 
     function updatePosition(
@@ -204,27 +205,17 @@ contract MarginManager is ReentrancyGuard {
         );
         int256 tokensToTransfer;
         int256 _currentPositionSize;
-<<<<<<< HEAD
         address tokenOut;
-        int256 _oldPositionSize = marginAcc.getPositionValue(protocolAddress);
+
+        int256 _oldPositionSize = marginAcc.getPositionValue(marketKey);
         (tokensToTransfer, _currentPositionSize, tokenOut) = riskManager
             .verifyTrade(
                 address(marginAcc),
                 protocolAddress,
-                contractName,
+                protocolRiskManager,
                 destinations,
                 data
             );
-=======
-        int256 _oldPositionSize = marginAcc.getPositionValue(marketKey);
-        (tokensToTransfer, _currentPositionSize) = riskManager.verifyTrade(
-            address(marginAcc),
-            protocolAddress,
-            protocolRiskManager,
-            destinations,
-            data
-        );
->>>>>>> main
 
         marginAcc.updatePosition(
             protocolAddress,
@@ -333,34 +324,24 @@ contract MarginManager is ReentrancyGuard {
         borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed(); // F:[CM-45]
         cumulativeIndexAtOpen = IMarginAccount(_marginAccount)
             .cumulativeIndexAtOpen(); // F:[CM-45]
-        cumulativeIndexNow = IVault(vault).calcLinearCumulative_RAY(); // F:[CM-45]
+        cumulativeIndexNow = vault.calcLinearCumulative_RAY(); // F:[CM-45]
+        cumulativeIndexAtOpen = cumulativeIndexAtOpen > 0
+            ? cumulativeIndexAtOpen
+            : 1; // @todo hackey fix fix it with safeMath and setting open index while opening acc
     }
 
-    /// @dev Manages debt size for borrower:
-    ///
-    /// - Increase case:
-    ///   + Increase debt by tranferring funds from the pool to the credit account
-    ///   + Updates cunulativeIndex to accrue interest rate.
-    ///
-    /// - Decresase debt:
-    ///   + Repay particall debt + all interest accrued at the moment + all fees accrued at the moment
-    ///   + Updates cunulativeIndex to cumulativeIndex now
-    ///
-    /// @param borrower Borrowed address
-    /// @param amount Amount to increase borrowed amount
-    /// @return newBorrowedAmount Updated amount
-    function increaseDebt(address borrower, uint256 amount)
+    function increaseDebt(address marginAcc, uint256 amount)
         internal
         returns (uint256 newBorrowedAmount)
     {
         // acl check
-        address marginAccount = marginAccounts[borrower];
-        require(marginAccount != address(0), "MM: Margin account not found");
+        MarginAccount marginAccount = MarginAccount(marginAcc);
+        // require(marginAcc != address(0), "MM: Margin account not found");
         (
             uint256 borrowedAmount,
             uint256 cumulativeIndexAtOpen,
             uint256 cumulativeIndexNow
-        ) = _getMarginAccountDetails(marginAccount);
+        ) = _getMarginAccountDetails(marginAcc);
 
         newBorrowedAmount = borrowedAmount + amount;
 
@@ -381,27 +362,23 @@ contract MarginManager is ReentrancyGuard {
                 cumulativeIndexAtOpen);
 
         // Lends more money from the pool
-        vault.lend(amount, marginAccount);
+        vault.lend(amount, marginAcc);
         // Set parameters for new margin account
-        IMarginAccount(marginAccount).updateBorrowData(
-            newBorrowedAmount,
-            newCumulativeIndex
-        );
+        marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
     }
 
-    function decreaseDebt(address borrower, uint256 amount)
+    function decreaseDebt(address marginAcc, uint256 amount)
         public
         returns (uint256 newBorrowedAmount)
     {
         // add acl check
-        address marginAccount = marginAccounts[borrower];
-        require(marginAccount != address(0), "MM: Margin account not found");
+        MarginAccount marginAccount = MarginAccount(marginAcc);
 
         (
             uint256 borrowedAmount,
             uint256 cumulativeIndexAtOpen,
             uint256 cumulativeIndexNow
-        ) = _getMarginAccountDetails(marginAccount);
+        ) = _getMarginAccountDetails(marginAcc);
 
         // Computes interest rate accrued at the moment
         uint256 interestAccrued = (borrowedAmount * cumulativeIndexNow) /
@@ -425,10 +402,7 @@ contract MarginManager is ReentrancyGuard {
         uint256 newCumulativeIndex = vault.calcLinearCumulative_RAY();
         //
         // Set parameters for new credit account
-        IMarginAccount(marginAccount).updateBorrowData(
-            newBorrowedAmount,
-            newCumulativeIndex
-        );
+        marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
     }
 
     function calcCreditAccountAccruedInterest(address marginacc)

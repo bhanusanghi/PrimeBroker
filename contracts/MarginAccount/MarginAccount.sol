@@ -7,6 +7,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
 import {BaseProtocolRiskManager} from "../RiskManager/BaseProtocolRiskManager.sol";
 import "hardhat/console.sol";

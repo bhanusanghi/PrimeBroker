@@ -1,7 +1,6 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import {IVault} from "../Interfaces/IVault.sol";
 import "../Interfaces/IInterestRateModel.sol";
 import "./LPToken.sol";
 import "../Libraries/Errors.sol";
@@ -13,6 +12,49 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
+
+interface IVault {
+    // events
+
+    // Emits each time when Interest Rate model was changed
+    event InterestRateModelUpdated(address indexed newInterestRateModel);
+
+    // Emits each time when new credit Manager was connected
+    event NewCreditManagerConnected(address indexed creditManager);
+
+    // Emits each time when borrow forbidden for credit manager
+    event BorrowForbidden(address indexed creditManager);
+
+    // Emits each time when Credit Manager borrows money from pool
+    event Borrow(
+        address indexed creditManager,
+        address indexed creditAccount,
+        uint256 amount
+    );
+
+    // Emits each time when Credit Manager repays money from pool
+    event Repay(
+        address indexed creditManager,
+        uint256 borrowedAmount,
+        uint256 interest,
+        uint256 profit,
+        uint256 loss
+    );
+
+    function lend(uint256 amount, address borrower) external;
+
+    function repay(
+        uint256 amount,
+        uint256 interestAccrued,
+        uint256 loss,
+        uint256 profit
+    ) external;
+
+    // view/getters
+    function expectedLiquidity() external view returns (uint256);
+
+    function calcLinearCumulative_RAY() external view returns (uint256);
+}
 
 // contract Vault is IVault, ERC4626 {
 contract Vault is IVault, ERC4626 {
@@ -76,6 +118,10 @@ contract Vault is IVault, ERC4626 {
         _updateInterestRateModel(_interestRateModelAddress);
         maxExpectedLiquidity = _maxExpectedLiquidity;
     }
+
+    // function asset() public view override(ERC4626) returns (address) {
+    //     return address(_asset);
+    // }
 
     /** @dev See {IERC4262-deposit}. */
     function deposit(uint256 assets, address receiver)
