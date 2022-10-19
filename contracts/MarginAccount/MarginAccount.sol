@@ -97,9 +97,10 @@ contract MarginAccount is UniExchange {
         // only riskmanagger
         // @todo use position data removed flag is temp
         removed = existingPosition[market];
-        require(removed, "Existing position not found");
+        // require(removed, "Existing position not found");
         existingPosition[market] = false;
         delete positions[market];
+        return true; //@todo fix this with bitmask of existing positions
     }
 
     function getPositionValue(bytes32 market) public returns (int256) {
