@@ -10,7 +10,7 @@ import { abi as perpClearingHouseAbi } from "./external/abi/clearingHouse";
 import { abi as perpAccountBalanceAbi } from "./external/abi/accountBalance";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getVaultDepositCalldata, getErc20ApprovalCalldata, getOpenPerpPositionCalldata } from "./utils/CalldataGenerator";
-import { PERP, ERC20 as ERC20Hash } from "./utils/constants";
+import { PERP, PERP_MARKET_KEY_AAVE, ERC20 as ERC20Hash } from "./utils/constants";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -32,6 +32,7 @@ type Contracts = {
 }
 
 let contracts: Contracts;
+let MarketManager: Contract;
 let admin: SignerWithAddress, bob: SignerWithAddress;
 const fraxMetadata = metadata.collaterals[1];
 
@@ -62,10 +63,11 @@ async function initializeContractsFixture(): Promise<Contracts> {
   // init contracts registry
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
   const contractRegistry = await contractRegistryFactory.deploy()
-
+  const MarketManagerFactory = await ethers.getContractFactory("MarketManager");
+  MarketManager = await MarketManagerFactory.deploy()
   // init Risk manager
   const riskManagerFactory = await ethers.getContractFactory("RiskManager");
-  const riskManager = await riskManagerFactory.deploy(contractRegistry.address)
+  const riskManager = await riskManagerFactory.deploy(contractRegistry.address, MarketManager.address)
 
 
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
@@ -75,7 +77,7 @@ async function initializeContractsFixture(): Promise<Contracts> {
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
   // init margin manager
   const marginManagerFactory = await ethers.getContractFactory("MarginManager");
-  const marginManager = await marginManagerFactory.deploy(contractRegistry.address);
+  const marginManager = await marginManagerFactory.deploy(contractRegistry.address, MarketManager.address);
   // await marginManager.toggleAllowedUnderlyingToken(erc20.usdc);
   await marginManager.SetRiskManager(riskManager.address);
 
@@ -98,6 +100,7 @@ async function initializeContractsFixture(): Promise<Contracts> {
   await riskManager.setVault(vault.address)
   await vault.addRepayingAddress(riskManager.address)
   await vault.addlendingAddress(riskManager.address)
+  await MarketManager.addMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address, PerpfiRiskManager.address)
   // return all
 
   return {

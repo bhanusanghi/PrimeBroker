@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
-import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
+import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
 import {BaseProtocolRiskManager} from "../RiskManager/BaseProtocolRiskManager.sol";
 import "hardhat/console.sol";
@@ -14,6 +14,7 @@ import "hardhat/console.sol";
 contract MarginAccount is IMarginAccount, UniExchange {
     using SafeERC20 for IERC20;
     using Address for address;
+    IMarketManager public marketManager;
 
     enum PositionType {
         LONG,
@@ -27,13 +28,12 @@ contract MarginAccount is IMarginAccount, UniExchange {
         PositionType positionType;
         int256 notionalValue;
         uint256 marketValue;
-        uint256 underlyingMarginValue;
-        address riskManager;
+        uint256 underlyingMarginValue; //
     }
-    mapping(address => bool) public existingPosition;
+    mapping(bytes32 => bool) public existingPosition;
     address public baseToken; //usdt/c
-    // Position[] positions;
-    mapping(address => Position) public positions;
+    // perp.eth, snx.eth, snx.btc
+    mapping(bytes32 => Position) public positions;
     // address.MKT
     address public marginManager;
     uint256 public totalInternalLev;
@@ -51,11 +51,12 @@ contract MarginAccount is IMarginAccount, UniExchange {
     //     marginManager = msg.sender;
     //     underlyingToken = underlyingToken;
     // }
-    constructor(address _router)
+    constructor(address _router, address _marketManager)
         //  address _contractRegistry
         UniExchange(_router)
     {
         require(_router != address(0));
+        marketManager = IMarketManager(_marketManager);
     }
 
     // function getLeverage() public view returns (uint256, uint256) {
@@ -80,62 +81,48 @@ contract MarginAccount is IMarginAccount, UniExchange {
 
     function updatePosition(
         address _protocol,
-        address _riskManager,
+        bytes32 market,
         int256 size,
         uint256 newDebt,
         bool newPosition
     ) public {
         // only riskmanagger
         //calcLinearCumulative_RAY .vault
-        positions[_protocol] = Position(
-            0,
-            0,
-            PositionType.LONG,
-            size,
-            0,
-            0,
-            _riskManager
-        );
-        if (newPosition) existingPosition[_protocol] = newPosition;
+        positions[market] = Position(0, 0, PositionType.LONG, size, 0, 0);
+        // if (newPosition) existingPosition[_protocol] = newPosition;
         totalBorrowed += newDebt;
     }
 
-    function removePosition(address _protocol) public returns (bool removed) {
+    function removePosition(bytes32 market) public returns (bool removed) {
         // only riskmanagger
         // @todo use position data removed flag is temp
-        removed = existingPosition[_protocol];
-        require(removed, "Existing position not found");
-        existingPosition[_protocol] = false;
-        delete positions[_protocol];
+        removed = existingPosition[market];
+        // require(removed, "Existing position not found");
+        existingPosition[market] = false;
+        delete positions[market];
+        return true; //@todo fix this with bitmask of existing positions
     }
 
-    function getPositionValue(address _protocol) public returns (int256) {
-        return positions[_protocol].notionalValue;
+    function getPositionValue(bytes32 market) public returns (int256) {
+        return positions[market].notionalValue;
         // and pnl
         // send protocol risk manager address
         // protocol rm . getPnl(address(this), _protocol)
     }
 
-    function getPositionValPnL(address _protocol)
-        public
-        returns (int256, int256)
-    {
+    function getPositionValPnL(bytes32 market) public returns (int256, int256) {
         // only riskmanagger
-        if (positions[_protocol].notionalValue != 0) {
-            console.log(
-                "getting pnl",
-                positions[_protocol].riskManager,
-                _protocol
+        // instead use load in memory struct, storage reads expensive hehe
+        if (positions[market].notionalValue != 0) {
+            address protocol;
+            address riskManager;
+            (protocol, riskManager) = marketManager.getMarketByName(market);
+            int256 PnL = BaseProtocolRiskManager(riskManager).getPnL(
+                address(this),
+                protocol
             );
-            int256 PnL = BaseProtocolRiskManager(
-                positions[_protocol].riskManager
-            ).getPnL(address(this), _protocol);
-            return (positions[_protocol].notionalValue, PnL);
+            return (positions[market].notionalValue, PnL);
         }
-        return (positions[_protocol].notionalValue, 0);
-        // and pnl
-        // send protocol risk manager address
-        // protocol rm . getPnl(address(this), _protocol)
     }
 
     function absVal(int256 val) public view returns (uint256) {

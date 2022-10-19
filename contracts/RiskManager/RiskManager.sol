@@ -12,6 +12,7 @@ import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import "hardhat/console.sol";
 
@@ -24,7 +25,8 @@ contract RiskManager is ReentrancyGuard {
     modifier xyz() {
         _;
     }
-    IContractRegistry contractRegistery;
+    IContractRegistry public contractRegistery;
+    IMarketManager public marketManager;
     uint256 public initialMarginFactor = 35; //in percent
     // 1000-> 2800$
     // protocol to riskManager mapping
@@ -37,10 +39,14 @@ contract RiskManager is ReentrancyGuard {
         MATIC
     }
     mapping(address => MKT) public ProtocolMarket;
-    address[] public allowedMarkets;
+    bytes32[] public allowedMarkets;
 
-    constructor(IContractRegistry _contractRegistery) {
+    constructor(
+        IContractRegistry _contractRegistery,
+        IMarketManager _marketManager
+    ) {
         contractRegistery = _contractRegistery;
+        marketManager = _marketManager;
     }
 
     function setPriceOracle(address oracle) external {
@@ -52,16 +58,16 @@ contract RiskManager is ReentrancyGuard {
         vault = Vault(_vault);
     }
 
-    function addNewMarket(address _newMarket, MKT mkt) public {
+    function addNewMarket(bytes32 marketKey, address _newMarket) public {
         // only owner
-        ProtocolMarket[_newMarket] = mkt;
-        allowedMarkets.push(_newMarket);
+        // ProtocolMarket[_newMarket] = mkt;
+        allowedMarkets.push(marketKey);
     }
 
     function verifyTrade(
         address marginAcc,
-        address protocolAddress,
-        bytes32[] memory _contractName,
+        address _protocolAddress,
+        address _protocolRiskManager,
         address[] memory destinations,
         bytes[] memory data
     )
@@ -77,7 +83,7 @@ contract RiskManager is ReentrancyGuard {
         // TradeResult memory tradeResult = new TradeResult();
         // fetch adapter address using protocol name from contract registry.
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            contractRegistery.getContractByName(_contractName[0])
+            _protocolRiskManager
         );
         (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
         uint256 freeMargin = getFreeMargin(marginAcc, PnL);
@@ -155,20 +161,19 @@ contract RiskManager is ReentrancyGuard {
     function closeTrade(
         address _marginAcc,
         address protocolAddress,
-        bytes32[] memory _contractName,
+        address _protocolRiskManager,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) external returns (int256 transferAmount, int256 positionSize) {
         MarginAccount marginAcc = MarginAccount(_marginAcc);
 
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            contractRegistery.getContractByName(_contractName[0])
+            _protocolRiskManager
         );
         (transferAmount, positionSize) = protocolRiskManager.verifyTrade(data);
         // console.log(transferAmount, "close pos, tm");
-        int256 _currentPositionSize = marginAcc.getPositionValue(
-            protocolAddress
-        );
+        int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
         // basically checks for if its closing opposite position
         // require(positionSize + _currentPositionSize == 0);
 
@@ -198,6 +203,7 @@ contract RiskManager is ReentrancyGuard {
         return totalAmount;
     }
 
+    // total free buying power
     function getFreeMargin(address marginAccount, int256 PnL)
         public
         view
@@ -231,6 +237,8 @@ contract RiskManager is ReentrancyGuard {
         MarginAccount macc = MarginAccount(marginAccount);
         uint256 len = allowedMarkets.length;
         for (uint256 i = 0; i < len; i++) {
+            // allowed markets
+            // margin acc get bitmask
             int256 notional;
             int256 _pnl;
             (notional, _pnl) = macc.getPositionValPnL(allowedMarkets[i]);

@@ -12,6 +12,7 @@ import {MarginAccount} from "../MarginAccount/MarginAccount.sol";
 import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
 import {IVault} from "../Interfaces/IVault.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
@@ -25,7 +26,9 @@ contract MarginManager is ReentrancyGuard {
     using SafeMath for uint256;
     RiskManager public riskManager;
     IContractRegistry public contractRegistry;
-    IVault public vault;
+    IMarketManager public marketManager;
+
+    Vault public vault;
     // address public riskManager;
     uint256 public liquidationPenaulty;
     mapping(address => address) public marginAccounts;
@@ -38,8 +41,12 @@ contract MarginManager is ReentrancyGuard {
         _;
     }
 
-    constructor(IContractRegistry _contractRegistry) {
+    constructor(
+        IContractRegistry _contractRegistry,
+        IMarketManager _marketManager
+    ) {
         contractRegistry = _contractRegistry;
+        marketManager = _marketManager;
     }
 
     function SetCollatralRatio(address token, uint256 value)
@@ -69,7 +76,7 @@ contract MarginManager is ReentrancyGuard {
         require(marginAccounts[msg.sender] == address(0x0));
         // Uniswap router to be removed later.
         address router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
-        MarginAccount acc = new MarginAccount(router);
+        MarginAccount acc = new MarginAccount(router, address(marketManager));
         marginAccounts[msg.sender] = address(acc);
         return address(acc);
         // acc.setparams
@@ -108,30 +115,44 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function openPosition(
-        address protocolAddress,
-        bytes32[] memory contractName,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
-
-        require(
-            !marginAcc.existingPosition(protocolAddress),
-            "Existing position"
+        address protocolAddress;
+        address protocolRiskManager;
+        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
+            marketKey
         );
-        int256 transferAmount;
+
+        // require(
+        //     !marginAcc.existingPosition(protocolAddress),
+        //     "Existing position"
+        // );
+        int256 tokensToTransfer;
         int256 positionSize;
         address tokenOut;
         (transferAmount, positionSize, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
             protocolAddress,
-            contractName,
+            protocolRiskManager,
             destinations,
             data
         );
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
         // vault.lend(() + (100 * 10**6)), marginAcc);
+        marginAcc.updatePosition(
+            protocolAddress,
+            marketKey, // make sure this is correct?
+            positionSize,
+            uint256(absVal(tokensToTransfer)),
+            true
+        );
+        if (tokensToTransfer > 0) {
+            //vault.approve/transfer
+        }
 
         // temp increase tokens to transfer. assuming USDC.
         if (transferAmount > 0) {
@@ -167,18 +188,23 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function updatePosition(
-        address protocolAddress,
-        bytes32[] memory contractName,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
-        require(
-            marginAcc.existingPosition(protocolAddress),
-            "Position doesn't exist"
+        // require(
+        //     marginAcc.existingPosition(protocolAddress),
+        //     "Position doesn't exist"
+        // );
+        address protocolAddress;
+        address protocolRiskManager;
+        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
+            marketKey
         );
         int256 tokensToTransfer;
         int256 _currentPositionSize;
+<<<<<<< HEAD
         address tokenOut;
         int256 _oldPositionSize = marginAcc.getPositionValue(protocolAddress);
         (tokensToTransfer, _currentPositionSize, tokenOut) = riskManager
@@ -189,10 +215,20 @@ contract MarginManager is ReentrancyGuard {
                 destinations,
                 data
             );
+=======
+        int256 _oldPositionSize = marginAcc.getPositionValue(marketKey);
+        (tokensToTransfer, _currentPositionSize) = riskManager.verifyTrade(
+            address(marginAcc),
+            protocolAddress,
+            protocolRiskManager,
+            destinations,
+            data
+        );
+>>>>>>> main
 
         marginAcc.updatePosition(
             protocolAddress,
-            contractRegistry.getContractByName(contractName[0]),
+            marketKey,
             _oldPositionSize + _currentPositionSize,
             uint256(absVal(tokensToTransfer)),
             true
@@ -203,28 +239,33 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function closePosition(
-        address protocolAddress,
-        bytes32[] memory contractName,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         // address protocolAddress = marginAcc.positions(positionIndex);
-        require(
-            marginAcc.existingPosition(protocolAddress),
-            "Position doesn't exist"
+        // require(
+        //     marginAcc.existingPosition(protocolAddress),
+        //     "Position doesn't exist"
+        // );
+        address protocolAddress;
+        address protocolRiskManager;
+        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
+            marketKey
         );
         int256 tokensToTransfer;
         int256 positionSize;
         (tokensToTransfer, positionSize) = riskManager.closeTrade(
             address(marginAcc),
             protocolAddress,
-            contractName,
+            protocolRiskManager,
+            marketKey,
             destinations,
             data
         );
         require(
-            marginAcc.removePosition(protocolAddress),
+            marginAcc.removePosition(marketKey),
             "Error in removing position"
         );
         /**
@@ -236,10 +277,10 @@ contract MarginManager is ReentrancyGuard {
 
     function liquidatePosition(address protocolAddress) external {
         address marginAcc = marginAccounts[msg.sender];
-        require(
-            MarginAccount(marginAcc).existingPosition(protocolAddress),
-            "Position doesn't exist"
-        );
+        // require(
+        //     MarginAccount(marginAcc).existingPosition(protocolAddress),
+        //     "Position doesn't exist"
+        // );
         /**
         riskManager.isliquidatable()
         close on the venue
