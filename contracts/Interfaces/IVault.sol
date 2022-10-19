@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
-interface IVault is IERC4626 {
+interface IVault {
     // events
 
     // Emits each time when Interest Rate model was changed
@@ -26,14 +26,16 @@ interface IVault is IERC4626 {
     event Repay(
         address indexed creditManager,
         uint256 borrowedAmount,
+        uint256 interest,
         uint256 profit,
         uint256 loss
     );
 
-    function borrow(uint256 amount, address borrower) external;
+    function lend(uint256 amount, address borrower) external;
 
     function repay(
         uint256 amount,
+        uint256 interestAccrued,
         uint256 loss,
         uint256 profit
     ) external;
@@ -43,5 +45,6 @@ interface IVault is IERC4626 {
 
     function calcLinearCumulative_RAY() external view returns (uint256);
 
+    function asset() external view returns (address);
     // setters
 }

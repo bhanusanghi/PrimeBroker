@@ -70,7 +70,14 @@ contract RiskManager is ReentrancyGuard {
         address _protocolRiskManager,
         address[] memory destinations,
         bytes[] memory data
-    ) external returns (int256 transferAmount, int256 positionSize) {
+    )
+        external
+        returns (
+            int256 transferAmount,
+            int256 positionSize,
+            address tokenOut
+        )
+    {
         uint256 totalNotioanl;
         int256 PnL;
         // TradeResult memory tradeResult = new TradeResult();
@@ -94,41 +101,42 @@ contract RiskManager is ReentrancyGuard {
         //     freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
         //     "Extra margin not allowed"
         // );
-        if (positionSize > 0) {
-            vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
-            address tokenIn = vault.asset();
-            address tokenOut = protocolRiskManager.getBaseToken();
-            if (tokenIn != tokenOut) {
-                IExchange.SwapParams memory params = IExchange.SwapParams({
-                    tokenIn: tokenIn,
-                    tokenOut: tokenOut,
-                    amountIn: ((absVal(transferAmount)) + (100 * 10**6)),
-                    amountOut: 0,
-                    isExactInput: true,
-                    sqrtPriceLimitX96: 0
-                });
-                console.log("approved to uni");
-                uint256 amountOut = MarginAccount(marginAcc).swap(params);
-                console.log(amountOut, "amountOut");
-                // require(
-                //     amountOut == (absVal(transferAmount)),
-                //     "RM: Bad exchange."
-                // );
-            }
-            MarginAccount(marginAcc).execMultiTx(destinations, data);
-            // @todo update it with vault-MM link`
+        tokenOut = protocolRiskManager.getBaseToken();
+        // if (positionSize > 0) {
+        //     // vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
 
-            //         function repay(
-            // uint256 borrowedAmount, // exact amount that is returned as principle
-            // uint256 loss,
-            // uint256 profit
-        } else if (positionSize < 0) {
-            // vault.repay()
-            console.log("short position or close position");
-            MarginAccount(marginAcc).execMultiTx(destinations, data);
-        } else {
-            revert("margin kam pad gya na");
-        }
+        //     address tokenIn = vault.asset();
+        //     if (tokenIn != tokenOut) {
+        //         IExchange.SwapParams memory params = IExchange.SwapParams({
+        //             tokenIn: tokenIn,
+        //             tokenOut: tokenOut,
+        //             amountIn: ((absVal(transferAmount)) + (100 * 10**6)),
+        //             amountOut: 0,
+        //             isExactInput: true,
+        //             sqrtPriceLimitX96: 0
+        //         });
+        //         console.log("approved to uni");
+        //         uint256 amountOut = MarginAccount(marginAcc).swap(params);
+        //         console.log(amountOut, "amountOut");
+        //         // require(
+        //         //     amountOut == (absVal(transferAmount)),
+        //         //     "RM: Bad exchange."
+        //         // );
+        //     }
+        //     // MarginAccount(marginAcc).execMultiTx(destinations, data);
+        //     // @todo update it with vault-MM link`
+
+        //     //         function repay(
+        //     // uint256 borrowedAmount, // exact amount that is returned as principle
+        //     // uint256 loss,
+        //     // uint256 profit
+        // } else if (positionSize < 0) {
+        //     // vault.repay()
+        //     console.log("short position or close position");
+        //     MarginAccount(marginAcc).execMultiTx(destinations, data);
+        // } else {
+        //     revert("margin kam pad gya na");
+        // }
         // if (
         //     ((int256(spot) + unRealizedPnL) * 2) >
         //     int256(transferAmount + totalDebt)
@@ -168,8 +176,6 @@ contract RiskManager is ReentrancyGuard {
         int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
         // basically checks for if its closing opposite position
         // require(positionSize + _currentPositionSize == 0);
-
-        marginAcc.execMultiTx(destinations, data);
 
         // if (transferAmout < 0) {
         //     vault.repay(borrowedAmount, loss, profit);

@@ -7,11 +7,12 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
 import {BaseProtocolRiskManager} from "../RiskManager/BaseProtocolRiskManager.sol";
 import "hardhat/console.sol";
 
-contract MarginAccount is UniExchange {
+contract MarginAccount is IMarginAccount, UniExchange {
     using SafeERC20 for IERC20;
     using Address for address;
     IMarketManager public marketManager;
@@ -39,7 +40,7 @@ contract MarginAccount is UniExchange {
     uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
-
+    uint256 public cumulativeIndexAtOpen;
     // mapping(address => boolean) whitelistedTokens;
     address public underlyingToken;
 
@@ -170,5 +171,16 @@ contract MarginAccount is UniExchange {
         }
         // add new position in array, update leverage int, ext
         return returnData;
+    }
+
+    /// @dev Updates borrowed amount. Restricted for current credit manager only
+    /// @param _totalBorrowed Amount which pool lent to credit account
+    function updateBorrowData(
+        uint256 _totalBorrowed,
+        uint256 _cumulativeIndexAtOpen
+    ) external override {
+        // add acl check
+        totalBorrowed = _totalBorrowed;
+        cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 }

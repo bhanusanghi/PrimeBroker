@@ -1,7 +1,6 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import {IVault} from "../Interfaces/IVault.sol";
 import "../Interfaces/IInterestRateModel.sol";
 import "./LPToken.sol";
 import "../Libraries/Errors.sol";
@@ -14,8 +13,51 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 
+interface IVault {
+    // events
+
+    // Emits each time when Interest Rate model was changed
+    event InterestRateModelUpdated(address indexed newInterestRateModel);
+
+    // Emits each time when new credit Manager was connected
+    event NewCreditManagerConnected(address indexed creditManager);
+
+    // Emits each time when borrow forbidden for credit manager
+    event BorrowForbidden(address indexed creditManager);
+
+    // Emits each time when Credit Manager borrows money from pool
+    event Borrow(
+        address indexed creditManager,
+        address indexed creditAccount,
+        uint256 amount
+    );
+
+    // Emits each time when Credit Manager repays money from pool
+    event Repay(
+        address indexed creditManager,
+        uint256 borrowedAmount,
+        uint256 interest,
+        uint256 profit,
+        uint256 loss
+    );
+
+    function lend(uint256 amount, address borrower) external;
+
+    function repay(
+        uint256 amount,
+        uint256 interestAccrued,
+        uint256 loss,
+        uint256 profit
+    ) external;
+
+    // view/getters
+    function expectedLiquidity() external view returns (uint256);
+
+    function calcLinearCumulative_RAY() external view returns (uint256);
+}
+
 // contract Vault is IVault, ERC4626 {
-contract Vault is ERC4626 {
+contract Vault is IVault, ERC4626 {
     using SafeMath for uint256;
     using Math for uint256;
     using WadRayMath for uint256;
@@ -42,20 +84,20 @@ contract Vault is ERC4626 {
     uint256 timestampLastUpdated;
 
     // events move to Interface
-    event Borrow(
-        address indexed creditManager,
-        address indexed creditAccount,
-        uint256 amount
-    );
+    // event Borrow(
+    //     address indexed marginManager,
+    //     address indexed creditAccount,
+    //     uint256 amount
+    // );
 
-    // Emits each time when Credit Manager repays money from pool
-    event Repay(
-        address indexed creditManager,
-        uint256 borrowedAmount,
-        uint256 profit,
-        uint256 loss
-    );
-    event InterestRateModelUpdated(address indexed newInterestRateModel);
+    // // Emits each time when Credit Manager repays money from pool
+    // event Repay(
+    //     address indexed marginManager,
+    //     uint256 borrowedAmount,
+    //     uint256 profit,
+    //     uint256 loss
+    // );
+    // event InterestRateModelUpdated(address indexed newInterestRateModel);
 
     constructor(
         address _asset,
@@ -76,6 +118,10 @@ contract Vault is ERC4626 {
         _updateInterestRateModel(_interestRateModelAddress);
         maxExpectedLiquidity = _maxExpectedLiquidity;
     }
+
+    // function asset() public view override(ERC4626) returns (address) {
+    //     return address(_asset);
+    // }
 
     /** @dev See {IERC4262-deposit}. */
     function deposit(uint256 assets, address receiver)
@@ -208,14 +254,14 @@ contract Vault is ERC4626 {
         return (expectedLiquidity() * RAY) / _totalSupply; // T:[PS-6]
     }
 
-    modifier onlyAllowedLendingCreditManager() {
+    modifier onlyAllowedLendingMarginManager() {
         require(
             lendingAllowed[msg.sender] == true,
             Errors.POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER
         );
         _;
     }
-    modifier onlyAllowedRepayingCreditManager() {
+    modifier onlyAllowedRepayingMarginManager() {
         require(
             repayingAllowed[msg.sender] == true,
             Errors.POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER
@@ -233,7 +279,8 @@ contract Vault is ERC4626 {
 
     function lend(uint256 amount, address borrower)
         external
-        onlyAllowedLendingCreditManager
+        override
+        onlyAllowedLendingMarginManager
     {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount);
@@ -258,18 +305,22 @@ contract Vault is ERC4626 {
 
     function repay(
         uint256 borrowedAmount, // exact amount that is returned as principle
+        uint256 interest,
         uint256 loss,
         uint256 profit
-    ) external onlyAllowedRepayingCreditManager {
+    ) external override onlyAllowedRepayingMarginManager {
         //repay
 
         // update total borrowed
         totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // update expectedLiquidityLU
-        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(
-            borrowedAmount
-        );
+        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated
+            .add(borrowedAmount)
+            .add(interest)
+            .add(profit);
+        // .sub(loss);
 
+        // currently vault does not check credit account's accounting. It should ideally check an accounts major events like on closing if interest paid is right or not.
         //
 
         // update interest rate;
@@ -280,19 +331,20 @@ contract Vault is ERC4626 {
                 IERC20(asset()),
                 msg.sender,
                 address(this),
-                borrowedAmount.add(profit)
+                borrowedAmount.add(interest).add(profit)
             );
             _updateBorrowRate(0);
-        } else if (loss > 0) {
-            SafeERC20.safeTransferFrom(
-                IERC20(asset()),
-                msg.sender,
-                address(this),
-                borrowedAmount.sub(loss)
-            );
-            _updateBorrowRate(loss);
         }
-        emit Repay(msg.sender, borrowedAmount, profit, loss);
+        //  else if (loss > 0) {
+        //     SafeERC20.safeTransferFrom(
+        //         IERC20(asset()),
+        //         msg.sender,
+        //         address(this),
+        //         // borrowedAmount.sub(loss)
+        //     );
+        //     _updateBorrowRate(loss);
+        // }
+        emit Repay(msg.sender, borrowedAmount, interest, profit, loss);
     }
 
     // view functions
@@ -327,7 +379,7 @@ contract Vault is ERC4626 {
      *
      * @return current cumulative index in RAY
      */
-    function calcLinearCumulative_RAY() public view returns (uint256) {
+    function calcLinearCumulative_RAY() public view override returns (uint256) {
         //solium-disable-next-line
         uint256 timeDifference = block.timestamp - timestampLastUpdated; // T:[PS-28]
 
@@ -343,7 +395,7 @@ contract Vault is ERC4626 {
     /// if all users close their Credit accounts and return debt
     ///
     /// More: https://dev.gearbox.fi/developers/pools/economy#expected-liquidity
-    function expectedLiquidity() public view returns (uint256) {
+    function expectedLiquidity() public view override returns (uint256) {
         // timeDifference = blockTime - previous timeStamp
         uint256 timeDifference = block.timestamp - timestampLastUpdated;
 
