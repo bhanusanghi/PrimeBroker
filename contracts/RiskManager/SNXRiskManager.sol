@@ -38,7 +38,10 @@ contract SNXRiskManager {
         return baseToken;
     }
 
-    function _normaliseDeciamals(int256 amount) private view returns (int256) {
+    function _normaliseDeciamals(uint256 amount) private view returns (uint256) {
+        return amount / 10**12;
+    }
+     function _normaliseDeciamalsInt(int256 amount) private view returns (int256) {
         return amount / 10**12;
     }
 
@@ -86,10 +89,10 @@ contract SNXRiskManager {
         // }
     }
 
-    function verifyTrade(bytes[] calldata data)
+    function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
         public
         view
-        returns (int256 amount, int256 totalPosition)
+        returns (uint256 amount, int256 totalPosition)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -98,13 +101,15 @@ contract SNXRiskManager {
            sizeDelta  : 64 bytes
            32 bytes tracking code, or we can append hehe
         */
+       // use marketKey
         uint256 len = data.length; // limit to 2
+        require(destinations.length==len,"should match");
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
+                amount = _normaliseDeciamals(abi.decode(data[i][4:], (uint256)));
             } else if (funSig == OP) {
-                totalPosition = _normaliseDeciamals(
+                totalPosition = _normaliseDeciamalsInt(
                     abi.decode(data[i][4:], (int256))
                 );
             }

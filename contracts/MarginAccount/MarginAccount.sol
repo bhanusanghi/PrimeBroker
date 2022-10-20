@@ -81,7 +81,6 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     function updatePosition(
-        address _protocol,
         bytes32 market,
         int256 size,
         uint256 newDebt,
@@ -90,7 +89,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // only riskmanagger
         //calcLinearCumulative_RAY .vault
         positions[market] = Position(0, 0, PositionType.LONG, size, 0, 0);
-        // if (newPosition) existingPosition[_protocol] = newPosition;
+        // if (newPosition) existingPosition[market] = newPosition;
         totalBorrowed += newDebt;
     }
 
@@ -158,7 +157,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
         uint256 len = destinations.length;
         for (uint256 i = 0; i < len; i++) {
             console.log("exec tx - ", i);
-            destinations[i].functionCall(dataArray[i]);
+            bytes memory returnData = destinations[i].functionCall(
+                dataArray[i]
+            );
+
             // if (i == 0) {
             //     uint256 allowance = IERC20(destinations[i]).allowance(
             //         address(this),

@@ -77,10 +77,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         // );
     }
 
-    function verifyTrade(bytes[] calldata data)
+    function verifyTrade( bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
         public
         view
-        returns (int256 amount, int256 totalPosition)
+        returns (uint256 amount, int256 totalPosition)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -89,13 +89,15 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            sizeDelta  : 64 bytes
            32 bytes tracking code, or we can append hehe
         */
+       // check for destinations as well
         uint256 len = data.length; // limit to 2
+        require(destinations.length==len,"should match");
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == OP) {
-                amount = abi.decode(data[i][36:], (int256));
+                amount = abi.decode(data[i][36:], (uint256));
             } else if (funSig == OpenPosition) {
                 (
                     address _baseToken,

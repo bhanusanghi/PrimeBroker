@@ -121,43 +121,37 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
-        address protocolAddress;
-        address protocolRiskManager;
-        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
+        
 
         // require(
         //     !marginAcc.existingPosition(protocolAddress),
         //     "Existing position"
         // );
-        int256 tokensToTransfer;
+        uint256 tokensToTransfer;
         int256 positionSize;
         address tokenOut;
         (tokensToTransfer, positionSize, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
-            protocolAddress,
-            protocolRiskManager,
+            marketKey,
             destinations,
             data
         );
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
-        // vault.lend(() + (100 * 10**6)), marginAcc);
 
         // temp increase tokens to transfer. assuming USDC.
-        if (tokensToTransfer > 0 || tokensToTransfer < 0) {
+        // add one var where increase debt only if needed,
+        //coz transfermargin can be done without it if margin acc has balance
+        if (tokensToTransfer > 0) {
             increaseDebt(
                 address(marginAcc),
-                uint256(absVal(tokensToTransfer) + (100 * 10**6))
+                tokensToTransfer + (100 * 10**6)
             );
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256(
-                        (absVal(tokensToTransfer)) + (100 * 10**6)
-                    ),
+                    amountIn: tokensToTransfer + (100 * 10**6),
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
@@ -169,23 +163,15 @@ contract MarginManager is ReentrancyGuard {
                 //     "RM: Bad exchange."
                 // );
             }
-            marginAcc.execMultiTx(destinations, data);
-            marginAcc.updatePosition(
-                protocolAddress,
-                marketKey, // make sure this is correct?
-                positionSize,
-                uint256(absVal(tokensToTransfer)),
-                true
-            );
-        } else {
-            // @todo fix wrt risk manager
-            // vault.repay()
-            // console.log("short position or close position");
-            // MarginAccount(marginAcc).execMultiTx(destinations, data);
-        }
-        // else {
-        //     revert("margin kam pad gya na");
-        // }
+         
+        } 
+        marginAcc.execMultiTx(destinations, data);
+        marginAcc.updatePosition(
+            marketKey,
+            positionSize,
+            tokensToTransfer,
+            true
+        );
     }
 
     function updatePosition(
@@ -203,7 +189,7 @@ contract MarginManager is ReentrancyGuard {
         (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
             marketKey
         );
-        int256 tokensToTransfer;
+        uint256 tokensToTransfer;
         int256 _currentPositionSize;
         address tokenOut;
 
@@ -211,17 +197,15 @@ contract MarginManager is ReentrancyGuard {
         (tokensToTransfer, _currentPositionSize, tokenOut) = riskManager
             .verifyTrade(
                 address(marginAcc),
-                protocolAddress,
-                protocolRiskManager,
+                marketKey,
                 destinations,
                 data
             );
 
         marginAcc.updatePosition(
-            protocolAddress,
             marketKey,
             _oldPositionSize + _currentPositionSize,
-            uint256(absVal(tokensToTransfer)),
+            tokensToTransfer,
             true
         );
         if (tokensToTransfer > 0) {
@@ -240,17 +224,11 @@ contract MarginManager is ReentrancyGuard {
         //     marginAcc.existingPosition(protocolAddress),
         //     "Position doesn't exist"
         // );
-        address protocolAddress;
-        address protocolRiskManager;
-        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
-        int256 tokensToTransfer;
+
+        uint256 tokensToTransfer;
         int256 positionSize;
         (tokensToTransfer, positionSize) = riskManager.closeTrade(
             address(marginAcc),
-            protocolAddress,
-            protocolRiskManager,
             marketKey,
             destinations,
             data

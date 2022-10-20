@@ -66,20 +66,24 @@ contract RiskManager is ReentrancyGuard {
 
     function verifyTrade(
         address marginAcc,
-        address _protocolAddress,
-        address _protocolRiskManager,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     )
         external
         returns (
-            int256 transferAmount,
+            uint256 transferAmount,
             int256 positionSize,
             address tokenOut
         )
     {
         uint256 totalNotioanl;
         int256 PnL;
+        address _protocolAddress;
+        address _protocolRiskManager;
+        (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
+            marketKey
+        );
         // TradeResult memory tradeResult = new TradeResult();
         // fetch adapter address using protocol name from contract registry.
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
@@ -90,17 +94,18 @@ contract RiskManager is ReentrancyGuard {
 
         uint256 maxTransferAmount = freeMargin -
             (totalNotioanl + uint256(positionSize));
-        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(data);
+        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(marketKey,destinations,data);
         console.log(
             freeMargin,
             (totalNotioanl + uint256(absVal(positionSize))),
             uint256(absVal(positionSize)),
             "freeMargin and total size"
         );
-        // require(
-        //     freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
-        //     "Extra margin not allowed"
-        // );
+        require(
+            freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
+            "Extra margin not allowed"
+        );
+        require(transferAmount<=maxTransferAmount,"Extra margin transfer not allowed");
         tokenOut = protocolRiskManager.getBaseToken();
         // if (positionSize > 0) {
         //     // vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
@@ -160,18 +165,20 @@ contract RiskManager is ReentrancyGuard {
 
     function closeTrade(
         address _marginAcc,
-        address protocolAddress,
-        address _protocolRiskManager,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
-    ) external returns (int256 transferAmount, int256 positionSize) {
+    ) external returns (uint256 transferAmount, int256 positionSize) {
         MarginAccount marginAcc = MarginAccount(_marginAcc);
-
+        address _protocolAddress;
+        address _protocolRiskManager;
+        (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
+            marketKey
+        );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
-        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(data);
+        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(marketKey,destinations,data);
         // console.log(transferAmount, "close pos, tm");
         int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
         // basically checks for if its closing opposite position
