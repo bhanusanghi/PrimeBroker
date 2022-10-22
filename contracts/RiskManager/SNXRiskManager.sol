@@ -38,10 +38,7 @@ contract SNXRiskManager {
         return baseToken;
     }
 
-    function _normaliseDeciamals(uint256 amount) private view returns (uint256) {
-        return amount / 10**12;
-    }
-     function _normaliseDeciamalsInt(int256 amount) private view returns (int256) {
+    function _normaliseDeciamals(int256 amount) private view returns (int256) {
         return amount / 10**12;
     }
 
@@ -92,7 +89,7 @@ contract SNXRiskManager {
     function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
         public
         view
-        returns (uint256 amount, int256 totalPosition)
+        returns (int256 amount, int256 totalPosition)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -107,9 +104,9 @@ contract SNXRiskManager {
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = _normaliseDeciamals(abi.decode(data[i][4:], (uint256)));
+                amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
-                totalPosition = _normaliseDeciamalsInt(
+                totalPosition = _normaliseDeciamals(
                     abi.decode(data[i][4:], (int256))
                 );
             }

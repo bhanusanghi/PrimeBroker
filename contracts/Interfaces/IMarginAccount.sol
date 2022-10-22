@@ -8,7 +8,7 @@ interface IMarginAccount {
     function cumulativeIndexAtOpen() external view returns (uint256);
 
     function updateBorrowData(
-        uint256 _totalBorrowed,
+        int256 _totalBorrowed,
         uint256 _cumulativeIndexAtOpen
     ) external;
 

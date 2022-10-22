@@ -72,7 +72,7 @@ contract RiskManager is ReentrancyGuard {
     )
         external
         returns (
-            uint256 transferAmount,
+            int256 transferAmount,
             int256 positionSize,
             address tokenOut
         )
@@ -105,7 +105,7 @@ contract RiskManager is ReentrancyGuard {
             freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
             "Extra margin not allowed"
         );
-        require(transferAmount<=maxTransferAmount,"Extra margin transfer not allowed");
+        require(absVal(transferAmount)<=maxTransferAmount,"Extra margin transfer not allowed");
         tokenOut = protocolRiskManager.getBaseToken();
         // if (positionSize > 0) {
         //     // vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
@@ -168,7 +168,7 @@ contract RiskManager is ReentrancyGuard {
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
-    ) external returns (uint256 transferAmount, int256 positionSize) {
+    ) external returns (int256 transferAmount, int256 positionSize) {
         MarginAccount marginAcc = MarginAccount(_marginAcc);
         address _protocolAddress;
         address _protocolRiskManager;
@@ -222,7 +222,7 @@ contract RiskManager is ReentrancyGuard {
         );
         return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
             initialMarginFactor) -
-            MarginAccount(marginAccount).totalBorrowed());
+            uint256(MarginAccount(marginAccount).totalBorrowed()));
 
         /**
                 (asset+PnL)*100/initialMarginFactor

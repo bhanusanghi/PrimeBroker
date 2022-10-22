@@ -80,7 +80,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     function verifyTrade( bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
         public
         view
-        returns (uint256 amount, int256 totalPosition)
+        returns (int256 amount, int256 totalPosition)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -97,7 +97,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == OP) {
-                amount = abi.decode(data[i][36:], (uint256));
+                amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 (
                     address _baseToken,
