@@ -108,7 +108,6 @@ const setup = async () => {
   await vault.addRepayingAddress(riskManager.address)
   await vault.addlendingAddress(riskManager.address)
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
-  console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
 };
 
@@ -144,9 +143,7 @@ describe("Margin Manager:SNX", () => {
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
       const UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
       const ETH_MARKET = await futuresManager.marketForKey(MARKET_KEY_sETH)
-      console.log("rm add new market")
       await riskManager.addNewMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET)
-      console.log('add market')
       await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)

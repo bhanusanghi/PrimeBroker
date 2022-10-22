@@ -65,7 +65,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        console.log(pendingFee);
         // IAccountbalance
         //    function getPnlAndPendingFee(address trader)
         // external
@@ -121,7 +120,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                console.log(_amount, _baseToken, "in perprm");
                 totalPosition = isShort ? -int256(_amount) : int256(_amount);
             }
         }

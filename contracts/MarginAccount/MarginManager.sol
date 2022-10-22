@@ -69,7 +69,6 @@ contract MarginManager is ReentrancyGuard {
     function setVault(address _vault) external {
         // onlyOwner
         vault = Vault(_vault);
-        console.log(vault.asset(), "while setting up the vault");
     }
 
     // function set(address p){}
@@ -158,7 +157,6 @@ contract MarginManager is ReentrancyGuard {
                     sqrtPriceLimitX96: 0
                 });
                 uint256 amountOut = marginAcc.swap(params);
-                console.log(amountOut, "amountOut");
                 // require(
                 //     amountOut == (absVal(transferAmount)),
                 //     "RM: Bad exchange."
@@ -222,7 +220,6 @@ contract MarginManager is ReentrancyGuard {
                     sqrtPriceLimitX96: 0
                 });
                 uint256 amountOut = marginAcc.swap(params);
-                console.log(amountOut, "amountOut");
                 // require(
                 //     amountOut == (absVal(transferAmount)),
                 //     "RM: Bad exchange."

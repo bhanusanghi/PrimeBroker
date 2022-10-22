@@ -197,7 +197,6 @@ contract RiskManager is ReentrancyGuard {
     {
         // @todo have a seperate variable for vault assets so that lent and deposited assets don't mix up
         uint256 len = allowedTokens.length;
-        console.log("spot val");
         for (uint256 i = 0; i < len; i++) {
             address token = allowedTokens[i];
             console.log("spot val", IERC20(token).balanceOf(marginAccount));
@@ -216,10 +215,6 @@ contract RiskManager is ReentrancyGuard {
         view
         returns (uint256)
     {
-        console.log("hohoho", spotAssetValue(marginAccount));
-        console.log(
-            (uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100)
-        );
         return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
             initialMarginFactor) -
             uint256(MarginAccount(marginAccount).totalBorrowed()));

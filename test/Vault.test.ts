@@ -22,7 +22,6 @@
 //   describe("vault", () => {
 
 //     it("test", async () => {
-//       console.log('yolo');
 //       expect(1).to.be.eq(1)
 //       // expect(await vault.getBalanceByToken(alice.address, usdc.address)).to.be.eq(
 //       //   parseUnits("1000", usdcDecimals),

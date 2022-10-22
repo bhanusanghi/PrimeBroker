@@ -101,7 +101,6 @@ const setup = async () => {
   const MarketManagerFactory = await ethers.getContractFactory("MarketManager");
   MarketManager = await MarketManagerFactory.deploy()
   contractRegistry = await contractRegistryFactory.deploy()
-  console.log("hehe")
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
   const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc, metadata.contracts.AccountBalance.address)
@@ -129,7 +128,6 @@ const setup = async () => {
     await artifacts.readArtifact("contracts/MarginPool/Vault.sol:Vault")
   ).abi;
   vault = new ethers.Contract(vault_deployed.address, VAULT_ABI, account0)
-  console.log(await vault.asset(), "Vault asset");
   const MarginManager = await ethers.getContractFactory("MarginManager");
   marginManager = await MarginManager.deploy(contractRegistry.address, MarketManager.address)
   const RiskManager = await ethers.getContractFactory("RiskManager");
@@ -143,7 +141,6 @@ const setup = async () => {
   await riskManager.addAllowedTokens(erc20.usdc)
   await riskManager.setVault(vault.address)
   await marginManager.setVault(vault.address)
-  console.log(await riskManager.vault())
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
@@ -158,22 +155,15 @@ const setup = async () => {
   const usdcHolderBalance = await usdc.balanceOf(usdcHolder.address)
   // sUSD = (await ethers.getContractFactory("ERC20")).attach(erc20.sUSD);
   // const susdHolderBalance = await sUSD.balanceOf(sUsdHolder.address)
-  console.log(usdcHolderBalance, "yaha")
-  // console.log(susdHolderBalance, "yaha")
 
   await usdc.connect(usdcHolder).transfer(account0.address, usdcHolderBalance)
-  console.log('f')
   // await sUSD.connect(sUsdHolder).transfer(account0.address, susdHolderBalance)
-  console.log('transfer')
   // sUSD = new ethers.Contract("0xD1599E478cC818AFa42A4839a6C665D9279C3E50", IERC20ABI, account0);
   const VAULT_AMOUNT = ethers.utils.parseUnits("20000", 6)
   await usdc.connect(account0).approve(vault.address, VAULT_AMOUNT)
-  console.log("here")
   await vault.deposit(VAULT_AMOUNT, account0.address)
-  console.log("heh", await usdc.balanceOf(account0.address))
   const perpVaultAmount = ethers.utils.parseUnits("2000", 6)
   await usdc.approve(perpVault.address, perpVaultAmount)
-  console.log("here")
   await perpVault.deposit(erc20.usdc, perpVaultAmount)
   await MarketManager.addMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address, PerpfiRiskManager.address)
 };
@@ -223,20 +213,17 @@ describe("Margin Manager", () => {
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)
       marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
-      console.log("here bt")
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
       UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
 
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
-      console.log(await uniFutures.baseAsset(), "base asset", UNI_MARKET)
       await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
       // await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
 
       // await sUSD.approve(accAddress, ethers.utils.parseUnits("5000", 6))
       // await marginAcc.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
-      console.log("here")
     });
     // it("test swap"), async () => {
     //   const out = marginAcc.swap()
@@ -263,7 +250,6 @@ describe("Margin Manager", () => {
 
       const fundVaultCalldata = await getVaultDepositCalldata(erc20.usdc, parsedAmount);
       console.log("fundVaultCalldata - ", fundVaultCalldata);
-      console.log(parsedAmount, ethers.BigNumber.from(parsedAmount))
       const _perpOpenPositionCallData = await perpOpenPositionCallData(
         "0x34235C8489b06482A99bb7fcaB6d7c467b92d248",
         false,
