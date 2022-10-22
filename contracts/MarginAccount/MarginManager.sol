@@ -69,7 +69,6 @@ contract MarginManager is ReentrancyGuard {
     function setVault(address _vault) external {
         // onlyOwner
         vault = Vault(_vault);
-        console.log(vault.asset(), "while setting up the vault");
     }
 
     // function set(address p){}
@@ -121,11 +120,7 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
-        address protocolAddress;
-        address protocolRiskManager;
-        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
+        
 
         // require(
         //     !marginAcc.existingPosition(protocolAddress),
@@ -136,56 +131,46 @@ contract MarginManager is ReentrancyGuard {
         address tokenOut;
         (tokensToTransfer, positionSize, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
-            protocolAddress,
-            protocolRiskManager,
+            marketKey,
             destinations,
             data
         );
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
-        // vault.lend(() + (100 * 10**6)), marginAcc);
-
+        uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
+        tokensToTransfer = tokensToTransfer+ (100 * 10**6)-int(balance);
         // temp increase tokens to transfer. assuming USDC.
-        if (tokensToTransfer > 0 || tokensToTransfer < 0) {
+        // add one var where increase debt only if needed,
+        //coz transfermargin can be done without it if margin acc has balance
+        if (tokensToTransfer > 0) {
             increaseDebt(
                 address(marginAcc),
-                uint256(absVal(tokensToTransfer) + (100 * 10**6))
+                uint256(absVal(tokensToTransfer))
             );
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256(
-                        (absVal(tokensToTransfer)) + (100 * 10**6)
-                    ),
+                    amountIn: uint256(absVal(tokensToTransfer)),
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
                 });
                 uint256 amountOut = marginAcc.swap(params);
-                console.log(amountOut, "amountOut");
                 // require(
                 //     amountOut == (absVal(transferAmount)),
                 //     "RM: Bad exchange."
                 // );
             }
-            marginAcc.execMultiTx(destinations, data);
-            marginAcc.updatePosition(
-                protocolAddress,
-                marketKey, // make sure this is correct?
-                positionSize,
-                uint256(absVal(tokensToTransfer)),
-                true
-            );
-        } else {
-            // @todo fix wrt risk manager
-            // vault.repay()
-            // console.log("short position or close position");
-            // MarginAccount(marginAcc).execMultiTx(destinations, data);
+         
         }
-        // else {
-        //     revert("margin kam pad gya na");
-        // }
+        marginAcc.execMultiTx(destinations, data);
+        marginAcc.updatePosition(
+            marketKey,
+            positionSize,
+            tokensToTransfer,
+            true
+        );
     }
 
     function updatePosition(
@@ -211,22 +196,46 @@ contract MarginManager is ReentrancyGuard {
         (tokensToTransfer, _currentPositionSize, tokenOut) = riskManager
             .verifyTrade(
                 address(marginAcc),
-                protocolAddress,
-                protocolRiskManager,
+                marketKey,
                 destinations,
                 data
             );
 
-        marginAcc.updatePosition(
-            protocolAddress,
+       
+        address tokenIn = vault.asset();
+        uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
+        tokensToTransfer = tokensToTransfer+ (100 * 10**6)- int256(balance);
+        if (tokensToTransfer > 0) {
+            increaseDebt(
+                address(marginAcc),
+                uint256(absVal(tokensToTransfer)) 
+            );
+            if (tokenIn != tokenOut) {
+                IExchange.SwapParams memory params = IExchange.SwapParams({
+                    tokenIn: tokenIn,
+                    tokenOut: tokenOut,
+                    amountIn: uint256(absVal(tokensToTransfer)),
+                    amountOut: 0,
+                    isExactInput: true,
+                    sqrtPriceLimitX96: 0
+                });
+                uint256 amountOut = marginAcc.swap(params);
+                // require(
+                //     amountOut == (absVal(transferAmount)),
+                //     "RM: Bad exchange."
+                // );
+            }
+         
+        }else if (tokensToTransfer<0){
+            decreaseDebt(address(marginAcc), uint256(absVal(tokensToTransfer)));
+        }
+        marginAcc.execMultiTx(destinations, data);
+         marginAcc.updatePosition(
             marketKey,
             _oldPositionSize + _currentPositionSize,
-            uint256(absVal(tokensToTransfer)),
+            tokensToTransfer,
             true
         );
-        if (tokensToTransfer > 0) {
-            //vault.approve/transfer
-        }
     }
 
     function closePosition(
@@ -240,17 +249,11 @@ contract MarginManager is ReentrancyGuard {
         //     marginAcc.existingPosition(protocolAddress),
         //     "Position doesn't exist"
         // );
-        address protocolAddress;
-        address protocolRiskManager;
-        (protocolAddress, protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
+
         int256 tokensToTransfer;
         int256 positionSize;
         (tokensToTransfer, positionSize) = riskManager.closeTrade(
             address(marginAcc),
-            protocolAddress,
-            protocolRiskManager,
             marketKey,
             destinations,
             data
@@ -364,7 +367,7 @@ contract MarginManager is ReentrancyGuard {
         // Lends more money from the pool
         vault.lend(amount, marginAcc);
         // Set parameters for new margin account
-        marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
+        marginAccount.updateBorrowData(int256(newBorrowedAmount), newCumulativeIndex);
     }
 
     function decreaseDebt(address marginAcc, uint256 amount)
@@ -402,7 +405,7 @@ contract MarginManager is ReentrancyGuard {
         uint256 newCumulativeIndex = vault.calcLinearCumulative_RAY();
         //
         // Set parameters for new credit account
-        marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
+        marginAccount.updateBorrowData(int256(newBorrowedAmount), newCumulativeIndex);
     }
 
     function calcCreditAccountAccruedInterest(address marginacc)

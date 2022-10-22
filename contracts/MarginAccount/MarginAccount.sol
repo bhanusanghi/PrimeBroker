@@ -39,7 +39,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
-    uint256 public totalBorrowed; // in usd terms
+    int256 public _totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     // mapping(address => boolean) whitelistedTokens;
     address public underlyingToken;
@@ -75,23 +75,22 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     function updatetotalBorrowed(
-        uint256 newDebt // onylMarginmanager
+        int256 newDebt // onylMarginmanager
     ) external {
-        totalBorrowed += newDebt;
+        _totalBorrowed += newDebt;
     }
 
     function updatePosition(
-        address _protocol,
         bytes32 market,
         int256 size,
-        uint256 newDebt,
+        int256 newDebt,
         bool newPosition
     ) public {
         // only riskmanagger
         //calcLinearCumulative_RAY .vault
         positions[market] = Position(0, 0, PositionType.LONG, size, 0, 0);
-        // if (newPosition) existingPosition[_protocol] = newPosition;
-        totalBorrowed += newDebt;
+        // if (newPosition) existingPosition[market] = newPosition;
+        _totalBorrowed += newDebt;
     }
 
     function removePosition(bytes32 market) public returns (bool removed) {
@@ -154,17 +153,18 @@ contract MarginAccount is IMarginAccount, UniExchange {
         bytes[] memory dataArray
     ) external returns (bytes memory returnData) {
         // onlyMarginManager
-        console.log("exec txs");
         uint256 len = destinations.length;
         for (uint256 i = 0; i < len; i++) {
             console.log("exec tx - ", i);
-            destinations[i].functionCall(dataArray[i]);
+            bytes memory returnData = destinations[i].functionCall(
+                dataArray[i]
+            );
+
             // if (i == 0) {
             //     uint256 allowance = IERC20(destinations[i]).allowance(
             //         address(this),
             //         destinations[i + 1]
             //     );
-            //     console.log("allowance", allowance);
             // }
             // update Positions array
             // make post trade chnges
@@ -174,13 +174,16 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     /// @dev Updates borrowed amount. Restricted for current credit manager only
-    /// @param _totalBorrowed Amount which pool lent to credit account
+    /// @param _totalBorrowedAmount Amount which pool lent to credit account
     function updateBorrowData(
-        uint256 _totalBorrowed,
+        int256 _totalBorrowedAmount,
         uint256 _cumulativeIndexAtOpen
     ) external override {
         // add acl check
-        totalBorrowed = _totalBorrowed;
+        _totalBorrowed = _totalBorrowedAmount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
+    }
+    function totalBorrowed() external view override returns (uint256){
+        return uint256(_totalBorrowed);
     }
 }

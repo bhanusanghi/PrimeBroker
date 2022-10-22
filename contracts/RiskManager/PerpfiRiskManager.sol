@@ -65,7 +65,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        console.log(pendingFee);
         // IAccountbalance
         //    function getPnlAndPendingFee(address trader)
         // external
@@ -77,7 +76,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         // );
     }
 
-    function verifyTrade(bytes[] calldata data)
+    function verifyTrade( bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
         public
         view
         returns (int256 amount, int256 totalPosition)
@@ -89,7 +88,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            sizeDelta  : 64 bytes
            32 bytes tracking code, or we can append hehe
         */
+       // check for destinations as well
         uint256 len = data.length; // limit to 2
+        require(destinations.length==len,"should match");
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
@@ -119,7 +120,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                console.log(_amount, _baseToken, "in perprm");
                 totalPosition = isShort ? -int256(_amount) : int256(_amount);
             }
         }

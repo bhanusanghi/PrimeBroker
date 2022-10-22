@@ -134,13 +134,10 @@ describe("MarginManager", () => {
     // const fraxHolder = await ethers.getImpersonatedSigner("0x29a3d66b30bc4ad674a4fdaf27578b64f6afbfe7");
     // send usdc
     const usdcHolderBalance = await contracts.erc20.usdc.balanceOf(usdcHolder.address)
-    console.log(usdcHolderBalance)
     await contracts.erc20.usdc.connect(usdcHolder).transfer(bob.address, ethers.utils.parseUnits("500000", 6))
     const VAULT_AMOUNT = ethers.utils.parseUnits("200000", 6)
-    console.log(await contracts.erc20.usdc.balanceOf(bob.address), VAULT_AMOUNT, "kek")
     await contracts.erc20.usdc.connect(bob).approve(vault.address, VAULT_AMOUNT)
     await vault.connect(bob).deposit(VAULT_AMOUNT, bob.address)
-    console.log('done')
     // send frax
     // contracts.erc20.frax.connect(fraxHolder).transfer(bob.address, 10000 * ETHER)
 
@@ -176,7 +173,6 @@ describe("MarginManager", () => {
 
       // const expectedBase = staticResponse.base;
       // expect(staticResponse.quote).to.be.eq(ethers.utils.parseUnits("1000", 6));
-      // console.log("Finished static call, expectedBase - ", expectedBase.toString());
 
 
       let data = await contracts.perp.clearingHouse.connect(bob).openPosition(openPositionParams)
@@ -193,8 +189,6 @@ describe("MarginManager", () => {
       //   "974863323923301853330898562804", // sqrtPriceAfterX96
       // );
       console.log("fetching accBalance");
-      console.log(bob.address)
-      console.log(baseToken)
       // console.log(contracts.perp.accountBalance)
       let accBalance = await contracts.perp.accountBalance.connect(bob).getAccountInfo(bob.address, baseToken);
       console.log("accBalance");
