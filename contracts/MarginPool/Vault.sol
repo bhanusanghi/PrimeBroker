@@ -54,6 +54,8 @@ interface IVault {
     function expectedLiquidity() external view returns (uint256);
 
     function calcLinearCumulative_RAY() external view returns (uint256);
+
+    function getInterestRateModel() external view returns (address);
 }
 
 // contract Vault is IVault, ERC4626 {
@@ -104,7 +106,13 @@ contract Vault is IVault, ERC4626 {
         address _lpTokenAddress,
         address _interestRateModelAddress,
         uint256 _maxExpectedLiquidity
-    ) ERC4626(IERC20Metadata(_asset)) ERC20("name", "symbol") {
+    )
+        ERC4626(IERC20Metadata(_asset))
+        ERC20(
+            LPToken(_lpTokenAddress).name(),
+            LPToken(_lpTokenAddress).symbol()
+        )
+    {
         require(
             _asset != address(0) &&
                 _lpTokenAddress != address(0) &&
@@ -348,6 +356,10 @@ contract Vault is IVault, ERC4626 {
     }
 
     // view functions
+
+    function getInterestRateModel() external view returns (address) {
+        return address(interestRateModel);
+    }
 
     /// @dev Calculate linear index
     /// @param cumulativeIndex_RAY Current cumulative index in RAY
