@@ -9,7 +9,6 @@ import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
-import {BaseProtocolRiskManager} from "../RiskManager/BaseProtocolRiskManager.sol";
 import "hardhat/console.sol";
 
 contract MarginAccount is IMarginAccount, UniExchange {
@@ -110,18 +109,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // protocol rm . getPnl(address(this), _protocol)
     }
 
-    function getPositionValPnL(bytes32 market) public returns (int256, int256) {
-        // only riskmanagger
-        // instead use load in memory struct, storage reads expensive hehe
-        if (positions[market].notionalValue != 0) {
-            address protocol;
-            address riskManager;
-            (protocol, riskManager) = marketManager.getMarketByName(market);
-            int256 PnL = BaseProtocolRiskManager(riskManager).getPnL(
-                address(this),
-                protocol
-            );
-            return (positions[market].notionalValue, PnL);
+    function getTotalNotional(bytes32[] memory _allowedMarkets) public returns(uint256 totalNotional){
+        uint256 len = _allowedMarkets.length;
+        for(uint256 i=0;i>len;i++) {
+            totalNotional+= absVal(positions[_allowedMarkets[i]].notionalValue);
         }
     }
 
@@ -183,7 +174,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         _totalBorrowed = _totalBorrowedAmount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
-    function totalBorrowed() external view override returns (uint256){
-        return uint256(_totalBorrowed);
+    function totalBorrowed() external view override returns (int256){
+        return _totalBorrowed;
     }
 }

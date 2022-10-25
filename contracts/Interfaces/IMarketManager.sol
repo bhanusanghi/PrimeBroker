@@ -12,7 +12,7 @@ interface IMarketManager {
         address _market,
         address _riskManager
     ) external;
-
+    function getAllRiskManagers() external returns(address[] memory);
     function removeMarket(bytes32 marketName, address _market) external;
 
     function getMarketByName(bytes32 marketName)

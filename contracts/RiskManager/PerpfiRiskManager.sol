@@ -55,16 +55,13 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
-    function getPnL(address account, address protocol)
-        public
-        view
-        returns (int256)
-    {
+    function getPositionPnL(address account) external virtual returns (uint256 depositedMargin, int256 pnl) {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
+        pnl = unrealizedPnl- int256(pendingFee);
         // IAccountbalance
         //    function getPnlAndPendingFee(address trader)
         // external
@@ -74,9 +71,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //     int256 unrealizedPnl,
         //     uint256 pendingFee
         // );
+        depositedMargin = 1;
+        return (depositedMargin,pnl);
     }
 
-    function verifyTrade( bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
+    function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
         public
         view
         returns (int256 amount, int256 totalPosition)

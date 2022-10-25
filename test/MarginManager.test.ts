@@ -144,6 +144,7 @@ const setup = async () => {
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
+  await MarketManager.addNewRiskManager([sNXRiskManager.address, PerpfiRiskManager.address])
   const IERC20ABI = (
     await artifacts.readArtifact(
       "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
@@ -220,6 +221,7 @@ describe("Margin Manager", () => {
 
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
       await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
+      await sNXRiskManager.addNewMarket(UNI_MARKET)
       // await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
 
       // await sUSD.approve(accAddress, ethers.utils.parseUnits("5000", 6))

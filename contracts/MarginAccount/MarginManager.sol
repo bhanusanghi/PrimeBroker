@@ -324,7 +324,7 @@ contract MarginManager is ReentrancyGuard {
             uint256 cumulativeIndexNow
         )
     {
-        borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed(); // F:[CM-45]
+        borrowedAmount = uint256(IMarginAccount(_marginAccount).totalBorrowed()); // F:[CM-45]
         cumulativeIndexAtOpen = IMarginAccount(_marginAccount)
             .cumulativeIndexAtOpen(); // F:[CM-45]
         cumulativeIndexNow = vault.calcLinearCumulative_RAY(); // F:[CM-45]

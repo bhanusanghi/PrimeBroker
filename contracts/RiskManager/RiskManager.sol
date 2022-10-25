@@ -90,22 +90,19 @@ contract RiskManager is ReentrancyGuard {
             _protocolRiskManager
         );
         (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
-        uint256 freeMargin = getFreeMargin(marginAcc, PnL);
+        uint256 buyingPower = getBuyingPower(marginAcc, PnL);
 
-        uint256 maxTransferAmount = freeMargin -
-            (totalNotioanl + uint256(positionSize));
         (transferAmount, positionSize) = protocolRiskManager.verifyTrade(marketKey,destinations,data);
-        console.log(
-            freeMargin,
-            (totalNotioanl + uint256(absVal(positionSize))),
-            uint256(absVal(positionSize)),
-            "freeMargin and total size"
-        );
         require(
-            freeMargin >= (totalNotioanl + uint256(absVal(positionSize))),
+            buyingPower >= (totalNotioanl + uint256(absVal(positionSize))),
             "Extra margin not allowed"
         );
-        require(absVal(transferAmount)<=maxTransferAmount,"Extra margin transfer not allowed");
+        require(
+            buyingPower >= uint256(absVal(MarginAccount(marginAcc).totalBorrowed() + transferAmount)),
+            "Extra margin not allowed"
+        );
+        // uint256(MarginAccount(marginAccount).totalBorrowed())
+        // require(absVal(transferAmount)<=maxTransferAmount,"Extra margin transfer not allowed");
         tokenOut = protocolRiskManager.getBaseToken();
         // if (positionSize > 0) {
         //     // vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
@@ -204,20 +201,19 @@ contract RiskManager is ReentrancyGuard {
             // priceOracle.convertToUSD(
             //     IERC20(token).balanceOf(marginAccount),
             //     token
-            // );
+            // );.mul(w)
         }
         return totalAmount;
     }
 
     // total free buying power
-    function getFreeMargin(address marginAccount, int256 PnL)
+    function getBuyingPower(address marginAccount, int256 PnL)
         public
         view
         returns (uint256)
     {
         return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
-            initialMarginFactor) -
-            uint256(MarginAccount(marginAccount).totalBorrowed()));
+            initialMarginFactor));
 
         /**
                 (asset+PnL)*100/initialMarginFactor
@@ -236,15 +232,19 @@ contract RiskManager is ReentrancyGuard {
         public
         returns (uint256 totalNotional, int256 PnL)
     {
-        MarginAccount macc = MarginAccount(marginAccount);
-        uint256 len = allowedMarkets.length;
+        MarginAccount marginAcc = MarginAccount(marginAccount);
+        totalNotional = marginAcc.getTotalNotional(allowedMarkets);
+        console.log(address(this),"inside riskManager");
+        address[] memory _riskManagers = marketManager.getAllRiskManagers();
+        uint256 marginInProtocols;// @todo store it when transfering margin
+        uint256 len = _riskManagers.length;
+        console.log("len rm:", len);
         for (uint256 i = 0; i < len; i++) {
-            // allowed markets
             // margin acc get bitmask
-            int256 notional;
+            uint256 _deposit;
             int256 _pnl;
-            (notional, _pnl) = macc.getPositionValPnL(allowedMarkets[i]);
-            totalNotional += absVal(notional);
+            (_deposit, _pnl) = IProtocolRiskManager(_riskManagers[i]).getPositionPnL(marginAccount);
+            marginInProtocols += _deposit;
             PnL += _pnl;
         }
     }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 interface IMarginAccount {
     function underlyingToken() external view returns (address);
 
-    function totalBorrowed() external view returns (uint256);
+    function totalBorrowed() external view returns (int256);
 
     function cumulativeIndexAtOpen() external view returns (uint256);
 
