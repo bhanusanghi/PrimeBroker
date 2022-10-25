@@ -103,7 +103,7 @@ contract RiskManager is ReentrancyGuard {
         // );
         tokenOut = protocolRiskManager.getBaseToken();
         // if (positionSize > 0) {
-        //     // vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
+        //     // vault.borrow(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
 
         //     address tokenIn = vault.asset();
         //     if (tokenIn != tokenOut) {
@@ -190,10 +190,8 @@ contract RiskManager is ReentrancyGuard {
     {
         // @todo have a seperate variable for vault assets so that lent and deposited assets don't mix up
         uint256 len = allowedTokens.length;
-        console.log("spot val");
         for (uint256 i = 0; i < len; i++) {
             address token = allowedTokens[i];
-            console.log("spot val", IERC20(token).balanceOf(marginAccount));
             totalAmount += IERC20(token).balanceOf(marginAccount) * 1; // hardcode usd price
             // priceOracle.convertToUSD(
             //     IERC20(token).balanceOf(marginAccount),
@@ -209,10 +207,6 @@ contract RiskManager is ReentrancyGuard {
         view
         returns (uint256)
     {
-        console.log("hohoho", spotAssetValue(marginAccount));
-        console.log(
-            (uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100)
-        );
         return (((uint256(int256(spotAssetValue(marginAccount)) + PnL) * 100) /
             initialMarginFactor) -
             MarginAccount(marginAccount).totalBorrowed());

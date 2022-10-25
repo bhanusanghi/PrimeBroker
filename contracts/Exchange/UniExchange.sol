@@ -27,7 +27,6 @@ contract UniExchange is IExchange {
         external
         returns (uint256 amountOut)
     {
-        console.log(msg.sender, address(this), "in swap this");
         require(_swapParams.tokenIn != address(0), "MA: TokenIn error");
         require(_swapParams.tokenOut != address(0), "MA: tokenOut error");
 
