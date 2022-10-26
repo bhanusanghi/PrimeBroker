@@ -146,9 +146,7 @@ contract Vault is IVault, ERC4626 {
             expectedLiquidity() + assets <= maxExpectedLiquidity,
             Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
         );
-        console.log(expectedLiquidity() + assets, maxExpectedLiquidity);
         uint256 shares = previewDeposit(assets);
-        console.log(_msgSender(), receiver, assets, shares);
         _deposit(_msgSender(), receiver, assets, shares);
         // SafeERC20.safeTransferFrom(
         //     IERC20Metadata(asset()),
@@ -156,7 +154,6 @@ contract Vault is IVault, ERC4626 {
         //     address(this),
         //     assets
         // );
-        console.log("transfer");
         // update borrow Interest Rate.
         expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(assets);
         _updateBorrowRate(0);
@@ -292,7 +289,6 @@ contract Vault is IVault, ERC4626 {
     {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount);
-        console.log("inside vault");
         // update total borrowed
         totalBorrowed = totalBorrowed.add(amount);
         // update expectedLiquidityLU
@@ -300,14 +296,8 @@ contract Vault is IVault, ERC4626 {
         // update interest rate;
         _updateBorrowRate(0);
         // transfer
-        console.log(
-            "lend amount",
-            amount,
-            IERC20(asset()).balanceOf(address(this))
-        );
         // SafeERC20.safeApprove(IERC20(asset()), borrower, amount);
         IERC20(asset()).transfer(borrower, amount);
-        console.log("post approve");
         emit Borrow(msg.sender, borrower, amount);
     }
 
