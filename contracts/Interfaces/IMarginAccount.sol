@@ -13,4 +13,5 @@ interface IMarginAccount {
     ) external;
 
     function baseToken() external returns (address);
+    function addCollateral(address from, address token, uint256 amount) external;
 }

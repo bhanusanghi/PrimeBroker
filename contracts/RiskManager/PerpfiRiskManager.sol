@@ -75,7 +75,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return (depositedMargin,pnl);
     }
 
-    function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
+    function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
         public
         view
         returns (int256 amount, int256 totalPosition)

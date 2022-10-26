@@ -63,9 +63,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
     //     return (totalInternalLev, (totalLev - totalInternalLev));
     // }
 
-    function addCollateral(address token, uint256 amount) external {
+    function addCollateral(address from,address token, uint256 amount) external {
         // convert
-        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(token).safeTransferFrom(from, address(this), amount);
+        // update in collatral manager
     }
 
     function approveToProtocol(address token, address protocol) external {
@@ -82,14 +83,12 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function updatePosition(
         bytes32 market,
         int256 size,
-        int256 newDebt,
         bool newPosition
     ) public {
         // only riskmanagger
         //calcLinearCumulative_RAY .vault
         positions[market] = Position(0, 0, PositionType.LONG, size, 0, 0);
         // if (newPosition) existingPosition[market] = newPosition;
-        _totalBorrowed += newDebt;
     }
 
     function removePosition(bytes32 market) public returns (bool removed) {
@@ -111,9 +110,11 @@ contract MarginAccount is IMarginAccount, UniExchange {
 
     function getTotalNotional(bytes32[] memory _allowedMarkets) public returns(uint256 totalNotional){
         uint256 len = _allowedMarkets.length;
-        for(uint256 i=0;i>len;i++) {
+        for(uint256 i=0;i<len;i++) {
+            console.log("Position size",i,":",absVal(positions[_allowedMarkets[i]].notionalValue));
             totalNotional+= absVal(positions[_allowedMarkets[i]].notionalValue);
         }
+        console.log(" Total Position size:",totalNotional);
     }
 
     function absVal(int256 val) public view returns (uint256) {
@@ -146,7 +147,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // onlyMarginManager
         uint256 len = destinations.length;
         for (uint256 i = 0; i < len; i++) {
-            console.log("exec tx - ", i);
+            console.log("exec tx - ", i,destinations[i]);
             bytes memory returnData = destinations[i].functionCall(
                 dataArray[i]
             );

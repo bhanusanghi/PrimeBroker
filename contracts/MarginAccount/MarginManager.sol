@@ -137,16 +137,22 @@ contract MarginManager is ReentrancyGuard {
         );
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
-        uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
-        tokensToTransfer = tokensToTransfer+ (100 * 10**6)-int(balance);
+        uint256 balance = IERC20(tokenIn).balanceOf(address(marginAcc));
+        // -int(balance)
+        console.log('balance',balance);
+        tokensToTransfer = tokensToTransfer+ (100 * 10**6);
         // temp increase tokens to transfer. assuming USDC.
         // add one var where increase debt only if needed,
         //coz transfermargin can be done without it if margin acc has balance
+        console.log('transfer amount',uint256(absVal(tokensToTransfer)));
         if (tokensToTransfer > 0) {
-            increaseDebt(
-                address(marginAcc),
-                uint256(absVal(tokensToTransfer))
-            );
+            if(balance<uint256(absVal(tokensToTransfer))){
+                uint256 diff = uint256(absVal(tokensToTransfer))-balance;
+                increaseDebt(
+                    address(marginAcc),
+                    diff
+                );
+            }
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
@@ -157,6 +163,7 @@ contract MarginManager is ReentrancyGuard {
                     sqrtPriceLimitX96: 0
                 });
                 uint256 amountOut = marginAcc.swap(params);
+                console.log("swapped amount",amountOut);
                 // require(
                 //     amountOut == (absVal(transferAmount)),
                 //     "RM: Bad exchange."
@@ -168,7 +175,6 @@ contract MarginManager is ReentrancyGuard {
         marginAcc.updatePosition(
             marketKey,
             positionSize,
-            tokensToTransfer,
             true
         );
     }
@@ -206,10 +212,13 @@ contract MarginManager is ReentrancyGuard {
         uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
         tokensToTransfer = tokensToTransfer+ (100 * 10**6)- int256(balance);
         if (tokensToTransfer > 0) {
-            increaseDebt(
-                address(marginAcc),
-                uint256(absVal(tokensToTransfer)) 
-            );
+            if(balance < uint256(tokensToTransfer)){
+                uint256 diff = uint256(absVal(tokensToTransfer))-balance;
+                increaseDebt(
+                    address(marginAcc),
+                    diff 
+                );
+            }
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
@@ -233,7 +242,6 @@ contract MarginManager is ReentrancyGuard {
          marginAcc.updatePosition(
             marketKey,
             _oldPositionSize + _currentPositionSize,
-            tokensToTransfer,
             true
         );
     }

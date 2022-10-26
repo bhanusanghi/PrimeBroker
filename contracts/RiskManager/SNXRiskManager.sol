@@ -97,7 +97,7 @@ contract SNXRiskManager {
         // return unrealizedPnl- int256(pendingFee);
     }
 
-    function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
+    function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
         public
         view
         returns (int256 amount, int256 totalPosition)
@@ -117,10 +117,13 @@ contract SNXRiskManager {
             if (funSig == TM) {
                 amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
-                totalPosition = _normaliseDeciamals(
-                    abi.decode(data[i][4:], (int256))
-                );
+                totalPosition = 
+                    abi.decode(data[i][4:], (int256));
             }
         }
+        uint256 price;
+        (price,) = IFuturesMarket(protocol).assetPrice();
+        price = price/10**18;
+        totalPosition = _normaliseDeciamals(totalPosition*int256(price));
     }
 }

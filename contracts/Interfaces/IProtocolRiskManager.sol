@@ -7,7 +7,7 @@ interface IProtocolRiskManager  {
 
     function getPositionPnL(address marginAccount) external returns (uint256, int256);
 
-    function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
+    function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
         external
         view
         returns (int256 amount, int256 totalPosition);
