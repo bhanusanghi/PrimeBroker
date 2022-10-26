@@ -5,7 +5,6 @@ import "../Interfaces/IInterestRateModel.sol";
 import "./LPToken.sol";
 import "../Libraries/Errors.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
-import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import {SECONDS_PER_YEAR} from "../Libraries/Constants.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -41,13 +40,14 @@ interface IVault {
         uint256 loss
     );
 
-    function lend(uint256 amount, address borrower) external;
+    function borrow(address borrower, uint256 amount) external;
 
     function repay(
+        address borrower,
         uint256 amount,
-        uint256 interestAccrued,
-        uint256 loss,
-        uint256 profit
+        uint256 interestAccrued
+        // uint256 loss,
+        // uint256 profit
     ) external;
 
     // view/getters
@@ -64,13 +64,11 @@ contract Vault is IVault, ERC4626 {
     using Math for uint256;
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
-    using PercentageMath for uint256;
 
     uint256 totalBorrowed;
     uint256 maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
-    LPToken lpToken;
 
     mapping(address => bool) lendingAllowed;
     mapping(address => bool) repayingAllowed;
@@ -103,24 +101,15 @@ contract Vault is IVault, ERC4626 {
 
     constructor(
         address _asset,
-        address _lpTokenAddress,
+        string memory _lpTokenName,
+        string memory _lpTokenSymbol,
         address _interestRateModelAddress,
         uint256 _maxExpectedLiquidity
-    )
-        ERC4626(IERC20Metadata(_asset))
-        ERC20(
-            LPToken(_lpTokenAddress).name(),
-            LPToken(_lpTokenAddress).symbol()
-        )
-    {
+    ) ERC4626(IERC20Metadata(_asset)) ERC20(_lpTokenName, _lpTokenSymbol) {
         require(
-            _asset != address(0) &&
-                _lpTokenAddress != address(0) &&
-                _interestRateModelAddress != address(0),
+            _asset != address(0) && _interestRateModelAddress != address(0),
             Errors.ZERO_ADDRESS_IS_NOT_ALLOWED
         );
-
-        lpToken = LPToken(_lpTokenAddress);
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
@@ -148,16 +137,9 @@ contract Vault is IVault, ERC4626 {
         );
         uint256 shares = previewDeposit(assets);
         _deposit(_msgSender(), receiver, assets, shares);
-        // SafeERC20.safeTransferFrom(
-        //     IERC20Metadata(asset()),
-        //     _msgSender(),
-        //     address(this),
-        //     assets
-        // );
         // update borrow Interest Rate.
         expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(assets);
         _updateBorrowRate(0);
-
         return shares;
     }
 
@@ -174,7 +156,9 @@ contract Vault is IVault, ERC4626 {
             Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
         );
         _deposit(_msgSender(), receiver, assets, shares);
-
+        // update borrow Interest Rate.
+        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(assets);
+        _updateBorrowRate(0);
         return assets;
     }
 
@@ -193,7 +177,7 @@ contract Vault is IVault, ERC4626 {
         _withdraw(_msgSender(), receiver, owner, assets, shares);
 
         // update borrow Interest Rate.
-        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated + assets;
+        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated - assets;
         _updateBorrowRate(0);
         return shares;
     }
@@ -208,7 +192,9 @@ contract Vault is IVault, ERC4626 {
 
         uint256 assets = previewRedeem(shares);
         _withdraw(_msgSender(), receiver, owner, assets, shares);
-
+        // update borrow Interest Rate.
+        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated - assets;
+        _updateBorrowRate(0);
         return assets;
     }
 
@@ -242,12 +228,7 @@ contract Vault is IVault, ERC4626 {
         override(ERC4626)
         returns (uint256 shares)
     {
-        // uint256 supply = totalSupply();
-        // return
-        //     (assets == 0 || supply == 0)
-        //         ? assets.mulDiv(10**decimals(), 10**_asset.decimals(), rounding)
-        //         : assets.mulDiv(supply, totalAssets(), rounding);
-
+        // TODO - Check this inifinte error possibility. look at abstract implementation for more.
         return assets.mulDiv(RAY, getShareRate_Ray(), rounding);
     }
 
@@ -274,7 +255,7 @@ contract Vault is IVault, ERC4626 {
         _;
     }
 
-    function addlendingAddress(address _lendAddress) public {
+    function addLendingAddress(address _lendAddress) public {
         lendingAllowed[_lendAddress] = true;
     }
 
@@ -282,7 +263,7 @@ contract Vault is IVault, ERC4626 {
         repayingAllowed[_repayAddress] = true;
     }
 
-    function lend(uint256 amount, address borrower)
+    function borrow(address borrower, uint256 amount)
         external
         override
         onlyAllowedLendingMarginManager
@@ -296,16 +277,15 @@ contract Vault is IVault, ERC4626 {
         // update interest rate;
         _updateBorrowRate(0);
         // transfer
-        // SafeERC20.safeApprove(IERC20(asset()), borrower, amount);
+        
         IERC20(asset()).transfer(borrower, amount);
         emit Borrow(msg.sender, borrower, amount);
     }
 
     function repay(
+        address borrower,
         uint256 borrowedAmount, // exact amount that is returned as principle
-        uint256 interest,
-        uint256 loss,
-        uint256 profit
+        uint256 interest
     ) external override onlyAllowedRepayingMarginManager {
         //repay
 
@@ -314,25 +294,25 @@ contract Vault is IVault, ERC4626 {
         // update expectedLiquidityLU
         expectedLiquidityLastUpdated = expectedLiquidityLastUpdated
             .add(borrowedAmount)
-            .add(interest)
-            .add(profit);
+            .add(interest);
+        // .add(profit);
         // .sub(loss);
 
         // currently vault does not check credit account's accounting. It should ideally check an accounts major events like on closing if interest paid is right or not.
         //
 
-        // update interest rate;
 
         // transfer
-        if (profit > 0) {
-            SafeERC20.safeTransferFrom(
-                IERC20(asset()),
-                msg.sender,
-                address(this),
-                borrowedAmount.add(interest).add(profit)
-            );
-            _updateBorrowRate(0);
-        }
+        // if (profit > 0) {
+        SafeERC20.safeTransferFrom(
+            IERC20(asset()),
+            borrower,
+            address(this),
+            borrowedAmount.add(interest)
+            // .add(profit)
+        );
+        _updateBorrowRate(0);
+        // }
         //  else if (loss > 0) {
         //     SafeERC20.safeTransferFrom(
         //         IERC20(asset()),
@@ -342,7 +322,7 @@ contract Vault is IVault, ERC4626 {
         //     );
         //     _updateBorrowRate(loss);
         // }
-        emit Repay(msg.sender, borrowedAmount, interest, profit, loss);
+        emit Repay(msg.sender, borrowedAmount, interest, 0, 0);
     }
 
     // view functions

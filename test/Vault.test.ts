@@ -11,7 +11,8 @@ import {
   LPToken, MockERC20
 } from "../typechain-types";
 import { erc20 } from "./integrations/addresses";
-
+import { getVaultFixture } from "./fixtures";
+ ̰
 type VaultFixture = {
   vault: Vault;
   interestRateModel: IInterestRateModel;
@@ -23,39 +24,6 @@ type VaultFixture = {
 let admin: SignerWithAddress, alice: SignerWithAddress, bob: SignerWithAddress,
   borrower1: SignerWithAddress, borrower2: SignerWithAddress;
 let contracts: VaultFixture
-const getVaultFixture = async (): Promise<VaultFixture> => {
-  [admin, alice, bob, borrower1, borrower2] = await ethers.getSigners();
-  const interestRateModelFactory = await ethers.getContractFactory("LinearInterestRateModel", admin);
-  const optimalUse = ethers.BigNumber.from("9000");
-  const rBase = ethers.BigNumber.from("0");
-  const rSlope1 = ethers.BigNumber.from("200");
-  const rSlope2 = ethers.BigNumber.from("1000");
-  const interestRateModel: LinearInterestRateModel = await interestRateModelFactory.deploy(
-    optimalUse,
-    rBase,
-    rSlope1,
-    rSlope2
-  )
-  const MockERC20Factory = await ethers.getContractFactory("MockERC20");
-  const mock1 = await MockERC20Factory.deploy("mock1", "mk1")
-  const mock2 = await MockERC20Factory.deploy("mock2", "mk2");
-
-  const maxExpectedLiquidity: BigNumber = ethers.constants.MaxUint256;
-  const VaultFactory = await ethers.getContractFactory("Vault");
-  const vault = await VaultFactory.deploy(
-    mock1.address, "LPToken", "LPT", interestRateModel.address, maxExpectedLiquidity
-  )
-  await vault.addLendingAddress(admin.address)
-  await vault.addRepayingAddress(admin.address)
-  return {
-    vault,
-    interestRateModel,
-    erc20: {
-      mock1,
-      mock2,
-    }
-  }
-}
 
 const fundWallet = async (user: SignerWithAddress, amount: BigNumber, token: MockERC20) => {
   token.connect(user).mint(user.address, amount);
@@ -112,7 +80,8 @@ const simulateYield = async (amount: BigNumber) => {
 describe.only("Vault test", async () => {
 
   beforeEach(async () => {
-    contracts = await loadFixture(getVaultFixture);
+    [admin, alice, bob, borrower1, borrower2] = await ethers.getSigners();
+    contracts = await loadFixture(getVaultFixture(admin.address, admin.address));
     await fundWallet(bob, parseEther("1000000"), contracts.erc20.mock1);
     await fundWallet(alice, parseEther("1000000"), contracts.erc20.mock1);
     await fundWallet(borrower1, parseEther("1000000"), contracts.erc20.mock1);

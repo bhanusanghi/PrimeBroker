@@ -147,19 +147,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // onlyMarginManager
         uint256 len = destinations.length;
         for (uint256 i = 0; i < len; i++) {
-            console.log("exec tx - ", i,destinations[i]);
-            bytes memory returnData = destinations[i].functionCall(
-                dataArray[i]
-            );
-
-            // if (i == 0) {
-            //     uint256 allowance = IERC20(destinations[i]).allowance(
-            //         address(this),
-            //         destinations[i + 1]
-            //     );
-            // }
-            // update Positions array
-            // make post trade chnges
+            returnData = destinations[i].functionCall(dataArray[i]);
         }
         // add new position in array, update leverage int, ext
         return returnData;
