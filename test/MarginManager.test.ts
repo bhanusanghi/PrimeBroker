@@ -7,7 +7,7 @@ import { metadata } from "./integrations/PerpfiOptimismMetadata";
 import { erc20 } from "./integrations/addresses";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import dotenv from "dotenv";
-import { SNXUNI, PERP, PERP_MARKET_KEY_AAVE, SNX_MARKET_KEY_sUNI, TRANSFERMARGIN, ERC20 } from "./utils/constants";
+import { SNXUNI, PERP, PERP_MARKET_KEY_AAVE, SNX_MARKET_KEY_sETH, SNX_MARKET_KEY_sUNI, TRANSFERMARGIN, ERC20 } from "./utils/constants";
 import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import { perpOpenPositionCallData, getVaultDepositCalldata, getErc20ApprovalCalldata } from "./utils/CalldataGenerator";
 import { MarginManager, MarginAccount, RiskManager } from "../typechain-types";
@@ -55,7 +55,9 @@ let usdc: Contract;
 let perpVault: Contract;
 let MarketManager: Contract;
 let UNI_MARKET: string;
+let ETH_MARKET: string;
 let sNXRiskManager: Contract;
+let CollateralManager: Contract;
 /*///////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
 ///////////////////////////////////////////////////////////////*/
@@ -98,6 +100,8 @@ const setup = async () => {
           uint256 maxExpectedLiquidity
    */
   const contractRegistryFactory = await ethers.getContractFactory("ContractRegistry");
+  const CollateralManagerFactory = await ethers.getContractFactory('CollateralManager');
+  CollateralManager = await CollateralManagerFactory.deploy()
   const MarketManagerFactory = await ethers.getContractFactory("MarketManager");
   MarketManager = await MarketManagerFactory.deploy()
   contractRegistry = await contractRegistryFactory.deploy()
@@ -137,8 +141,8 @@ const setup = async () => {
   await vault.addRepayingAddress(marginManager.address)
   await vault.addlendingAddress(marginManager.address)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
-  await riskManager.addAllowedTokens(erc20.sUSD)
-  await riskManager.addAllowedTokens(erc20.usdc)
+  await CollateralManager.addAllowedCollateral([erc20.usdc, erc20.sUSD])
+  await CollateralManager.initialize(marginManager.address, erc20.usdc)//@notice dummy address
   await riskManager.setVault(vault.address)
   await marginManager.setVault(vault.address)
   await marginManager.SetRiskManager(riskManager.address);
@@ -154,6 +158,7 @@ const setup = async () => {
   const usdcHolder = await ethers.getImpersonatedSigner("0x7F5c764cBc14f9669B88837ca1490cCa17c31607");
   // const sUsdHolder = await ethers.getImpersonatedSigner("0xa5f7a39e55d7878bc5bd754ee5d6bd7a7662355b");
   const usdcHolderBalance = await usdc.balanceOf(usdcHolder.address)
+  console.log('max usdc balance', usdcHolderBalance)
   // sUSD = (await ethers.getContractFactory("ERC20")).attach(erc20.sUSD);
   // const susdHolderBalance = await sUSD.balanceOf(sUsdHolder.address)
 
@@ -164,6 +169,7 @@ const setup = async () => {
   await usdc.connect(account0).approve(vault.address, VAULT_AMOUNT)
   await vault.deposit(VAULT_AMOUNT, account0.address)
   const perpVaultAmount = ethers.utils.parseUnits("2000", 6)
+  await riskManager.setcollateralManager(CollateralManager.address)
   await usdc.approve(perpVault.address, perpVaultAmount)
   await perpVault.deposit(erc20.usdc, perpVaultAmount)
   await MarketManager.addMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address, PerpfiRiskManager.address)
@@ -272,4 +278,107 @@ describe("Margin Manager", () => {
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI))
     });
   });
+  describe.only("Margin Manager:max leverage", () => {
+    let accAddress: any;
+    let marginAcc: any;
+    // let accAddress;
+    // let accAddress;
+    const testamt = ethers.utils.parseUnits("1000", 18);
+    let IERC20ABI: any;
+    before("Fork Network", async () => {
+      await forkAtBlock(29697063);
+    });
+    beforeEach("Setup", async () => {
+      // mint sUSD to test accounts, and deploy contracts
+
+      await setup();
+      console.log("setup done")
+      const IERC20ABI = (
+        await artifacts.readArtifact(
+          "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
+        )
+      ).abi;
+      sUSD = await new ethers.Contract(erc20.sUSD, IERC20ABI, account0);
+      await marginManager.openMarginAccount();
+      accAddress = await marginManager.marginAccounts(account0.address)
+      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
+      const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
+      const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
+      const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
+      UNI_MARKET = await futuresManager.marketForKey(MARKET_KEY_sUNI)
+      ETH_MARKET = await futuresManager.marketForKey(MARKET_KEY_sETH)
+
+      console.log(ETH_MARKET, "FM address", futuresManager.address)
+      const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
+
+      await sNXRiskManager.addNewMarket(UNI_MARKET)
+      await sNXRiskManager.addNewMarket(ETH_MARKET)
+      await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
+      await MarketManager.addMarket(SNX_MARKET_KEY_sETH, ETH_MARKET, sNXRiskManager.address)
+
+      await riskManager.addNewMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET)
+      await riskManager.addNewMarket(SNX_MARKET_KEY_sETH, ETH_MARKET)
+      await riskManager.addNewMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address)
+      // await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
+
+      // await sUSD.approve(accAddress, ethers.utils.parseUnits("5000", 6))
+      // await marginAcc.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
+    });
+    // it("test swap"), async () => {
+    //   const out = marginAcc.swap()
+    // }
+    it("MarginAccount add position", async () => {
+
+      await usdc.approve(accAddress, ethers.utils.parseUnits("5000", 6))
+      await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
+
+
+      let trData = await transferMarginData(accAddress, ethers.utils.parseUnits("6000", 18))
+      let sizeDelta = ethers.utils.parseUnits("500", 18);
+      let posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
+
+      const out = await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      let parsedAmount = ethers.utils.parseUnits("6000", 6)
+      // await usdc.transfer(marginAcc.address, parsedAmount)
+
+      // fundCreditAccount with vAave for now.
+
+      const approveAmountCalldata = await getErc20ApprovalCalldata(perpVault.address, parsedAmount);
+      console.log("approveAmountCalldata - ", approveAmountCalldata);
+
+      const fundVaultCalldata = await getVaultDepositCalldata(erc20.usdc, parsedAmount);
+      console.log("fundVaultCalldata - ", fundVaultCalldata);
+      const _perpOpenPositionCallData = await perpOpenPositionCallData(
+        "0x34235C8489b06482A99bb7fcaB6d7c467b92d248",
+        false,
+        true,
+        ethers.BigNumber.from('0'),
+        ethers.utils.parseUnits("3000", 6),
+        ethers.BigNumber.from('0'),
+        ethers.constants.MaxUint256,
+        ethers.constants.HashZero)
+
+      console.log("perpOpenPositionCallData - ", _perpOpenPositionCallData, "--------------\n", await usdc.balanceOf(accAddress))
+      const response = await marginManager.openPosition(
+        PERP_MARKET_KEY_AAVE,
+        [erc20.usdc, perpVault.address, perpClearingHouse.address],
+        [approveAmountCalldata, fundVaultCalldata, _perpOpenPositionCallData]
+      );
+      console.log("\n--------------\n", await usdc.balanceOf(accAddress))
+      console.log("hereeeeee\n", await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI))
+
+      trData = await transferMarginData(accAddress, ethers.utils.parseUnits("3000", 18))
+      sizeDelta = ethers.utils.parseUnits("6", 18);
+      posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
+      const EthFutures = await ethers.getContractAt("IFuturesMarket", ETH_MARKET, account0)
+      console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());
+      //positions,posData,
+      await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
+      console.log('post trade')
+      console.log("eth market position", await EthFutures.positions(accAddress))
+      console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
+    });
+  });
 });
+
