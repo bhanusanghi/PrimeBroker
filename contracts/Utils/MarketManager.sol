@@ -7,7 +7,7 @@ contract MarketManager is IMarketManager, AccessControl {
     // snx.eth, snx.btc=>address, perp.eth=>address
     mapping(bytes32 => address) public marketsRegistry; // external protocols
     mapping(bytes32 => address) public riskManagerForMarket;
-
+    address[] public protocolRiskManagers;
     /**
      add maping for market to fee and maybe other hot params which can cached here 
      */
@@ -23,7 +23,14 @@ contract MarketManager is IMarketManager, AccessControl {
         marketsRegistry[marketName] = _market;
         riskManagerForMarket[marketName] = _riskManager;
     }
-
+    function addNewRiskManager(address[] memory riskManagers) public {
+        for(uint256 i=0;i<riskManagers.length;i++ ){
+          protocolRiskManagers.push(riskManagers[i]);
+        }
+    }
+    function getAllRiskManagers() external view returns(address[] memory){
+        return protocolRiskManagers;
+    }
     function updateMarket(
         bytes32 marketName,
         address _market,

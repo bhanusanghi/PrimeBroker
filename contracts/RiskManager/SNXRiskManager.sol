@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 import {CollateralShort} from "../Interfaces/SNX/CollateralShort.sol";
 import {IFuturesMarket} from "../Interfaces/SNX/IFuturesMarket.sol";
 import {IFuturesMarketManager} from "../Interfaces/SNX/IFuturesMarketManager.sol";
+import {IAddressResolver } from "../Interfaces/SNX/IAddressResolver.sol";
 import "hardhat/console.sol";
 
 // IAddressResolver
@@ -11,15 +12,20 @@ contract SNXRiskManager {
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
     IFuturesMarketManager public futureManager;
+    // IAddressResolver public addressResolver;// SNX markets address resolver
     address public baseToken;
     uint256 public vaultAssetDecimals = 10**6; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
-
+    address[] public allowedMarkets;
+    // mapping(bytes32=> address) public markets;
+    // bytes32[] public supportedMarkets;
     constructor(address _baseToken) {
         baseToken = _baseToken;
     }
-
+    function addNewMarket(address market) public {
+        allowedMarkets.push(market);
+    }
     // function getTotalPnL(address marginAcc) public returns (int256) {
 
     // }
@@ -51,19 +57,23 @@ contract SNXRiskManager {
        */
     }
 
-    function getPnL(address account, address protocol)
-        public
-        view
-        returns (int256)
-    {
-        IFuturesMarket market = IFuturesMarket(protocol);
-        int256 notionalValue;
-        int256 funding;
-        int256 PnL;
-        (notionalValue, ) = market.notionalValue(account);
-        (funding, ) = market.accruedFunding(account);
-        (PnL, ) = market.profitLoss(account);
-        return PnL - funding;
+    function getPositionPnL(address account) external virtual returns (uint256 _marginDeposited, int256 pnl){
+        console.log(msg.sender, "In snx riskManager");
+        uint256 len= allowedMarkets.length;
+        for (uint256 i = 0;i<len;i++) {
+             IFuturesMarket market = IFuturesMarket(allowedMarkets[i]);
+                int256 notionalValue;
+                uint256 margin;
+                (margin,) = market.accessibleMargin(account);
+                _marginDeposited +=margin;
+                int256 funding;
+                int256 _pnl;
+                (notionalValue, ) = market.notionalValue(account);
+                (funding, ) = market.accruedFunding(account);
+                (_pnl, ) = market.profitLoss(account);
+                pnl +=_pnl;
+        }
+        // return PnL - funding;
         // profitLoss
         // accruedFunding
         //         function notionalValue(address account) external view returns (int value, bool invalid) {
@@ -84,9 +94,10 @@ contract SNXRiskManager {
         //     (uint price, bool isInvalid) = assetPrice();
         //     return (_accruedFunding(positions[account], price), isInvalid);
         // }
+        // return unrealizedPnl- int256(pendingFee);
     }
 
-    function verifyTrade(bytes32 marketKey,address[] memory destinations,bytes[] calldata data)
+    function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
         public
         view
         returns (int256 amount, int256 totalPosition)
@@ -106,10 +117,13 @@ contract SNXRiskManager {
             if (funSig == TM) {
                 amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
-                totalPosition = _normaliseDeciamals(
-                    abi.decode(data[i][4:], (int256))
-                );
+                totalPosition = 
+                    abi.decode(data[i][4:], (int256));
             }
         }
+        uint256 price;
+        (price,) = IFuturesMarket(protocol).assetPrice();
+        price = price/10**18;
+        totalPosition = _normaliseDeciamals(totalPosition*int256(price));
     }
 }
