@@ -239,7 +239,7 @@ describe("Margin Manager", () => {
     it("MarginAccount add new position using vault", async () => {
 
       await usdc.approve(accAddress, ethers.utils.parseUnits("5000", 6))
-      await marginAcc.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
+      await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
 
 
       const trData = await transferMarginData(accAddress, ethers.utils.parseUnits("1000", 18))
@@ -278,7 +278,7 @@ describe("Margin Manager", () => {
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI))
     });
   });
-  describe.only("Margin Manager:max leverage", () => {
+  describe("Margin Manager:max leverage", () => {
     let accAddress: any;
     let marginAcc: any;
     // let accAddress;
