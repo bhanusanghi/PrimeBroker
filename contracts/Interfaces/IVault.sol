@@ -31,7 +31,7 @@ interface IVault {
         uint256 loss
     );
 
-    function lend(uint256 amount, address borrower) external;
+    function borrow(uint256 amount, address borrower) external;
 
     function repay(
         uint256 amount,

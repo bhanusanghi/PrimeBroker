@@ -126,6 +126,13 @@ contract RiskManager is ReentrancyGuard {
         (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
         // console.log(transferAmount, "close pos, tm");
         int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
+        // basically checks for if its closing opposite position
+        // require(positionSize + _currentPositionSize == 0);
+
+        // if (transferAmout < 0) {
+        //     vault.repay(borrowedAmount, loss, profit);
+        //     update totalDebt
+        // }
     }
 
     // total free buying power
@@ -136,8 +143,6 @@ contract RiskManager is ReentrancyGuard {
         
         buyPow =  ((uint256((int256(collateralManager.totalCollatralValue(marginAccount)) + PnL)) * 100) /
             initialMarginFactor);
-        console.log("In buying power:", uint256(absVal(PnL)),buyPow);
-
         /**
                 (asset+PnL)*100/initialMarginFactor
                 */

@@ -73,6 +73,7 @@ contract MarginManager is ReentrancyGuard {
 
     // function set(address p){}
     function openMarginAccount() external returns (address) {
+        // TODO - approve marginAcc max asset to vault for repayment allowance.
         require(marginAccounts[msg.sender] == address(0x0));
         // Uniswap router to be removed later.
         address router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
@@ -138,13 +139,11 @@ contract MarginManager is ReentrancyGuard {
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
         uint256 balance = IERC20(tokenIn).balanceOf(address(marginAcc));
-        // -int(balance)
-        console.log('balance',balance);
         tokensToTransfer = tokensToTransfer+ (100 * 10**6);
+
         // temp increase tokens to transfer. assuming USDC.
         // add one var where increase debt only if needed,
         //coz transfermargin can be done without it if margin acc has balance
-        console.log('transfer amount',uint256(absVal(tokensToTransfer)));
         if (tokensToTransfer > 0) {
             if(balance<uint256(absVal(tokensToTransfer))){
                 uint256 diff = uint256(absVal(tokensToTransfer))-balance;
@@ -373,7 +372,7 @@ contract MarginManager is ReentrancyGuard {
                 cumulativeIndexAtOpen);
 
         // Lends more money from the pool
-        vault.lend(amount, marginAcc);
+        vault.borrow(marginAcc, amount);
         // Set parameters for new margin account
         marginAccount.updateBorrowData(int256(newBorrowedAmount), newCumulativeIndex);
     }
@@ -406,7 +405,8 @@ contract MarginManager is ReentrancyGuard {
         uint256 profit = (interestAccrued.mul(feeInterest)) / PERCENTAGE_FACTOR;
 
         // Calls repaymarginAccount to update pool values
-        vault.repay(amount, interestAccrued, profit, 0);
+        vault.repay(marginAcc, amount, interestAccrued);
+        // , profit, 0);
 
         // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
         // to make precise calculation

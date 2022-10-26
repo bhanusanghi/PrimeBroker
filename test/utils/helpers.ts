@@ -9,7 +9,7 @@ import { abi as perpVaultAbi } from "../external/abi/perpVault";
 import { abi as perpClearingHouseAbi } from "../external/abi/clearingHouse";
 import { abi as perpAccountBalanceAbi } from "../external/abi/accountBalance";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { PERP, ERC20 as ERC20Hash, SNXUNI, TRANSFERMARGIN } from "./constants";
+import { PERP, ERC20 as ERC20Hash, SNXUNI, TRANSFERMARGIN, DAYS } from "./constants";
 import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import dotenv from "dotenv";
 dotenv.config();
@@ -56,4 +56,9 @@ export const mintToAccountSUSD = async (
 
     // "mint" accountAddress specified amount of sUSD
     await synth.connect(issuerSigner).issue(accountAddress, amount);
+};
+
+export const timeTravel = async (time?: number) => {
+    await ethers.provider.send("evm_increaseTime", [time || 1 * DAYS]);
+    await ethers.provider.send("evm_mine", []);
 };

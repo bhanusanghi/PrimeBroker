@@ -127,7 +127,7 @@ const setup = async () => {
   ).abi;
   perpClearingHouse = new ethers.Contract(metadata.contracts.ClearingHouse.address, IClearingHouse, account0);
   accountBalance = new ethers.Contract(metadata.contracts.AccountBalance.address, IAccountBalance);
-  const vault_deployed = await VaultFactory.deploy(erc20.usdc, LPToken.address, IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
+  const vault_deployed = await VaultFactory.deploy(erc20.usdc, "Giga lp", "GLP", IRModel.address, ethers.BigNumber.from("1111111000000000000000000000000"))
   const VAULT_ABI = (
     await artifacts.readArtifact("contracts/MarginPool/Vault.sol:Vault")
   ).abi;
@@ -136,10 +136,10 @@ const setup = async () => {
   marginManager = await MarginManager.deploy(contractRegistry.address, MarketManager.address)
   const RiskManager = await ethers.getContractFactory("RiskManager");
   riskManager = await RiskManager.deploy(contractRegistry.address, MarketManager.address)
+  await vault.addLendingAddress(riskManager.address)
   await vault.addRepayingAddress(riskManager.address)
-  await vault.addlendingAddress(riskManager.address)
+  await vault.addLendingAddress(marginManager.address)
   await vault.addRepayingAddress(marginManager.address)
-  await vault.addlendingAddress(marginManager.address)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
   await CollateralManager.addAllowedCollateral([erc20.usdc, erc20.sUSD])
   await CollateralManager.initialize(marginManager.address, erc20.usdc)//@notice dummy address
