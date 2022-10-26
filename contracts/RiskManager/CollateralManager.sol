@@ -11,6 +11,7 @@ contract CollateralManager is ICollateralManager {
   MarginManager  public marginManager;
   IPriceOracle public priceOracle;
   address[] public allowedCollateral;// allowed tokens
+  uint256[] public collateralWeight;
   mapping(address=>bool) public isAllowed;
   mapping(address => mapping(address => int256)) internal _balance;
     function initialize(
@@ -37,17 +38,14 @@ contract CollateralManager is ICollateralManager {
  function withdrawCollatral() external{}
 
  function totalCollatralValue(address marginAccount) external returns(uint256 totalAmount){
-        // @todo have a seperate variable for vault assets so that lent and deposited assets don't mix up
         uint256 len = allowedCollateral.length;
         for (uint256 i = 0; i < len; i++) {
             address token = allowedCollateral[i];
             totalAmount+= uint256((_balance[marginAccount][token]))/(10**ERC20(token).decimals());
-            // totalAmount += (ERC20(token).balanceOf(marginAccount)/(10**ERC20(token).decimals())) * 1; // hardcode usd price
             // priceOracle.convertToUSD(
             //     IERC20(token).balanceOf(marginAccount),
             //     token
             // );.mul(w)
-            // console.log((ERC20(token).balanceOf(marginAccount)/(10**ERC20(token).decimals())) * 1, totalAmount,":balance");
         }
         return totalAmount*(10**6);
  }

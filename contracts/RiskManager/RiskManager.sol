@@ -89,8 +89,6 @@ contract RiskManager is ReentrancyGuard {
         (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
             marketKey
         );
-        // TradeResult memory tradeResult = new TradeResult();
-        // fetch adapter address using protocol name from contract registry.
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
@@ -98,11 +96,7 @@ contract RiskManager is ReentrancyGuard {
         uint256 buyingPower = getBuyingPower(marginAcc, PnL);
 
         (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
-        console.log(uint256(absVal((positionSize))),": TotalPositionSize");
-        console.log((totalNotioanl + uint256(absVal(positionSize))),"final size");
-        console.log(buyingPower , (totalNotioanl + uint256(absVal(positionSize))),"first require");
 
-        // console.log( buyingPower , uint256(absVal(MarginAccount(marginAcc).totalBorrowed() + transferAmount)),"second require");
         require(
             buyingPower >= (totalNotioanl + uint256(absVal(positionSize))),
             "Extra margin not allowed"
@@ -111,64 +105,7 @@ contract RiskManager is ReentrancyGuard {
             buyingPower >= uint256(absVal(MarginAccount(marginAcc).totalBorrowed() + transferAmount)),
             "Extra margin not allowed"
         );
-        // uint256(MarginAccount(marginAccount).totalBorrowed())
-        // require(absVal(transferAmount)<=maxTransferAmount,"Extra margin transfer not allowed");
         tokenOut = protocolRiskManager.getBaseToken();
-        console.log("token out",tokenOut);
-        // if (positionSize > 0) {
-        //     // vault.lend(((absVal(transferAmount)) + (100 * 10**6)), marginAcc);
-
-        //     address tokenIn = vault.asset();
-        //     if (tokenIn != tokenOut) {
-        //         IExchange.SwapParams memory params = IExchange.SwapParams({
-        //             tokenIn: tokenIn,
-        //             tokenOut: tokenOut,
-        //             amountIn: ((absVal(transferAmount)) + (100 * 10**6)),
-        //             amountOut: 0,
-        //             isExactInput: true,
-        //             sqrtPriceLimitX96: 0
-        //         });
-        //         console.log("approved to uni");
-        //         uint256 amountOut = MarginAccount(marginAcc).swap(params);
-        //         console.log(amountOut, "amountOut");
-        //         // require(
-        //         //     amountOut == (absVal(transferAmount)),
-        //         //     "RM: Bad exchange."
-        //         // );
-        //     }
-        //     // MarginAccount(marginAcc).execMultiTx(destinations, data);
-        //     // @todo update it with vault-MM link`
-
-        //     //         function repay(
-        //     // uint256 borrowedAmount, // exact amount that is returned as principle
-        //     // uint256 loss,
-        //     // uint256 profit
-        // } else if (positionSize < 0) {
-        //     // vault.repay()
-        //     console.log("short position or close position");
-        //     MarginAccount(marginAcc).execMultiTx(destinations, data);
-        // } else {
-        //     revert("margin kam pad gya na");
-        // }
-        // if (
-        //     ((int256(spot) + unRealizedPnL) * 2) >
-        //     int256(transferAmount + totalDebt)
-        // ) {
-        // @todo use proper lib for it
-
-        // }
-        // swtich case
-        // if (aandu bandu formula+tokens_to_transfer> minimum margin){
-        //
-        // }
-        /**
-        AB = Account Balance ( spot asset value)
-        UP = Unrealised PnL (unRealizedPnL)
-        MIP = Margin in Positions (margin from all positions)
-        MM = Maintenance Margin % 30% for now
-        AB+UP-IM-MM>0
-         */
-        // return ();
     }
 
     function closeTrade(
@@ -189,13 +126,6 @@ contract RiskManager is ReentrancyGuard {
         (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
         // console.log(transferAmount, "close pos, tm");
         int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
-        // basically checks for if its closing opposite position
-        // require(positionSize + _currentPositionSize == 0);
-
-        // if (transferAmout < 0) {
-        //     vault.repay(borrowedAmount, loss, profit);
-        //     update totalDebt
-        // }
     }
 
     // total free buying power
