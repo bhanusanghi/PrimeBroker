@@ -100,7 +100,7 @@ contract SNXRiskManager {
     function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
         public
         view
-        returns (int256 amount, int256 totalPosition)
+        returns (int256 amount, int256 totalPosition, uint256 fee)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -123,6 +123,8 @@ contract SNXRiskManager {
         }
         uint256 price;
         (price,) = IFuturesMarket(protocol).assetPrice();
+        (fee,) = IFuturesMarket(protocol).orderFee(totalPosition);
+        console.log(fee,":feeeee");
         price = price/10**18;
         totalPosition = _normaliseDeciamals(totalPosition*int256(price));
     }

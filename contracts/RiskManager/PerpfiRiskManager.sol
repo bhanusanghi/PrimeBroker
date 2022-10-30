@@ -78,7 +78,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
         public
         view
-        returns (int256 amount, int256 totalPosition)
+        returns (int256 amount, int256 totalPosition, uint256 fee)
     {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
@@ -89,6 +89,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         */
        // check for destinations as well
         uint256 len = data.length; // limit to 2
+        fee=1;
         require(destinations.length==len,"should match");
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);

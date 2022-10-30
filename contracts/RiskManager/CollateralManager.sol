@@ -12,6 +12,7 @@ contract CollateralManager is ICollateralManager {
   IPriceOracle public priceOracle;
   address[] public allowedCollateral;// allowed tokens
   uint256[] public collateralWeight;
+  // address=> decimals for allowed tokens so we don't have to make external calls
   mapping(address=>bool) public isAllowed;
   mapping(address => mapping(address => int256)) internal _balance;
     function initialize(
