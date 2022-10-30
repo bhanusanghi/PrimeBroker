@@ -94,8 +94,8 @@ contract RiskManager is ReentrancyGuard {
         );
         (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
         uint256 buyingPower = getBuyingPower(marginAcc, PnL);
-
-        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
+        uint256 fee;
+        (transferAmount, positionSize,fee) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
 
         require(
             buyingPower >= (totalNotioanl + uint256(absVal(positionSize))),
@@ -123,7 +123,8 @@ contract RiskManager is ReentrancyGuard {
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
-        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
+        uint256 fee;
+        (transferAmount, positionSize,fee) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
         // console.log(transferAmount, "close pos, tm");
         int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
         // basically checks for if its closing opposite position

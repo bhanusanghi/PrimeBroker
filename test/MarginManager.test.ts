@@ -2,6 +2,7 @@
 import { expect } from "chai";
 import { artifacts, ethers, network, waffle } from "hardhat";
 import { BigNumber, Contract } from "ethers";
+import { ContractReceipt } from "@ethersproject/contracts"
 import { mintToAccountSUSD } from "./utils/helpers";
 import { metadata } from "./integrations/PerpfiOptimismMetadata";
 import { erc20 } from "./integrations/addresses";
@@ -58,6 +59,7 @@ let UNI_MARKET: string;
 let ETH_MARKET: string;
 let sNXRiskManager: Contract;
 let CollateralManager: Contract;
+let reciept: ContractReceipt
 /*///////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
 ///////////////////////////////////////////////////////////////*/
@@ -338,7 +340,10 @@ describe("Margin Manager", () => {
       let posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
 
-      const out = await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      let out = await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
+      out = await out.wait()
+      let obj = out.events
+      // console.log("--¯s̄---------'n", out, "---'n", JSON.stringify(out), obj)
       let parsedAmount = ethers.utils.parseUnits("6000", 6)
       // await usdc.transfer(marginAcc.address, parsedAmount)
 
@@ -360,11 +365,16 @@ describe("Margin Manager", () => {
         ethers.constants.HashZero)
 
       console.log("perpOpenPositionCallData - ", _perpOpenPositionCallData, "--------------\n", await usdc.balanceOf(accAddress))
-      const response = await marginManager.openPosition(
+      reciept = await marginManager.openPosition(
         PERP_MARKET_KEY_AAVE,
         [erc20.usdc, perpVault.address, perpClearingHouse.address],
         [approveAmountCalldata, fundVaultCalldata, _perpOpenPositionCallData]
       );
+      reciept = await reciept.wait()
+      obj = reciept.events
+      console.log("\n\n\n")
+      // console.log(JSON.stringify(obj))
+      // console.log("---'n", reciept, "---'n", obj)
       console.log("\n--------------\n", await usdc.balanceOf(accAddress))
       console.log("hereeeeee\n", await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI))
 
@@ -374,7 +384,10 @@ describe("Margin Manager", () => {
       const EthFutures = await ethers.getContractAt("IFuturesMarket", ETH_MARKET, account0)
       console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       //positions,posData,
-      await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
+      reciept = await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
+      reciept = await reciept.wait()
+      obj = reciept.events
+      // console.log("---'n", reciept, "---'n", obj)
       console.log('post trade')
       console.log("eth market position", await EthFutures.positions(accAddress))
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
