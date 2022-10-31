@@ -2,6 +2,10 @@ pragma solidity ^0.8.10;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -14,6 +18,10 @@ import "hardhat/console.sol";
 contract MarginAccount is IMarginAccount, UniExchange {
     using SafeERC20 for IERC20;
     using Address for address;
+    using SafeMath for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SignedMath for int256;
+    using SignedSafeMath for int256;
     IMarketManager public marketManager;
 
     enum PositionType {
@@ -77,7 +85,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function updatetotalBorrowed(
         int256 newDebt // onylMarginmanager
     ) external {
-        _totalBorrowed += newDebt;
+        _totalBorrowed = _totalBorrowed.add(newDebt);
     }
 
     function updatePosition(
@@ -112,7 +120,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         uint256 len = _allowedMarkets.length;
         for(uint256 i=0;i<len;i++) {
             console.log("Position size",i,":",absVal(positions[_allowedMarkets[i]].notionalValue));
-            totalNotional+= absVal(positions[_allowedMarkets[i]].notionalValue);
+            totalNotional= totalNotional.add(positions[_allowedMarkets[i]].notionalValue.abs());
         }
         console.log(" Total Position size:",totalNotional);
     }
@@ -145,8 +153,8 @@ contract MarginAccount is IMarginAccount, UniExchange {
         bytes[] memory dataArray
     ) external returns (bytes memory returnData) {
         // onlyMarginManager
-        uint256 len = destinations.length;
-        for (uint256 i = 0; i < len; i++) {
+        uint8 len = destinations.length.toUint8();
+        for (uint8 i = 0; i < len; i++) {
             returnData = destinations[i].functionCall(dataArray[i]);
         }
         // add new position in array, update leverage int, ext
