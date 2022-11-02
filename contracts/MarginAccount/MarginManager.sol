@@ -4,7 +4,10 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {RiskManager} from "../RiskManager/RiskManager.sol";
@@ -14,7 +17,6 @@ import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
-
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 
@@ -22,8 +24,12 @@ import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
-    using Address for address payable;
     using SafeMath for uint256;
+    using Math for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SafeCastUpgradeable for int256;
+    using SignedMath for int256;
+    using SignedSafeMath for int256;
     RiskManager public riskManager;
     IContractRegistry public contractRegistry;
     IMarketManager public marketManager;
@@ -139,14 +145,15 @@ contract MarginManager is ReentrancyGuard {
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
         uint256 balance = IERC20(tokenIn).balanceOf(address(marginAcc));
-        tokensToTransfer = tokensToTransfer+ (100 * 10**6);
+        tokensToTransfer = tokensToTransfer.add(100 * 10**6);
 
         // temp increase tokens to transfer. assuming USDC.
         // add one var where increase debt only if needed,
         //coz transfermargin can be done without it if margin acc has balance
         if (tokensToTransfer > 0) {
-            if(balance<uint256(absVal(tokensToTransfer))){
-                uint256 diff = uint256(absVal(tokensToTransfer))-balance;
+            uint256 absTokensToTransfer = tokensToTransfer.abs();
+            if(balance < absTokensToTransfer){
+                uint256 diff = absTokensToTransfer.sub(balance);
                 increaseDebt(
                     address(marginAcc),
                     diff
@@ -156,7 +163,7 @@ contract MarginManager is ReentrancyGuard {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256(absVal(tokensToTransfer)),
+                    amountIn: absTokensToTransfer,
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
@@ -212,7 +219,7 @@ contract MarginManager is ReentrancyGuard {
         tokensToTransfer = tokensToTransfer+ (100 * 10**6)- int256(balance);
         if (tokensToTransfer > 0) {
             if(balance < uint256(tokensToTransfer)){
-                uint256 diff = uint256(absVal(tokensToTransfer))-balance;
+                uint256 diff = tokensToTransfer.abs().sub(balance);
                 increaseDebt(
                     address(marginAcc),
                     diff 
@@ -222,7 +229,7 @@ contract MarginManager is ReentrancyGuard {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256(absVal(tokensToTransfer)),
+                    amountIn: tokensToTransfer.abs(),
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
@@ -235,12 +242,12 @@ contract MarginManager is ReentrancyGuard {
             }
          
         }else if (tokensToTransfer<0){
-            decreaseDebt(address(marginAcc), uint256(absVal(tokensToTransfer)));
+            decreaseDebt(address(marginAcc), tokensToTransfer.abs());
         }
         marginAcc.execMultiTx(destinations, data);
          marginAcc.updatePosition(
             marketKey,
-            _oldPositionSize + _currentPositionSize,
+            _oldPositionSize.add(_currentPositionSize),
             true
         );
     }
@@ -395,14 +402,14 @@ contract MarginManager is ReentrancyGuard {
             cumulativeIndexAtOpen -
             borrowedAmount;
 
-        newBorrowedAmount = borrowedAmount - amount;
+        newBorrowedAmount = borrowedAmount.sub(amount);
 
         // hardcoded values . To be removed later.
         uint256 feeInterest = 0;
         uint256 PERCENTAGE_FACTOR = 1;
 
         // Computes profit which comes from interest rate
-        uint256 profit = (interestAccrued.mul(feeInterest)) / PERCENTAGE_FACTOR;
+        uint256 profit = interestAccrued.mulDiv(feeInterest, PERCENTAGE_FACTOR);
 
         // Calls repaymarginAccount to update pool values
         vault.repay(marginAcc, amount, interestAccrued);
@@ -413,7 +420,7 @@ contract MarginManager is ReentrancyGuard {
         uint256 newCumulativeIndex = vault.calcLinearCumulative_RAY();
         //
         // Set parameters for new credit account
-        marginAccount.updateBorrowData(int256(newBorrowedAmount), newCumulativeIndex);
+        marginAccount.updateBorrowData(newBorrowedAmount.toInt256(), newCumulativeIndex);
     }
 
     function calcCreditAccountAccruedInterest(address marginacc)
@@ -422,10 +429,6 @@ contract MarginManager is ReentrancyGuard {
         returns (uint256)
     {
         return 1;
-    }
-
-    function absVal(int256 val) public view returns (int256) {
-        return val < 0 ? -val : val;
     }
 
     function _approveTokens() private {}

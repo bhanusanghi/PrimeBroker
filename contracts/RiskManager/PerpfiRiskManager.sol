@@ -3,6 +3,10 @@ pragma solidity ^0.8.10;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
@@ -10,11 +14,15 @@ import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
+    using SafeMath for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SafeCastUpgradeable for int256;
+    using SignedMath for int256;
+    using SignedSafeMath for int256;
     // address public perp
     // function getPositionValue(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
@@ -61,17 +69,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl- int256(pendingFee);
-        // IAccountbalance
-        //    function getPnlAndPendingFee(address trader)
-        // external
-        // view
-        // returns (
-        //     int256 owedRealizedPnl,
-        //     int256 unrealizedPnl,
-        //     uint256 pendingFee
-        // );
-        depositedMargin = 1;
+        pnl = unrealizedPnl.sub(pendingFee.toInt256());
+        depositedMargin = 1;// @note placeholder for now for some new params or remove
         return (depositedMargin,pnl);
     }
 
@@ -88,10 +87,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            32 bytes tracking code, or we can append hehe
         */
        // check for destinations as well
-        uint256 len = data.length; // limit to 2
+        uint8 len = data.length.toUint8(); // limit to 2
         fee=1;
-        require(destinations.length==len,"should match");
-        for (uint256 i = 0; i < len; i++) {
+        require(destinations.length.toUint8() == len,"should match");
+        for (uint8 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
@@ -120,7 +119,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                totalPosition = isShort ? -int256(_amount) : int256(_amount);
+                totalPosition = isShort ? -(_amount.toInt256()) : (_amount.toInt256());
             }
         }
     }

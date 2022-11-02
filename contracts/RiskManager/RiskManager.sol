@@ -4,6 +4,11 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {SignedSafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
@@ -21,6 +26,12 @@ import "hardhat/console.sol";
 contract RiskManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
+    using SafeMath for uint256;
+    using Math for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SignedSafeMathUpgradeable for int256;
+    using SafeCastUpgradeable for int256;
+    using SignedMath for int256;
     IPriceOracle public priceOracle;
     Vault public vault;
     modifier xyz() {
@@ -29,7 +40,9 @@ contract RiskManager is ReentrancyGuard {
     IContractRegistry public contractRegistery;
     CollateralManager public collateralManager;
     IMarketManager public marketManager;
-    uint256 public initialMarginFactor = 35; //in percent
+    uint256 public initialMarginFactor = 25; //in percent
+    uint256 public maintanaceMarginFactor = 20; //in percent
+
     // 1000-> 2800$
     // protocol to riskManager mapping
     // perpfi address=> perpfiRisk manager
@@ -83,29 +96,35 @@ contract RiskManager is ReentrancyGuard {
         )
     {
         uint256 totalNotioanl;
-        int256 PnL;
-        address _protocolAddress;
-        address _protocolRiskManager;
-        (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
-        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
-        );
-        (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
-        uint256 buyingPower = getBuyingPower(marginAcc, PnL);
-        uint256 fee;
-        (transferAmount, positionSize,fee) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
-
+        uint256 buyingPower;
+        {
+            int256 PnL;
+            address _protocolAddress;
+            address _protocolRiskManager;
+            (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
+                marketKey
+            );
+            IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+                _protocolRiskManager
+            );
+            
+            (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
+            
+            buyingPower = getBuyingPower(marginAcc, PnL);
+            
+            uint256 fee;
+            (transferAmount, positionSize,fee) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
+            tokenOut = protocolRiskManager.getBaseToken();
+        }
+        console.log(buyingPower,totalNotioanl.add(positionSize.abs()),"buy pow");
         require(
-            buyingPower >= (totalNotioanl + uint256(absVal(positionSize))),
-            "Extra margin not allowed"
+            buyingPower >= totalNotioanl.add(positionSize.abs()),
+            "Extra leverage not allowed"
         );
         require(
-            buyingPower >= uint256(absVal(MarginAccount(marginAcc).totalBorrowed() + transferAmount)),
-            "Extra margin not allowed"
+            buyingPower >= MarginAccount(marginAcc).totalBorrowed().add(transferAmount).abs(),
+            "Extra Transfer not allowed"
         );
-        tokenOut = protocolRiskManager.getBaseToken();
     }
 
     function closeTrade(
@@ -141,16 +160,7 @@ contract RiskManager is ReentrancyGuard {
         public
         returns (uint256 buyPow)
     {
-        
-        buyPow =  ((uint256((int256(collateralManager.totalCollatralValue(marginAccount)) + PnL)) * 100) /
-            initialMarginFactor);
-        /**
-                (asset+PnL)*100/initialMarginFactor
-                */
-    }
-
-    function absVal(int256 val) public view returns (uint256) {
-        return uint256(val < 0 ? -val : val);
+        return collateralManager.totalCollatralValue(marginAccount).toInt256().add(PnL).toUint256().mulDiv(100,initialMarginFactor);
     }
 
     function getPositionsValPnL(address marginAccount)
@@ -162,16 +172,13 @@ contract RiskManager is ReentrancyGuard {
         totalNotional = marginAcc.getTotalNotional(allowedMarkets);
         console.log(address(this),"inside riskManager");
         address[] memory _riskManagers = marketManager.getAllRiskManagers();
-        uint256 marginInProtocols;// @todo store it when transfering margin
-        uint256 len = _riskManagers.length;
+        uint8 len = _riskManagers.length.toUint8();
         console.log("len rm:", len);
-        for (uint256 i = 0; i < len; i++) {
+        for (uint8 i = 0; i < len; i++) {
             // margin acc get bitmask
-            uint256 _deposit;
             int256 _pnl;
-            (_deposit, _pnl) = IProtocolRiskManager(_riskManagers[i]).getPositionPnL(marginAccount);
-            marginInProtocols += _deposit;
-            PnL += _pnl;
+            (, _pnl) = IProtocolRiskManager(_riskManagers[i]).getPositionPnL(marginAccount);
+            PnL = PnL.add(_pnl);
         }
     }
 
