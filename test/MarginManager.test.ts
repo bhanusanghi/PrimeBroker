@@ -335,8 +335,8 @@ describe("Margin Manager", () => {
       await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
 
 
-      let trData = await transferMarginData(accAddress, ethers.utils.parseUnits("6000", 18))
-      let sizeDelta = ethers.utils.parseUnits("500", 18);
+      let trData = await transferMarginData(accAddress, ethers.utils.parseUnits("7000", 18))
+      let sizeDelta = ethers.utils.parseUnits("830", 18);
       let posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
 
@@ -344,7 +344,7 @@ describe("Margin Manager", () => {
       out = await out.wait()
       let obj = out.events
       // console.log("--¯s̄---------'n", out, "---'n", JSON.stringify(out), obj)
-      let parsedAmount = ethers.utils.parseUnits("6000", 6)
+      let parsedAmount = ethers.utils.parseUnits("7000", 6)
       // await usdc.transfer(marginAcc.address, parsedAmount)
 
       // fundCreditAccount with vAave for now.
@@ -359,7 +359,7 @@ describe("Margin Manager", () => {
         false,
         true,
         ethers.BigNumber.from('0'),
-        ethers.utils.parseUnits("3000", 6),
+        ethers.utils.parseUnits("5000", 6),
         ethers.BigNumber.from('0'),
         ethers.constants.MaxUint256,
         ethers.constants.HashZero)
@@ -378,8 +378,8 @@ describe("Margin Manager", () => {
       console.log("\n--------------\n", await usdc.balanceOf(accAddress))
       console.log("hereeeeee\n", await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI))
 
-      trData = await transferMarginData(accAddress, ethers.utils.parseUnits("3000", 18))
-      sizeDelta = ethers.utils.parseUnits("6", 18);
+      trData = await transferMarginData(accAddress, ethers.utils.parseUnits("6000", 18))
+      sizeDelta = ethers.utils.parseUnits("7.5", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       const EthFutures = await ethers.getContractAt("IFuturesMarket", ETH_MARKET, account0)
       console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());

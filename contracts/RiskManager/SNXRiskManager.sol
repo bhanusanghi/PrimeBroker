@@ -59,7 +59,7 @@ contract SNXRiskManager {
                 pnl = pnl.add(_pnl);
                 funding = funding.add(_funding);
         }
-        return (0, pnl.sub(funding));
+        return (0, pnl.sub(funding).convertTokenDecimals(_decimals, vaultAssetDecimals));
     }
 
     function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)

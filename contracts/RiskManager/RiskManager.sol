@@ -29,7 +29,6 @@ contract RiskManager is ReentrancyGuard {
     using SafeMath for uint256;
     using Math for uint256;
     using SafeCastUpgradeable for uint256;
-
     using SignedSafeMathUpgradeable for int256;
     using SafeCastUpgradeable for int256;
     using SignedMath for int256;
@@ -41,7 +40,9 @@ contract RiskManager is ReentrancyGuard {
     IContractRegistry public contractRegistery;
     CollateralManager public collateralManager;
     IMarketManager public marketManager;
-    uint256 public initialMarginFactor = 35; //in percent
+    uint256 public initialMarginFactor = 25; //in percent
+    uint256 public maintanaceMarginFactor = 20; //in percent
+
     // 1000-> 2800$
     // protocol to riskManager mapping
     // perpfi address=> perpfiRisk manager
