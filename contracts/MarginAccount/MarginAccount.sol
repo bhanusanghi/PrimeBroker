@@ -88,25 +88,28 @@ contract MarginAccount is IMarginAccount, UniExchange {
         _totalBorrowed = _totalBorrowed.add(newDebt);
     }
 
-    function updatePosition(
+    function addPosition(
         bytes32 market,
-        int256 size,
-        bool newPosition
+        int256 size
     ) public {
         // only riskmanagger
         //calcLinearCumulative_RAY .vault
         positions[market] = Position(0, 0, PositionType.LONG, size, 0, 0);
-        // if (newPosition) existingPosition[market] = newPosition;
+        existingPosition[market] = true;
+    }
+     function updatePosition(
+        bytes32 market,
+        int256 size
+    ) public {
+        // only riskmanagger
+        //calcLinearCumulative_RAY .vault
+        positions[market].notionalValue= size;
     }
 
-    function removePosition(bytes32 market) public returns (bool removed) {
+    function removePosition(bytes32 market) public {
         // only riskmanagger
-        // @todo use position data removed flag is temp
-        removed = existingPosition[market];
-        // require(removed, "Existing position not found");
         existingPosition[market] = false;
         delete positions[market];
-        return true; //@todo fix this with bitmask of existing positions
     }
 
     function getPositionValue(bytes32 market) public returns (int256) {
