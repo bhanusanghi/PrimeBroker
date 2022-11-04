@@ -10,7 +10,7 @@ import "hardhat/console.sol";
 // FuturesMarketManager
 contract SNXRiskManager {
     // address public perp
-    // function getPositionValue(address marginAcc) public override {}
+    // function getPositionOpenNotional(address marginAcc) public override {}
     IFuturesMarketManager public futureManager;
     // IAddressResolver public addressResolver;// SNX markets address resolver
     address public baseToken;
@@ -44,7 +44,7 @@ contract SNXRiskManager {
         return baseToken;
     }
 
-    function _normaliseDeciamals(int256 amount) private view returns (int256) {
+    function _normaliseDecimals(int256 amount) private view returns (int256) {
         return amount / 10**12;
     }
 
@@ -57,7 +57,7 @@ contract SNXRiskManager {
        */
     }
 
-    function getPositionPnL(address account) external virtual returns (uint256 _marginDeposited, int256 pnl){
+    function getPositionPnL(address account) external view returns (uint256 _marginDeposited, int256 pnl){
         console.log(msg.sender, "In snx riskManager");
         uint256 len= allowedMarkets.length;
         for (uint256 i = 0;i<len;i++) {
@@ -115,7 +115,7 @@ contract SNXRiskManager {
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = _normaliseDeciamals(abi.decode(data[i][4:], (int256)));
+                amount = _normaliseDecimals(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
                 totalPosition = 
                     abi.decode(data[i][4:], (int256));
@@ -124,6 +124,6 @@ contract SNXRiskManager {
         uint256 price;
         (price,) = IFuturesMarket(protocol).assetPrice();
         price = price/10**18;
-        totalPosition = _normaliseDeciamals(totalPosition*int256(price));
+        totalPosition = _normaliseDecimals(totalPosition*int256(price));
     }
 }

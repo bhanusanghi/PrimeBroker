@@ -30,18 +30,19 @@ contract RiskManager is ReentrancyGuard {
     CollateralManager public collateralManager;
     IMarketManager public marketManager;
     uint256 public initialMarginFactor = 35; //in percent
+
     // 1000-> 2800$
     // protocol to riskManager mapping
     // perpfi address=> perpfiRisk manager
-    mapping(address => address) public riskManagers;
-    enum MKT {
-        ETH,
-        BTC,
-        UNI,
-        MATIC
-    }
-    mapping(address => MKT) public ProtocolMarket;
-    bytes32[] public allowedMarkets;
+    // enum MKT {
+    //     ETH,
+    //     BTC,
+    //     UNI,
+    //     MATIC
+    // }
+    // mapping(address => MKT) public ProtocolMarket;
+
+    // bytes32[] public `;
 
     constructor(
         IContractRegistry _contractRegistery,
@@ -55,6 +56,7 @@ contract RiskManager is ReentrancyGuard {
         // onlyOwner
         priceOracle = IPriceOracle(oracle);
     }
+
     function setcollateralManager(address _collateralManager) public {
         collateralManager = CollateralManager(_collateralManager);
     }
@@ -63,11 +65,17 @@ contract RiskManager is ReentrancyGuard {
         vault = Vault(_vault);
     }
 
-    function addNewMarket(bytes32 marketKey, address _newMarket) public {
-        // only owner
-        // ProtocolMarket[_newMarket] = mkt;
-        allowedMarkets.push(marketKey);
-    }
+    // function addNewMarket(bytes32 marketKey, address _newMarket) public {
+    //     // only owner
+    //     // ProtocolMarket[_newMarket] = mkt;
+    //     allowedMarkets.push(marketKey);
+    // }
+
+    // important note ->
+    // To be able to provide more leverage on our protocol (Risk increases) to avoid bad debt we need to
+    // - Track TotalDeployedMargin
+    // - When opening positions make sure
+    // TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
 
     function verifyTrade(
         address marginAcc,
@@ -82,27 +90,38 @@ contract RiskManager is ReentrancyGuard {
             address tokenOut
         )
     {
-        uint256 totalNotioanl;
+        uint256 totalNotional;
         int256 PnL;
         address _protocolAddress;
         address _protocolRiskManager;
-        (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
+
+        (_protocolAddress, _protocolRiskManager) = marketManager
+            .getProtocolAddressByMarketName(marketKey);
+
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
-        (totalNotioanl, PnL) = getPositionsValPnL(marginAcc);
+        (totalNotional, PnL) = getPositionsValPnL(marginAcc);
         uint256 buyingPower = getBuyingPower(marginAcc, PnL);
 
-        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
+        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(
+            _protocolAddress,
+            destinations,
+            data
+        );
 
         require(
-            buyingPower >= (totalNotioanl + uint256(absVal(positionSize))),
+            buyingPower >= (totalNotional + uint256(absVal(positionSize))),
             "Extra margin not allowed"
         );
         require(
-            buyingPower >= uint256(absVal(MarginAccount(marginAcc).totalBorrowed() + transferAmount)),
+            buyingPower >=
+                uint256(
+                    absVal(
+                        MarginAccount(marginAcc).totalBorrowed() +
+                            transferAmount
+                    )
+                ),
             "Extra margin not allowed"
         );
         tokenOut = protocolRiskManager.getBaseToken();
@@ -117,15 +136,20 @@ contract RiskManager is ReentrancyGuard {
         MarginAccount marginAcc = MarginAccount(_marginAcc);
         address _protocolAddress;
         address _protocolRiskManager;
-        (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
-            marketKey
-        );
+        (_protocolAddress, _protocolRiskManager) = marketManager
+            .getProtocolAddressByMarketName(marketKey);
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
-        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(_protocolAddress,destinations,data);
+        (transferAmount, positionSize) = protocolRiskManager.verifyTrade(
+            _protocolAddress,
+            destinations,
+            data
+        );
         // console.log(transferAmount, "close pos, tm");
-        int256 _currentPositionSize = marginAcc.getPositionValue(marketKey);
+        int256 _currentPositionSize = marginAcc.getPositionOpenNotional(
+            marketKey
+        );
         // basically checks for if its closing opposite position
         // require(positionSize + _currentPositionSize == 0);
 
@@ -135,17 +159,18 @@ contract RiskManager is ReentrancyGuard {
         // }
     }
 
+    // @TODO - should be able to get buying power from account directly.
     // total free buying power
     function getBuyingPower(address marginAccount, int256 PnL)
         public
         returns (uint256 buyPow)
     {
-        
-        buyPow =  ((uint256((int256(collateralManager.totalCollatralValue(marginAccount)) + PnL)) * 100) /
-            initialMarginFactor);
-        /**
-                (asset+PnL)*100/initialMarginFactor
-                */
+        buyPow =
+            (uint256(
+                (int256(collateralManager.totalCollateralValue(marginAccount)) +
+                    PnL)
+            ) * 100) /
+            initialMarginFactor;
     }
 
     function absVal(int256 val) public view returns (uint256) {
@@ -156,19 +181,20 @@ contract RiskManager is ReentrancyGuard {
         public
         returns (uint256 totalNotional, int256 PnL)
     {
+        bytes32[] memory _allowedMarketNames = marketManager
+            .getAllMarketNames();
+        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+
         MarginAccount marginAcc = MarginAccount(marginAccount);
-        console.log(allowedMarkets.length,"allowed markets");
-        totalNotional = marginAcc.getTotalNotional(allowedMarkets);
-        console.log(address(this),"inside riskManager");
-        address[] memory _riskManagers = marketManager.getAllRiskManagers();
-        uint256 marginInProtocols;// @todo store it when transfering margin
+        totalNotional = marginAcc.getTotalNotional(_allowedMarketNames);
+        uint256 marginInProtocols; // @todo store it when transfering margin
         uint256 len = _riskManagers.length;
-        console.log("len rm:", len);
         for (uint256 i = 0; i < len; i++) {
             // margin acc get bitmask
             uint256 _deposit;
             int256 _pnl;
-            (_deposit, _pnl) = IProtocolRiskManager(_riskManagers[i]).getPositionPnL(marginAccount);
+            (_deposit, _pnl) = IProtocolRiskManager(_riskManagers[i])
+                .getPositionPnL(marginAccount);
             marginInProtocols += _deposit;
             PnL += _pnl;
         }

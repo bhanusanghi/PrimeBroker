@@ -12,20 +12,32 @@ import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
+import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     // address public perp
-    // function getPositionValue(address marginAcc) public override {}
+    // function getPositionOpenNotional(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
     bytes4 public OP = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
     address public baseToken;
+
+    IExchange public perpExchange;
     IAccountBalance accountBalance;
 
-    constructor(address _baseToken, address _accountBalance) {
+    constructor(
+        address _baseToken,
+        address _accountBalance,
+        address _perpExchange
+    ) {
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
+        perpExchange = IExchange(_perpExchange);
+    }
+
+    function updateExchangeAddress(address _perpExchange) {
+        perpExchange = IExchange(_perpExchange);
     }
 
     // function getTotalPnL(address marginAcc) public returns (int256) {
@@ -55,13 +67,17 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
-    function getPositionPnL(address account) external virtual returns (uint256 depositedMargin, int256 pnl) {
+    function getPositionPnL(address account)
+        external
+        virtual
+        returns (uint256 depositedMargin, int256 pnl)
+    {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl- int256(pendingFee);
+        pnl = unrealizedPnl - int256(pendingFee);
         // IAccountbalance
         //    function getPnlAndPendingFee(address trader)
         // external
@@ -72,14 +88,14 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //     uint256 pendingFee
         // );
         depositedMargin = 1;
-        return (depositedMargin,pnl);
+        return (depositedMargin, pnl);
     }
 
-    function verifyTrade(address protocol,address[] memory destinations,bytes[] calldata data)
-        public
-        view
-        returns (int256 amount, int256 totalPosition)
-    {
+    function verifyTrade(
+        address protocol,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) public view returns (int256 amount, int256 totalPosition) {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
            call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
@@ -87,9 +103,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            sizeDelta  : 64 bytes
            32 bytes tracking code, or we can append hehe
         */
-       // check for destinations as well
+        // check for destinations as well
         uint256 len = data.length; // limit to 2
-        require(destinations.length==len,"should match");
+        require(destinations.length == len, "should match");
         for (uint256 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
@@ -97,6 +113,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             } else if (funSig == OP) {
                 amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
+                // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
+                // refer -
                 (
                     address _baseToken,
                     bool isShort,
@@ -119,7 +137,29 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                totalPosition = isShort ? -int256(_amount) : int256(_amount);
+                //@TODO - take usd value here not amount.
+                if (isShort && isExactInput) {
+                    // get price should return in normalized values.
+                    // uint256 price = _getPrice;
+                    // uint256 value = _amount * price;
+                    // totalPosition = isShort
+                    //     ? -int256(value)
+                    //     : int256(value);
+                } else if (isShort && !isExactInput) {
+                    // Since USDC is used in Perp.
+                    totalPosition = isShort
+                        ? -int256(_amount)
+                        : int256(_amount);
+                } else if (!isShort && isExactInput) {
+                    // Since USDC is used in Perp.
+                    totalPosition = isShort
+                        ? -int256(_amount)
+                        : int256(_amount);
+                } else if (isShort && !isExactInput) {
+                    // get price
+                } else {
+                    revert("impossible shit");
+                }
             }
         }
     }
