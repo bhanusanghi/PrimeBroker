@@ -2,11 +2,15 @@ pragma solidity ^0.8.10;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
-// import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
 import "hardhat/console.sol";
@@ -14,7 +18,11 @@ import "hardhat/console.sol";
 contract MarginAccount is IMarginAccount, UniExchange {
     using SafeERC20 for IERC20;
     using Address for address;
-    // IMarketManager public marketManager;
+    using SafeMath for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SignedMath for int256;
+    using SignedSafeMath for int256;
+    IMarketManager public marketManager;
 
     mapping(bytes32 => bool) public existingPosition;
     address public baseToken; //usdt/c
@@ -60,32 +68,27 @@ contract MarginAccount is IMarginAccount, UniExchange {
         IERC20(token).approve(protocol, type(uint256).max);
     }
 
-    function updateTotalBorrowed(int256 newDebt) external {
-        // onlyMarginmanager
-        _totalBorrowed += newDebt;
+    function updatetotalBorrowed(
+        int256 newDebt // onylMarginmanager
+    ) external {
+        _totalBorrowed = _totalBorrowed.add(newDebt);
     }
 
-    function updatePosition(
-        bytes32 market,
-        int256 size,
-        bool newPosition
-    ) public {
+    function addPosition(bytes32 market, int256 size) public {
         // only riskmanagger
-        if (newPosition) {
-            positions[market] = size;
-        } else {
-            positions[market] = positions[market] + size;
-        }
+        positions[market] = size;
+        existingPosition[market] = true;
     }
 
-    function removePosition(bytes32 market) public returns (bool removed) {
+    function updatePosition(bytes32 market, int256 size) public {
         // only riskmanagger
-        // @todo use position data removed flag is temp
-        removed = existingPosition[market];
-        // require(removed, "Existing position not found");
+        positions[market] = size;
+    }
+
+    function removePosition(bytes32 market) public {
+        // only riskmanagger
         existingPosition[market] = false;
         delete positions[market];
-        return true; //@todo fix this with bitmask of existing positions
     }
 
     // TODO return value with unrealized PnL
@@ -117,7 +120,9 @@ contract MarginAccount is IMarginAccount, UniExchange {
                 ":",
                 _absVal(positions[_allowedMarkets[i]])
             );
-            totalNotional += _absVal(positions[_allowedMarkets[i]]);
+            totalNotional = totalNotional.add(
+                positions[_allowedMarkets[i]].abs()
+            );
         }
         console.log(" Total Position size:", totalNotional);
     }
@@ -150,8 +155,8 @@ contract MarginAccount is IMarginAccount, UniExchange {
         bytes[] memory dataArray
     ) external returns (bytes memory returnData) {
         // onlyMarginManager
-        uint256 len = destinations.length;
-        for (uint256 i = 0; i < len; i++) {
+        uint8 len = destinations.length.toUint8();
+        for (uint8 i = 0; i < len; i++) {
             returnData = destinations[i].functionCall(dataArray[i]);
         }
         // add new position in array, update leverage int, ext

@@ -3,6 +3,10 @@ pragma solidity ^0.8.10;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
@@ -10,12 +14,16 @@ import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
+    using SafeMath for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SafeCastUpgradeable for int256;
+    using SignedMath for int256;
+    using SignedSafeMath for int256;
     // address public perp
     // function getPositionOpenNotional(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
@@ -36,7 +44,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         perpExchange = IExchange(_perpExchange);
     }
 
-    function updateExchangeAddress(address _perpExchange) {
+    function updateExchangeAddress(address _perpExchange) external {
         perpExchange = IExchange(_perpExchange);
     }
 
@@ -77,17 +85,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl - int256(pendingFee);
-        // IAccountbalance
-        //    function getPnlAndPendingFee(address trader)
-        // external
-        // view
-        // returns (
-        //     int256 owedRealizedPnl,
-        //     int256 unrealizedPnl,
-        //     uint256 pendingFee
-        // );
-        depositedMargin = 1;
+        pnl = unrealizedPnl.sub(pendingFee.toInt256());
+        depositedMargin = 1; // @note placeholder for now for some new params or remove
         return (depositedMargin, pnl);
     }
 
@@ -95,7 +94,15 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address protocol,
         address[] memory destinations,
         bytes[] calldata data
-    ) public view returns (int256 amount, int256 totalPosition) {
+    )
+        public
+        view
+        returns (
+            int256 amount,
+            int256 totalPosition,
+            uint256 fee
+        )
+    {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
            call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
@@ -147,14 +154,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     //     : int256(value);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort
-                        ? -int256(_amount)
-                        : int256(_amount);
+                    totalPosition = isShort ? -amount : amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort
-                        ? -int256(_amount)
-                        : int256(_amount);
+                    totalPosition = isShort ? -amount : amount;
                 } else if (isShort && !isExactInput) {
                     // get price
                 } else {

@@ -4,7 +4,10 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {RiskManager} from "../RiskManager/RiskManager.sol";
@@ -14,7 +17,6 @@ import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
-
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 
@@ -22,8 +24,12 @@ import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
-    using Address for address payable;
     using SafeMath for uint256;
+    using Math for uint256;
+    using SafeCastUpgradeable for uint256;
+    using SafeCastUpgradeable for int256;
+    using SignedMath for int256;
+    using SignedSafeMath for int256;
     RiskManager public riskManager;
     IContractRegistry public contractRegistry;
     IMarketManager public marketManager;
@@ -117,7 +123,7 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
-    function _getMarginAccount(address trader) internal pure returns (address) {
+    function _getMarginAccount(address trader) internal view returns (address) {
         require(
             marginAccounts[trader] != address(0),
             "MM: Invalid margin account"
@@ -130,13 +136,9 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
-        MarginAccount marginAcc = _getMarginAccount(msg.sender);
+        MarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
         // TODO add a check to make sure person is not overwriting an existing position using this method.
-        require(marginAcc.getPositionOpenNotional(marketKey));
-        // require(
-        //     !marginAcc.existingPosition(protocolAddress),
-        //     "Existing position"
-        // );
+        require(!marginAcc.existingPosition(marketKey), "Existing position");
         int256 tokensToTransfer;
         int256 positionSize;
         address tokenOut;
@@ -151,23 +153,22 @@ contract MarginManager is ReentrancyGuard {
 
         // @TODO - Make sure the accounting works fine when closing/updating position
         uint256 balance = IERC20(tokenIn).balanceOf(address(marginAcc));
-        // @TODO - Make this work with actual slippage.
-        tokensToTransfer = tokensToTransfer + (100 * 10**6);
+        tokensToTransfer = tokensToTransfer.add(100 * 10**6);
 
         // temp increase tokens to transfer. assuming USDC.
         // add one var where increase debt only if needed,
         //coz transfermargin can be done without it if margin acc has balance
         if (tokensToTransfer > 0) {
-            // @TODO - Add an oracle to get actual value.
-            if (balance < uint256(absVal(tokensToTransfer))) {
-                uint256 diff = uint256(absVal(tokensToTransfer)) - balance;
+            uint256 absTokensToTransfer = tokensToTransfer.abs();
+            if (balance < absTokensToTransfer) {
+                uint256 diff = absTokensToTransfer.sub(balance);
                 increaseDebt(address(marginAcc), diff);
             }
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256(absVal(tokensToTransfer)),
+                    amountIn: absTokensToTransfer,
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
@@ -177,9 +178,10 @@ contract MarginManager is ReentrancyGuard {
                 // require(amountOut == (absVal(transferAmount)), "RM: Bad Swap.");
             }
         }
-        marginAcc.updatePosition(marketKey, positionSize, true);
+        // marginAcc.updatePosition(marketKey, positionSize, true);
         // execute at end to avoid re-entrancy
         marginAcc.execMultiTx(destinations, data);
+        marginAcc.addPosition(marketKey, positionSize);
     }
 
     function updatePosition(
@@ -188,15 +190,14 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
-        // require(
-        //     marginAcc.existingPosition(protocolAddress),
-        //     "Position doesn't exist"
-        // );
+        require(
+            marginAcc.existingPosition(marketKey),
+            "Position doesn't exist"
+        );
         address protocolAddress;
         address protocolRiskManager;
-        (protocolAddress, protocolRiskManager) = marketManager.getProtocolAddressByMarketName(
-            marketKey
-        );
+        (protocolAddress, protocolRiskManager) = marketManager
+            .getProtocolAddressByMarketName(marketKey);
         int256 tokensToTransfer;
         int256 _currentPositionSize;
         address tokenOut;
@@ -207,17 +208,20 @@ contract MarginManager is ReentrancyGuard {
 
         address tokenIn = vault.asset();
         uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
-        tokensToTransfer = tokensToTransfer + (100 * 10**6) - int256(balance);
         if (tokensToTransfer > 0) {
+            tokensToTransfer =
+                tokensToTransfer +
+                (100 * 10**6) -
+                int256(balance);
             if (balance < uint256(tokensToTransfer)) {
-                uint256 diff = uint256(absVal(tokensToTransfer)) - balance;
+                uint256 diff = tokensToTransfer.abs().sub(balance);
                 increaseDebt(address(marginAcc), diff);
             }
             if (tokenIn != tokenOut) {
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
-                    amountIn: uint256(absVal(tokensToTransfer)),
+                    amountIn: tokensToTransfer.abs(),
                     amountOut: 0,
                     isExactInput: true,
                     sqrtPriceLimitX96: 0
@@ -229,14 +233,20 @@ contract MarginManager is ReentrancyGuard {
                 // );
             }
         } else if (tokensToTransfer < 0) {
-            decreaseDebt(address(marginAcc), uint256(absVal(tokensToTransfer)));
+            decreaseDebt(address(marginAcc), tokensToTransfer.abs());
         }
         marginAcc.execMultiTx(destinations, data);
-        marginAcc.updatePosition(
-            marketKey,
-            _oldPositionSize + _currentPositionSize,
-            true
+        console.log(
+            _oldPositionSize.abs(),
+            _currentPositionSize.abs(),
+            "old and new position"
         );
+        int256 sizeDelta = _oldPositionSize.add(_currentPositionSize);
+        if (sizeDelta == 0) {
+            marginAcc.removePosition(marketKey);
+        } else {
+            marginAcc.updatePosition(marketKey, sizeDelta);
+        }
     }
 
     function closePosition(
@@ -246,10 +256,10 @@ contract MarginManager is ReentrancyGuard {
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         // address protocolAddress = marginAcc.positions(positionIndex);
-        // require(
-        //     marginAcc.existingPosition(protocolAddress),
-        //     "Position doesn't exist"
-        // );
+        require(
+            marginAcc.existingPosition(marketKey),
+            "Position doesn't exist"
+        );
 
         int256 tokensToTransfer;
         int256 positionSize;
@@ -260,14 +270,14 @@ contract MarginManager is ReentrancyGuard {
             data
         );
         require(
-            marginAcc.removePosition(marketKey),
-            "Error in removing position"
+            tokensToTransfer <= 0,
+            "add margin is not allowed in close position"
         );
-        /**
-        if transfer margin back from protocol then reduce total debt and repay
-        preview close on origin, if true close or revert
-        take fees and interest
-         */
+        if (tokensToTransfer < 0) {
+            decreaseDebt(address(marginAcc), tokensToTransfer.abs());
+        }
+        marginAcc.execMultiTx(destinations, data);
+        marginAcc.removePosition(marketKey);
     }
 
     function liquidatePosition(address protocolAddress) external {
@@ -325,9 +335,7 @@ contract MarginManager is ReentrancyGuard {
             uint256 cumulativeIndexNow
         )
     {
-        borrowedAmount = uint256(
-            IMarginAccount(_marginAccount).totalBorrowed()
-        ); // F:[CM-45]
+        borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed().abs(); // F:[CM-45]
         cumulativeIndexAtOpen = IMarginAccount(_marginAccount)
             .cumulativeIndexAtOpen(); // F:[CM-45]
         cumulativeIndexNow = vault.calcLinearCumulative_RAY(); // F:[CM-45]
@@ -394,15 +402,14 @@ contract MarginManager is ReentrancyGuard {
         uint256 interestAccrued = (borrowedAmount * cumulativeIndexNow) /
             cumulativeIndexAtOpen -
             borrowedAmount;
-
-        newBorrowedAmount = borrowedAmount - amount;
-
+        if (borrowedAmount == 0) return 0;
+        newBorrowedAmount = borrowedAmount.sub(amount);
         // hardcoded values . To be removed later.
         uint256 feeInterest = 0;
         uint256 PERCENTAGE_FACTOR = 1;
 
         // Computes profit which comes from interest rate
-        uint256 profit = (interestAccrued.mul(feeInterest)) / PERCENTAGE_FACTOR;
+        uint256 profit = interestAccrued.mulDiv(feeInterest, PERCENTAGE_FACTOR);
 
         // Calls repaymarginAccount to update pool values
         vault.repay(marginAcc, amount, interestAccrued);
@@ -414,7 +421,7 @@ contract MarginManager is ReentrancyGuard {
         //
         // Set parameters for new credit account
         marginAccount.updateBorrowData(
-            int256(newBorrowedAmount),
+            newBorrowedAmount.toInt256(),
             newCumulativeIndex
         );
     }
@@ -425,10 +432,6 @@ contract MarginManager is ReentrancyGuard {
         returns (uint256)
     {
         return 1;
-    }
-
-    function absVal(int256 val) public view returns (int256) {
-        return val < 0 ? -val : val;
     }
 
     function _approveTokens() private {}

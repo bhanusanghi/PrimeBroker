@@ -1,8 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.7.6;
+pragma solidity 0.8.17;
 pragma abicoder v2;
 
-import { Funding } from "../lib/Funding.sol";
+/// @dev tw: time-weighted
+/// @param twPremiumX96 overflow inspection (as twPremiumX96 > twPremiumDivBySqrtPriceX96):
+//         max = 2 ^ (255 - 96) = 2 ^ 159 = 7.307508187E47
+//         assume premium = 10000, time = 10 year = 60 * 60 * 24 * 365 * 10 -> twPremium = 3.1536E12
+struct Growth {
+    int256 twPremiumX96;
+    int256 twPremiumDivBySqrtPriceX96;
+}
 
 interface IExchange {
     /// @param amount when closing position, amount(uint256) == takerPositionSize(int256),
@@ -49,12 +56,19 @@ interface IExchange {
     /// @param baseToken Address of the base token
     /// @param markTwap The market twap price when the funding growth is updated
     /// @param indexTwap The index twap price when the funding growth is updated
-    event FundingUpdated(address indexed baseToken, uint256 markTwap, uint256 indexTwap);
+    event FundingUpdated(
+        address indexed baseToken,
+        uint256 markTwap,
+        uint256 indexTwap
+    );
 
     /// @notice Emitted when maxTickCrossedWithinBlock is updated
     /// @param baseToken Address of the base token
     /// @param maxTickCrossedWithinBlock Max tick allowed to be crossed within block when reducing position
-    event MaxTickCrossedWithinBlockChanged(address indexed baseToken, uint24 maxTickCrossedWithinBlock);
+    event MaxTickCrossedWithinBlockChanged(
+        address indexed baseToken,
+        uint24 maxTickCrossedWithinBlock
+    );
 
     /// @notice Emitted when accountBalance is updated
     /// @param accountBalance The address of accountBalance contract
@@ -64,7 +78,9 @@ interface IExchange {
     /// @dev can only be called from ClearingHouse
     /// @param params The parameters of the swap
     /// @return swapResponse The result of the swap
-    function swap(SwapParams memory params) external returns (SwapResponse memory swapResponse);
+    function swap(SwapParams memory params)
+        external
+        returns (SwapResponse memory swapResponse);
 
     /// @notice Settle the funding payment for the time interval since the last settlement
     /// @dev This function should be called at the beginning of every high-level function, such as `openPosition()`
@@ -76,17 +92,23 @@ interface IExchange {
     /// @return fundingGrowthGlobal the up-to-date globalFundingGrowth, usually used for later calculations
     function settleFunding(address trader, address baseToken)
         external
-        returns (int256 fundingPayment, Funding.Growth memory fundingGrowthGlobal);
+        returns (int256 fundingPayment, Growth memory fundingGrowthGlobal);
 
     /// @notice Get the max ticks allowed to be crossed within a block when reducing position
     /// @param baseToken Address of the base token
     /// @return maxTickCrossedWithinBlock The max ticks allowed to be crossed within a block when reducing position
-    function getMaxTickCrossedWithinBlock(address baseToken) external view returns (uint24 maxTickCrossedWithinBlock);
+    function getMaxTickCrossedWithinBlock(address baseToken)
+        external
+        view
+        returns (uint24 maxTickCrossedWithinBlock);
 
     /// @notice Get all the pending funding payment for a trader
     /// @return pendingFundingPayment The pending funding payment of the trader.
     /// Positive value means the trader pays funding, negative value means the trader receives funding.
-    function getAllPendingFundingPayment(address trader) external view returns (int256 pendingFundingPayment);
+    function getAllPendingFundingPayment(address trader)
+        external
+        view
+        returns (int256 pendingFundingPayment);
 
     /// @notice Check if current price spread between market price and index twap is over maximum price spread.
     /// @param baseToken Address of the base token
@@ -108,13 +130,19 @@ interface IExchange {
     /// @param baseToken Address of the base token
     /// @param twapInterval The time interval in seconds
     /// @return sqrtMarkTwapX96 The square root of the market twap price
-    function getSqrtMarkTwapX96(address baseToken, uint32 twapInterval) external view returns (uint160 sqrtMarkTwapX96);
+    function getSqrtMarkTwapX96(address baseToken, uint32 twapInterval)
+        external
+        view
+        returns (uint160 sqrtMarkTwapX96);
 
     /// @notice Get the pnl that can be realized if trader reduce position
     /// @dev This function normally won't be needed by traders, but it might be useful for 3rd party
     /// @param params The params needed to do the query, encoded as `RealizePnlParams` in calldata
     /// @return pnlToBeRealized The pnl that can be realized if trader reduce position
-    function getPnlToBeRealized(RealizePnlParams memory params) external view returns (int256 pnlToBeRealized);
+    function getPnlToBeRealized(RealizePnlParams memory params)
+        external
+        view
+        returns (int256 pnlToBeRealized);
 
     /// @notice Get `OrderBook` contract address
     /// @return orderBook `OrderBook` contract address
@@ -126,5 +154,8 @@ interface IExchange {
 
     /// @notice Get `ClearingHouseConfig` contract address
     /// @return clearingHouse `ClearingHouseConfig` contract address
-    function getClearingHouseConfig() external view returns (address clearingHouse);
+    function getClearingHouseConfig()
+        external
+        view
+        returns (address clearingHouse);
 }

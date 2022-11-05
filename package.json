@@ -69,8 +69,9 @@
   "dependencies": {
     "@chainlink/contracts": "0.1.7",
     "@defi-wonderland/smock": "^2.3.0",
-    "@openzeppelin/contracts": "^4.7.3",
-    "@openzeppelin/contracts-upgradeable": "3.4.2",
+    "@openzeppelin/contracts": "^4.7.0",
+    "@openzeppelin/contracts-upgradeable": "^4.7.0",
+    "@perp/curie-contract": "^2.2.3",
     "@perp/perp-oracle-contract": "0.4.3",
     "@uniswap/v3-core": "https://github.com/Uniswap/uniswap-v3-core/tarball/v1.0.0",
     "@uniswap/v3-periphery": "^1.4.2",

@@ -2,17 +2,9 @@
 pragma solidity ^0.8.10;
 
 interface ICollateralManager {
-    function addCollateral(
-        address token,
-        uint256 amount,
-        address marginAccount
-    ) external;
+    function addCollateral(address token, uint256 amount) external;
 
-    function withdrawCollateral(
-        address token,
-        uint256 amount,
-        address marginAccount
-    ) external;
+    function withdrawCollateral(address token, uint256 amount) external;
 
     function updateCollateralWeight(
         address token,
