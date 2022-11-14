@@ -15,4 +15,6 @@ interface IRiskManager is ITypes {
             bytes[] memory dataArray,
             uint256 tokens
         );
+
+    function initialMarginFactor() external returns (uint256);
 }

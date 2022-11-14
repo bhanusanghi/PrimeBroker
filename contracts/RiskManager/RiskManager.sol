@@ -40,8 +40,8 @@ contract RiskManager is ReentrancyGuard {
     IContractRegistry public contractRegistery;
     CollateralManager public collateralManager;
     IMarketManager public marketManager;
-    uint256 public initialMarginFactor = 25; //in percent
-    uint256 public maintanaceMarginFactor = 20; //in percent
+    uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
+    uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
 
     // 1000-> 2800$
     // protocol to riskManager mapping
@@ -93,7 +93,8 @@ contract RiskManager is ReentrancyGuard {
         address marginAcc,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data
+        bytes[] memory data,
+        uint256 interestAccrued
     )
         external
         returns (
@@ -116,7 +117,11 @@ contract RiskManager is ReentrancyGuard {
 
             (totalNotional, PnL) = getPositionsValPnL(marginAcc);
 
-            buyingPower = getBuyingPower(marginAcc, PnL);
+            buyingPower = GetRemainingBuyingPower(
+                marginAcc,
+                PnL,
+                interestAccrued
+            );
 
             uint256 fee;
             (transferAmount, positionSize, fee) = protocolRiskManager
@@ -177,13 +182,18 @@ contract RiskManager is ReentrancyGuard {
 
     // @TODO - should be able to get buying power from account directly.
     // total free buying power
-    function getBuyingPower(address marginAccount, int256 PnL)
-        public
-        returns (uint256 buyPow)
-    {
+    // Need to account the interest accrued to our vault.
+
+    // remainingBuyingPower = (TotalCollateralValue - interest accrued + unrealized PnL) / marginFactor
+    function GetRemainingBuyingPower(
+        address marginAccount,
+        int256 PnL,
+        uint256 interestAccrued
+    ) public view returns (uint256 buyPow) {
         return
             collateralManager
                 .totalCollateralValue(marginAccount)
+                .sub(interestAccrued)
                 .toInt256()
                 .add(PnL)
                 .toUint256()

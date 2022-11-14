@@ -32,9 +32,12 @@ contract MarginAccount is IMarginAccount, UniExchange {
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
-    int256 public _totalBorrowed; // in usd terms
+    uint256 public _totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     address public underlyingToken;
+
+    mapping(bytes32 => int256) public marginInMarket;
+    int256 totalMarginInMarkets;
 
     // constructor(address underlyingToken) {
     //     marginManager = msg.sender;
@@ -45,6 +48,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         //  address _contractRegistry
         UniExchange(_router)
     {
+        marginManager = msg.sender;
         // TODO- Market manager is not related to accounts.
         // marketManager = IMarketManager(_marketManager);
     }
@@ -66,12 +70,6 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function approveToProtocol(address token, address protocol) external {
         // onlyMarginmanager
         IERC20(token).approve(protocol, type(uint256).max);
-    }
-
-    function updatetotalBorrowed(
-        int256 newDebt // onylMarginmanager
-    ) external {
-        _totalBorrowed = _totalBorrowed.add(newDebt);
     }
 
     function addPosition(bytes32 market, int256 size) public {
@@ -166,7 +164,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     /// @dev Updates borrowed amount. Restricted for current credit manager only
     /// @param _totalBorrowedAmount Amount which pool lent to credit account
     function updateBorrowData(
-        int256 _totalBorrowedAmount,
+        uint256 _totalBorrowedAmount,
         uint256 _cumulativeIndexAtOpen
     ) external override {
         // add acl check
@@ -174,7 +172,22 @@ contract MarginAccount is IMarginAccount, UniExchange {
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
-    function totalBorrowed() external view override returns (int256) {
+    function updateMarginInMarket(bytes32 market, int256 transferredMargin)
+        public
+    {
+        require(
+            marginInMarket[market].add(transferredMargin) > 0,
+            "MA: Cannot have negative margin In protocol"
+        );
+        totalMarginInMarkets = totalMarginInMarkets.add(transferredMargin);
+        marginInMarket[market] = marginInMarket[market].add(transferredMargin);
+    }
+
+    function getTotalMarginInMarkets() public view returns (int256) {
+        return totalMarginInMarkets;
+    }
+
+    function totalBorrowed() external view override returns (uint256) {
         return _totalBorrowed;
     }
 }
