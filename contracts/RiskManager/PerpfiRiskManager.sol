@@ -28,6 +28,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public AP = 0x095ea7b3;
     bytes4 public OP = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
+    bytes4 public CP = 0x2f86e2dd;
     address public baseToken;
     IAccountBalance accountBalance;
 

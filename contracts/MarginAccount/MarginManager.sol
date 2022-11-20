@@ -277,6 +277,7 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
+        require(positionSize== marginAcc.getPositionValue(marketKey),"Invalid close pos");
         require(tokensToTransfer<=0,"add margin is not allowed in close position");
         if (tokensToTransfer<0){
             decreaseDebt(address(marginAcc), tokensToTransfer.abs());
@@ -285,18 +286,28 @@ contract MarginManager is ReentrancyGuard {
         marginAcc.removePosition(marketKey);
     }
 
-    function liquidatePosition(address protocolAddress) external {
-        address marginAcc = marginAccounts[msg.sender];
-        // require(
-        //     MarginAccount(marginAcc).existingPosition(protocolAddress),
-        //     "Position doesn't exist"
-        // );
-        /**
-        riskManager.isliquidatable()
-        close on the venue
-        take interest 
-        add penaulty
-         */
+    function liquidate(
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] memory data
+       ) external {
+        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        int256 tokensToTransfer;
+        int256 positionSize;
+        (tokensToTransfer, positionSize) = riskManager.isliquidatable(
+            address(marginAcc),
+            marketKeys,
+            destinations,
+            data
+        );
+        require(positionSize.abs() == marginAcc.getTotalNotional(marketKeys),"Invalid close pos");
+        require(tokensToTransfer<=0 && positionSize < 0,"add margin is not allowed in close position");
+        marginAcc.execMultiTx(destinations, data);
+        if (tokensToTransfer < 0){
+            decreaseDebt(address(marginAcc), tokensToTransfer.abs());
+        }
+        // marginAcc.removePosition(marketKey);// @todo remove all positiions
+        // add penaulty
     }
 
     function RemoveCollateral() external {
