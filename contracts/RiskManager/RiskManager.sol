@@ -161,16 +161,10 @@ contract RiskManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external returns (int256 transferAmount, int256 positionSize) {
-        uint256 totalNotioanl;
-        int256 PnL;
-        uint256 fee;
-        (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
-        uint256 newBuyPow = getBuyingPower(_marginAcc,PnL); 
-        uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
-        require(PnL<0 && temp<=PnL.abs(),"Liq:");
+      uint256 fee;
         // newbuyPow, pnl, tn
         console.log('Liqidation!!');
-        MarginAccount marginAcc = MarginAccount(_marginAcc);
+        // MarginAccount marginAcc = MarginAccount(_marginAcc);
         for(uint256 i=0;i<marketKeys.length;i++){
             address _protocolAddress;
             address _protocolRiskManager;
@@ -188,7 +182,13 @@ contract RiskManager is ReentrancyGuard {
             positionSize = positionSize.add(_positionSize);
             fee= fee.add(_fee);
         }
-       
+        uint256 totalNotioanl;
+        int256 PnL;
+        (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
+        
+        uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
+        require(PnL<0 && temp<=PnL.abs(),"Liq:");
+         uint256 newBuyPow = getBuyingPower(_marginAcc,PnL); 
         // require(
         //     buyingPower >= totalNotioanl.add(positionSize.abs()),
         //     "Extra leverage not allowed"

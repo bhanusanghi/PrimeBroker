@@ -13,15 +13,7 @@ import { PERP, ERC20 as ERC20Hash, SNXUNI, TRANSFERMARGIN, DAYS } from "./consta
 import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import dotenv from "dotenv";
 dotenv.config();
-const MockAggregator: MockAggregatorV2V3
-export const setupPriceAggregators = function async(exchangeRates: any, owner: any, keys: any, decimalsArray: any) => {
-    let aggregator;
-    for (let i = 0; i < keys.length; i++) {
-        aggregator = await MockAggregator.new({ from: owner });
-        await aggregator.setDecimals(decimalsArray.length > 0 ? decimalsArray[i] : 18);
-        await exchangeRates.addAggregator(keys[i], aggregator.address, { from: owner });
-    }
-}
+
 /*
  * mint sUSD and transfer to account address specified:
  *

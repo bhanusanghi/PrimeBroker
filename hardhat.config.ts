@@ -48,6 +48,11 @@ const config: HardhatUserConfig = {
     //   // accounts: [privateKey1, privateKey2, ...]
     // },
   },
+  dependencyCompiler: {
+    paths: [
+      // "@perp/perp-oracle-contract/contracts/ChainlinkPriceFeedV2.sol"
+    ],
+  },
   mocha: {
     timeout: 100000000
   },
