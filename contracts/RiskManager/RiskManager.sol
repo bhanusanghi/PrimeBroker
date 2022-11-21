@@ -139,10 +139,11 @@ contract RiskManager is ReentrancyGuard {
         );
         require(
             buyingPower >=
-                MarginAccount(marginAcc)
-                    .totalBorrowed()
-                    .add(transferAmount)
-                    .abs(),
+                (
+                    (MarginAccount(marginAcc).totalBorrowed().toInt256()).add(
+                        transferAmount
+                    )
+                ).abs(),
             "Extra Transfer not allowed"
         );
     }

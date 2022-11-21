@@ -132,11 +132,11 @@ contract CollateralManager is ICollateralManager {
     // free collateral = TotalCollateralValue - interest accrued - marginInProtocols (totalBorrowed) / marginFactor
     function _getFreeCollateralValue(address _marginAccount)
         internal
-        pure
+        view
         returns (uint256 freeCollateral)
     {
         // free collateral
-        uint256 freeCollateral = _totalCollateralValue(_marginAccount)
+        freeCollateral = _totalCollateralValue(_marginAccount)
             .sub(marginManager.getInterestAccrued(_marginAccount))
             .sub(
                 IMarginAccount(_marginAccount).totalBorrowed().mul(

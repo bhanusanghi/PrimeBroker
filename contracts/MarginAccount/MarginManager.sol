@@ -177,7 +177,7 @@ contract MarginManager is ReentrancyGuard {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
                 marketKey,
-                dollarValueOfTokensToTransfer
+                dollarValueOfTokensToTransfer.toInt256()
             );
             if (tokensToTransfer > 0) {
                 tokensToTransfer = tokensToTransfer.add(100 * 10**6);

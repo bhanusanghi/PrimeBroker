@@ -1,10 +1,13 @@
 pragma solidity >=0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
-import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
+import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 contract PriceOracle is IPriceOracle {
     using Math for uint256;
+    using SafeCastUpgradeable for int256;
     mapping(address => address) public tokenPriceFeed;
     address baseUsdToken;
 
@@ -54,8 +57,8 @@ contract PriceOracle is IPriceOracle {
         view
         returns (uint256 value)
     {
-        (uint256 price, uint256 decimals) = _getTokenPrice(token);
-        value = amount.mulDiv(price, decimals);
+        (int256 price, uint256 decimals) = _getTokenPrice(token);
+        value = amount.mulDiv(price.toUint256(), decimals);
     }
 
     function convertFromUSD(uint256 amount, address token)
@@ -87,14 +90,15 @@ contract PriceOracle is IPriceOracle {
         return tokenPriceFeed[token];
     }
 
-    function _getTokenPrice(address token) internal returns (uint256, uint256) {
-        // get aggregator
-        // get price
+    function _getTokenPrice(address token)
+        internal
+        view
+        returns (int256, uint256)
+    {
         require(
             tokenPriceFeed[token] != address(0),
             "PO: Token feed not available"
         );
-
         (
             uint80 roundId,
             int256 answer,
