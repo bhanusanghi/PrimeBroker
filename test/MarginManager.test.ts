@@ -485,7 +485,7 @@ describe("Margin Manager", () => {
       const baseToken = await ethers.getContractAt(EXCABI, "0x34235C8489b06482A99bb7fcaB6d7c467b92d248", perpfiOwner)
       //ChainlinkPriceFeedV2 .new mockedAggregator.address,
       const priceFeedFactory = await await ethers.getContractFactory("ChainlinkPriceFeedV2")
-      const priceFeed = await priceFeedFactory.deploy(mockAggregator.address, 15 * 60)
+      const priceFeed = await priceFeedFactory.deploy(mockAggregator.address, 0)
       // cacheTwapInterval,
       console.log("BaseToken owner", await baseToken.owner())
       //setPriceFeed (ChainlinkPriceFeedV2)
@@ -520,14 +520,14 @@ describe("Margin Manager", () => {
       await mockAggregator.connect(account0).setLatestAnswer(ethers.utils.parseUnits("58", 18), timestamp + 15);
       await priceFeed.update()
 
-      console.log("woho add done", await mockAggregator.latestRoundData(), await baseToken.getIndexPrice("15"))
+      console.log("woho add done", await mockAggregator.latestRoundData())
       trData = await transferMarginData(accAddress, ethers.utils.parseUnits("8000", 18))
       sizeDelta = ethers.utils.parseUnits("10", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-
-      console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());
+      console.log("yohoooo")
+      // console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       //positions,posData,
-      reciept = await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
+      // reciept = await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
       console.log("eth market position", await EthFutures.positions(accAddress))
 
       out = await out.wait()
@@ -556,22 +556,30 @@ describe("Margin Manager", () => {
         [approveAmountCalldata, fundVaultCalldata, _perpOpenPositionCallData]
       );
       reciept = await reciept.wait()
-      await mockAggregator.connect(account0).setLatestAnswer(ethers.utils.parseUnits("56", 18), timestamp);
+      console.log(await accountBalance.connect(account0).getPnlAndPendingFee(accAddress), "PNL before 18")
+      {
+        await mine()
+        let { timestamp } = await ethers.provider.getBlock("latest");
+        await mockAggregator.connect(account0).setLatestAnswer(ethers.utils.parseUnits("18", 18), timestamp + 15);
+        await priceFeed.update()
+      }
       trData = await transferMarginData(accAddress, ethers.utils.parseUnits("6000", 18))
       sizeDelta = ethers.utils.parseUnits("7.5", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
 
       console.log(ETH_MARKET, ":....", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       //positions,posData,
-      reciept = await marginManager.liquidate()
+      // reciept = await marginManager.liquidate()
       //
       // await marginManager.liquidate([ETH_MARKET], [trData])
       console.log("mining new blocks:...\n")
       // await mineUpTo(36202194)
       //ExchangeRates
       console.log("After mining new blocks:...\n")
-      console.log("eth market position", await EthFutures.positions(accAddress))
+
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
+      const outt = await accountBalance.connect(account0).getAccountInfo(accAddress, "0x34235C8489b06482A99bb7fcaB6d7c467b92d248")
+      console.log("eth market position", await accountBalance.connect(account0).getPnlAndPendingFee(accAddress), outt)
     });
   });
 });

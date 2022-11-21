@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-
+import "hardhat/console.sol";
 /**
  * @dev Collection of functions related to the address type
  */
@@ -611,6 +611,7 @@ contract CumulativeTwap is BlockContext {
 
         // run at most 256 times
         uint256 observationLen = observations.length;
+        // console.log(observationLen,index,"OBV len and index");
         uint256 i;
         for (i = 0; i < observationLen; i++) {
             if (observations[index].timestamp <= targetTimestamp) {
@@ -755,11 +756,11 @@ contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext
     function getPrice(uint256 interval) external view override returns (uint256) {
         (uint80 round, uint256 latestPrice, uint256 latestTimestamp) = _getLatestRoundData();
 
-        if (interval == 0 || round == 0) {
+        // if (interval == 0 || round == 0) {
             return latestPrice;
-        }
+        // }
 
-        return _getCachedTwap(interval, latestPrice, latestTimestamp);
+        // return _getCachedTwap(interval, latestPrice, latestTimestamp);
     }
 
     function _getLatestRoundData()
