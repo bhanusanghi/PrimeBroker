@@ -1,6 +1,6 @@
-pragma solidity >=0.8.10;
+pragma solidity ^0.8.10;
 
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";

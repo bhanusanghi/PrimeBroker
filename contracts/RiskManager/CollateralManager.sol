@@ -66,7 +66,6 @@ contract CollateralManager is ICollateralManager {
     // @TODO should return in usd value the amount of free collateral.
     function getFreeCollateralValue(address _marginAccount)
         external
-        view
         returns (uint256)
     {
         return _getFreeCollateralValue(_marginAccount);
@@ -132,7 +131,6 @@ contract CollateralManager is ICollateralManager {
     // free collateral = TotalCollateralValue - interest accrued - marginInProtocols (totalBorrowed) / marginFactor
     function _getFreeCollateralValue(address _marginAccount)
         internal
-        view
         returns (uint256 freeCollateral)
     {
         // free collateral

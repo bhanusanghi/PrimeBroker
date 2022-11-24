@@ -13,7 +13,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.17",
 
   networks: {
     mainnet: {
@@ -48,6 +47,19 @@ const config: HardhatUserConfig = {
     //   url: "http://localhost:8545",
     //   // accounts: [privateKey1, privateKey2, ...]
     // },
+  },
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.0",
+      },
+      {
+        version: "0.8.10",
+      },
+      {
+        version: "0.8.17",
+      }
+    ],
   },
   mocha: {
     timeout: 100000000
