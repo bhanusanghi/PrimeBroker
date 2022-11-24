@@ -300,13 +300,15 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        require(positionSize.abs() == marginAcc.getTotalNotional(marketKeys),"Invalid close pos");
+        // require(positionSize.abs() == marginAcc.getTotalNotional(marketKeys),"Invalid close pos");
         require(tokensToTransfer<=0 && positionSize < 0,"add margin is not allowed in close position");
         marginAcc.execMultiTx(destinations, data);
         if (tokensToTransfer < 0){
             decreaseDebt(address(marginAcc), tokensToTransfer.abs());
         }
-        // marginAcc.removePosition(marketKey);// @todo remove all positiions
+        for(uint256 i=0;i<marketKeys.length;i++){
+            marginAcc.removePosition(marketKeys[i]);// @todo remove all positiions
+        }
         // add penaulty
     }
 
@@ -318,7 +320,6 @@ contract MarginManager is ReentrancyGuard {
     }
 
     /// @dev Calculates margin account interest accrued
-    /// More: https://dev.gearbox.fi/developers/credit/economy#interest-rate-accrued
     ///
     /// @param _marginAccount Credit account address
     function calcMarginAccountAccruedInterest(address _marginAccount)

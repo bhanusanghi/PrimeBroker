@@ -124,4 +124,43 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             }
         }
     }
+    function verifyClose(address protocol,address[] memory destinations,bytes[] calldata data)
+        public
+        view
+        returns (int256 amount, int256 totalPosition, uint256 fee)
+    {
+        uint8 len = data.length.toUint8(); // limit to 2
+        fee=1;
+        require(destinations.length.toUint8() == len,"should match");
+        for (uint8 i = 0; i < len; i++) {
+            bytes4 funSig = bytes4(data[i]);
+            if (funSig == AP) {
+                // amount = abi.decode(data[i][36:], (int256));
+            } else if (funSig == CP) {
+                (
+                    address _baseToken,
+                    bool isShort,
+                    bool isExactInput,
+                    uint256 _amount,
+                    ,
+                    uint256 deadline,
+                    ,
+
+                ) = abi.decode(
+                        data[i][4:],
+                        (
+                            address,
+                            bool,
+                            bool,
+                            uint256,
+                            uint256,
+                            uint256,
+                            uint160,
+                            bytes32
+                        )
+                    );
+                totalPosition = isShort ? -(_amount.toInt256()) : (_amount.toInt256());
+            }
+        }
+    }
 }

@@ -11,6 +11,10 @@ interface IProtocolRiskManager  {
         external
         view
         returns (int256 amount, int256 totalPosition, uint256 fee);
+    function verifyClose(address protocol,address[] memory destinations,bytes[] calldata data)
+        external
+        view
+        returns (int256 amount, int256 totalPosition, uint256 fee);
 
     function getBaseToken() external view returns (address);
 }

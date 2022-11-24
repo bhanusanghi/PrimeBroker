@@ -94,4 +94,12 @@ contract SNXRiskManager {
         price = price.convertTokenDecimals(_decimals,0);// @todo aaah need more precision
         totalPosition = totalPosition.mul(price.toInt256());
     }
+    function verifyClose(address protocol,address[] memory destinations,bytes[] calldata data)
+        public
+        view
+        returns (int256 amount, int256 totalPosition, uint256 fee)
+    {
+       ( amount,  totalPosition,  fee) = verifyTrade(protocol,destinations,data);
+    //    require(totalPosition<0&&amount<=0,"Invalid close data:SNX");
+    }
 }

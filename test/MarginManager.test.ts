@@ -371,7 +371,7 @@ describe("Margin Manager", () => {
       console.log(await marginAcc.positions(SNX_MARKET_KEY_sUNI))
 
     });
-    it("MarginAccount add position:snx case", async () => {
+    it.only("MarginAccount add position:snx case", async () => {
 
       await usdc.approve(accAddress, ethers.utils.parseUnits("6500", 6))
       await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("6500", 6))
@@ -389,29 +389,25 @@ describe("Margin Manager", () => {
           "contracts/Interfaces/SNX/ExchangeRates.sol:ExchangeRates"
         )
       ).abi;
+      const _CB = (
+        await artifacts.readArtifact(
+          "contracts/Interfaces/SNX/ExchangeRates.sol:ICircuitBreaker"
+        )
+      ).abi;
       const RelayAbi = (
         await artifacts.readArtifact(
           "contracts/Interfaces/SNX/ExchangeRates.sol:relayer"
         )
       ).abi;
+      // CircuitBreaker
+      const CB = await ethers.getContractAt(_CB, "0x803FD1d99C3a6cbcbABAB79C44e108dC2fb67102")
       console.log("relay here", await EthFutures.assetPrice())
       let Relay: Contract = await ethers.getContractAt(RelayAbi, "0x6d4a64c57612841c2c6745db2a4e4db34f002d20")
       exchangeRates = await ethers.getContractAt(EXCABI, _exchangeRates, snxOwner);
       await setBalance(snxOwner.address, ethers.utils.parseUnits("10", 18));
-      await exchangeRates.addAggregator(MARKET_KEY_sETH, mockAggregator.address);
-      console.log('exchange rate:', await exchangeRates.address, await exchangeRates.nominatedOwner(), await exchangeRates.owner())
-      // let iface = new ethers.utils.Interface(EXCABI)
-      // let addAGGdata = await iface.encodeFunctionData("addAggregator", [SNX_MARKET_KEY_sETH, mockAggregator.address])
-      // console.log(":relay owner", await Relay.temporaryOwner(), await Relay.expiryTime())
 
-      // // 
+      console.log('exchange rate:', await exchangeRates.address, await exchangeRates.nominatedOwner(), await exchangeRates.owner())
       // set the rate
-      let { timestamp } = await ethers.provider.getBlock("latest");
-      console.log(timestamp, "pre set")
-      // const res = await Relay.directRelay(_exchangeRates, addAGGdata)
-      console.log("woho add done", await mockAggregator.latestRoundData())
-      await mockAggregator.connect(account0).setLatestAnswer(ethers.utils.parseUnits("1500", 18), timestamp);
-      console.log("woho add done", await mockAggregator.latestRoundData())
       trData = await transferMarginData(accAddress, ethers.utils.parseUnits("8000", 18))
       sizeDelta = ethers.utils.parseUnits("10", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
@@ -420,9 +416,6 @@ describe("Margin Manager", () => {
       //positions,posData,
       reciept = await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
       console.log("eth market position", await EthFutures.positions(accAddress))
-
-      out = await out.wait()
-      let obj = out.events
       let parsedAmount = ethers.utils.parseUnits("6000", 6)
 
       const approveAmountCalldata = await getErc20ApprovalCalldata(perpVault.address, parsedAmount);
@@ -446,16 +439,19 @@ describe("Margin Manager", () => {
         [erc20.usdc, perpVault.address, perpClearingHouse.address],
         [approveAmountCalldata, fundVaultCalldata, _perpOpenPositionCallData]
       );
-      reciept = await reciept.wait()
-      await mockAggregator.connect(account0).setLatestAnswer(ethers.utils.parseUnits("800", 18), timestamp);
-      trData = await transferMarginData(accAddress, ethers.utils.parseUnits("6000", 18))
-      sizeDelta = ethers.utils.parseUnits("7.5", 18);
+      await exchangeRates.addAggregator(MARKET_KEY_sETH, mockAggregator.address);
+      let { timestamp } = await ethers.provider.getBlock("latest");
+      console.log(timestamp, "TS")
+      await mockAggregator.connect(account0).setLatestAnswer(ethers.utils.parseUnits("1100", 18), timestamp);
+      await CB.connect(snxOwner).resetLastValue([mockAggregator.address], [ethers.utils.parseUnits("1100", 18)])
+      console.log("eth market position:1", await EthFutures.positions(accAddress))
+      console.log(await CB.lastValue(mockAggregator.address), "last value", await CB.circuitBroken(mockAggregator.address))
+      trData = await transferMarginData(accAddress, ethers.utils.parseUnits("-6000", 18))
+      sizeDelta = ethers.utils.parseUnits("-10", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
-
+      // await mine(10, { interval: 15 });
       console.log(ETH_MARKET, ":....", await EthFutures.baseAsset(), await EthFutures.assetPrice());
-      //positions,posData,
-      reciept = await marginManager.liquidate()
-      //
+      reciept = await marginManager.liquidate([SNX_MARKET_KEY_sETH], [ETH_MARKET], [posData])
       // await marginManager.liquidate([ETH_MARKET], [trData])
       console.log("mining new blocks:...\n")
       // await mineUpTo(36202194)
@@ -464,7 +460,7 @@ describe("Margin Manager", () => {
       console.log("eth market position", await EthFutures.positions(accAddress))
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
     });
-    it.only("MarginAccount add position: perpfi case", async () => {
+    it("MarginAccount add position: perpfi case", async () => {
 
       await usdc.approve(accAddress, ethers.utils.parseUnits("6500", 6))
       await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("6500", 6))
@@ -564,14 +560,14 @@ describe("Margin Manager", () => {
         await priceFeed.update()
       }
       trData = await transferMarginData(accAddress, ethers.utils.parseUnits("6000", 18))
-      sizeDelta = ethers.utils.parseUnits("7.5", 18);
+      sizeDelta = ethers.utils.parseUnits("-10", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
 
       console.log(ETH_MARKET, ":....", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       //positions,posData,
       // reciept = await marginManager.liquidate()
       //
-      // await marginManager.liquidate([ETH_MARKET], [trData])
+      await marginManager.liquidate([SNX_MARKET_KEY_sETH], [ETH_MARKET], [posData])
       console.log("mining new blocks:...\n")
       // await mineUpTo(36202194)
       //ExchangeRates

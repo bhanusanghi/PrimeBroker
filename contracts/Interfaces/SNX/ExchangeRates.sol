@@ -3,6 +3,7 @@ contract ExchangeRates {
 
  address public owner;
     address public nominatedOwner;
+    mapping(bytes32 => address) public aggregators;
     function addAggregator(bytes32 currencyKey, address aggregatorAddress) external  {
     //     AggregatorV2V3Interface aggregator = AggregatorV2V3Interface(aggregatorAddress);
     //     // This check tries to make sure that a valid aggregator is being added.
@@ -34,10 +35,36 @@ contract ExchangeRates {
         //     emit AggregatorRemoved(currencyKey, aggregator);
         // }
     }
+    function rateWithSafetyChecks(bytes32 currencyKey)
+        external
+        returns (
+            uint rate,
+            bool broken,
+            bool staleOrInvalid
+        )
+    {}
 }
 contract relayer {
     uint public expiryTime;
      function directRelay(address target, bytes calldata payload) external {
     }
     function temporaryOwner() public view returns(address){}
+}
+
+interface ICircuitBreaker {
+    // Views
+    function isInvalid(address oracleAddress, uint value) external view returns (bool);
+
+    function priceDeviationThresholdFactor() external view returns (uint);
+
+    function isDeviationAboveThreshold(uint base, uint comparison) external view returns (bool);
+
+    function lastValue(address oracleAddress) external view returns (uint);
+
+    function circuitBroken(address oracleAddress) external view returns (bool);
+
+    // Mutative functions
+    function resetLastValue(address[] calldata oracleAddresses, uint[] calldata values) external;
+
+    function probeCircuitBreaker(address oracleAddress, uint value) external returns (bool circuitBroken);
 }
