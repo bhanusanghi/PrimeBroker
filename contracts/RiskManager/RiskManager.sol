@@ -117,7 +117,7 @@ contract RiskManager is ReentrancyGuard {
 
             (totalNotional, PnL) = getPositionsValPnL(marginAcc);
 
-            buyingPower = GetRemainingBuyingPower(
+            buyingPower = GetCurrentBuyingPower(
                 marginAcc,
                 PnL,
                 interestAccrued
@@ -186,7 +186,7 @@ contract RiskManager is ReentrancyGuard {
     // Need to account the interest accrued to our vault.
 
     // remainingBuyingPower = (TotalCollateralValue - interest accrued + unrealized PnL) / marginFactor
-    function GetRemainingBuyingPower(
+    function GetCurrentBuyingPower(
         address marginAccount,
         int256 PnL,
         uint256 interestAccrued
