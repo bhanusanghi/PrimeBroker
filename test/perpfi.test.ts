@@ -150,10 +150,7 @@ describe("MarginManager", () => {
       await fundPerpVault(bob, parsedAmount)
       await expect(await contracts.perp.vault.connect(bob).getBalance(bob.address)).to.eq(parsedAmount);
     })
-    // if trader is on long side, baseToQuote: true, exactInput: true
-    // if trader is on short side, baseToQuote: false (quoteToBase), exactInput: false (exactOutput)
     it("should allow opening a long position on perp directly", async () => {
-
       const baseToken = "0x34235C8489b06482A99bb7fcaB6d7c467b92d248";
       const parsedAmount = ethers.utils.parseUnits("10000", 6)
       await fundPerpVault(bob, parsedAmount.mul(BigNumber.from(`10`)));
@@ -162,7 +159,7 @@ describe("MarginManager", () => {
         isBaseToQuote: false,// long vAave
         isExactInput: true,
         // amount: ethers.utils.parseEther("100"),
-        amount: ethers.utils.parseUnits("1000", 6),
+        amount: ethers.utils.parseUnits("1000", 6), // note is the amount of base token
         oppositeAmountBound: 0,
         deadline: ethers.constants.MaxUint256,
         sqrtPriceLimitX96: 0, // price slippage protection

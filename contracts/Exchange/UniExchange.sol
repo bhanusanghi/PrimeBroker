@@ -115,12 +115,13 @@ contract UniExchange is IExchange {
 
     function _hasDirectPath(address _tokenIn, address _tokenOut)
         internal
+        pure
         returns (bool hasDirectPath)
     {
         hasDirectPath = true;
     }
 
-    function _getFeeTier() internal returns (uint24 feeTier) {
+    function _getFeeTier() internal pure returns (uint24 feeTier) {
         feeTier = 100; // options - 100(0.01%), 3000(0.3%)
     }
 
