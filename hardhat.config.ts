@@ -13,7 +13,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.17",
+
   networks: {
     mainnet: {
       timeout: 60000,
@@ -51,6 +51,19 @@ const config: HardhatUserConfig = {
   dependencyCompiler: {
     paths: [
       // "@perp/perp-oracle-contract/contracts/ChainlinkPriceFeedV2.sol"
+    ]
+  },
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.0",
+      },
+      {
+        version: "0.8.10",
+      },
+      {
+        version: "0.8.17",
+      }
     ],
   },
   mocha: {

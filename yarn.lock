@@ -30,6 +30,15 @@
   dependencies:
     "regenerator-runtime" "^0.13.4"
 
+"@chainlink/contracts@^0.5.1":
+  "integrity" "sha512-3PDBJ38Sd6Ml9h7FNK/tZQti+kTCdXUq1qzE6E59CnlzycsV9ElPvf2hTvs9Mi9C6pEx2Mmw9yhZMfBktYUInQ=="
+  "resolved" "https://registry.npmjs.org/@chainlink/contracts/-/contracts-0.5.1.tgz"
+  "version" "0.5.1"
+  dependencies:
+    "@eth-optimism/contracts" "^0.5.21"
+    "@openzeppelin/contracts" "^4.3.3"
+    "@openzeppelin/contracts-v0.7" "npm:@openzeppelin/contracts@v3.4.2"
+
 "@chainlink/contracts@0.1.7":
   "integrity" "sha512-txVkGrwFYnyLUC/I5hTe7yZK7fjmB6YFULfBHqryRuREUmGd4bdpXfrcUUsZycmWibanp69QVyQBpsDrPhWsjw=="
   "resolved" "https://registry.npmjs.org/@chainlink/contracts/-/contracts-0.1.7.tgz"
@@ -122,6 +131,18 @@
     "minimatch" "^3.1.2"
     "strip-json-comments" "^3.1.1"
 
+<<<<<<< HEAD
+=======
+"@eth-optimism/contracts@^0.5.21":
+  "integrity" "sha512-VvPvTD6AKFIPZVwGRK1eDuhRS+WyUGemIiu7h9txpKitkXKpTqb4DscR6cul5Dl+JhonX36ZvnJmDIfF+KBY5A=="
+  "resolved" "https://registry.npmjs.org/@eth-optimism/contracts/-/contracts-0.5.38.tgz"
+  "version" "0.5.38"
+  dependencies:
+    "@eth-optimism/core-utils" "0.11.0"
+    "@ethersproject/abstract-provider" "^5.7.0"
+    "@ethersproject/abstract-signer" "^5.7.0"
+
+>>>>>>> main
 "@eth-optimism/core-utils@^0.4.1":
   "integrity" "sha512-H+NdGAyx6w4Wmjy3PaTF7xnBEeKh8BZK1jfU6yy52sd2E0oH7ABd0H5FtRY2SLPTH8AZ8gAgOhrTNoqE0Mlktw=="
   "resolved" "https://registry.npmjs.org/@eth-optimism/core-utils/-/core-utils-0.4.7.tgz"
@@ -130,6 +151,28 @@
     "@ethersproject/abstract-provider" "^5.0.9"
     "ethers" "^5.0.31"
     "lodash" "^4.17.21"
+
+"@eth-optimism/core-utils@0.11.0":
+  "integrity" "sha512-/oTyC1sqZ/R97pRk+7cQJpZ6qwmJvqcym9coy9fZaqmIuFaZkjXQKz04lWUPL0zzh9zTN+2nMSB+kZReccmong=="
+  "resolved" "https://registry.npmjs.org/@eth-optimism/core-utils/-/core-utils-0.11.0.tgz"
+  "version" "0.11.0"
+  dependencies:
+    "@ethersproject/abi" "^5.7.0"
+    "@ethersproject/abstract-provider" "^5.7.0"
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/bytes" "^5.7.0"
+    "@ethersproject/constants" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/hash" "^5.7.0"
+    "@ethersproject/keccak256" "^5.7.0"
+    "@ethersproject/properties" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@ethersproject/rlp" "^5.7.0"
+    "@ethersproject/transactions" "^5.7.0"
+    "@ethersproject/web" "^5.7.0"
+    "bufio" "^1.0.7"
+    "chai" "^4.3.4"
 
 "@eth-optimism/smock@1.1.4":
   "integrity" "sha512-UnNaVl2tvF8eVn4g3KY1IUiNDW2/nDlv16sgtamVuhPvOqq4+sOkDC/KFuK04mgDmtJyFZNkrYiqejRUXcUe5A=="
@@ -449,7 +492,7 @@
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
 
-"@ethersproject/contracts@5.7.0":
+"@ethersproject/contracts@^5.7.0", "@ethersproject/contracts@5.7.0":
   "integrity" "sha512-5GJbzEU3X+d33CdfPhcyS+z8MzsTrBGk/sc+G+59+tPa9yFkl6HQ9D6L0QMgNTA9q8dT0XKxxkyp883XsQvbbg=="
   "resolved" "https://registry.npmjs.org/@ethersproject/contracts/-/contracts-5.7.0.tgz"
   "version" "5.7.0"
@@ -583,7 +626,7 @@
   dependencies:
     "@ethersproject/logger" "^5.7.0"
 
-"@ethersproject/providers@^5.0.0", "@ethersproject/providers@^5.4.7", "@ethersproject/providers@5.7.1":
+"@ethersproject/providers@^5.0.0", "@ethersproject/providers@^5.4.7", "@ethersproject/providers@^5.7.0", "@ethersproject/providers@5.7.1":
   "integrity" "sha512-vZveG/DLyo+wk4Ga1yx6jSEHrLPgmTt+dFv0dv8URpVCRf0jVhalps1jq/emN/oXnMRsC7cQgAF32DcXLL7BPQ=="
   "resolved" "https://registry.npmjs.org/@ethersproject/providers/-/providers-5.7.1.tgz"
   "version" "5.7.1"
@@ -1087,11 +1130,31 @@
   "integrity" "sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A=="
   "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.3.tgz"
   "version" "4.7.3"
+<<<<<<< HEAD
 
 "@openzeppelin/contracts@^4.7.0":
+=======
+
+"@openzeppelin/contracts-upgradeable@3.4.2":
+  "integrity" "sha512-mDlBS17ymb2wpaLcrqRYdnBAmP1EwqhOXMvqWk2c5Q1N1pm5TkiCtXM9Xzznh4bYsQBq0aIWEkFFE2+iLSN1Tw=="
+  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-3.4.2.tgz"
+  "version" "3.4.2"
+
+"@openzeppelin/contracts-v0.7@npm:@openzeppelin/contracts@v3.4.2":
+  "integrity" "sha512-z0zMCjyhhp4y7XKAcDAi3Vgms4T2PstwBdahiO0+9NaGICQKjynK3wduSRplTgk4LXmoO1yfDGO5RbjKYxtuxA=="
+  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-3.4.2.tgz"
+  "version" "3.4.2"
+
+"@openzeppelin/contracts@^4.3.3", "@openzeppelin/contracts@^4.7.0":
+>>>>>>> main
   "integrity" "sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw=="
   "resolved" "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-4.7.3.tgz"
   "version" "4.7.3"
+
+"@openzeppelin/contracts@3.4.1-solc-0.7-2":
+  "integrity" "sha512-tAG9LWg8+M2CMu7hIsqHPaTyG4uDzjr6mhvH96LvOpLZZj6tgzTluBt+LsCf1/QaYrlis6pITvpIaIhE+iZB+Q=="
+  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-3.4.1-solc-0.7-2.tgz"
+  "version" "3.4.1-solc-0.7-2"
 
 "@openzeppelin/contracts@3.4.2-solc-0.7":
   "integrity" "sha512-W6QmqgkADuFcTLzHL8vVoNBtkwjvQRpYIAom7KiUNoLKghyx3FgH0GBjt8NRvigV1ZmMOBllvE1By1C+bi8WpA=="
@@ -1120,6 +1183,18 @@
     "ethereumjs-util" "^7.0.3"
     "proper-lockfile" "^4.1.1"
     "solidity-ast" "^0.4.15"
+
+"@perp/curie-contract@^2.2.3":
+  "integrity" "sha512-G3Sdm0bVqlQNzARt5MO0I1EiQCUf4jVac+dYuhzDooOXdd4zmxvL3E84xbHlZ+eJj0PRldCoM/gqseFxyIpHqA=="
+  "resolved" "https://registry.npmjs.org/@perp/curie-contract/-/curie-contract-2.2.3.tgz"
+  "version" "2.2.3"
+  dependencies:
+    "@chainlink/contracts" "0.1.7"
+    "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
+    "@openzeppelin/contracts-upgradeable" "3.4.2"
+    "@perp/perp-oracle-contract" "0.4.3"
+    "@uniswap/v3-core" "https://github.com/Uniswap/uniswap-v3-core/tarball/v1.0.0"
+    "@uniswap/v3-periphery" "1.0.1"
 
 "@perp/perp-oracle-contract@0.4.3":
   "integrity" "sha512-ijOfXkjHRvMVXVj9wLPHpDMr+zYkm2LPgy5pmQ+sG2qIWI3/4jH2Fp8CJR8ZaOTXSLSxe/Yyf1fXSGVIYgcigA=="
@@ -1734,6 +1809,20 @@
     "@uniswap/v3-core" "1.0.0"
     "base64-sol" "1.0.1"
 
+<<<<<<< HEAD
+=======
+"@uniswap/v3-periphery@1.0.1":
+  "integrity" "sha512-1Q4DVWNWfRumbNrBJgebLOUULGng5g3uky5suu4Cc7GtA1+JmEnw3J2VOrJSv2zn1LOPjURhZgU5T7NiIl2yeA=="
+  "resolved" "https://registry.npmjs.org/@uniswap/v3-periphery/-/v3-periphery-1.0.1.tgz"
+  "version" "1.0.1"
+  dependencies:
+    "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
+    "@uniswap/lib" "^4.0.1-alpha"
+    "@uniswap/v2-core" "1.0.1"
+    "@uniswap/v3-core" "1.0.0"
+    "base64-sol" "1.0.1"
+
+>>>>>>> main
 "@yarnpkg/lockfile@^1.1.0":
   "integrity" "sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ=="
   "resolved" "https://registry.npmjs.org/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz"
@@ -1842,9 +1931,15 @@
   "version" "8.2.0"
 
 "acorn@^6.0.0 || ^7.0.0 || ^8.0.0", "acorn@^8.4.1", "acorn@^8.8.0":
+<<<<<<< HEAD
   "integrity" "sha512-QOxyigPVrpZ2GXT+PFyZTl6TtOFc5egxHIP9IlQ+RbupQuX4RkT/Bee4/kQuC02Xkzg84JcT7oLYtDIQxp+v7w=="
   "resolved" "https://registry.npmjs.org/acorn/-/acorn-8.8.0.tgz"
   "version" "8.8.0"
+=======
+  "integrity" "sha512-7zFpHzhnqYKrkYdUjF1HI1bzd0VygEGX8lFk4k5zVMqHEoES+P+7TKI+EvLO9WVMJ8eekdO0aDEK044xTXwPPA=="
+  "resolved" "https://registry.npmjs.org/acorn/-/acorn-8.8.1.tgz"
+  "version" "8.8.1"
+>>>>>>> main
 
 "acorn@^6.0.7":
   "integrity" "sha512-XtGIhXwF8YM8bJhGxG5kXgjkEuNGLTkoYqVE+KMR+aspr4KGYmKYg7yUe3KghyQ9yheNwLnjmzh/7+gfDBmHCQ=="
@@ -2230,6 +2325,7 @@
     "private" "^0.1.8"
     "slash" "^1.0.0"
     "source-map" "^0.5.7"
+<<<<<<< HEAD
 
 "babel-generator@^6.26.0":
   "version" "6.26.1"
@@ -2347,6 +2443,443 @@
 
 "babel-plugin-syntax-exponentiation-operator@^6.8.0":
   "version" "6.13.0"
+
+"babel-plugin-syntax-trailing-function-commas@^6.22.0":
+  "version" "6.22.0"
+
+"babel-plugin-transform-async-to-generator@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-remap-async-to-generator" "^6.24.1"
+    "babel-plugin-syntax-async-functions" "^6.8.0"
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-arrow-functions@^6.22.0":
+  "version" "6.22.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-block-scoped-functions@^6.22.0":
+  "version" "6.22.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-block-scoping@^6.23.0":
+  "version" "6.26.0"
+  dependencies:
+    "babel-runtime" "^6.26.0"
+    "babel-template" "^6.26.0"
+    "babel-traverse" "^6.26.0"
+    "babel-types" "^6.26.0"
+    "lodash" "^4.17.4"
+
+"babel-plugin-transform-es2015-classes@^6.23.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-define-map" "^6.24.1"
+    "babel-helper-function-name" "^6.24.1"
+    "babel-helper-optimise-call-expression" "^6.24.1"
+    "babel-helper-replace-supers" "^6.24.1"
+    "babel-messages" "^6.23.0"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+"babel-plugin-transform-es2015-computed-properties@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+
+"babel-plugin-transform-es2015-destructuring@^6.23.0":
+  "version" "6.23.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-duplicate-keys@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-plugin-transform-es2015-for-of@^6.23.0":
+  "version" "6.23.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-function-name@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-function-name" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-plugin-transform-es2015-literals@^6.22.0":
+  "version" "6.22.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-modules-amd@^6.22.0", "babel-plugin-transform-es2015-modules-amd@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-plugin-transform-es2015-modules-commonjs" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+
+"babel-plugin-transform-es2015-modules-commonjs@^6.23.0", "babel-plugin-transform-es2015-modules-commonjs@^6.24.1":
+  "version" "6.26.2"
+  dependencies:
+    "babel-plugin-transform-strict-mode" "^6.24.1"
+    "babel-runtime" "^6.26.0"
+    "babel-template" "^6.26.0"
+    "babel-types" "^6.26.0"
+
+"babel-plugin-transform-es2015-modules-systemjs@^6.23.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-hoist-variables" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+
+"babel-plugin-transform-es2015-modules-umd@^6.23.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-plugin-transform-es2015-modules-amd" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+
+"babel-plugin-transform-es2015-object-super@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-replace-supers" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-parameters@^6.23.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-call-delegate" "^6.24.1"
+    "babel-helper-get-function-arity" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+"babel-plugin-transform-es2015-shorthand-properties@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-plugin-transform-es2015-spread@^6.22.0":
+  "version" "6.22.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-sticky-regex@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-regex" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-plugin-transform-es2015-template-literals@^6.22.0":
+  "version" "6.22.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-typeof-symbol@^6.23.0":
+  "version" "6.23.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-es2015-unicode-regex@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-regex" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "regexpu-core" "^2.0.0"
+
+"babel-plugin-transform-exponentiation-operator@^6.22.0":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-builder-binary-assignment-operator-visitor" "^6.24.1"
+    "babel-plugin-syntax-exponentiation-operator" "^6.8.0"
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-transform-regenerator@^6.22.0":
+  "version" "6.26.0"
+  dependencies:
+    "regenerator-transform" "^0.10.0"
+
+"babel-plugin-transform-strict-mode@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-preset-env@^1.7.0":
+  "version" "1.7.0"
+  dependencies:
+    "babel-plugin-check-es2015-constants" "^6.22.0"
+    "babel-plugin-syntax-trailing-function-commas" "^6.22.0"
+    "babel-plugin-transform-async-to-generator" "^6.22.0"
+    "babel-plugin-transform-es2015-arrow-functions" "^6.22.0"
+    "babel-plugin-transform-es2015-block-scoped-functions" "^6.22.0"
+    "babel-plugin-transform-es2015-block-scoping" "^6.23.0"
+    "babel-plugin-transform-es2015-classes" "^6.23.0"
+    "babel-plugin-transform-es2015-computed-properties" "^6.22.0"
+    "babel-plugin-transform-es2015-destructuring" "^6.23.0"
+    "babel-plugin-transform-es2015-duplicate-keys" "^6.22.0"
+    "babel-plugin-transform-es2015-for-of" "^6.23.0"
+    "babel-plugin-transform-es2015-function-name" "^6.22.0"
+    "babel-plugin-transform-es2015-literals" "^6.22.0"
+    "babel-plugin-transform-es2015-modules-amd" "^6.22.0"
+    "babel-plugin-transform-es2015-modules-commonjs" "^6.23.0"
+    "babel-plugin-transform-es2015-modules-systemjs" "^6.23.0"
+    "babel-plugin-transform-es2015-modules-umd" "^6.23.0"
+    "babel-plugin-transform-es2015-object-super" "^6.22.0"
+    "babel-plugin-transform-es2015-parameters" "^6.23.0"
+    "babel-plugin-transform-es2015-shorthand-properties" "^6.22.0"
+    "babel-plugin-transform-es2015-spread" "^6.22.0"
+    "babel-plugin-transform-es2015-sticky-regex" "^6.22.0"
+    "babel-plugin-transform-es2015-template-literals" "^6.22.0"
+    "babel-plugin-transform-es2015-typeof-symbol" "^6.23.0"
+    "babel-plugin-transform-es2015-unicode-regex" "^6.22.0"
+    "babel-plugin-transform-exponentiation-operator" "^6.22.0"
+    "babel-plugin-transform-regenerator" "^6.22.0"
+    "browserslist" "^3.2.6"
+    "invariant" "^2.2.2"
+    "semver" "^5.3.0"
+
+"babel-register@^6.26.0":
+  "version" "6.26.0"
+  dependencies:
+    "babel-core" "^6.26.0"
+    "babel-runtime" "^6.26.0"
+    "core-js" "^2.5.0"
+    "home-or-tmp" "^2.0.0"
+    "lodash" "^4.17.4"
+    "mkdirp" "^0.5.1"
+    "source-map-support" "^0.4.15"
+
+"babel-runtime@^6.18.0", "babel-runtime@^6.22.0", "babel-runtime@^6.26.0":
+  "version" "6.26.0"
+  dependencies:
+    "core-js" "^2.4.0"
+    "regenerator-runtime" "^0.11.0"
+
+"babel-template@^6.24.1", "babel-template@^6.26.0":
+  "version" "6.26.0"
+  dependencies:
+    "babel-runtime" "^6.26.0"
+    "babel-traverse" "^6.26.0"
+    "babel-types" "^6.26.0"
+    "babylon" "^6.18.0"
+    "lodash" "^4.17.4"
+
+"babel-traverse@^6.24.1", "babel-traverse@^6.26.0":
+  "version" "6.26.0"
+  dependencies:
+    "babel-code-frame" "^6.26.0"
+    "babel-messages" "^6.23.0"
+    "babel-runtime" "^6.26.0"
+    "babel-types" "^6.26.0"
+    "babylon" "^6.18.0"
+    "debug" "^2.6.8"
+    "globals" "^9.18.0"
+    "invariant" "^2.2.2"
+    "lodash" "^4.17.4"
+
+"babel-types@^6.19.0", "babel-types@^6.24.1", "babel-types@^6.26.0":
+  "version" "6.26.0"
+  dependencies:
+    "babel-runtime" "^6.26.0"
+    "esutils" "^2.0.2"
+    "lodash" "^4.17.4"
+    "to-fast-properties" "^1.0.3"
+
+"babelify@^7.3.0":
+  "version" "7.3.0"
+  dependencies:
+    "babel-core" "^6.0.14"
+    "object-assign" "^4.0.0"
+
+"babylon@^6.18.0":
+  "version" "6.18.0"
+
+"backoff@^2.5.0":
+  "version" "2.5.0"
+  dependencies:
+    "precond" "0.2"
+
+"balanced-match@^1.0.0":
+  "integrity" "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="
+  "resolved" "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
+  "version" "1.0.2"
+=======
+>>>>>>> main
+
+"babel-generator@^6.26.0":
+  "version" "6.26.1"
+  dependencies:
+    "babel-messages" "^6.23.0"
+    "babel-runtime" "^6.26.0"
+    "babel-types" "^6.26.0"
+    "detect-indent" "^4.0.0"
+    "jsesc" "^1.3.0"
+    "lodash" "^4.17.4"
+    "source-map" "^0.5.7"
+    "trim-right" "^1.0.1"
+
+<<<<<<< HEAD
+"base@^0.11.1":
+  "version" "0.11.2"
+  dependencies:
+    "cache-base" "^1.0.1"
+    "class-utils" "^0.3.5"
+    "component-emitter" "^1.2.1"
+    "define-property" "^1.0.0"
+    "isobject" "^3.0.1"
+    "mixin-deep" "^1.2.0"
+    "pascalcase" "^0.1.1"
+
+"base64-js@^1.3.1":
+  "integrity" "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="
+  "resolved" "https://registry.npmjs.org/base64-js/-/base64-js-1.5.1.tgz"
+  "version" "1.5.1"
+=======
+"babel-helper-builder-binary-assignment-operator-visitor@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-explode-assignable-expression" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+>>>>>>> main
+
+"babel-helper-call-delegate@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-hoist-variables" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+"babel-helper-define-map@^6.24.1":
+  "version" "6.26.0"
+  dependencies:
+    "babel-helper-function-name" "^6.24.1"
+    "babel-runtime" "^6.26.0"
+    "babel-types" "^6.26.0"
+    "lodash" "^4.17.4"
+
+"babel-helper-explode-assignable-expression@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+"babel-helper-function-name@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-get-function-arity" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+"babel-helper-get-function-arity@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-helper-hoist-variables@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-helper-optimise-call-expression@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-types" "^6.24.1"
+
+"babel-helper-regex@^6.24.1":
+  "version" "6.26.0"
+  dependencies:
+    "babel-runtime" "^6.26.0"
+    "babel-types" "^6.26.0"
+    "lodash" "^4.17.4"
+
+"babel-helper-remap-async-to-generator@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-function-name" "^6.24.1"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+"babel-helper-replace-supers@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-helper-optimise-call-expression" "^6.24.1"
+    "babel-messages" "^6.23.0"
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+    "babel-traverse" "^6.24.1"
+    "babel-types" "^6.24.1"
+
+<<<<<<< HEAD
+"bip39@2.5.0":
+  "version" "2.5.0"
+  dependencies:
+    "create-hash" "^1.1.0"
+    "pbkdf2" "^3.0.9"
+    "randombytes" "^2.0.1"
+    "safe-buffer" "^5.0.1"
+    "unorm" "^1.3.3"
+
+"blakejs@^1.1.0":
+  "integrity" "sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ=="
+  "resolved" "https://registry.npmjs.org/blakejs/-/blakejs-1.2.1.tgz"
+  "version" "1.2.1"
+=======
+"babel-helpers@^6.24.1":
+  "version" "6.24.1"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+    "babel-template" "^6.24.1"
+>>>>>>> main
+
+"babel-messages@^6.23.0":
+  "version" "6.23.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-check-es2015-constants@^6.22.0":
+  "version" "6.22.0"
+  dependencies:
+    "babel-runtime" "^6.22.0"
+
+"babel-plugin-syntax-async-functions@^6.8.0":
+  "version" "6.13.0"
+
+<<<<<<< HEAD
+"bn.js@^4.10.0", "bn.js@^4.11.1", "bn.js@^4.4.0", "bn.js@^4.8.0":
+  "version" "4.11.9"
+
+"bn.js@^4.11.0", "bn.js@^4.11.8":
+  "integrity" "sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA=="
+  "resolved" "https://registry.npmjs.org/bn.js/-/bn.js-4.12.0.tgz"
+  "version" "4.12.0"
+=======
+"babel-plugin-syntax-exponentiation-operator@^6.8.0":
+  "version" "6.13.0"
+>>>>>>> main
 
 "babel-plugin-syntax-trailing-function-commas@^6.22.0":
   "version" "6.22.0"
@@ -2978,6 +3511,14 @@
   dependencies:
     "node-gyp-build" "^4.3.0"
 
+<<<<<<< HEAD
+=======
+"bufio@^1.0.7":
+  "integrity" "sha512-W0ydG8t+ST+drUpEwl1N+dU9Ije06g8+43CLtvEIzfKo9nPFLXbKqDYE2XSg4w6RugsBcCj7pEU7jOpBC6BqrA=="
+  "resolved" "https://registry.npmjs.org/bufio/-/bufio-1.1.3.tgz"
+  "version" "1.1.3"
+
+>>>>>>> main
 "bytes@3.1.0":
   "version" "3.1.0"
 
@@ -3142,7 +3683,7 @@
   dependencies:
     "check-error" "^1.0.2"
 
-"chai@^4.2.0", "chai@>= 2.1.2 < 5":
+"chai@^4.2.0", "chai@^4.3.4", "chai@>= 2.1.2 < 5":
   "integrity" "sha512-bbcp3YfHCUzMOvKqsztczerVgBKSsEijCySNlHHbX3VG1nskvqjz5Rfso1gGwD6w6oOV3eI60pKuMOV5MV7p3Q=="
   "resolved" "https://registry.npmjs.org/chai/-/chai-4.3.6.tgz"
   "version" "4.3.6"
@@ -4576,9 +5117,15 @@
     "text-table" "^0.2.0"
 
 "eslint@>=5", "eslint@>=7.0.0":
+<<<<<<< HEAD
   "integrity" "sha512-kzJkpaw1Bfwheq4VXUezFriD1GxszX6dUekM7Z3aC2o4hju+tsR/XyTC3RcoSD7jmy9VkPU3+N6YjVU2e96Oyg=="
   "resolved" "https://registry.npmjs.org/eslint/-/eslint-8.26.0.tgz"
   "version" "8.26.0"
+=======
+  "integrity" "sha512-S27Di+EVyMxcHiwDrFzk8dJYAaD+/5SoWKxL1ri/71CRHsnJnRDPNt2Kzj24+MT9FDupf4aqqyqPrvI8MvQ4VQ=="
+  "resolved" "https://registry.npmjs.org/eslint/-/eslint-8.28.0.tgz"
+  "version" "8.28.0"
+>>>>>>> main
   dependencies:
     "@eslint/eslintrc" "^1.3.3"
     "@humanwhocodes/config-array" "^0.11.6"
@@ -4630,9 +5177,15 @@
     "eslint-visitor-keys" "^1.0.0"
 
 "espree@^9.4.0":
+<<<<<<< HEAD
   "integrity" "sha512-DQmnRpLj7f6TgN/NYb0MTzJXL+vJF9h3pHy4JhCIs3zwcgez8xmGg3sXHcEO97BrmO2OSvCwMdfdlyl+E9KjOw=="
   "resolved" "https://registry.npmjs.org/espree/-/espree-9.4.0.tgz"
   "version" "9.4.0"
+=======
+  "integrity" "sha512-XwctdmTO6SIvCzd9810yyNzIrOrqNYV9Koizx4C/mRhf9uq0o4yHoCEU/670pOxOL/MSraektvSAji79kX90Vg=="
+  "resolved" "https://registry.npmjs.org/espree/-/espree-9.4.1.tgz"
+  "version" "9.4.1"
+>>>>>>> main
   dependencies:
     "acorn" "^8.8.0"
     "acorn-jsx" "^5.3.2"
@@ -6003,9 +6556,15 @@
   "version" "11.12.0"
 
 "globals@^13.15.0":
+<<<<<<< HEAD
   "integrity" "sha512-1C+6nQRb1GwGMKm2dH/E7enFAMxGTmGI7/dEdhy/DNelv85w9B72t3uc5frtMNXIbzrarJJ/lTCjcaZwbLJmyw=="
   "resolved" "https://registry.npmjs.org/globals/-/globals-13.17.0.tgz"
   "version" "13.17.0"
+=======
+  "integrity" "sha512-/mR4KI8Ps2spmoc0Ulu9L7agOF0du1CZNQ3dke8yItYlyKNmGrkONemBbd6V8UTc1Wgcqn21t3WYB7dbRmh6/A=="
+  "resolved" "https://registry.npmjs.org/globals/-/globals-13.18.0.tgz"
+  "version" "13.18.0"
+>>>>>>> main
   dependencies:
     "type-fest" "^0.20.2"
 
@@ -6982,9 +7541,15 @@
     "is-object" "^1.0.1"
 
 "js-sdsl@^4.1.4":
+<<<<<<< HEAD
   "integrity" "sha512-08bOAKweV2NUC1wqTtf3qZlnpOX/R2DU9ikpjOHs0H+ibQv3zpncVQg6um4uYtRtrwIX8M4Nh3ytK4HGlYAq7Q=="
   "resolved" "https://registry.npmjs.org/js-sdsl/-/js-sdsl-4.1.5.tgz"
   "version" "4.1.5"
+=======
+  "integrity" "sha512-dyBIzQBDkCqCu+0upx25Y2jGdbTGxE9fshMsCdK0ViOongpV+n5tXRcZY9v7CaVQ79AGS9KA1KHtojxiM7aXSQ=="
+  "resolved" "https://registry.npmjs.org/js-sdsl/-/js-sdsl-4.2.0.tgz"
+  "version" "4.2.0"
+>>>>>>> main
 
 "js-sha3@^0.5.7", "js-sha3@0.5.7":
   "integrity" "sha512-GII20kjaPX0zJ8wzkTbNDYMY7msuZcTWk8S5UOh6806Jq/wz1J8/bnr8uGU0DAUmYDjj2Mr4X1cW8v/GLYnR+g=="
@@ -10491,14 +11056,7 @@
   dependencies:
     "ansi-regex" "^4.1.0"
 
-"strip-ansi@^6.0.0":
-  "integrity" "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="
-  "resolved" "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz"
-  "version" "6.0.1"
-  dependencies:
-    "ansi-regex" "^5.0.1"
-
-"strip-ansi@^6.0.1":
+"strip-ansi@^6.0.0", "strip-ansi@^6.0.1":
   "integrity" "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="
   "resolved" "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz"
   "version" "6.0.1"
