@@ -1,6 +1,7 @@
 pragma solidity ^0.8.10;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -19,6 +20,7 @@ import {ITypes} from "../Interfaces/ITypes.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
+import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 
 import "hardhat/console.sol";
 
@@ -28,6 +30,7 @@ contract MarginManager is ReentrancyGuard {
     using Math for uint256;
     using SafeCastUpgradeable for uint256;
     using SafeCastUpgradeable for int256;
+    using SettlementTokenMath for uint256;
     using SignedMath for int256;
     using SignedSafeMath for int256;
     RiskManager public riskManager;
@@ -146,7 +149,7 @@ contract MarginManager is ReentrancyGuard {
         int256 tokensToTransfer;
         int256 positionSize;
         address tokenOut;
-        uint256 interestAccrued = _getInterestAccrued(msg.sender);
+        uint256 interestAccrued = _getInterestAccrued(address(marginAcc));
         (tokensToTransfer, positionSize, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
             marketKey,
@@ -159,20 +162,20 @@ contract MarginManager is ReentrancyGuard {
 
         // @TODO - Make sure the accounting works fine when closing/updating position
         // Self Note - Bhanu - This will always be 0 with current assumptions.
-        uint256 balance = IERC20(tokenIn).balanceOf(address(marginAcc));
-
+        uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
+        balance = balance.convertTokenDecimals(ERC20(tokenOut).decimals(),6);
         // temp increase tokens to transfer. assuming USDC.
         // add one var where increase debt only if needed,
         //coz transfermargin can be done without it if margin acc has balance\
         uint256 absTokensToTransfer = tokensToTransfer.abs();
-
+        console.log("absTokensToTransfer",absTokensToTransfer);
         // Get dollar value in terms of vault underlying token.
         // Since vault token is currently only Stable Dollar.
         uint256 dollarValueOfTokensToTransfer = priceOracle.convertToUSD(
             absTokensToTransfer,
             tokenOut
         );
-
+        console.log("dollarValueOfTokensToTransfer",dollarValueOfTokensToTransfer);
         if (dollarValueOfTokensToTransfer > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
@@ -181,16 +184,17 @@ contract MarginManager is ReentrancyGuard {
             );
             if (tokensToTransfer > 0) {
                 tokensToTransfer = tokensToTransfer.add(100 * 10**6);
-                if (balance < absTokensToTransfer) {
+                if (balance < tokensToTransfer.abs()) {
                     // TODO add oracle to get asset value.
-                    uint256 diff = absTokensToTransfer.sub(balance);
+                    uint256 diff = tokensToTransfer.abs().sub(balance);
                     increaseDebt(address(marginAcc), diff);
-                }
+                }//@note what if balance if more then transfer
                 if (tokenIn != tokenOut) {
+                    console.log("swap amt",tokensToTransfer.abs());
                     IExchange.SwapParams memory params = IExchange.SwapParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
-                        amountIn: absTokensToTransfer,
+                        amountIn: tokensToTransfer.abs(),
                         amountOut: 0,
                         isExactInput: true,
                         sqrtPriceLimitX96: 0

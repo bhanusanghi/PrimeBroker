@@ -197,7 +197,7 @@ contract RiskManager is ReentrancyGuard {
             int256 _transferAmount;
             int256 _positionSize;
             uint256 _fee;
-            (_protocolAddress, _protocolRiskManager) = marketManager.getMarketByName(
+            (_protocolAddress, _protocolRiskManager) = marketManager.getProtocolAddressByMarketName(
                 marketKeys[i]
                 );
             IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
@@ -232,7 +232,7 @@ contract RiskManager is ReentrancyGuard {
         public
         returns (uint256 buyPow)
     {
-        return collateralManager.totalCollatralValue(_marginAcc).toInt256().add(PnL).toUint256().mulDiv(100,initialMarginFactor);
+        return collateralManager.getFreeCollateralValue(_marginAcc).toInt256().add(PnL).toUint256().mulDiv(100,initialMarginFactor);
     }
     function liquidatable(address _marginAcc)
         public
@@ -241,7 +241,7 @@ contract RiskManager is ReentrancyGuard {
         uint256 totalNotioanl;
         int256 PnL;
         (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
-        console.log("TN PnL", totalNotioanl, PnL.abs(),collateralManager.totalCollatralValue(_marginAcc));
+        console.log("TN PnL", totalNotioanl, PnL.abs(),collateralManager.getFreeCollateralValue(_marginAcc));
         uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
         if(PnL<0){
             require(temp<=PnL.abs(),"Liq:");
@@ -249,8 +249,8 @@ contract RiskManager is ReentrancyGuard {
         }else{
             return 0;
         }
-        // return collateralManager.totalCollatralValue(_marginAcc).toInt256().add(PnL).toUint256().mulDiv(100,maintanaceMarginFactor);
-       
+        // return collateralManager.getFreeCollateralValue(_marginAcc).toInt256().add(PnL).toUint256().mulDiv(100,maintanaceMarginFactor);
+    }
     // @TODO - should be able to get buying power from account directly.
     // total free buying power
     // Need to account the interest accrued to our vault.

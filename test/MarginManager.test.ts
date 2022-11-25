@@ -44,6 +44,11 @@ const GELATO_OPS = "0xB3f5503f93d5Ef84b06993a1975B9D21B962892F";
 
 // cross margin
 let mockAggregator: Contract;
+let mockAggregatorETH: Contract;
+let mockAggregatorUNI: Contract;
+let mockAggregatorsUSD: Contract;
+let mockAggregatorusdc: Contract;
+let PriceOracle: Contract;
 let exchangeRates: Contract;
 let marginManager: Contract;
 let marginAccount: Contract;
@@ -110,14 +115,13 @@ const setup = async () => {
   const aggFactory = await ethers.getContractFactory('MockAggregatorV2V3')
   mockAggregator = await aggFactory.deploy()
   await mockAggregator.setDecimals(18);
-
   CollateralManager = await CollateralManagerFactory.deploy()
   const MarketManagerFactory = await ethers.getContractFactory("MarketManager");
   MarketManager = await MarketManagerFactory.deploy()
   contractRegistry = await contractRegistryFactory.deploy()
   const SNXRiskManager = await ethers.getContractFactory("SNXRiskManager");
   const protocolRiskManagerFactory = await ethers.getContractFactory("PerpfiRiskManager");
-  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc, metadata.contracts.AccountBalance.address)
+  const PerpfiRiskManager = await protocolRiskManagerFactory.deploy(erc20.usdc, metadata.contracts.AccountBalance.address, metadata.contracts.Exchange.address)
   sNXRiskManager = await SNXRiskManager.deploy(erc20.sUSD)
   const _interestRateModelAddress = await ethers.getContractFactory("LinearInterestRateModel")
   const IRModel = await _interestRateModelAddress.deploy(80, 0, 4, 75);
@@ -142,8 +146,10 @@ const setup = async () => {
     await artifacts.readArtifact("contracts/MarginPool/Vault.sol:Vault")
   ).abi;
   vault = new ethers.Contract(vault_deployed.address, VAULT_ABI, account0)
+  const oracleFactory = await ethers.getContractFactory("PriceOracle");
+  PriceOracle = await oracleFactory.deploy()
   const MarginManager = await ethers.getContractFactory("MarginManager");
-  marginManager = await MarginManager.deploy(contractRegistry.address, MarketManager.address)
+  marginManager = await MarginManager.deploy(contractRegistry.address, MarketManager.address, PriceOracle.address)
   const RiskManager = await ethers.getContractFactory("RiskManager");
   riskManager = await RiskManager.deploy(contractRegistry.address, MarketManager.address)
   await vault.addLendingAddress(riskManager.address)
@@ -151,20 +157,19 @@ const setup = async () => {
   await vault.addLendingAddress(marginManager.address)
   await vault.addRepayingAddress(marginManager.address)
   // await mintToAccountSUSD(vault.address, MINT_AMOUNT);
-  await CollateralManager.addAllowedCollateral([erc20.usdc, erc20.sUSD])
-  await CollateralManager.initialize(marginManager.address, erc20.usdc)//@notice dummy address
+  await CollateralManager.addAllowedCollateral([erc20.usdc, erc20.sUSD], [100, 100])
+  await CollateralManager.initialize(marginManager.address, erc20.usdc, PriceOracle.address)//@notice dummy address
   await riskManager.setVault(vault.address)
   await marginManager.setVault(vault.address)
   await marginManager.SetRiskManager(riskManager.address);
   await contractRegistry.addContractToRegistry(SNXUNI, sNXRiskManager.address)
   await contractRegistry.addContractToRegistry(PERP, PerpfiRiskManager.address)
-  await MarketManager.addNewRiskManager([sNXRiskManager.address, PerpfiRiskManager.address])
+  // await MarketManager.addMarket([sNXRiskManager.address, PerpfiRiskManager.address])
   const IERC20ABI = (
     await artifacts.readArtifact(
       "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20"
     )
   ).abi;
-
   const usdcHolder = await ethers.getImpersonatedSigner("0x7F5c764cBc14f9669B88837ca1490cCa17c31607");
   // const sUsdHolder = await ethers.getImpersonatedSigner("0xa5f7a39e55d7878bc5bd754ee5d6bd7a7662355b");
   const usdcHolderBalance = await usdc.balanceOf(usdcHolder.address)
@@ -181,8 +186,22 @@ const setup = async () => {
   const perpVaultAmount = ethers.utils.parseUnits("2000", 6)
   await riskManager.setcollateralManager(CollateralManager.address)
   await usdc.approve(perpVault.address, perpVaultAmount)
+
   await perpVault.deposit(erc20.usdc, perpVaultAmount)
   await MarketManager.addMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address, PerpfiRiskManager.address)
+  mockAggregatorETH = await aggFactory.deploy()
+  await mockAggregatorETH.setDecimals(18);
+  mockAggregatorusdc = await aggFactory.deploy()
+  await mockAggregatorusdc.setDecimals(6);
+  mockAggregatorsUSD = await aggFactory.deploy()
+  await mockAggregatorsUSD.setDecimals(18);
+  mockAggregatorUNI = await aggFactory.deploy()
+  await mockAggregatorUNI.setDecimals(18);
+  await PriceOracle.addPriceFeed(erc20.sUSD, mockAggregatorsUSD.address)
+  let { timestamp } = await ethers.provider.getBlock("latest");
+  await mockAggregatorsUSD.setLatestAnswer(ethers.utils.parseUnits("1", 18), timestamp)
+  await mockAggregatorusdc.setLatestAnswer(ethers.utils.parseUnits("1", 6), timestamp)
+  await PriceOracle.addPriceFeed(erc20.usdc, mockAggregatorusdc.address)
 };
 
 const transferMarginData = async (address: any, amount: any) => {
@@ -325,9 +344,9 @@ describe("Margin Manager", () => {
       await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
       await MarketManager.addMarket(SNX_MARKET_KEY_sETH, ETH_MARKET, sNXRiskManager.address)
 
-      await riskManager.addNewMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET)
-      await riskManager.addNewMarket(SNX_MARKET_KEY_sETH, ETH_MARKET)
-      await riskManager.addNewMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address)
+      // await riskManager.addNewMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET)
+      // await riskManager.addNewMarket(SNX_MARKET_KEY_sETH, ETH_MARKET)
+      // await riskManager.addNewMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address)
     });
     it("MarginAccount add/update position", async () => {
 
@@ -378,7 +397,7 @@ describe("Margin Manager", () => {
       const EthFutures = await ethers.getContractAt("IFuturesMarket", ETH_MARKET, account0)
 
       let trData = await transferMarginData(accAddress, ethers.utils.parseUnits("7000", 18))
-      let sizeDelta = ethers.utils.parseUnits("830", 18);
+      let sizeDelta = ethers.utils.parseUnits("100", 18);
       let posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
 
