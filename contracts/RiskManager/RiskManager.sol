@@ -181,6 +181,76 @@ contract RiskManager is ReentrancyGuard {
         // }
     }
 
+    function isliquidatable(
+        address _marginAcc,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external returns (int256 transferAmount, int256 positionSize) {
+      uint256 fee;
+        // newbuyPow, pnl, tn
+        // uint256 closingTotal;
+        // MarginAccount marginAcc = MarginAccount(_marginAcc);
+        for(uint256 i=0;i<marketKeys.length;i++){
+            address _protocolAddress;
+            address _protocolRiskManager;
+            int256 _transferAmount;
+            int256 _positionSize;
+            uint256 _fee;
+            (_protocolAddress, _protocolRiskManager) = marketManager.getProtocolAddressByMarketName(
+                marketKeys[i]
+                );
+            IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            _protocolRiskManager
+            );
+            (_transferAmount, _positionSize,_fee) = protocolRiskManager.verifyClose(_protocolAddress,destinations,data);
+            transferAmount = transferAmount.add(_transferAmount);
+            positionSize = positionSize.add(_positionSize);
+            // closingTotal = closingTotal.add(marginAcc.getPositionValue(marketKeys[i]).abs());
+            fee= fee.add(_fee);
+        }
+        uint256 totalNotioanl;
+        int256 PnL;
+        (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
+        
+        uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
+        // require(PnL<0 && temp<=PnL.abs(),"Liq:");
+        console.log('Liqidation!!');
+        //  uint256 newBuyPow = getBuyingPower(_marginAcc,PnL); 
+        // require(
+        //     buyingPower >= totalNotioanl.add(positionSize.abs()),
+        //     "Extra leverage not allowed"
+        // );
+        // require(
+        //     buyingPower >= MarginAccount(marginAcc).totalBorrowed().add(transferAmount).abs(),
+        //     "Extra Transfer not allowed"
+        // );
+    }
+    // total free buying power
+    //@note replace with GetCurrentBuyingPower
+    function getBuyingPower(address _marginAcc, int256 PnL)
+        public
+        returns (uint256 buyPow)
+    {
+        return collateralManager.getFreeCollateralValue(_marginAcc).toInt256().add(PnL).toUint256().mulDiv(100,initialMarginFactor);
+    }
+    function liquidatable(address _marginAcc)
+        public
+        returns (int256 diff)
+    {   
+        uint256 totalNotioanl;
+        int256 PnL;
+        (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
+        console.log("TN PnL", totalNotioanl, PnL.abs(),collateralManager.getFreeCollateralValue(_marginAcc));
+        uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
+        if(PnL<0){
+            require(temp<=PnL.abs(),"Liq:");
+            return PnL.add(temp.toInt256());
+        }else{
+            return 0;
+        }
+        // return collateralManager.getFreeCollateralValue(_marginAcc).toInt256().add(PnL).toUint256().mulDiv(100,maintanaceMarginFactor);
+    }
     // @TODO - should be able to get buying power from account directly.
     // total free buying power
     // Need to account the interest accrued to our vault.
@@ -200,7 +270,6 @@ contract RiskManager is ReentrancyGuard {
                 .toUint256()
                 .mulDiv(100, initialMarginFactor);
     }
-
     function getPositionsValPnL(address marginAccount)
         public
         returns (uint256 totalNotional, int256 PnL)
@@ -221,6 +290,7 @@ contract RiskManager is ReentrancyGuard {
                 .getPositionPnL(marginAccount);
             marginInProtocols = marginInProtocols.add(_deposit);
             PnL = PnL.add(_pnl);
+
         }
     }
 

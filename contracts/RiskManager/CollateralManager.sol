@@ -11,10 +11,11 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
-
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
+    using Math for uint256;
     using SettlementTokenMath for uint256;
     using SafeCastUpgradeable for uint256;
     using SafeCastUpgradeable for int256;
@@ -160,7 +161,7 @@ contract CollateralManager is ICollateralManager {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
                 priceOracle.convertToUSD(_balance[_marginAccount][token], token)
-            ).mul(collateralWeight[i]); // Index of token vs collateral weight should be same.
+            ).mulDiv(collateralWeight[i],100); // Index of token vs collateral weight should be same.
             totalAmount = totalAmount.add(
                 tokenDollarValue.convertTokenDecimals(
                     _decimals[token],
