@@ -128,7 +128,10 @@ contract MarginManager is ReentrancyGuard {
         burn contract account and remove mappings
          */
     }
-
+    function settleFee() public {
+        // for each market
+        // prm.settleFeeForMarket()
+    }
     function _getMarginAccount(address trader) internal view returns (address) {
         require(
             marginAccounts[trader] != address(0),
@@ -142,6 +145,7 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
+        settleFee();
         // TODO - Use Interface rather than class.
         MarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
         // TODO add a check to make sure person is not overwriting an existing position using this method.
@@ -217,6 +221,7 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
+        settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         require(
             marginAcc.existingPosition(marketKey),
@@ -290,6 +295,7 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
+        settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         // address protocolAddress = marginAcc.positions(positionIndex);
         require(
@@ -319,6 +325,7 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
        ) external {
+        settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         int256 tokensToTransfer;
         int256 positionSize;
@@ -343,6 +350,7 @@ contract MarginManager is ReentrancyGuard {
     function RemoveCollateral() external {
         /**
         check margin, open positions
+        settleFee();
         withdraw
          */
     }

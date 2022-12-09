@@ -11,6 +11,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
+import {IMarketRegistry} from "../Interfaces/Perpfi/IMarketRegistry.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -71,11 +72,29 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
        */
     }
-
+    function settleFeeForMarket() external returns(bool){
+        //getFees
+        // aproval or something
+        //send/settle Fee
+        return true;
+    }
+    function getFees(address _baseToken,address _market) public view returns (uint256) {
+        IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(_market).getMarketInfo(_baseToken);
+        return marketInfo.exchangeFeeRatio;
+    }
     function getBaseToken() external view returns (address) {
         return baseToken;
     }
+    // function getIndexPrice() public view override returns (uint256 indexPrice) {
+    //     uint256 _twapInterval = IClearingHouseConfig(clearingHouseConfig).getTwapInterval();
+    //     indexPrice = IIndexPrice(usdlBaseTokenAddress).getIndexPrice(_twapInterval);
+    // }
 
+    // /// @notice Returns the price of th UniV3Pool.
+    // function getMarkPrice() public view override returns (uint256 token0Price) {
+    //     (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(usdlBaseTokenAddress)).slot0();
+    //     token0Price = ((uint256(sqrtPriceX96)**2) / (2**192)) * 1e18;
+    // }
     function getPositionPnL(address account)
         external
         virtual
