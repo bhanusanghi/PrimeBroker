@@ -146,7 +146,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     address _baseToken,
                     bool isShort,
                     bool isExactInput,
-                    uint256 _amount,
+                    int256 _amount,
                     ,
                     uint256 deadline,
                     ,
@@ -157,7 +157,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             address,
                             bool,
                             bool,
-                            uint256,
+                            int256,
                             uint256,
                             uint256,
                             uint160,
@@ -169,20 +169,21 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     // get price should return in normalized values.
                     // uint256 price = _getPrice;
                     // uint256 value = _amount * price;
-                    // totalPosition = isShort
-                    //     ? -int256(value)
-                    //     : int256(value);
+                    totalPosition = isShort
+                        ? -int256(_amount)
+                        : int256(_amount);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort ? -amount : amount;
+                    totalPosition = isShort ? -_amount : _amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort ? -amount : amount;
+                    totalPosition = isShort ? -_amount : _amount;
                 } else if (isShort && !isExactInput) {
                     // get price
                 } else {
                     revert("impossible shit");
                 }
+                console.log("totalPosition",totalPosition.abs());
             }
         }
     }
