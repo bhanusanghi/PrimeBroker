@@ -12,6 +12,7 @@ import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import "hardhat/console.sol";
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
@@ -25,7 +26,7 @@ contract CollateralManager is ICollateralManager {
     IRiskManager public riskManager;
     IPriceOracle public priceOracle;
     address[] public allowedCollateral; // allowed tokens
-    uint256[] public collateralWeight;
+    mapping(address => uint256) public collateralWeight;
     uint8 private constant baseDecimals = 6; // @todo get from vault in initialize func
     // address=> decimals for allowed tokens so we don't have to make external calls
     mapping(address => uint8) private _decimals;
@@ -52,13 +53,14 @@ contract CollateralManager is ICollateralManager {
         );
         uint256 len = _allowed.length;
         for (uint256 i = 0; i < len; i++) {
+            // @todo use mapping instead
             // Needed otherwise borrowing power can be inflated by pushing same collateral multiple times.
             require(
                 isAllowed[_allowed[i]] == false,
                 "CM: Collateral already added"
             );
             allowedCollateral.push(_allowed[i]);
-            collateralWeight.push(_collateralWeights[i]);
+            collateralWeight[_allowed[i]] = _collateralWeights[i];
             isAllowed[_allowed[i]] = true;
             _decimals[_allowed[i]] = ERC20(_allowed[i]).decimals();
         }
@@ -73,7 +75,7 @@ contract CollateralManager is ICollateralManager {
     }
 
     function addCollateral(address _token, uint256 _amount) external {
-        require(isAllowed[_token], "CM: Unsupported collateral");
+        require(isAllowed[_token], "CM: Unsupported collateral");//@note move it to margin manager
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
@@ -91,33 +93,36 @@ contract CollateralManager is ICollateralManager {
     // While withdraw check free collateral, only that much is allowed to be taken out.
     function withdrawCollateral(address _token, uint256 _amount) external {
         // only marginManager
+        //
+        // check if _amount is allowed to be taken out.
+        // If yes transfer and manage accounting.
+        require(isAllowed[_token], "CM: Unsupported collateral");
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
-        require(isAllowed[_token], "CM: Unsupported collateral");
         uint256 freeCollateralValue = _getFreeCollateralValue(
             address(marginAccount)
         );
+        console.log(freeCollateralValue,"free collateral");
         require(
-            priceOracle.convertToUSD(_amount, _token) <= freeCollateralValue,
+            priceOracle.convertToUSD(_amount, _token).mulDiv(collateralWeight[_token],100) <= freeCollateralValue,
             "CM: Withdrawing more than free collateral not allowed"
         );
-
-        // check if _amount is allowed to be taken out.
-        // If yes transfer and manage accounting.
+        console.log(_balance[address(marginAccount)][_token],_amount);
+        _balance[address(marginAccount)][_token] = _balance[address(marginAccount)][_token].sub(_amount);
+        marginAccount.transferTokens(_token,address(marginAccount),_amount);  
     }
 
     // @todo - On update borrowing power changes. Handle that - not v0
     function updateCollateralWeight(
         address _token,
-        uint256 _allowlistIndex,
         uint256 _collateralWeight
-    ) external {
+    ) external {// onlyOwner
         require(
-            isAllowed[_token] && allowedCollateral[_allowlistIndex] == _token,
+            isAllowed[_token],
             "CM: Collateral not found"
         );
-        collateralWeight[_allowlistIndex] = _collateralWeight;
+        collateralWeight[_token] = _collateralWeight;
     }
 
     function getCollateral(address _marginAccount, address _asset)
@@ -135,13 +140,12 @@ contract CollateralManager is ICollateralManager {
         returns (uint256 freeCollateral)
     {
         // free collateral
+        console.log( _totalCollateralValue(_marginAccount),marginManager.getInterestAccrued(_marginAccount),IMarginAccount(_marginAccount).totalBorrowed(),"gfcol");
+        (,uint256 x)= IMarginAccount(_marginAccount).totalBorrowed().tryMul(riskManager.initialMarginFactor());
+        console.log(x);
         freeCollateral = _totalCollateralValue(_marginAccount)
             .sub(marginManager.getInterestAccrued(_marginAccount))
-            .sub(
-                IMarginAccount(_marginAccount).totalBorrowed().mul(
-                    riskManager.initialMarginFactor()
-                )
-            );
+            .sub(x);
     }
 
     function totalCollateralValue(address _marginAccount)
@@ -161,12 +165,9 @@ contract CollateralManager is ICollateralManager {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
                 priceOracle.convertToUSD(_balance[_marginAccount][token], token)
-            ).mulDiv(collateralWeight[i],100); // Index of token vs collateral weight should be same.
+            ).mulDiv(collateralWeight[token],100); // Index of token vs collateral weight should be same.
             totalAmount = totalAmount.add(
-                tokenDollarValue.convertTokenDecimals(
-                    _decimals[token],
-                    baseDecimals
-                )
+                tokenDollarValue
             );
         }
     }
