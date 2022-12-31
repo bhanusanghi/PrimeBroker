@@ -100,6 +100,7 @@ contract RiskManager is ReentrancyGuard {
         returns (
             int256 transferAmount,
             int256 positionSize,
+            uint256 fee,
             address tokenOut
         )
     {
@@ -123,7 +124,6 @@ contract RiskManager is ReentrancyGuard {
                 interestAccrued
             );
 
-            uint256 fee;
             (transferAmount, positionSize, fee) = protocolRiskManager
                 .verifyTrade(_protocolAddress, destinations, data);
             tokenOut = protocolRiskManager.getBaseToken();

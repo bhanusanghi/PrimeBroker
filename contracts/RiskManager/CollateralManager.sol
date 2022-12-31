@@ -9,6 +9,7 @@ import {IRiskManager} from "../Interfaces/IRiskManager.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -16,8 +17,10 @@ import "hardhat/console.sol";
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
+    using SafeMath for int256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
+    using SignedSafeMathUpgradeable for int256;
     using SafeCastUpgradeable for uint256;
     using SafeCastUpgradeable for int256;
     using SignedMath for int256;
@@ -31,7 +34,7 @@ contract CollateralManager is ICollateralManager {
     // address=> decimals for allowed tokens so we don't have to make external calls
     mapping(address => uint8) private _decimals;
     mapping(address => bool) public isAllowed;
-    mapping(address => mapping(address => uint256)) internal _balance;
+    mapping(address => mapping(address => int256)) internal _balance;
 
     function initialize(
         address _marginManager,
@@ -42,7 +45,11 @@ contract CollateralManager is ICollateralManager {
         riskManager = IRiskManager(_riskManager);
         priceOracle = IPriceOracle(_priceOracle);
     }
+    function updateCollateralAmount(uint256 amount) external {
+        // only marginManager
 
+
+    }
     function addAllowedCollateral(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
@@ -86,7 +93,7 @@ contract CollateralManager is ICollateralManager {
         );
         _balance[address(marginAccount)][_token] = _balance[
             address(marginAccount)
-        ][_token].add(_amount);
+        ][_token].add(_amount.toInt256());
     }
 
     // Should be accessed by Margin Manager only??
@@ -108,8 +115,8 @@ contract CollateralManager is ICollateralManager {
             priceOracle.convertToUSD(_amount, _token).mulDiv(collateralWeight[_token],100) <= freeCollateralValue,
             "CM: Withdrawing more than free collateral not allowed"
         );
-        console.log(_balance[address(marginAccount)][_token],_amount);
-        _balance[address(marginAccount)][_token] = _balance[address(marginAccount)][_token].sub(_amount);
+        console.log(_balance[address(marginAccount)][_token].abs(),_amount);
+        _balance[address(marginAccount)][_token] = _balance[address(marginAccount)][_token].sub(_amount.toInt256());
         marginAccount.transferTokens(_token,address(marginAccount),_amount);  
     }
 
@@ -128,7 +135,7 @@ contract CollateralManager is ICollateralManager {
     function getCollateral(address _marginAccount, address _asset)
         external
         view
-        returns (uint256)
+        returns (int256)
     {
         return _balance[_marginAccount][_asset];
     }
@@ -164,7 +171,7 @@ contract CollateralManager is ICollateralManager {
         for (uint8 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
-                priceOracle.convertToUSD(_balance[_marginAccount][token], token)
+                priceOracle.convertToUSD(_balance[_marginAccount][token].abs(), token)
             ).mulDiv(collateralWeight[token],100); // Index of token vs collateral weight should be same.
             totalAmount = totalAmount.add(
                 tokenDollarValue

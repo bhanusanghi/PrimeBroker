@@ -154,7 +154,8 @@ contract MarginManager is ReentrancyGuard {
         int256 positionSize;
         address tokenOut;
         uint256 interestAccrued = _getInterestAccrued(address(marginAcc));
-        (tokensToTransfer, positionSize, tokenOut) = riskManager.verifyTrade(
+        uint256 fee;
+        (tokensToTransfer, positionSize, fee, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
             marketKey,
             destinations,
@@ -221,7 +222,7 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
-        settleFee();
+        // settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         require(
             marginAcc.existingPosition(marketKey),
@@ -236,16 +237,18 @@ contract MarginManager is ReentrancyGuard {
         address tokenOut;
 
         int256 _oldPositionSize = marginAcc.getPositionOpenNotional(marketKey);
-        uint256 interestAccrued = _getInterestAccrued(msg.sender);
-        (tokensToTransfer, _currentPositionSize, tokenOut) = riskManager
-            .verifyTrade(
-                address(marginAcc),
-                marketKey,
-                destinations,
-                data,
-                interestAccrued
-            );
-
+        uint256 fee;
+        {
+            uint256 interestAccrued = _getInterestAccrued(msg.sender);
+            (tokensToTransfer, _currentPositionSize, fee,tokenOut) = riskManager
+                .verifyTrade(
+                    address(marginAcc),
+                    marketKey,
+                    destinations,
+                    data,
+                    interestAccrued
+                );
+        }
         address tokenIn = vault.asset();
         uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
         if (tokensToTransfer > 0) {
@@ -277,11 +280,6 @@ contract MarginManager is ReentrancyGuard {
             decreaseDebt(address(marginAcc), tokensToTransfer.abs());
         }
         marginAcc.execMultiTx(destinations, data);
-        console.log(
-            _oldPositionSize.abs(),
-            _currentPositionSize.abs(),
-            "old and new position"
-        );
         int256 sizeDelta = _oldPositionSize.add(_currentPositionSize);
         if (sizeDelta == 0) {
             marginAcc.removePosition(marketKey);
@@ -311,7 +309,7 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        require(positionSize== marginAcc.getPositionValue(marketKey),"Invalid close pos");
+        // require(positionSize.sub(marginAcc.getPositionValue(marketKey))==0,"Invalid close pos");
         require(tokensToTransfer<=0,"add margin is not allowed in close position");
         if (tokensToTransfer<0){
             decreaseDebt(address(marginAcc), tokensToTransfer.abs());
@@ -327,6 +325,7 @@ contract MarginManager is ReentrancyGuard {
        ) external {
         settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        console.log(address(marginAcc),"Margin acc");
         int256 tokensToTransfer;
         int256 positionSize;
         (tokensToTransfer, positionSize) = riskManager.isliquidatable(

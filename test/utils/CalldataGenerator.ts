@@ -32,14 +32,17 @@ export const getVaultDepositCalldata = async (token: string, value: BigNumber) =
   let iface = new ethers.utils.Interface(PerpVault);
   return iface.encodeFunctionData("deposit", [token, value])
 }
-
-export const getOpenPerpPositionCalldata = async (
+export const getVaultWithdrawCalldata = async (token: string, value: BigNumber) => {
+  const PerpVault = (
+    await artifacts.readArtifact("contracts/Interfaces/Perpfi/IVault.sol:IVault")
+  ).abi;
+  let iface = new ethers.utils.Interface(PerpVault);
+  return iface.encodeFunctionData("withdraw", [token, value])
+}
+export const getClosePerpPositionCalldata = async (
   baseToken: string,
-  isBaseToQuote: boolean,
-  isExactInput: boolean,
-  oppositeAmountBound: BigNumber,
-  amount: BigNumber,
   sqrtPriceLimitX96: BigNumber,
+  oppositeAmountBound: BigNumber,
   deadline: BigNumber,
   referralCode = ethers.constants.HashZero,
 ) => {
@@ -47,7 +50,7 @@ export const getOpenPerpPositionCalldata = async (
     await artifacts.readArtifact("contracts/Interfaces/Perpfi/IClearingHouse.sol:IClearingHouse")
   ).abi;
   let iface = new ethers.utils.Interface(IClearingHouse);
-  return iface.encodeFunctionData("openPosition", [baseToken, isBaseToQuote, isExactInput, oppositeAmountBound, amount, sqrtPriceLimitX96, deadline, referralCode])
+  return iface.encodeFunctionData("closePosition", [{ baseToken, sqrtPriceLimitX96, oppositeAmountBound, deadline, referralCode }])
 }
 export const perpOpenPositionCallData = async (
   baseToken: string,

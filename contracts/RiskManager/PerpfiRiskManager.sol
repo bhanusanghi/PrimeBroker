@@ -35,15 +35,17 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     IExchange public perpExchange;
     IAccountBalance accountBalance;
-
+    IMarketRegistry public marketRegistry;
     constructor(
         address _baseToken,
         address _accountBalance,
-        address _perpExchange
+        address _perpExchange,
+        address _marketRegistry
     ) {
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
         perpExchange = IExchange(_perpExchange);
+        marketRegistry = IMarketRegistry(_marketRegistry);
     }
 
     function updateExchangeAddress(address _perpExchange) external {
@@ -78,9 +80,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //send/settle Fee
         return true;
     }
-    function getFees(address _baseToken,address _market) public view returns (uint256) {
-        IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(_market).getMarketInfo(_baseToken);
-        return marketInfo.exchangeFeeRatio;
+    function getFees(address _baseToken) public view returns (uint256) {
+        return marketRegistry.getFeeRatio(_baseToken);
     }
     function getBaseToken() external view returns (address) {
         return baseToken;
@@ -164,6 +165,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
+                console.log(marketRegistry.getFeeRatio(_baseToken),":-fee");
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     // get price should return in normalized values.
@@ -183,7 +185,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 } else {
                     revert("impossible shit");
                 }
-                console.log("totalPosition",totalPosition.abs());
             }
         }
     }

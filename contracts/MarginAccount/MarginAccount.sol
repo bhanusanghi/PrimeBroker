@@ -35,7 +35,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     uint256 public _totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     address public underlyingToken;
-
+    int256 public pendingFee;// keeping it int for -ve update(pay fee)
     mapping(bytes32 => int256) public marginInMarket;
     int256 totalMarginInMarkets;
 
@@ -66,7 +66,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
         IERC20(token).safeTransferFrom(from, address(this), amount);
         // update in collatral manager
     }
-
+    function updateFee(int256 fee) public {
+        //only marginManager
+        pendingFee = pendingFee.add(fee);
+    }
     function approveToProtocol(address token, address protocol) external {
         // onlyMarginmanager
         IERC20(token).approve(protocol, type(uint256).max);

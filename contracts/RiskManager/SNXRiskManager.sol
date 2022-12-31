@@ -90,7 +90,7 @@ contract SNXRiskManager {
         uint256 price;
         (price,) = IFuturesMarket(protocol).assetPrice();
         (fee,) = IFuturesMarket(protocol).orderFee(totalPosition);
-        // console.log(fee,":feeeee",price, price.convertTokenDecimals(_decimals,0));
+        console.log(fee,":feeeee",price, price.convertTokenDecimals(_decimals,0));
         price = price.convertTokenDecimals(_decimals,0);// @todo aaah need more precision
         totalPosition = totalPosition.mul(price.toInt256());
     }
