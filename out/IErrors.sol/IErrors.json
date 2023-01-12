@@ -1,0 +1,125 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "contracts/Interfaces/IErrors.sol",
+    "id": 451,
+    "exportedSymbols": {
+      "CreditManagersOnlyException": [
+        450
+      ],
+      "IncorrectArrayLengthException": [
+        448
+      ],
+      "IncorrectOPathLengthException": [
+        446
+      ],
+      "NotImplementedException": [
+        444
+      ],
+      "ZeroAddressException": [
+        442
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "136:204:8",
+    "nodes": [
+      {
+        "id": 440,
+        "nodeType": "PragmaDirective",
+        "src": "136:24:8",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".10"
+        ]
+      },
+      {
+        "id": 442,
+        "nodeType": "ErrorDefinition",
+        "src": "162:29:8",
+        "nodes": [],
+        "errorSelector": "b2335f2e",
+        "name": "ZeroAddressException",
+        "nameLocation": "168:20:8",
+        "parameters": {
+          "id": 441,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "188:2:8"
+        }
+      },
+      {
+        "id": 444,
+        "nodeType": "ErrorDefinition",
+        "src": "192:32:8",
+        "nodes": [],
+        "errorSelector": "24e46f70",
+        "name": "NotImplementedException",
+        "nameLocation": "198:23:8",
+        "parameters": {
+          "id": 443,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "221:2:8"
+        }
+      },
+      {
+        "id": 446,
+        "nodeType": "ErrorDefinition",
+        "src": "225:38:8",
+        "nodes": [],
+        "errorSelector": "15a785f5",
+        "name": "IncorrectOPathLengthException",
+        "nameLocation": "231:29:8",
+        "parameters": {
+          "id": 445,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "260:2:8"
+        }
+      },
+      {
+        "id": 448,
+        "nodeType": "ErrorDefinition",
+        "src": "264:38:8",
+        "nodes": [],
+        "errorSelector": "8f35468a",
+        "name": "IncorrectArrayLengthException",
+        "nameLocation": "270:29:8",
+        "parameters": {
+          "id": 447,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "299:2:8"
+        }
+      },
+      {
+        "id": 450,
+        "nodeType": "ErrorDefinition",
+        "src": "303:36:8",
+        "nodes": [],
+        "errorSelector": "a24fac08",
+        "name": "CreditManagersOnlyException",
+        "nameLocation": "309:27:8",
+        "parameters": {
+          "id": 449,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "336:2:8"
+        }
+      }
+    ],
+    "license": "GPL-2.0-or-later"
+  },
+  "id": 8
+}

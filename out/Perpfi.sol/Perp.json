@@ -1,0 +1,998 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_perpfi",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "baseToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint160",
+              "name": "sqrtPriceLimitX96",
+              "type": "uint160"
+            },
+            {
+              "internalType": "uint256",
+              "name": "oppositeAmountBound",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deadline",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "referralCode",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct IClearingHouse.ClosePositionParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "closePosition",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "base",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "quote",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "baseToken",
+              "type": "address"
+            },
+            {
+              "internalType": "bool",
+              "name": "isBaseToQuote",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isExactInput",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "oppositeAmountBound",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deadline",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint160",
+              "name": "sqrtPriceLimitX96",
+              "type": "uint160"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "referralCode",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct IClearingHouse.OpenPositionParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "openPosition",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "base",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "quote",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b506040516103c83803806103c883398101604081905261002f91610054565b600080546001600160a01b0319166001600160a01b0392909216919091179055610084565b60006020828403121561006657600080fd5b81516001600160a01b038116811461007d57600080fd5b9392505050565b610335806100936000396000f3fe608060405234801561001057600080fd5b50600436106100355760003560e01c8062aa9a891461003a578063b6b1b6c314610066575b600080fd5b61004d610048366004610178565b610079565b6040805192835260208301919091520160405180910390f35b61004d6100743660046101c8565b6100f3565b6000805460405162aa9a8960e01b815282916001600160a01b03169062aa9a89906100a8908690600401610282565b60408051808303816000875af11580156100c6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906100ea91906102db565b91509150915091565b600080546040805163b6b1b6c360e01b815284516001600160a01b0390811660048301526020860151151560248301529185015115156044820152606085015160648201526080850151608482015260a085015160a482015260c0850151821660c482015260e085015160e48201528392919091169063b6b1b6c390610104016100a8565b600060a0828403121561018a57600080fd5b50919050565b6001600160a01b03811681146101a557600080fd5b50565b80356101b381610190565b919050565b803580151581146101b357600080fd5b60006101008083850312156101dc57600080fd5b6040519081019067ffffffffffffffff8211818310171561020d57634e487b7160e01b600052604160045260246000fd5b8160405261021a846101a8565b8152610228602085016101b8565b6020820152610239604085016101b8565b6040820152606084013560608201526080840135608082015260a084013560a082015261026860c085016101a8565b60c082015260e084013560e0820152809250505092915050565b60a08101823561029181610190565b6001600160a01b0390811683526020840135906102ad82610190565b8082166020850152505060408301356040830152606083013560608301526080830135608083015292915050565b600080604083850312156102ee57600080fd5b50508051602090910151909290915056fea26469706673582212207c969dfb59086c7eb4f44c3f0045f0f8b1317b0f8195da4168f01985c53a5e2a64736f6c63430008110033",
+    "sourceMap": "98:772:4:-:0;;;146:78;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;185:6;:32;;-1:-1:-1;;;;;;185:32:4;-1:-1:-1;;;;;185:32:4;;;;;;;;;;98:772;;14:290:98;84:6;137:2;125:9;116:7;112:23;108:32;105:52;;;153:1;150;143:12;105:52;179:16;;-1:-1:-1;;;;;224:31:98;;214:42;;204:70;;270:1;267;260:12;204:70;293:5;14:290;-1:-1:-1;;;14:290:98:o;:::-;98:772:4;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100355760003560e01c8062aa9a891461003a578063b6b1b6c314610066575b600080fd5b61004d610048366004610178565b610079565b6040805192835260208301919091520160405180910390f35b61004d6100743660046101c8565b6100f3565b6000805460405162aa9a8960e01b815282916001600160a01b03169062aa9a89906100a8908690600401610282565b60408051808303816000875af11580156100c6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906100ea91906102db565b91509150915091565b600080546040805163b6b1b6c360e01b815284516001600160a01b0390811660048301526020860151151560248301529185015115156044820152606085015160648201526080850151608482015260a085015160a482015260c0850151821660c482015260e085015160e48201528392919091169063b6b1b6c390610104016100a8565b600060a0828403121561018a57600080fd5b50919050565b6001600160a01b03811681146101a557600080fd5b50565b80356101b381610190565b919050565b803580151581146101b357600080fd5b60006101008083850312156101dc57600080fd5b6040519081019067ffffffffffffffff8211818310171561020d57634e487b7160e01b600052604160045260246000fd5b8160405261021a846101a8565b8152610228602085016101b8565b6020820152610239604085016101b8565b6040820152606084013560608201526080840135608082015260a084013560a082015261026860c085016101a8565b60c082015260e084013560e0820152809250505092915050565b60a08101823561029181610190565b6001600160a01b0390811683526020840135906102ad82610190565b8082166020850152505060408301356040830152606083013560608301526080830135608083015292915050565b600080604083850312156102ee57600080fd5b50508051602090910151909290915056fea26469706673582212207c969dfb59086c7eb4f44c3f0045f0f8b1317b0f8195da4168f01985c53a5e2a64736f6c63430008110033",
+    "sourceMap": "98:772:4:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;674:194;;;;;;:::i;:::-;;:::i;:::-;;;;399:25:98;;;455:2;440:18;;433:34;;;;372:18;674:194:4;;;;;;;332:336;;;;;;:::i;:::-;;:::i;674:194::-;783:12;833:6;;:28;;-1:-1:-1;;;833:28:4;;783:12;;-1:-1:-1;;;;;833:6:4;;:20;;:28;;854:6;;833:28;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;826:35;;;;674:194;;;:::o;332:336::-;437:12;580:6;;:27;;;-1:-1:-1;;;580:27:4;;3257:13:98;;-1:-1:-1;;;;;3253:22:98;;;580:27:4;;;3235:41:98;3346:4;3334:17;;3328:24;3321:32;3314:40;3292:20;;;3285:70;3413:17;;;3407:24;3400:32;3393:40;3371:20;;;3364:70;3490:4;3478:17;;3472:24;3450:20;;;3443:54;3553:4;3541:17;;3535:24;3513:20;;;3506:54;3215:3;3604:17;;3598:24;3576:20;;;3569:54;3683:4;3671:17;;3665:24;3661:33;;3639:20;;;3632:63;3751:4;3739:17;;3733:24;3711:20;;;3704:54;437:12:4;;580:6;;;;;:19;;3169::98;;580:27:4;2978:786:98;14:206;112:6;165:3;153:9;144:7;140:23;136:33;133:53;;;182:1;179;172:12;133:53;-1:-1:-1;205:9:98;14:206;-1:-1:-1;14:206:98:o;478:131::-;-1:-1:-1;;;;;553:31:98;;543:42;;533:70;;599:1;596;589:12;533:70;478:131;:::o;614:134::-;682:20;;711:31;682:20;711:31;:::i;:::-;614:134;;;:::o;753:160::-;818:20;;874:13;;867:21;857:32;;847:60;;903:1;900;893:12;918:1056;1013:6;1044:3;1088:2;1076:9;1067:7;1063:23;1059:32;1056:52;;;1104:1;1101;1094:12;1056:52;1137:2;1131:9;1167:15;;;;1212:18;1197:34;;1233:22;;;1194:62;1191:185;;;1298:10;1293:3;1289:20;1286:1;1279:31;1333:4;1330:1;1323:15;1361:4;1358:1;1351:15;1191:185;1396:10;1392:2;1385:22;1431:29;1450:9;1431:29;:::i;:::-;1423:6;1416:45;1494:35;1525:2;1514:9;1510:18;1494:35;:::i;:::-;1489:2;1481:6;1477:15;1470:60;1563:35;1594:2;1583:9;1579:18;1563:35;:::i;:::-;1558:2;1550:6;1546:15;1539:60;1660:2;1649:9;1645:18;1632:32;1627:2;1619:6;1615:15;1608:57;1727:3;1716:9;1712:19;1699:33;1693:3;1685:6;1681:16;1674:59;1795:3;1784:9;1780:19;1767:33;1761:3;1753:6;1749:16;1742:59;1835:39;1869:3;1858:9;1854:19;1835:39;:::i;:::-;1829:3;1821:6;1817:16;1810:65;1937:3;1926:9;1922:19;1909:33;1903:3;1895:6;1891:16;1884:59;1962:6;1952:16;;;;918:1056;;;;:::o;1979:744::-;2189:3;2174:19;;2215:20;;2244:31;2215:20;2244:31;:::i;:::-;-1:-1:-1;;;;;2340:14:98;;;2322:33;;2404:4;2392:17;;2379:31;;2419:33;2379:31;2419:33;:::i;:::-;2503:2;2494:7;2490:16;2483:4;2472:9;2468:20;2461:46;;;2570:4;2562:6;2558:17;2545:31;2538:4;2527:9;2523:20;2516:61;2640:4;2632:6;2628:17;2615:31;2608:4;2597:9;2593:20;2586:61;2710:4;2702:6;2698:17;2685:31;2678:4;2667:9;2663:20;2656:61;1979:744;;;;:::o;2728:245::-;2807:6;2815;2868:2;2856:9;2847:7;2843:23;2839:32;2836:52;;;2884:1;2881;2874:12;2836:52;-1:-1:-1;;2907:16:98;;2963:2;2948:18;;;2942:25;2907:16;;2942:25;;-1:-1:-1;2728:245:98:o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "closePosition((address,uint160,uint256,uint256,bytes32))": "00aa9a89",
+    "openPosition((address,bool,bool,uint256,uint256,uint256,uint160,bytes32))": "b6b1b6c3"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_perpfi\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\"},{\"internalType\":\"uint256\",\"name\":\"oppositeAmountBound\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"referralCode\",\"type\":\"bytes32\"}],\"internalType\":\"struct IClearingHouse.ClosePositionParams\",\"name\":\"params\",\"type\":\"tuple\"}],\"name\":\"closePosition\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"base\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quote\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"isBaseToQuote\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isExactInput\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"oppositeAmountBound\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\"},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\"},{\"internalType\":\"bytes32\",\"name\":\"referralCode\",\"type\":\"bytes32\"}],\"internalType\":\"struct IClearingHouse.OpenPositionParams\",\"name\":\"params\",\"type\":\"tuple\"}],\"name\":\"openPosition\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"base\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quote\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Integrations/Perpfi.sol\":\"Perp\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Integrations/Perpfi.sol\":{\"keccak256\":\"0xbea38e1101154a178330287426d4d8a05d7098632ee827b03d25dc919df41e17\",\"urls\":[\"bzz-raw://62380fe10bc68867a5986c232b2d48adb7dd2050ff3fb06fc3be72c1317f5809\",\"dweb:/ipfs/QmQYYnchB9YrVuggRbPXQeNuscWDGwsMgnZ2nWsDoUuaLQ\"]},\"contracts/Interfaces/Perpfi/IClearingHouse.sol\":{\"keccak256\":\"0x4744f9bd8c6725305dfc03b42ae4f200f830e074347c5aa77dc216a7d7fb5eb4\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://e3ea955f4a101250461dd60dae3a26c09ba718e616b070d367c68169fc2e4748\",\"dweb:/ipfs/QmeqDetF68LuxDhXd4PAK14P21Y3JJvDZjQ9MuG4UnAfHP\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.17+commit.8df45f5f"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_perpfi",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct IClearingHouse.ClosePositionParams",
+              "name": "params",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "baseToken",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint160",
+                  "name": "sqrtPriceLimitX96",
+                  "type": "uint160"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "oppositeAmountBound",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "deadline",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "referralCode",
+                  "type": "bytes32"
+                }
+              ]
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "closePosition",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "base",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quote",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct IClearingHouse.OpenPositionParams",
+              "name": "params",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "baseToken",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isBaseToQuote",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isExactInput",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "oppositeAmountBound",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "deadline",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint160",
+                  "name": "sqrtPriceLimitX96",
+                  "type": "uint160"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "referralCode",
+                  "type": "bytes32"
+                }
+              ]
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "openPosition",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "base",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quote",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {},
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@chainlink/=node_modules/@chainlink/",
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@openzeppelin/=node_modules/@openzeppelin/",
+        ":@perp/=node_modules/@perp/",
+        ":@uniswap/=node_modules/@uniswap/",
+        ":base64-sol/=node_modules/base64-sol/",
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=lib/forge-std/src/",
+        ":hardhat/=node_modules/hardhat/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "contracts/Integrations/Perpfi.sol": "Perp"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/Integrations/Perpfi.sol": {
+        "keccak256": "0xbea38e1101154a178330287426d4d8a05d7098632ee827b03d25dc919df41e17",
+        "urls": [
+          "bzz-raw://62380fe10bc68867a5986c232b2d48adb7dd2050ff3fb06fc3be72c1317f5809",
+          "dweb:/ipfs/QmQYYnchB9YrVuggRbPXQeNuscWDGwsMgnZ2nWsDoUuaLQ"
+        ],
+        "license": null
+      },
+      "contracts/Interfaces/Perpfi/IClearingHouse.sol": {
+        "keccak256": "0x4744f9bd8c6725305dfc03b42ae4f200f830e074347c5aa77dc216a7d7fb5eb4",
+        "urls": [
+          "bzz-raw://e3ea955f4a101250461dd60dae3a26c09ba718e616b070d367c68169fc2e4748",
+          "dweb:/ipfs/QmeqDetF68LuxDhXd4PAK14P21Y3JJvDZjQ9MuG4UnAfHP"
+        ],
+        "license": "GPL-3.0-or-later"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/Integrations/Perpfi.sol",
+    "id": 382,
+    "exportedSymbols": {
+      "IClearingHouse": [
+        1564
+      ],
+      "Perp": [
+        381
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:871:4",
+    "nodes": [
+      {
+        "id": 331,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:4",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".10"
+        ]
+      },
+      {
+        "id": 333,
+        "nodeType": "ImportDirective",
+        "src": "25:71:4",
+        "nodes": [],
+        "absolutePath": "contracts/Interfaces/Perpfi/IClearingHouse.sol",
+        "file": "../Interfaces/Perpfi/IClearingHouse.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 382,
+        "sourceUnit": 1565,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 332,
+              "name": "IClearingHouse",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 1564,
+              "src": "33:14:4",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 381,
+        "nodeType": "ContractDefinition",
+        "src": "98:772:4",
+        "nodes": [
+          {
+            "id": 336,
+            "nodeType": "VariableDeclaration",
+            "src": "118:21:4",
+            "nodes": [],
+            "constant": false,
+            "mutability": "mutable",
+            "name": "perpfi",
+            "nameLocation": "133:6:4",
+            "scope": 381,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+              "typeString": "contract IClearingHouse"
+            },
+            "typeName": {
+              "id": 335,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 334,
+                "name": "IClearingHouse",
+                "nameLocations": [
+                  "118:14:4"
+                ],
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 1564,
+                "src": "118:14:4"
+              },
+              "referencedDeclaration": 1564,
+              "src": "118:14:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+                "typeString": "contract IClearingHouse"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "id": 348,
+            "nodeType": "FunctionDefinition",
+            "src": "146:78:4",
+            "nodes": [],
+            "body": {
+              "id": 347,
+              "nodeType": "Block",
+              "src": "175:49:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "id": 345,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 341,
+                      "name": "perpfi",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 336,
+                      "src": "185:6:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+                        "typeString": "contract IClearingHouse"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "arguments": [
+                        {
+                          "id": 343,
+                          "name": "_perpfi",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 338,
+                          "src": "209:7:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "id": 342,
+                        "name": "IClearingHouse",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 1564,
+                        "src": "194:14:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_contract$_IClearingHouse_$1564_$",
+                          "typeString": "type(contract IClearingHouse)"
+                        }
+                      },
+                      "id": 344,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "typeConversion",
+                      "lValueRequested": false,
+                      "nameLocations": [],
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "194:23:4",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+                        "typeString": "contract IClearingHouse"
+                      }
+                    },
+                    "src": "185:32:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+                      "typeString": "contract IClearingHouse"
+                    }
+                  },
+                  "id": 346,
+                  "nodeType": "ExpressionStatement",
+                  "src": "185:32:4"
+                }
+              ]
+            },
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [],
+            "name": "",
+            "nameLocation": "-1:-1:-1",
+            "parameters": {
+              "id": 339,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 338,
+                  "mutability": "mutable",
+                  "name": "_perpfi",
+                  "nameLocation": "166:7:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 348,
+                  "src": "158:15:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 337,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "158:7:4",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "157:17:4"
+            },
+            "returnParameters": {
+              "id": 340,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "175:0:4"
+            },
+            "scope": 381,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "public"
+          },
+          {
+            "id": 364,
+            "nodeType": "FunctionDefinition",
+            "src": "332:336:4",
+            "nodes": [],
+            "body": {
+              "id": 363,
+              "nodeType": "Block",
+              "src": "470:198:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 360,
+                        "name": "params",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 351,
+                        "src": "600:6:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_OpenPositionParams_$1273_memory_ptr",
+                          "typeString": "struct IClearingHouse.OpenPositionParams memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_struct$_OpenPositionParams_$1273_memory_ptr",
+                          "typeString": "struct IClearingHouse.OpenPositionParams memory"
+                        }
+                      ],
+                      "expression": {
+                        "id": 358,
+                        "name": "perpfi",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 336,
+                        "src": "580:6:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+                          "typeString": "contract IClearingHouse"
+                        }
+                      },
+                      "id": 359,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberLocation": "587:12:4",
+                      "memberName": "openPosition",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 1426,
+                      "src": "580:19:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_nonpayable$_t_struct$_OpenPositionParams_$1273_memory_ptr_$returns$_t_uint256_$_t_uint256_$",
+                        "typeString": "function (struct IClearingHouse.OpenPositionParams memory) external returns (uint256,uint256)"
+                      }
+                    },
+                    "id": 361,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "580:27:4",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$_t_uint256_$_t_uint256_$",
+                      "typeString": "tuple(uint256,uint256)"
+                    }
+                  },
+                  "functionReturnParameters": 357,
+                  "id": 362,
+                  "nodeType": "Return",
+                  "src": "573:34:4"
+                }
+              ]
+            },
+            "functionSelector": "b6b1b6c3",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "openPosition",
+            "nameLocation": "341:12:4",
+            "parameters": {
+              "id": 352,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 351,
+                  "mutability": "mutable",
+                  "name": "params",
+                  "nameLocation": "395:6:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 364,
+                  "src": "354:47:4",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_OpenPositionParams_$1273_memory_ptr",
+                    "typeString": "struct IClearingHouse.OpenPositionParams"
+                  },
+                  "typeName": {
+                    "id": 350,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 349,
+                      "name": "IClearingHouse.OpenPositionParams",
+                      "nameLocations": [
+                        "354:14:4",
+                        "369:18:4"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1273,
+                      "src": "354:33:4"
+                    },
+                    "referencedDeclaration": 1273,
+                    "src": "354:33:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_OpenPositionParams_$1273_storage_ptr",
+                      "typeString": "struct IClearingHouse.OpenPositionParams"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "353:49:4"
+            },
+            "returnParameters": {
+              "id": 357,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 354,
+                  "mutability": "mutable",
+                  "name": "base",
+                  "nameLocation": "445:4:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 364,
+                  "src": "437:12:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 353,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "437:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 356,
+                  "mutability": "mutable",
+                  "name": "quote",
+                  "nameLocation": "459:5:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 364,
+                  "src": "451:13:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 355,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "451:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "436:29:4"
+            },
+            "scope": 381,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 380,
+            "nodeType": "FunctionDefinition",
+            "src": "674:194:4",
+            "nodes": [],
+            "body": {
+              "id": 379,
+              "nodeType": "Block",
+              "src": "816:52:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 376,
+                        "name": "params",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 367,
+                        "src": "854:6:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_ClosePositionParams_$1284_calldata_ptr",
+                          "typeString": "struct IClearingHouse.ClosePositionParams calldata"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_struct$_ClosePositionParams_$1284_calldata_ptr",
+                          "typeString": "struct IClearingHouse.ClosePositionParams calldata"
+                        }
+                      ],
+                      "expression": {
+                        "id": 374,
+                        "name": "perpfi",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 336,
+                        "src": "833:6:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_IClearingHouse_$1564",
+                          "typeString": "contract IClearingHouse"
+                        }
+                      },
+                      "id": 375,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberLocation": "840:13:4",
+                      "memberName": "closePosition",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 1452,
+                      "src": "833:20:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_nonpayable$_t_struct$_ClosePositionParams_$1284_memory_ptr_$returns$_t_uint256_$_t_uint256_$",
+                        "typeString": "function (struct IClearingHouse.ClosePositionParams memory) external returns (uint256,uint256)"
+                      }
+                    },
+                    "id": 377,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "833:28:4",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$_t_uint256_$_t_uint256_$",
+                      "typeString": "tuple(uint256,uint256)"
+                    }
+                  },
+                  "functionReturnParameters": 373,
+                  "id": 378,
+                  "nodeType": "Return",
+                  "src": "826:35:4"
+                }
+              ]
+            },
+            "functionSelector": "00aa9a89",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "closePosition",
+            "nameLocation": "683:13:4",
+            "parameters": {
+              "id": 368,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 367,
+                  "mutability": "mutable",
+                  "name": "params",
+                  "nameLocation": "741:6:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 380,
+                  "src": "697:50:4",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_ClosePositionParams_$1284_calldata_ptr",
+                    "typeString": "struct IClearingHouse.ClosePositionParams"
+                  },
+                  "typeName": {
+                    "id": 366,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 365,
+                      "name": "IClearingHouse.ClosePositionParams",
+                      "nameLocations": [
+                        "697:14:4",
+                        "712:19:4"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1284,
+                      "src": "697:34:4"
+                    },
+                    "referencedDeclaration": 1284,
+                    "src": "697:34:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_ClosePositionParams_$1284_storage_ptr",
+                      "typeString": "struct IClearingHouse.ClosePositionParams"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "696:52:4"
+            },
+            "returnParameters": {
+              "id": 373,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 370,
+                  "mutability": "mutable",
+                  "name": "base",
+                  "nameLocation": "791:4:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 380,
+                  "src": "783:12:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 369,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "783:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 372,
+                  "mutability": "mutable",
+                  "name": "quote",
+                  "nameLocation": "805:5:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 380,
+                  "src": "797:13:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 371,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "797:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "782:29:4"
+            },
+            "scope": 381,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "Perp",
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          381
+        ],
+        "name": "Perp",
+        "nameLocation": "107:4:4",
+        "scope": 382,
+        "usedErrors": []
+      }
+    ]
+  },
+  "id": 4
+}

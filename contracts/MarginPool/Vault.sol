@@ -71,8 +71,8 @@ contract Vault is IVault, ERC4626 {
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
 
-    mapping(address => bool) lendingAllowed;
-    mapping(address => bool) repayingAllowed;
+    mapping(address => bool) public lendingAllowed;
+    mapping(address => bool) public repayingAllowed;
     address[] whitelistedCreditors;
 
     // Cumulative index in RAY
@@ -83,22 +83,6 @@ contract Vault is IVault, ERC4626 {
     // used to calculate next timestamp values quickly
     uint256 expectedLiquidityLastUpdated;
     uint256 timestampLastUpdated;
-
-    // events move to Interface
-    // event Borrow(
-    //     address indexed marginManager,
-    //     address indexed creditAccount,
-    //     uint256 amount
-    // );
-
-    // // Emits each time when Credit Manager repays money from pool
-    // event Repay(
-    //     address indexed marginManager,
-    //     uint256 borrowedAmount,
-    //     uint256 profit,
-    //     uint256 loss
-    // );
-    // event InterestRateModelUpdated(address indexed newInterestRateModel);
 
     constructor(
         address _asset,
@@ -242,17 +226,11 @@ contract Vault is IVault, ERC4626 {
     }
 
     modifier onlyAllowedLendingMarginManager() {
-        require(
-            lendingAllowed[msg.sender] == true,
-            Errors.POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER
-        );
+        require(lendingAllowed[msg.sender] == true, "Unauthorized Lend");
         _;
     }
     modifier onlyAllowedRepayingMarginManager() {
-        require(
-            repayingAllowed[msg.sender] == true,
-            Errors.POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER
-        );
+        require(repayingAllowed[msg.sender] == true, "Unauthorized Repay");
         _;
     }
 
@@ -278,7 +256,7 @@ contract Vault is IVault, ERC4626 {
         // update interest rate;
         _updateBorrowRate(0);
         // transfer
-        
+
         IERC20(asset()).transfer(borrower, amount);
         emit Borrow(msg.sender, borrower, amount);
     }
@@ -301,7 +279,6 @@ contract Vault is IVault, ERC4626 {
 
         // currently vault does not check credit account's accounting. It should ideally check an accounts major events like on closing if interest paid is right or not.
         //
-
 
         // transfer
         // if (profit > 0) {

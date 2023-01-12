@@ -187,6 +187,7 @@ contract MarginManager is ReentrancyGuard {
                 if (balance < tokensToTransfer.abs()) {
                     // TODO add oracle to get asset value.
                     uint256 diff = tokensToTransfer.abs().sub(balance);
+                    // check if diff is > 0
                     increaseDebt(address(marginAcc), diff);
                 }//@note what if balance if more then transfer
                 if (tokenIn != tokenOut) {

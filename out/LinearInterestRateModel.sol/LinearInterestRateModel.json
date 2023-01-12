@@ -1,0 +1,3238 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "U_optimal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "R_base",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "R_slope1",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "R_slope2",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "_R_base_RAY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "_R_slope1_RAY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "_R_slope2_RAY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "_U_Optimal_WAD",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "_U_Optimal_inverted_WAD",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "expectedLiquidity",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "availableLiquidity",
+          "type": "uint256"
+        }
+      ],
+      "name": "calcBorrowRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getModelParameters",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "U_optimal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "R_base",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "R_slope1",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "R_slope2",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "version",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x6101206040523480156200001257600080fd5b506040516200095538038062000955833981016040819052620000359162000220565b604080518082019091526002815261049560f41b6020820152620f42408511156200007e5760405162461bcd60e51b815260040162000075919062000257565b60405180910390fd5b50604080518082019091526002815261049560f41b6020820152620f4240841115620000bf5760405162461bcd60e51b815260040162000075919062000257565b50604080518082019091526002815261049560f41b6020820152620f4240831115620001005760405162461bcd60e51b815260040162000075919062000257565b5060006200012585670de0b6b3a7640000620001c560201b6200043c1790919060201c565b608081905290506200014081670de0b6b3a7640000620002bd565b60a052620001676b033b2e3c9fd0803ce800000085620001c5602090811b6200043c17901c565b60c0526200018e6b033b2e3c9fd0803ce800000084620001c5602090811b6200043c17901c565b60e052620001b56b033b2e3c9fd0803ce800000083620001c5602090811b6200043c17901c565b6101005250620003269350505050565b6000821580620001d3575081155b15620001e2575060006200021a565b620f4240620001f3600282620002d3565b620001ff8486620002f6565b6200020b919062000310565b620002179190620002d3565b90505b92915050565b600080600080608085870312156200023757600080fd5b505082516020840151604085015160609095015191969095509092509050565b600060208083528351808285015260005b81811015620002865785810183015185820160400152820162000268565b506000604082860101526040601f19601f8301168501019250505092915050565b634e487b7160e01b600052601160045260246000fd5b818103818111156200021a576200021a620002a7565b600082620002f157634e487b7160e01b600052601260045260246000fd5b500490565b80820281158282048414176200021a576200021a620002a7565b808201808211156200021a576200021a620002a7565b60805160a05160c05160e0516101005161058a620003cb600039600081816101840152818161030b015261041701526000818160e70152818161025a0152818161033e01526103f401526000818161010e015281816101bc0152818161028e0152818161035f01526103d101526000818161015d01526102bc01526000818160b80152818161020d01528181610235015281816102e001526103a1015261058a6000f3fe608060405234801561001057600080fd5b50600436106100885760003560e01c80639cd3fdb51161005b5780639cd3fdb514610109578063c8284e6d14610130578063f81d438114610158578063fc4b2b781461017f57600080fd5b806342568d441461008d57806350ced104146100b357806354fd4d50146100da5780639aec06ea146100e2575b600080fd5b6100a061009b3660046104bd565b6101a6565b6040519081526020015b60405180910390f35b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b6100a0600181565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b610138610397565b6040805194855260208501939093529183015260608201526080016100aa565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b60008215806101b457508183105b156101e057507f0000000000000000000000000000000000000000000000000000000000000000610391565b6000836101ed84826104f5565b6101ff90670de0b6b3a7640000610508565b610209919061051f565b90507f00000000000000000000000000000000000000000000000000000000000000008110156102ba577f000000000000000000000000000000000000000000000000000000000000000061027e827f0000000000000000000000000000000000000000000000000000000000000000610508565b610288919061051f565b6102b2907f0000000000000000000000000000000000000000000000000000000000000000610541565b915050610391565b7f00000000000000000000000000000000000000000000000000000000000000006103057f0000000000000000000000000000000000000000000000000000000000000000836104f5565b61032f907f0000000000000000000000000000000000000000000000000000000000000000610508565b610339919061051f565b6103837f00000000000000000000000000000000000000000000000000000000000000007f0000000000000000000000000000000000000000000000000000000000000000610541565b61038d9190610541565b9150505b92915050565b60008080806103ce7f0000000000000000000000000000000000000000000000000000000000000000670de0b6b3a764000061048a565b947f000000000000000000000000000000000000000000000000000000000000000094507f000000000000000000000000000000000000000000000000000000000000000093507f000000000000000000000000000000000000000000000000000000000000000092509050565b6000821580610449575081155b1561045657506000610391565b620f424061046560028261051f565b61046f8486610508565b6104799190610541565b610483919061051f565b9392505050565b60008061049860028461051f565b905082816104a9620f424087610508565b6104b39190610541565b61038d919061051f565b600080604083850312156104d057600080fd5b50508035926020909101359150565b634e487b7160e01b600052601160045260246000fd5b81810381811115610391576103916104df565b8082028115828204841417610391576103916104df565b60008261053c57634e487b7160e01b600052601260045260246000fd5b500490565b80820180821115610391576103916104df56fea2646970667358221220ba666574d4cdb30e90b9588b803399e01f505e5ce36d174e3320547b5cf4a4f764736f6c63430008110033",
+    "sourceMap": "436:4069:44:-:0;;;1460:724;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;1631:26;;;;;;;;;;;;-1:-1:-1;;;1631:26:44;;;;100:3:37;1599:30:44;;;1591:67;;;;-1:-1:-1;;;1591:67:44;;;;;;;;:::i;:::-;;;;;;;;;-1:-1:-1;1705:26:44;;;;;;;;;;;;-1:-1:-1;;;1705:26:44;;;;100:3:37;1676:27:44;;;1668:64;;;;-1:-1:-1;;;1668:64:44;;;;;;;;:::i;:::-;-1:-1:-1;1781:26:44;;;;;;;;;;;;-1:-1:-1;;;1781:26:44;;;;100:3:37;1750:29:44;;;1742:66;;;;-1:-1:-1;;;1742:66:44;;;;;;;;:::i;:::-;;1854:21;1878:25;1893:9;124:4:39;1878:14:44;;;;;;:25;;;;:::i;:::-;1913:30;;;;1854:49;-1:-1:-1;2011:19:44;1854:49;124:4:39;2011:19:44;:::i;:::-;1985:45;;2055:22;189:4:39;2070:6:44;2055:14;;;;;;;:22;;:::i;:::-;2041:36;;2103:24;189:4:39;2118:8:44;2103:14;;;;;;;:24;;:::i;:::-;2087:40;;2153:24;189:4:39;2168:8:44;2153:14;;;;;;;:24;;:::i;:::-;2137:40;;-1:-1:-1;436:4069:44;;-1:-1:-1;;;;436:4069:44;766:495:37;868:7;895:10;;;:29;;-1:-1:-1;909:15:37;;895:29;891:80;;;-1:-1:-1;947:1:37;940:8;;891:80;100:3;168:21;188:1;100:3;168:21;:::i;:::-;1188:18;1196:10;1188:5;:18;:::i;:::-;:33;;;;:::i;:::-;1187:55;;;;:::i;:::-;1180:62;;766:495;;;;;:::o;14:368:98:-;111:6;119;127;135;188:3;176:9;167:7;163:23;159:33;156:53;;;205:1;202;195:12;156:53;-1:-1:-1;;228:16:98;;284:2;269:18;;263:25;328:2;313:18;;307:25;372:2;357:18;;;351:25;228:16;;263:25;;-1:-1:-1;351:25:98;;-1:-1:-1;14:368:98;-1:-1:-1;14:368:98:o;387:548::-;499:4;528:2;557;546:9;539:21;589:6;583:13;632:6;627:2;616:9;612:18;605:34;657:1;667:140;681:6;678:1;675:13;667:140;;;776:14;;;772:23;;766:30;742:17;;;761:2;738:26;731:66;696:10;;667:140;;;671:3;856:1;851:2;842:6;831:9;827:22;823:31;816:42;926:2;919;915:7;910:2;902:6;898:15;894:29;883:9;879:45;875:54;867:62;;;;387:548;;;;:::o;940:127::-;1001:10;996:3;992:20;989:1;982:31;1032:4;1029:1;1022:15;1056:4;1053:1;1046:15;1072:128;1139:9;;;1160:11;;;1157:37;;;1174:18;;:::i;1205:217::-;1245:1;1271;1261:132;;1315:10;1310:3;1306:20;1303:1;1296:31;1350:4;1347:1;1340:15;1378:4;1375:1;1368:15;1261:132;-1:-1:-1;1407:9:98;;1205:217::o;1427:168::-;1500:9;;;1531;;1548:15;;;1542:22;;1528:37;1518:71;;1569:18;;:::i;1600:125::-;1665:9;;;1686:10;;;1683:36;;;1699:18;;:::i;1600:125::-;436:4069:44;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100885760003560e01c80639cd3fdb51161005b5780639cd3fdb514610109578063c8284e6d14610130578063f81d438114610158578063fc4b2b781461017f57600080fd5b806342568d441461008d57806350ced104146100b357806354fd4d50146100da5780639aec06ea146100e2575b600080fd5b6100a061009b3660046104bd565b6101a6565b6040519081526020015b60405180910390f35b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b6100a0600181565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b610138610397565b6040805194855260208501939093529183015260608201526080016100aa565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b6100a07f000000000000000000000000000000000000000000000000000000000000000081565b60008215806101b457508183105b156101e057507f0000000000000000000000000000000000000000000000000000000000000000610391565b6000836101ed84826104f5565b6101ff90670de0b6b3a7640000610508565b610209919061051f565b90507f00000000000000000000000000000000000000000000000000000000000000008110156102ba577f000000000000000000000000000000000000000000000000000000000000000061027e827f0000000000000000000000000000000000000000000000000000000000000000610508565b610288919061051f565b6102b2907f0000000000000000000000000000000000000000000000000000000000000000610541565b915050610391565b7f00000000000000000000000000000000000000000000000000000000000000006103057f0000000000000000000000000000000000000000000000000000000000000000836104f5565b61032f907f0000000000000000000000000000000000000000000000000000000000000000610508565b610339919061051f565b6103837f00000000000000000000000000000000000000000000000000000000000000007f0000000000000000000000000000000000000000000000000000000000000000610541565b61038d9190610541565b9150505b92915050565b60008080806103ce7f0000000000000000000000000000000000000000000000000000000000000000670de0b6b3a764000061048a565b947f000000000000000000000000000000000000000000000000000000000000000094507f000000000000000000000000000000000000000000000000000000000000000093507f000000000000000000000000000000000000000000000000000000000000000092509050565b6000821580610449575081155b1561045657506000610391565b620f424061046560028261051f565b61046f8486610508565b6104799190610541565b610483919061051f565b9392505050565b60008061049860028461051f565b905082816104a9620f424087610508565b6104b39190610541565b61038d919061051f565b600080604083850312156104d057600080fd5b50508035926020909101359150565b634e487b7160e01b600052601160045260246000fd5b81810381811115610391576103916104df565b8082028115828204841417610391576103916104df565b60008261053c57634e487b7160e01b600052601260045260246000fd5b500490565b80820180821115610391576103916104df56fea2646970667358221220ba666574d4cdb30e90b9588b803399e01f505e5ce36d174e3320547b5cf4a4f764736f6c63430008110033",
+    "sourceMap": "436:4069:44:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2406:1405;;;;;;:::i;:::-;;:::i;:::-;;;413:25:98;;;401:2;386:18;2406:1405:44;;;;;;;;598:39;;;;;987:35;;1021:1;987:35;;850:38;;;;;784:36;;;;;4088:415;;;:::i;:::-;;;;680:25:98;;;736:2;721:18;;714:34;;;;764:18;;;757:34;822:2;807:18;;800:34;667:3;652:19;4088:415:44;449:391:98;708:48:44;;;;;918:38;;;;;2406:1405;2539:7;2689:22;;;:64;;;2735:18;2715:17;:38;2689:64;2685:113;;;-1:-1:-1;2776:11:44;2769:18;;2685:113;2958:13;3037:17;2982:38;3002:18;3037:17;2982:38;:::i;:::-;2975:46;;124:4:39;2975:46:44;:::i;:::-;2974:80;;;;:::i;:::-;2958:96;;3281:14;3273:5;:22;3269:116;;;3359:14;3334:21;3350:5;3334:13;:21;:::i;:::-;3333:40;;;;:::i;:::-;3318:56;;:11;:56;:::i;:::-;3311:63;;;;;3269:116;3765:23;3726:22;3734:14;3726:5;:22;:::i;:::-;3709:40;;:13;:40;:::i;:::-;3708:80;;;;:::i;:::-;3654:39;3680:13;3654:11;:39;:::i;:::-;:134;;;;:::i;:::-;3635:153;;;2406:1405;;;;;:::o;4088:415::-;4178:17;;;;4320:30;:14;124:4:39;4320:25:44;:30::i;:::-;4308:42;4381:11;;-1:-1:-1;4425:13:44;;-1:-1:-1;4471:13:44;;-1:-1:-1;4088:415:44;-1:-1:-1;4088:415:44:o;766:495:37:-;868:7;895:10;;;:29;;-1:-1:-1;909:15:37;;895:29;891:80;;;-1:-1:-1;947:1:37;940:8;;891:80;100:3;168:21;188:1;100:3;168:21;:::i;:::-;1188:18;1196:10;1188:5;:18;:::i;:::-;:33;;;;:::i;:::-;1187:55;;;;:::i;:::-;1180:62;766:495;-1:-1:-1;;;766:495:37:o;1522:545::-;1624:7;;1751:14;1764:1;1751:10;:14;:::i;:::-;1726:39;-1:-1:-1;2050:10:37;1726:39;2004:25;100:3;2004:5;:25;:::i;:::-;:42;;;;:::i;:::-;2003:57;;;;:::i;14:248:98:-;82:6;90;143:2;131:9;122:7;118:23;114:32;111:52;;;159:1;156;149:12;111:52;-1:-1:-1;;182:23:98;;;252:2;237:18;;;224:32;;-1:-1:-1;14:248:98:o;845:127::-;906:10;901:3;897:20;894:1;887:31;937:4;934:1;927:15;961:4;958:1;951:15;977:128;1044:9;;;1065:11;;;1062:37;;;1079:18;;:::i;1110:168::-;1183:9;;;1214;;1231:15;;;1225:22;;1211:37;1201:71;;1252:18;;:::i;1283:217::-;1323:1;1349;1339:132;;1393:10;1388:3;1384:20;1381:1;1374:31;1428:4;1425:1;1418:15;1456:4;1453:1;1446:15;1339:132;-1:-1:-1;1485:9:98;;1283:217::o;1505:125::-;1570:9;;;1591:10;;;1588:36;;;1604:18;;:::i",
+    "linkReferences": {},
+    "immutableReferences": {
+      "7570": [
+        {
+          "start": 184,
+          "length": 32
+        },
+        {
+          "start": 525,
+          "length": 32
+        },
+        {
+          "start": 565,
+          "length": 32
+        },
+        {
+          "start": 736,
+          "length": 32
+        },
+        {
+          "start": 929,
+          "length": 32
+        }
+      ],
+      "7572": [
+        {
+          "start": 349,
+          "length": 32
+        },
+        {
+          "start": 700,
+          "length": 32
+        }
+      ],
+      "7574": [
+        {
+          "start": 270,
+          "length": 32
+        },
+        {
+          "start": 444,
+          "length": 32
+        },
+        {
+          "start": 654,
+          "length": 32
+        },
+        {
+          "start": 863,
+          "length": 32
+        },
+        {
+          "start": 977,
+          "length": 32
+        }
+      ],
+      "7576": [
+        {
+          "start": 231,
+          "length": 32
+        },
+        {
+          "start": 602,
+          "length": 32
+        },
+        {
+          "start": 830,
+          "length": 32
+        },
+        {
+          "start": 1012,
+          "length": 32
+        }
+      ],
+      "7578": [
+        {
+          "start": 388,
+          "length": 32
+        },
+        {
+          "start": 779,
+          "length": 32
+        },
+        {
+          "start": 1047,
+          "length": 32
+        }
+      ]
+    }
+  },
+  "methodIdentifiers": {
+    "_R_base_RAY()": "9cd3fdb5",
+    "_R_slope1_RAY()": "9aec06ea",
+    "_R_slope2_RAY()": "fc4b2b78",
+    "_U_Optimal_WAD()": "50ced104",
+    "_U_Optimal_inverted_WAD()": "f81d4381",
+    "calcBorrowRate(uint256,uint256)": "42568d44",
+    "getModelParameters()": "c8284e6d",
+    "version()": "54fd4d50"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"U_optimal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"R_base\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"R_slope1\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"R_slope2\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"_R_base_RAY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"_R_slope1_RAY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"_R_slope2_RAY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"_U_Optimal_WAD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"_U_Optimal_inverted_WAD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expectedLiquidity\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"availableLiquidity\",\"type\":\"uint256\"}],\"name\":\"calcBorrowRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getModelParameters\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"U_optimal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"R_base\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"R_slope1\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"R_slope2\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"calcBorrowRate(uint256,uint256)\":{\"details\":\"Calculated borrow rate based on expectedLiquidity and availableLiquidity\",\"params\":{\"availableLiquidity\":\"Available liquidity in the pool\",\"expectedLiquidity\":\"Expected liquidity in the pool\"}},\"constructor\":{\"details\":\"Constructor\",\"params\":{\"R_base\":\"R_base in percentage format: x10.000 - percentage plus two decimals @param R_slope1 R_Slope1 in Ray\",\"R_slope1\":\"R_Slope1 in percentage format: x10.000 - percentage plus two decimals\",\"R_slope2\":\"R_Slope2 in percentage format: x10.000 - percentage plus two decimals\",\"U_optimal\":\"Optimal U in percentage format: x10.000 - percentage plus two decimals\"}},\"getModelParameters()\":{\"details\":\"Gets model parameters\",\"params\":{\"R_base\":\"R_base in RAY format\",\"R_slope1\":\"R_slope1 in RAY format\",\"R_slope2\":\"R_slope2 in RAY format\",\"U_optimal\":\"U_optimal in percentage format: [0;10,000] - percentage plus two decimals\"}}},\"title\":\"Linear Interest Rate Model\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Linear interest rate model, similar which Aave uses\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/MarginPool/LinearInterestRateModel.sol\":\"LinearInterestRateModel\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IInterestRateModel.sol\":{\"keccak256\":\"0xee0996b623c056a13600c16be68c6dbaa12d9bd24c3b61237d885ce20cbcde0f\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://8be0cbdedd36986df9459cbc0546a4a451c37d9b4459a6fe83327a1802bbb958\",\"dweb:/ipfs/QmPgdYwmsnPd9BHfEo8jyBPGUfEkCBzzgFfb5qVPFF1acz\"]},\"contracts/Libraries/Errors.sol\":{\"keccak256\":\"0x41a76280ccdad7633599195a3338f9e0e944c8c339861ee781929b656998c036\",\"license\":\"GPL-2.0-or-later\",\"urls\":[\"bzz-raw://896f8a6b83c22e6c8a8234b2d25bf997562c9e077849d410df85d2fb51c36f8e\",\"dweb:/ipfs/QmUM7MhbjePAmDsAyeCBfrbecitpSLGEPzyQZqn1Jq1MB1\"]},\"contracts/Libraries/PercentageMath.sol\":{\"keccak256\":\"0xe47e7ae17cf2f4a0b6e46e5a891f078db6036f4794c1c7ff5342e4b0b7f8c524\",\"license\":\"agpl-3.0\",\"urls\":[\"bzz-raw://8618226cfb015540c35a7d921088f3ad1b6490bd44e848a244e80ce1d875e0a5\",\"dweb:/ipfs/QmWMZiKwPhjLiQ8wkfKCkHeuQABPrJWzR9Kuhb5nHb9ArR\"]},\"contracts/Libraries/WadRayMath.sol\":{\"keccak256\":\"0x3b781cc92c6711e789614ce3014cd222167f515fe9cd64ef3a4acde53a1abaad\",\"license\":\"agpl-3.0\",\"urls\":[\"bzz-raw://bed1e9410810e15c7c20d4c7b28cd02bcd5fd9e38ddd29ae987a2ce6684fadcb\",\"dweb:/ipfs/QmPy3NJjWHUDUcd3dJ61YqZJHL3NcNGqZdCSoCkYyfJmaM\"]},\"contracts/MarginPool/LinearInterestRateModel.sol\":{\"keccak256\":\"0x2cda2bd918806a5c1acbdb9ccbab4ef50ea4fb353133b5992ed9b70529573893\",\"license\":\"BUSL-1.1\",\"urls\":[\"bzz-raw://8c2293c751afe3d1343410fb7ce7f3b8a1f4053a21ae3ee14d4d47fda159917f\",\"dweb:/ipfs/QmccnyYf1m17Xcq7xwGEHVssniyFdyFGyGtmxeGVZSNwro\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.17+commit.8df45f5f"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "U_optimal",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_base",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_slope1",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_slope2",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "_R_base_RAY",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "_R_slope1_RAY",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "_R_slope2_RAY",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "_U_Optimal_WAD",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "_U_Optimal_inverted_WAD",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "expectedLiquidity",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "availableLiquidity",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "calcBorrowRate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getModelParameters",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "U_optimal",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_base",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_slope1",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_slope2",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "version",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {
+          "calcBorrowRate(uint256,uint256)": {
+            "details": "Calculated borrow rate based on expectedLiquidity and availableLiquidity",
+            "params": {
+              "availableLiquidity": "Available liquidity in the pool",
+              "expectedLiquidity": "Expected liquidity in the pool"
+            }
+          },
+          "constructor": {
+            "details": "Constructor",
+            "params": {
+              "R_base": "R_base in percentage format: x10.000 - percentage plus two decimals @param R_slope1 R_Slope1 in Ray",
+              "R_slope1": "R_Slope1 in percentage format: x10.000 - percentage plus two decimals",
+              "R_slope2": "R_Slope2 in percentage format: x10.000 - percentage plus two decimals",
+              "U_optimal": "Optimal U in percentage format: x10.000 - percentage plus two decimals"
+            }
+          },
+          "getModelParameters()": {
+            "details": "Gets model parameters",
+            "params": {
+              "R_base": "R_base in RAY format",
+              "R_slope1": "R_slope1 in RAY format",
+              "R_slope2": "R_slope2 in RAY format",
+              "U_optimal": "U_optimal in percentage format: [0;10,000] - percentage plus two decimals"
+            }
+          }
+        },
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@chainlink/=node_modules/@chainlink/",
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@openzeppelin/=node_modules/@openzeppelin/",
+        ":@perp/=node_modules/@perp/",
+        ":@uniswap/=node_modules/@uniswap/",
+        ":base64-sol/=node_modules/base64-sol/",
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=lib/forge-std/src/",
+        ":hardhat/=node_modules/hardhat/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "contracts/MarginPool/LinearInterestRateModel.sol": "LinearInterestRateModel"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/Interfaces/IInterestRateModel.sol": {
+        "keccak256": "0xee0996b623c056a13600c16be68c6dbaa12d9bd24c3b61237d885ce20cbcde0f",
+        "urls": [
+          "bzz-raw://8be0cbdedd36986df9459cbc0546a4a451c37d9b4459a6fe83327a1802bbb958",
+          "dweb:/ipfs/QmPgdYwmsnPd9BHfEo8jyBPGUfEkCBzzgFfb5qVPFF1acz"
+        ],
+        "license": "GPL-3.0-or-later"
+      },
+      "contracts/Libraries/Errors.sol": {
+        "keccak256": "0x41a76280ccdad7633599195a3338f9e0e944c8c339861ee781929b656998c036",
+        "urls": [
+          "bzz-raw://896f8a6b83c22e6c8a8234b2d25bf997562c9e077849d410df85d2fb51c36f8e",
+          "dweb:/ipfs/QmUM7MhbjePAmDsAyeCBfrbecitpSLGEPzyQZqn1Jq1MB1"
+        ],
+        "license": "GPL-2.0-or-later"
+      },
+      "contracts/Libraries/PercentageMath.sol": {
+        "keccak256": "0xe47e7ae17cf2f4a0b6e46e5a891f078db6036f4794c1c7ff5342e4b0b7f8c524",
+        "urls": [
+          "bzz-raw://8618226cfb015540c35a7d921088f3ad1b6490bd44e848a244e80ce1d875e0a5",
+          "dweb:/ipfs/QmWMZiKwPhjLiQ8wkfKCkHeuQABPrJWzR9Kuhb5nHb9ArR"
+        ],
+        "license": "agpl-3.0"
+      },
+      "contracts/Libraries/WadRayMath.sol": {
+        "keccak256": "0x3b781cc92c6711e789614ce3014cd222167f515fe9cd64ef3a4acde53a1abaad",
+        "urls": [
+          "bzz-raw://bed1e9410810e15c7c20d4c7b28cd02bcd5fd9e38ddd29ae987a2ce6684fadcb",
+          "dweb:/ipfs/QmPy3NJjWHUDUcd3dJ61YqZJHL3NcNGqZdCSoCkYyfJmaM"
+        ],
+        "license": "agpl-3.0"
+      },
+      "contracts/MarginPool/LinearInterestRateModel.sol": {
+        "keccak256": "0x2cda2bd918806a5c1acbdb9ccbab4ef50ea4fb353133b5992ed9b70529573893",
+        "urls": [
+          "bzz-raw://8c2293c751afe3d1343410fb7ce7f3b8a1f4053a21ae3ee14d4d47fda159917f",
+          "dweb:/ipfs/QmccnyYf1m17Xcq7xwGEHVssniyFdyFGyGtmxeGVZSNwro"
+        ],
+        "license": "BUSL-1.1"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/MarginPool/LinearInterestRateModel.sol",
+    "id": 7754,
+    "exportedSymbols": {
+      "Errors": [
+        4998
+      ],
+      "IInterestRateModel": [
+        489
+      ],
+      "LinearInterestRateModel": [
+        7753
+      ],
+      "PERCENTAGE_FACTOR": [
+        5003
+      ],
+      "PercentageMath": [
+        5067
+      ],
+      "RAY": [
+        5488
+      ],
+      "WAD": [
+        5480
+      ],
+      "WadRayMath": [
+        5792
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "37:4469:44",
+    "nodes": [
+      {
+        "id": 7548,
+        "nodeType": "PragmaDirective",
+        "src": "37:24:44",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".10"
+        ]
+      },
+      {
+        "id": 7551,
+        "nodeType": "ImportDirective",
+        "src": "63:82:44",
+        "nodes": [],
+        "absolutePath": "contracts/Libraries/PercentageMath.sol",
+        "file": "../Libraries/PercentageMath.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 7754,
+        "sourceUnit": 5068,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 7549,
+              "name": "PercentageMath",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 5067,
+              "src": "71:14:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          },
+          {
+            "foreign": {
+              "id": 7550,
+              "name": "PERCENTAGE_FACTOR",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 5003,
+              "src": "87:17:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 7555,
+        "nodeType": "ImportDirective",
+        "src": "146:65:44",
+        "nodes": [],
+        "absolutePath": "contracts/Libraries/WadRayMath.sol",
+        "file": "../Libraries/WadRayMath.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 7754,
+        "sourceUnit": 5793,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 7552,
+              "name": "WadRayMath",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 5792,
+              "src": "154:10:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          },
+          {
+            "foreign": {
+              "id": 7553,
+              "name": "WAD",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 5480,
+              "src": "166:3:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          },
+          {
+            "foreign": {
+              "id": 7554,
+              "name": "RAY",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 5488,
+              "src": "171:3:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 7557,
+        "nodeType": "ImportDirective",
+        "src": "212:72:44",
+        "nodes": [],
+        "absolutePath": "contracts/Interfaces/IInterestRateModel.sol",
+        "file": "../Interfaces/IInterestRateModel.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 7754,
+        "sourceUnit": 490,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 7556,
+              "name": "IInterestRateModel",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 489,
+              "src": "220:18:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 7559,
+        "nodeType": "ImportDirective",
+        "src": "285:47:44",
+        "nodes": [],
+        "absolutePath": "contracts/Libraries/Errors.sol",
+        "file": "../Libraries/Errors.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 7754,
+        "sourceUnit": 4999,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 7558,
+              "name": "Errors",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 4998,
+              "src": "293:6:44",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 7753,
+        "nodeType": "ContractDefinition",
+        "src": "436:4069:44",
+        "nodes": [
+          {
+            "id": 7565,
+            "nodeType": "UsingForDirective",
+            "src": "497:33:44",
+            "nodes": [],
+            "global": false,
+            "libraryName": {
+              "id": 7563,
+              "name": "PercentageMath",
+              "nameLocations": [
+                "503:14:44"
+              ],
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 5067,
+              "src": "503:14:44"
+            },
+            "typeName": {
+              "id": 7564,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "522:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            }
+          },
+          {
+            "id": 7568,
+            "nodeType": "UsingForDirective",
+            "src": "535:29:44",
+            "nodes": [],
+            "global": false,
+            "libraryName": {
+              "id": 7566,
+              "name": "WadRayMath",
+              "nameLocations": [
+                "541:10:44"
+              ],
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 5792,
+              "src": "541:10:44"
+            },
+            "typeName": {
+              "id": 7567,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "556:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            }
+          },
+          {
+            "id": 7570,
+            "nodeType": "VariableDeclaration",
+            "src": "598:39:44",
+            "nodes": [],
+            "constant": false,
+            "functionSelector": "50ced104",
+            "mutability": "immutable",
+            "name": "_U_Optimal_WAD",
+            "nameLocation": "623:14:44",
+            "scope": 7753,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 7569,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "598:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 7572,
+            "nodeType": "VariableDeclaration",
+            "src": "708:48:44",
+            "nodes": [],
+            "constant": false,
+            "functionSelector": "f81d4381",
+            "mutability": "immutable",
+            "name": "_U_Optimal_inverted_WAD",
+            "nameLocation": "733:23:44",
+            "scope": 7753,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 7571,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "708:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 7574,
+            "nodeType": "VariableDeclaration",
+            "src": "784:36:44",
+            "nodes": [],
+            "constant": false,
+            "functionSelector": "9cd3fdb5",
+            "mutability": "immutable",
+            "name": "_R_base_RAY",
+            "nameLocation": "809:11:44",
+            "scope": 7753,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 7573,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "784:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 7576,
+            "nodeType": "VariableDeclaration",
+            "src": "850:38:44",
+            "nodes": [],
+            "constant": false,
+            "functionSelector": "9aec06ea",
+            "mutability": "immutable",
+            "name": "_R_slope1_RAY",
+            "nameLocation": "875:13:44",
+            "scope": 7753,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 7575,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "850:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 7578,
+            "nodeType": "VariableDeclaration",
+            "src": "918:38:44",
+            "nodes": [],
+            "constant": false,
+            "functionSelector": "fc4b2b78",
+            "mutability": "immutable",
+            "name": "_R_slope2_RAY",
+            "nameLocation": "943:13:44",
+            "scope": 7753,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 7577,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "918:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 7581,
+            "nodeType": "VariableDeclaration",
+            "src": "987:35:44",
+            "nodes": [],
+            "constant": true,
+            "functionSelector": "54fd4d50",
+            "mutability": "constant",
+            "name": "version",
+            "nameLocation": "1011:7:44",
+            "scope": 7753,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 7579,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "987:7:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "hexValue": "31",
+              "id": 7580,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "1021:1:44",
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_1_by_1",
+                "typeString": "int_const 1"
+              },
+              "value": "1"
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 7656,
+            "nodeType": "FunctionDefinition",
+            "src": "1460:724:44",
+            "nodes": [],
+            "body": {
+              "id": 7655,
+              "nodeType": "Block",
+              "src": "1581:603:44",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 7596,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "id": 7594,
+                          "name": "U_optimal",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7584,
+                          "src": "1599:9:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "<=",
+                        "rightExpression": {
+                          "id": 7595,
+                          "name": "PERCENTAGE_FACTOR",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5003,
+                          "src": "1612:17:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "src": "1599:30:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "expression": {
+                          "id": 7597,
+                          "name": "Errors",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 4998,
+                          "src": "1631:6:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_contract$_Errors_$4998_$",
+                            "typeString": "type(library Errors)"
+                          }
+                        },
+                        "id": 7598,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "memberLocation": "1638:19:44",
+                        "memberName": "INCORRECT_PARAMETER",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 4919,
+                        "src": "1631:26:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string memory"
+                        }
+                      ],
+                      "id": 7593,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "1591:7:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 7599,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1591:67:44",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 7600,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1591:67:44"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 7604,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "id": 7602,
+                          "name": "R_base",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7586,
+                          "src": "1676:6:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "<=",
+                        "rightExpression": {
+                          "id": 7603,
+                          "name": "PERCENTAGE_FACTOR",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5003,
+                          "src": "1686:17:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "src": "1676:27:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "expression": {
+                          "id": 7605,
+                          "name": "Errors",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 4998,
+                          "src": "1705:6:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_contract$_Errors_$4998_$",
+                            "typeString": "type(library Errors)"
+                          }
+                        },
+                        "id": 7606,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "memberLocation": "1712:19:44",
+                        "memberName": "INCORRECT_PARAMETER",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 4919,
+                        "src": "1705:26:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string memory"
+                        }
+                      ],
+                      "id": 7601,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "1668:7:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 7607,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1668:64:44",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 7608,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1668:64:44"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 7612,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "id": 7610,
+                          "name": "R_slope1",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7588,
+                          "src": "1750:8:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "<=",
+                        "rightExpression": {
+                          "id": 7611,
+                          "name": "PERCENTAGE_FACTOR",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5003,
+                          "src": "1762:17:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "src": "1750:29:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "expression": {
+                          "id": 7613,
+                          "name": "Errors",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 4998,
+                          "src": "1781:6:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_contract$_Errors_$4998_$",
+                            "typeString": "type(library Errors)"
+                          }
+                        },
+                        "id": 7614,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "memberLocation": "1788:19:44",
+                        "memberName": "INCORRECT_PARAMETER",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 4919,
+                        "src": "1781:26:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string memory"
+                        }
+                      ],
+                      "id": 7609,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "1742:7:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 7615,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1742:66:44",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 7616,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1742:66:44"
+                },
+                {
+                  "assignments": [
+                    7618
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 7618,
+                      "mutability": "mutable",
+                      "name": "U_optimal_WAD",
+                      "nameLocation": "1862:13:44",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 7655,
+                      "src": "1854:21:44",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 7617,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1854:7:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 7623,
+                  "initialValue": {
+                    "arguments": [
+                      {
+                        "id": 7621,
+                        "name": "U_optimal",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7584,
+                        "src": "1893:9:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "id": 7619,
+                        "name": "WAD",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 5480,
+                        "src": "1878:3:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "id": 7620,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberLocation": "1882:10:44",
+                      "memberName": "percentMul",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 5040,
+                      "src": "1878:14:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_pure$_t_uint256_$_t_uint256_$returns$_t_uint256_$bound_to$_t_uint256_$",
+                        "typeString": "function (uint256,uint256) pure returns (uint256)"
+                      }
+                    },
+                    "id": 7622,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1878:25:44",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "1854:49:44"
+                },
+                {
+                  "expression": {
+                    "id": 7626,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7624,
+                      "name": "_U_Optimal_WAD",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7570,
+                      "src": "1913:14:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 7625,
+                      "name": "U_optimal_WAD",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7618,
+                      "src": "1930:13:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "1913:30:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7627,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1913:30:44"
+                },
+                {
+                  "expression": {
+                    "id": 7632,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7628,
+                      "name": "_U_Optimal_inverted_WAD",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7572,
+                      "src": "1985:23:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 7631,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "id": 7629,
+                        "name": "WAD",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 5480,
+                        "src": "2011:3:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "-",
+                      "rightExpression": {
+                        "id": 7630,
+                        "name": "U_optimal_WAD",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7618,
+                        "src": "2017:13:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "src": "2011:19:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "1985:45:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7633,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1985:45:44"
+                },
+                {
+                  "expression": {
+                    "id": 7639,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7634,
+                      "name": "_R_base_RAY",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7574,
+                      "src": "2041:11:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "arguments": [
+                        {
+                          "id": 7637,
+                          "name": "R_base",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7586,
+                          "src": "2070:6:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "expression": {
+                          "id": 7635,
+                          "name": "RAY",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5488,
+                          "src": "2055:3:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 7636,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberLocation": "2059:10:44",
+                        "memberName": "percentMul",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 5040,
+                        "src": "2055:14:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_pure$_t_uint256_$_t_uint256_$returns$_t_uint256_$bound_to$_t_uint256_$",
+                          "typeString": "function (uint256,uint256) pure returns (uint256)"
+                        }
+                      },
+                      "id": 7638,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "nameLocations": [],
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "2055:22:44",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "2041:36:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7640,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2041:36:44"
+                },
+                {
+                  "expression": {
+                    "id": 7646,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7641,
+                      "name": "_R_slope1_RAY",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7576,
+                      "src": "2087:13:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "arguments": [
+                        {
+                          "id": 7644,
+                          "name": "R_slope1",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7588,
+                          "src": "2118:8:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "expression": {
+                          "id": 7642,
+                          "name": "RAY",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5488,
+                          "src": "2103:3:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 7643,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberLocation": "2107:10:44",
+                        "memberName": "percentMul",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 5040,
+                        "src": "2103:14:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_pure$_t_uint256_$_t_uint256_$returns$_t_uint256_$bound_to$_t_uint256_$",
+                          "typeString": "function (uint256,uint256) pure returns (uint256)"
+                        }
+                      },
+                      "id": 7645,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "nameLocations": [],
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "2103:24:44",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "2087:40:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7647,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2087:40:44"
+                },
+                {
+                  "expression": {
+                    "id": 7653,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7648,
+                      "name": "_R_slope2_RAY",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7578,
+                      "src": "2137:13:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "arguments": [
+                        {
+                          "id": 7651,
+                          "name": "R_slope2",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7590,
+                          "src": "2168:8:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "expression": {
+                          "id": 7649,
+                          "name": "RAY",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5488,
+                          "src": "2153:3:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 7650,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberLocation": "2157:10:44",
+                        "memberName": "percentMul",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 5040,
+                        "src": "2153:14:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_pure$_t_uint256_$_t_uint256_$returns$_t_uint256_$bound_to$_t_uint256_$",
+                          "typeString": "function (uint256,uint256) pure returns (uint256)"
+                        }
+                      },
+                      "id": 7652,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "nameLocations": [],
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "2153:24:44",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "2137:40:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7654,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2137:40:44"
+                }
+              ]
+            },
+            "documentation": {
+              "id": 7582,
+              "nodeType": "StructuredDocumentation",
+              "src": "1029:426:44",
+              "text": "@dev Constructor\n @param U_optimal Optimal U in percentage format: x10.000 - percentage plus two decimals\n @param R_base R_base in percentage format: x10.000 - percentage plus two decimals @param R_slope1 R_Slope1 in Ray\n @param R_slope1 R_Slope1 in percentage format: x10.000 - percentage plus two decimals\n @param R_slope2 R_Slope2 in percentage format: x10.000 - percentage plus two decimals"
+            },
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [],
+            "name": "",
+            "nameLocation": "-1:-1:-1",
+            "parameters": {
+              "id": 7591,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7584,
+                  "mutability": "mutable",
+                  "name": "U_optimal",
+                  "nameLocation": "1489:9:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7656,
+                  "src": "1481:17:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7583,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1481:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7586,
+                  "mutability": "mutable",
+                  "name": "R_base",
+                  "nameLocation": "1516:6:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7656,
+                  "src": "1508:14:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7585,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1508:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7588,
+                  "mutability": "mutable",
+                  "name": "R_slope1",
+                  "nameLocation": "1540:8:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7656,
+                  "src": "1532:16:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7587,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1532:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7590,
+                  "mutability": "mutable",
+                  "name": "R_slope2",
+                  "nameLocation": "1566:8:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7656,
+                  "src": "1558:16:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7589,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1558:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1471:109:44"
+            },
+            "returnParameters": {
+              "id": 7592,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1581:0:44"
+            },
+            "scope": 7753,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "public"
+          },
+          {
+            "id": 7720,
+            "nodeType": "FunctionDefinition",
+            "src": "2406:1405:44",
+            "nodes": [],
+            "body": {
+              "id": 7719,
+              "nodeType": "Block",
+              "src": "2548:1263:44",
+              "nodes": [],
+              "statements": [
+                {
+                  "condition": {
+                    "commonType": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    },
+                    "id": 7673,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 7669,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "id": 7667,
+                        "name": "expectedLiquidity",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7659,
+                        "src": "2689:17:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "==",
+                      "rightExpression": {
+                        "hexValue": "30",
+                        "id": 7668,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2710:1:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_0_by_1",
+                          "typeString": "int_const 0"
+                        },
+                        "value": "0"
+                      },
+                      "src": "2689:22:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "||",
+                    "rightExpression": {
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 7672,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "id": 7670,
+                        "name": "expectedLiquidity",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7659,
+                        "src": "2715:17:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "<",
+                      "rightExpression": {
+                        "id": 7671,
+                        "name": "availableLiquidity",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7661,
+                        "src": "2735:18:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "src": "2715:38:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "src": "2689:64:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 7677,
+                  "nodeType": "IfStatement",
+                  "src": "2685:113:44",
+                  "trueBody": {
+                    "id": 7676,
+                    "nodeType": "Block",
+                    "src": "2755:43:44",
+                    "statements": [
+                      {
+                        "expression": {
+                          "id": 7674,
+                          "name": "_R_base_RAY",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7574,
+                          "src": "2776:11:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "functionReturnParameters": 7666,
+                        "id": 7675,
+                        "nodeType": "Return",
+                        "src": "2769:18:44"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "assignments": [
+                    7679
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 7679,
+                      "mutability": "mutable",
+                      "name": "U_WAD",
+                      "nameLocation": "2966:5:44",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 7719,
+                      "src": "2958:13:44",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 7678,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2958:7:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 7689,
+                  "initialValue": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 7688,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "components": [
+                        {
+                          "commonType": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          },
+                          "id": 7685,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "id": 7680,
+                            "name": "WAD",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 5480,
+                            "src": "2975:3:44",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "*",
+                          "rightExpression": {
+                            "components": [
+                              {
+                                "commonType": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                },
+                                "id": 7683,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "leftExpression": {
+                                  "id": 7681,
+                                  "name": "expectedLiquidity",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 7659,
+                                  "src": "2982:17:44",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "nodeType": "BinaryOperation",
+                                "operator": "-",
+                                "rightExpression": {
+                                  "id": 7682,
+                                  "name": "availableLiquidity",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 7661,
+                                  "src": "3002:18:44",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "src": "2982:38:44",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              }
+                            ],
+                            "id": 7684,
+                            "isConstant": false,
+                            "isInlineArray": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "TupleExpression",
+                            "src": "2981:40:44",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "2975:46:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "id": 7686,
+                      "isConstant": false,
+                      "isInlineArray": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "TupleExpression",
+                      "src": "2974:48:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "/",
+                    "rightExpression": {
+                      "id": 7687,
+                      "name": "expectedLiquidity",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7659,
+                      "src": "3037:17:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "2974:80:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "2958:96:44"
+                },
+                {
+                  "condition": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 7692,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "id": 7690,
+                      "name": "U_WAD",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7679,
+                      "src": "3273:5:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "<",
+                    "rightExpression": {
+                      "id": 7691,
+                      "name": "_U_Optimal_WAD",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7570,
+                      "src": "3281:14:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "3273:22:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 7704,
+                  "nodeType": "IfStatement",
+                  "src": "3269:116:44",
+                  "trueBody": {
+                    "id": 7703,
+                    "nodeType": "Block",
+                    "src": "3297:88:44",
+                    "statements": [
+                      {
+                        "expression": {
+                          "commonType": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          },
+                          "id": 7701,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "id": 7693,
+                            "name": "_R_base_RAY",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 7574,
+                            "src": "3318:11:44",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "+",
+                          "rightExpression": {
+                            "components": [
+                              {
+                                "commonType": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                },
+                                "id": 7699,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "leftExpression": {
+                                  "components": [
+                                    {
+                                      "commonType": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                      },
+                                      "id": 7696,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": false,
+                                      "lValueRequested": false,
+                                      "leftExpression": {
+                                        "id": 7694,
+                                        "name": "_R_slope1_RAY",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 7576,
+                                        "src": "3334:13:44",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_uint256",
+                                          "typeString": "uint256"
+                                        }
+                                      },
+                                      "nodeType": "BinaryOperation",
+                                      "operator": "*",
+                                      "rightExpression": {
+                                        "id": 7695,
+                                        "name": "U_WAD",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 7679,
+                                        "src": "3350:5:44",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_uint256",
+                                          "typeString": "uint256"
+                                        }
+                                      },
+                                      "src": "3334:21:44",
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                      }
+                                    }
+                                  ],
+                                  "id": 7697,
+                                  "isConstant": false,
+                                  "isInlineArray": false,
+                                  "isLValue": false,
+                                  "isPure": false,
+                                  "lValueRequested": false,
+                                  "nodeType": "TupleExpression",
+                                  "src": "3333:23:44",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "nodeType": "BinaryOperation",
+                                "operator": "/",
+                                "rightExpression": {
+                                  "id": 7698,
+                                  "name": "_U_Optimal_WAD",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 7570,
+                                  "src": "3359:14:44",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "src": "3333:40:44",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              }
+                            ],
+                            "id": 7700,
+                            "isConstant": false,
+                            "isInlineArray": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "TupleExpression",
+                            "src": "3332:42:44",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "3318:56:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "functionReturnParameters": 7666,
+                        "id": 7702,
+                        "nodeType": "Return",
+                        "src": "3311:63:44"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "expression": {
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 7717,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 7707,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "id": 7705,
+                        "name": "_R_base_RAY",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7574,
+                        "src": "3654:11:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "+",
+                      "rightExpression": {
+                        "id": 7706,
+                        "name": "_R_slope1_RAY",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7576,
+                        "src": "3680:13:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "src": "3654:39:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "+",
+                    "rightExpression": {
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 7716,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "components": [
+                          {
+                            "commonType": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            },
+                            "id": 7713,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "leftExpression": {
+                              "id": 7708,
+                              "name": "_R_slope2_RAY",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 7578,
+                              "src": "3709:13:44",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "nodeType": "BinaryOperation",
+                            "operator": "*",
+                            "rightExpression": {
+                              "components": [
+                                {
+                                  "commonType": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  },
+                                  "id": 7711,
+                                  "isConstant": false,
+                                  "isLValue": false,
+                                  "isPure": false,
+                                  "lValueRequested": false,
+                                  "leftExpression": {
+                                    "id": 7709,
+                                    "name": "U_WAD",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 7679,
+                                    "src": "3726:5:44",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    }
+                                  },
+                                  "nodeType": "BinaryOperation",
+                                  "operator": "-",
+                                  "rightExpression": {
+                                    "id": 7710,
+                                    "name": "_U_Optimal_WAD",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 7570,
+                                    "src": "3734:14:44",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    }
+                                  },
+                                  "src": "3726:22:44",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                }
+                              ],
+                              "id": 7712,
+                              "isConstant": false,
+                              "isInlineArray": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "nodeType": "TupleExpression",
+                              "src": "3725:24:44",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "src": "3709:40:44",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          }
+                        ],
+                        "id": 7714,
+                        "isConstant": false,
+                        "isInlineArray": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "TupleExpression",
+                        "src": "3708:42:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "/",
+                      "rightExpression": {
+                        "id": 7715,
+                        "name": "_U_Optimal_inverted_WAD",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 7572,
+                        "src": "3765:23:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "src": "3708:80:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "3654:134:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 7666,
+                  "id": 7718,
+                  "nodeType": "Return",
+                  "src": "3635:153:44"
+                }
+              ]
+            },
+            "baseFunctions": [
+              488
+            ],
+            "documentation": {
+              "id": 7657,
+              "nodeType": "StructuredDocumentation",
+              "src": "2190:211:44",
+              "text": "@dev Calculated borrow rate based on expectedLiquidity and availableLiquidity\n @param expectedLiquidity Expected liquidity in the pool\n @param availableLiquidity Available liquidity in the pool"
+            },
+            "functionSelector": "42568d44",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "calcBorrowRate",
+            "nameLocation": "2415:14:44",
+            "overrides": {
+              "id": 7663,
+              "nodeType": "OverrideSpecifier",
+              "overrides": [],
+              "src": "2521:8:44"
+            },
+            "parameters": {
+              "id": 7662,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7659,
+                  "mutability": "mutable",
+                  "name": "expectedLiquidity",
+                  "nameLocation": "2447:17:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7720,
+                  "src": "2439:25:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7658,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2439:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7661,
+                  "mutability": "mutable",
+                  "name": "availableLiquidity",
+                  "nameLocation": "2482:18:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7720,
+                  "src": "2474:26:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7660,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2474:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2429:77:44"
+            },
+            "returnParameters": {
+              "id": 7666,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7665,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7720,
+                  "src": "2539:7:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7664,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2539:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2538:9:44"
+            },
+            "scope": 7753,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 7752,
+            "nodeType": "FunctionDefinition",
+            "src": "4088:415:44",
+            "nodes": [],
+            "body": {
+              "id": 7751,
+              "nodeType": "Block",
+              "src": "4298:205:44",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "id": 7737,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7732,
+                      "name": "U_optimal",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7724,
+                      "src": "4308:9:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "arguments": [
+                        {
+                          "id": 7735,
+                          "name": "WAD",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5480,
+                          "src": "4346:3:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "expression": {
+                          "id": 7733,
+                          "name": "_U_Optimal_WAD",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 7570,
+                          "src": "4320:14:44",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 7734,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberLocation": "4335:10:44",
+                        "memberName": "percentDiv",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 5066,
+                        "src": "4320:25:44",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_pure$_t_uint256_$_t_uint256_$returns$_t_uint256_$bound_to$_t_uint256_$",
+                          "typeString": "function (uint256,uint256) pure returns (uint256)"
+                        }
+                      },
+                      "id": 7736,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "nameLocations": [],
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "4320:30:44",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "4308:42:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7738,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4308:42:44"
+                },
+                {
+                  "expression": {
+                    "id": 7741,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7739,
+                      "name": "R_base",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7726,
+                      "src": "4372:6:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 7740,
+                      "name": "_R_base_RAY",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7574,
+                      "src": "4381:11:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "4372:20:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7742,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4372:20:44"
+                },
+                {
+                  "expression": {
+                    "id": 7745,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7743,
+                      "name": "R_slope1",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7728,
+                      "src": "4414:8:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 7744,
+                      "name": "_R_slope1_RAY",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7576,
+                      "src": "4425:13:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "4414:24:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7746,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4414:24:44"
+                },
+                {
+                  "expression": {
+                    "id": 7749,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 7747,
+                      "name": "R_slope2",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7730,
+                      "src": "4460:8:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 7748,
+                      "name": "_R_slope2_RAY",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 7578,
+                      "src": "4471:13:44",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "4460:24:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 7750,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4460:24:44"
+                }
+              ]
+            },
+            "documentation": {
+              "id": 7721,
+              "nodeType": "StructuredDocumentation",
+              "src": "3817:266:44",
+              "text": "@dev Gets model parameters\n @param U_optimal U_optimal in percentage format: [0;10,000] - percentage plus two decimals\n @param R_base R_base in RAY format\n @param R_slope1 R_slope1 in RAY format\n @param R_slope2 R_slope2 in RAY format"
+            },
+            "functionSelector": "c8284e6d",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getModelParameters",
+            "nameLocation": "4097:18:44",
+            "parameters": {
+              "id": 7722,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "4115:2:44"
+            },
+            "returnParameters": {
+              "id": 7731,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7724,
+                  "mutability": "mutable",
+                  "name": "U_optimal",
+                  "nameLocation": "4186:9:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7752,
+                  "src": "4178:17:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7723,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4178:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7726,
+                  "mutability": "mutable",
+                  "name": "R_base",
+                  "nameLocation": "4217:6:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7752,
+                  "src": "4209:14:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7725,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4209:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7728,
+                  "mutability": "mutable",
+                  "name": "R_slope1",
+                  "nameLocation": "4245:8:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7752,
+                  "src": "4237:16:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7727,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4237:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7730,
+                  "mutability": "mutable",
+                  "name": "R_slope2",
+                  "nameLocation": "4275:8:44",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7752,
+                  "src": "4267:16:44",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7729,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4267:7:44",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4164:129:44"
+            },
+            "scope": 7753,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [
+          {
+            "baseName": {
+              "id": 7561,
+              "name": "IInterestRateModel",
+              "nameLocations": [
+                "472:18:44"
+              ],
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 489,
+              "src": "472:18:44"
+            },
+            "id": 7562,
+            "nodeType": "InheritanceSpecifier",
+            "src": "472:18:44"
+          }
+        ],
+        "canonicalName": "LinearInterestRateModel",
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": {
+          "id": 7560,
+          "nodeType": "StructuredDocumentation",
+          "src": "334:102:44",
+          "text": "@title Linear Interest Rate Model\n @notice Linear interest rate model, similar which Aave uses"
+        },
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          7753,
+          489
+        ],
+        "name": "LinearInterestRateModel",
+        "nameLocation": "445:23:44",
+        "scope": 7754,
+        "usedErrors": []
+      }
+    ],
+    "license": "BUSL-1.1"
+  },
+  "id": 44
+}
