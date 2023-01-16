@@ -46,7 +46,29 @@ contract SNXRiskManager {
         if long check with snx for available margin
        */
     }
-
+    function settleFeeForMarket(address account) external returns(int256){
+        int256 funding;
+        int256 pnl;
+        uint8 len= allowedMarkets.length.toUint8();
+        for (uint8 i = 0;i<len;i++) {
+             IFuturesMarket market = IFuturesMarket(allowedMarkets[i]);
+                int256 _pnl;
+                int256 _funding;
+                (_funding, ) = market.accruedFunding(account);
+                (_pnl, ) = market.profitLoss(account);
+                if(funding<0){
+                    console.log("negative pnl");
+                }
+                 if(_funding<0){
+                    console.log("negative _funding");
+                }
+                pnl = pnl.add(_pnl);
+                console.log("funding",funding.abs());
+                funding = funding.add(_funding);
+        }
+        console.log('funding and pnl settle fee',funding.abs(),pnl.abs());
+        return funding;
+    }
     function getPositionPnL(address account) external virtual returns (uint256 _marginDeposited, int256 pnl){
         int256 funding;
         uint8 len= allowedMarkets.length.toUint8();

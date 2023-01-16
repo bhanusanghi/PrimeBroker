@@ -14,6 +14,7 @@ import {RiskManager} from "../RiskManager/RiskManager.sol";
 import {MarginAccount} from "../MarginAccount/MarginAccount.sol";
 import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager} from "../Interfaces/IRiskManager.sol";
+import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {ITypes} from "../Interfaces/ITypes.sol";
@@ -128,9 +129,18 @@ contract MarginManager is ReentrancyGuard {
         burn contract account and remove mappings
          */
     }
-    function settleFee() public {
+    function settleFee(address acc) public {
         // for each market
         // prm.settleFeeForMarket()
+        // bytes32[] memory _allowedMarketNames = marketManager.getAllMarketNames();
+        int256 fee;
+        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+        for(uint256 i = 0;i<_riskManagers.length;i++){
+             
+             fee+= IProtocolRiskManager(_riskManagers[i])
+                .settleFeeForMarket(acc);
+        }
+        console.log("MM:totalFee",fee.abs());
     }
     function _getMarginAccount(address trader) internal view returns (address) {
         require(
@@ -145,9 +155,9 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
-        settleFee();
         // TODO - Use Interface rather than class.
         MarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
+        // settleFee(address(marginAcc));
         // TODO add a check to make sure person is not overwriting an existing position using this method.
         require(!marginAcc.existingPosition(marketKey), "Existing position");
         int256 tokensToTransfer;
@@ -181,12 +191,12 @@ contract MarginManager is ReentrancyGuard {
             tokenOut
         );
         console.log("dollarValueOfTokensToTransfer",dollarValueOfTokensToTransfer);
-        if (dollarValueOfTokensToTransfer > 0) {
+        // if (dollarValueOfTokensToTransfer > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
-            marginAcc.updateMarginInMarket(
-                marketKey,
-                dollarValueOfTokensToTransfer.toInt256()
-            );
+            // marginAcc.updateMarginInMarket(
+            //     marketKey,
+            //     dollarValueOfTokensToTransfer.toInt256()
+            // );
             if (tokensToTransfer > 0) {
                 tokensToTransfer = tokensToTransfer.add(100 * 10**6);
                 if (balance < tokensToTransfer.abs()) {
@@ -209,7 +219,7 @@ contract MarginManager is ReentrancyGuard {
                     // require(amountOut == (absVal(transferAmount)), "RM: Bad Swap.");
                 }
             }
-        }
+        // }
 
         // marginAcc.updatePosition(marketKey, positionSize, true);
         // execute at end to avoid re-entrancy
@@ -239,7 +249,7 @@ contract MarginManager is ReentrancyGuard {
         int256 _oldPositionSize = marginAcc.getPositionOpenNotional(marketKey);
         uint256 fee;
         {
-            uint256 interestAccrued = _getInterestAccrued(msg.sender);
+            uint256 interestAccrued = _getInterestAccrued(address(marginAcc));
             (tokensToTransfer, _currentPositionSize, fee,tokenOut) = riskManager
                 .verifyTrade(
                     address(marginAcc),
@@ -251,13 +261,16 @@ contract MarginManager is ReentrancyGuard {
         }
         address tokenIn = vault.asset();
         uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
+         balance = balance.convertTokenDecimals(ERC20(tokenOut).decimals(),6);
+        console.log("UP:",tokensToTransfer.abs(),balance);
         if (tokensToTransfer > 0) {
             tokensToTransfer =
                 tokensToTransfer +
-                (100 * 10**6) -
-                int256(balance);
+                (100 * 10**6);
+                console.log("UP:",tokensToTransfer.abs());
             if (balance < uint256(tokensToTransfer)) {
                 uint256 diff = tokensToTransfer.abs().sub(balance);
+                console.log("UP:",tokensToTransfer.abs(),diff);
                 increaseDebt(address(marginAcc), diff);
             }
             if (tokenIn != tokenOut) {
@@ -293,8 +306,8 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
-        settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        settleFee(address(marginAcc));
         // address protocolAddress = marginAcc.positions(positionIndex);
         require(
             marginAcc.existingPosition(marketKey),
@@ -323,8 +336,8 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
        ) external {
-        settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        settleFee(address(marginAcc));
         console.log(address(marginAcc),"Margin acc");
         int256 tokensToTransfer;
         int256 positionSize;

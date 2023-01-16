@@ -13,7 +13,7 @@ interface IMarginAccount {
     ) external;
 
     function baseToken() external returns (address);
-
+    function approveToProtocol(address token, address protocol) external ;
     function addCollateral(
         address from,
         address token,
@@ -24,4 +24,7 @@ interface IMarginAccount {
         address to,
         uint256 amount // onlyMarginManager
     ) external;
+     function executeTx(address destination, bytes memory data)
+        external
+        returns (bytes memory);
 }

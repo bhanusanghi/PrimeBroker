@@ -16,6 +16,7 @@ import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
+import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import "hardhat/console.sol";
 
@@ -32,22 +33,25 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
     address public baseToken;
-
+    bytes4 public settleFeeSelector = 0xeb9b912e;
     IExchange public perpExchange;
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
+    IClearingHouse public clearingHouse;
     constructor(
         address _baseToken,
         address _accountBalance,
         address _perpExchange,
-        address _marketRegistry
+        address _marketRegistry,
+        address _clearingHouse
     ) {
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
         perpExchange = IExchange(_perpExchange);
         marketRegistry = IMarketRegistry(_marketRegistry);
+        clearingHouse = IClearingHouse(_clearingHouse);
     }
-
+    //@note: use _init :pointup
     function updateExchangeAddress(address _perpExchange) external {
         perpExchange = IExchange(_perpExchange);
     }
@@ -74,11 +78,27 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
        */
     }
-    function settleFeeForMarket() external returns(bool){
+    function settleFeeForMarket(address account) external returns(int256){
         //getFees
         // aproval or something
         //send/settle Fee
-        return true;
+        int256 owedRealizedPnl;
+        int256 unrealizedPnl;
+        uint256 pendingFee;
+        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
+            .getPnlAndPendingFee(account);
+        console.log("MM:",owedRealizedPnl.abs(), unrealizedPnl.abs(), pendingFee);
+        // clearingHouse.settleAllFunding(account);
+        bytes memory data = abi.encodeWithSelector(settleFeeSelector, account);
+        console.log("return hua perp me se",address(clearingHouse),data.length);
+        // @note basetoken is confusing w/ market base tokens
+        // there can be multiple like basetoken for protocol fee and like eth/btc mkt
+        IMarginAccount(account).approveToProtocol(baseToken,address(clearingHouse));
+        console.log("approve done:");
+        data = IMarginAccount(account).executeTx(address(clearingHouse),data);
+        console.log(data.length);
+        // MA call ic, data
+        return 0;
     }
     function getFees(address _baseToken) public view returns (uint256) {
         return marketRegistry.getFeeRatio(_baseToken);
