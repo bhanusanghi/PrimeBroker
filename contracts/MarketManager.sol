@@ -1,6 +1,7 @@
 pragma solidity ^0.8.10;
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarketManager} from "./Interfaces/IMarketManager.sol";
+import "hardhat/console.sol";
 
 contract MarketManager is IMarketManager, AccessControl {
     // TODO - move to single acl point.
@@ -8,11 +9,15 @@ contract MarketManager is IMarketManager, AccessControl {
     // snx.eth, snx.btc=>address, perp.eth=>address
     mapping(bytes32 => address) public marketRegistry; // external protocols
     mapping(bytes32 => address) public marketRiskManagerRegistry;
-    mapping(address => bool) public registererdRiskManagers;
-    address[] public whitelistedMarketAddresses;
-    bytes32[] public whitelistedMarketNames;
 
+    mapping(address => bool) public registeredRiskManagers;
+    mapping(address => bool) public registeredMarketAddresses;
+
+    mapping(address => address[]) marketsForRiskManager;
+
+    bytes32[] public whitelistedMarketNames;
     address[] public uniqueRiskManagers;
+    address[] public uniqueMarketAddresses;
 
     /**
      add maping for market to fee and maybe other hot params which can cached here 
@@ -30,18 +35,39 @@ contract MarketManager is IMarketManager, AccessControl {
             marketRegistry[_marketName] == address(0),
             "MM: Market already exists"
         );
+         require(
+            _market != address(0),
+            "MM: Adding Zero Address as Market"
+        );
         marketRegistry[_marketName] = _market;
         marketRiskManagerRegistry[_marketName] = _riskManager;
         whitelistedMarketNames.push(_marketName);
-        whitelistedMarketAddresses.push(_market);
-        if (!registererdRiskManagers[_riskManager]) {
-            registererdRiskManagers[_riskManager] = true;
+        if (!registeredMarketAddresses[_market]) {
+            marketsForRiskManager[_riskManager].push(_market);
+            registeredMarketAddresses[_market] = true;
+            uniqueMarketAddresses.push(_market);
+        }
+        if (!registeredRiskManagers[_riskManager]) {
+            registeredRiskManagers[_riskManager] = true;
             uniqueRiskManagers.push(_riskManager);
         }
     }
 
-    function getAllMarketAddresses() external view returns (address[] memory) {
-        return whitelistedMarketAddresses;
+    function getMarketsForRiskManager(address _riskManager)
+        public
+        view
+        returns (address[] memory)
+    {
+        require(registeredRiskManagers[_riskManager], "Invalid Risk Manager");
+        return marketsForRiskManager[_riskManager];
+    }
+
+    function getUniqueMarketAddresses()
+        external
+        view
+        returns (address[] memory)
+    {
+        return uniqueMarketAddresses;
     }
 
     function getAllMarketNames() external view returns (bytes32[] memory) {

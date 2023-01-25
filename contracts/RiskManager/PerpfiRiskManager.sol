@@ -16,6 +16,7 @@ import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
+import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
@@ -31,23 +32,33 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
     address public baseToken;
+    IContractRegistry contractRegistry;
 
-    IExchange public perpExchange;
+    // IExchange public perpExchange;
     IAccountBalance accountBalance;
+    mapping(address => bool) whitelistedAddresses;
 
     constructor(
         address _baseToken,
-        address _accountBalance,
-        address _perpExchange
+        address _contractRegistry,
+        address _accountBalance
     ) {
+        contractRegistry = IContractRegistry(_contractRegistry);
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
-        perpExchange = IExchange(_perpExchange);
+        // perpExchange = IExchange(_perpExchange);
     }
 
-    function updateExchangeAddress(address _perpExchange) external {
-        perpExchange = IExchange(_perpExchange);
+    function toggleAddressWhitelisting(address contractAddress, bool isAllowed)
+        external
+    {
+        require(contractAddress != address(0));
+        whitelistedAddresses[contractAddress] = isAllowed;
     }
+
+    // function updateExchangeAddress(address _perpExchange) external {
+    //     perpExchange = IExchange(_perpExchange);
+    // }
 
     // function getTotalPnL(address marginAcc) public returns (int256) {
 
@@ -84,9 +95,14 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
+        // from this description - owedRealizedPnL also needs to be taken in account.
+        // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
+
+        // realized PnL affects the deposited Margin. We need to also take that into account.
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl.sub(pendingFee.toInt256());
+        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
+
         depositedMargin = 1; // @note placeholder for now for some new params or remove
         return (depositedMargin, pnl);
     }
@@ -164,17 +180,29 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 } else {
                     revert("impossible shit");
                 }
+            } else {
+                // Unsupported Function call
+                revert("PRM: Unsupported Function call");
             }
         }
     }
-    function verifyClose(address protocol,address[] memory destinations,bytes[] calldata data)
+
+    function verifyClose(
+        address protocol,
+        address[] memory destinations,
+        bytes[] calldata data
+    )
         public
         view
-        returns (int256 amount, int256 totalPosition, uint256 fee)
+        returns (
+            int256 amount,
+            int256 totalPosition,
+            uint256 fee
+        )
     {
         uint8 len = data.length.toUint8(); // limit to 2
-        fee=1;
-        require(destinations.length.toUint8() == len,"should match");
+        fee = 1;
+        require(destinations.length.toUint8() == len, "should match");
         for (uint8 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
@@ -202,7 +230,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                totalPosition = isShort ? -(_amount.toInt256()) : (_amount.toInt256());
+                totalPosition = isShort
+                    ? -(_amount.toInt256())
+                    : (_amount.toInt256());
+            } else {
+                // Unsupported Function call
+                revert("PRM: Unsupported Function call");
             }
         }
     }

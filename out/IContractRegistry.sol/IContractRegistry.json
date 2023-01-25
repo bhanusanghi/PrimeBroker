@@ -173,19 +173,19 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/IContractRegistry.sol",
-    "id": 439,
+    "id": 994,
     "exportedSymbols": {
       "IContractRegistry": [
-        438
+        993
       ]
     },
     "nodeType": "SourceUnit",
-    "src": "0:356:7",
+    "src": "0:356:8",
     "nodes": [
       {
-        "id": 418,
+        "id": 973,
         "nodeType": "PragmaDirective",
-        "src": "0:24:7",
+        "src": "0:24:8",
         "nodes": [],
         "literals": [
           "solidity",
@@ -195,34 +195,34 @@
         ]
       },
       {
-        "id": 438,
+        "id": 993,
         "nodeType": "ContractDefinition",
-        "src": "26:329:7",
+        "src": "26:329:8",
         "nodes": [
           {
-            "id": 425,
+            "id": 980,
             "nodeType": "FunctionDefinition",
-            "src": "60:109:7",
+            "src": "60:109:8",
             "nodes": [],
             "functionSelector": "7a3cad04",
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "addContractToRegistry",
-            "nameLocation": "69:21:7",
+            "nameLocation": "69:21:8",
             "parameters": {
-              "id": 423,
+              "id": 978,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 420,
+                  "id": 975,
                   "mutability": "mutable",
                   "name": "contractName",
-                  "nameLocation": "108:12:7",
+                  "nameLocation": "108:12:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 425,
-                  "src": "100:20:7",
+                  "scope": 980,
+                  "src": "100:20:8",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -230,10 +230,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 419,
+                    "id": 974,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "100:7:7",
+                    "src": "100:7:8",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -243,13 +243,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 422,
+                  "id": 977,
                   "mutability": "mutable",
                   "name": "contractAddress",
-                  "nameLocation": "138:15:7",
+                  "nameLocation": "138:15:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 425,
-                  "src": "130:23:7",
+                  "scope": 980,
+                  "src": "130:23:8",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -257,10 +257,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 421,
+                    "id": 976,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "130:7:7",
+                    "src": "130:7:8",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -270,43 +270,43 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "90:69:7"
+              "src": "90:69:8"
             },
             "returnParameters": {
-              "id": 424,
+              "id": 979,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "168:0:7"
+              "src": "168:0:8"
             },
-            "scope": 438,
+            "scope": 993,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 430,
+            "id": 985,
             "nodeType": "FunctionDefinition",
-            "src": "175:67:7",
+            "src": "175:67:8",
             "nodes": [],
             "functionSelector": "3d108f8d",
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "removeContractFromRegistry",
-            "nameLocation": "184:26:7",
+            "nameLocation": "184:26:8",
             "parameters": {
-              "id": 428,
+              "id": 983,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 427,
+                  "id": 982,
                   "mutability": "mutable",
                   "name": "contractName",
-                  "nameLocation": "219:12:7",
+                  "nameLocation": "219:12:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 430,
-                  "src": "211:20:7",
+                  "scope": 985,
+                  "src": "211:20:8",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -314,10 +314,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 426,
+                    "id": 981,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "211:7:7",
+                    "src": "211:7:8",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -326,43 +326,43 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "210:22:7"
+              "src": "210:22:8"
             },
             "returnParameters": {
-              "id": 429,
+              "id": 984,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "241:0:7"
+              "src": "241:0:8"
             },
-            "scope": 438,
+            "scope": 993,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 437,
+            "id": 992,
             "nodeType": "FunctionDefinition",
-            "src": "248:105:7",
+            "src": "248:105:8",
             "nodes": [],
             "functionSelector": "95610926",
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "getContractByName",
-            "nameLocation": "257:17:7",
+            "nameLocation": "257:17:8",
             "parameters": {
-              "id": 433,
+              "id": 988,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 432,
+                  "id": 987,
                   "mutability": "mutable",
                   "name": "contractName",
-                  "nameLocation": "283:12:7",
+                  "nameLocation": "283:12:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 437,
-                  "src": "275:20:7",
+                  "scope": 992,
+                  "src": "275:20:8",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -370,10 +370,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 431,
+                    "id": 986,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "275:7:7",
+                    "src": "275:7:8",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -382,21 +382,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "274:22:7"
+              "src": "274:22:8"
             },
             "returnParameters": {
-              "id": 436,
+              "id": 991,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 435,
+                  "id": 990,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 437,
-                  "src": "344:7:7",
+                  "scope": 992,
+                  "src": "344:7:8",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -404,10 +404,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 434,
+                    "id": 989,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "344:7:7",
+                    "src": "344:7:8",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -417,9 +417,9 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "343:9:7"
+              "src": "343:9:8"
             },
-            "scope": 438,
+            "scope": 993,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -432,14 +432,14 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          438
+          993
         ],
         "name": "IContractRegistry",
-        "nameLocation": "36:17:7",
-        "scope": 439,
+        "nameLocation": "36:17:8",
+        "scope": 994,
         "usedErrors": []
       }
     ]
   },
-  "id": 7
+  "id": 8
 }

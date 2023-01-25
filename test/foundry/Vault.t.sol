@@ -54,6 +54,7 @@ contract VaultTest is Test {
     }
 
     function setUp() public {
+        console2.log("Pos0");
         utils = new Utils();
 
         // ======= setup vault ========

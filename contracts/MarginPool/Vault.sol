@@ -67,7 +67,7 @@ contract Vault is IVault, ERC4626 {
     using SafeERC20 for IERC20;
 
     uint256 totalBorrowed;
-    uint256 maxExpectedLiquidity;
+    uint256 public maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
 
@@ -248,7 +248,7 @@ contract Vault is IVault, ERC4626 {
         onlyAllowedLendingMarginManager
     {
         // should check borrower limits as well or will that be done by credit manager ??
-        require(totalAssets() >= amount);
+        require(totalAssets() >= amount, "Vault: Not enough assets");
         // update total borrowed
         totalBorrowed = totalBorrowed.add(amount);
         // update expectedLiquidityLU

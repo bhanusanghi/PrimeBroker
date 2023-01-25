@@ -10,13 +10,13 @@
   },
   "ast": {
     "absolutePath": "contracts/MarginPool/InterestRate.sol",
-    "id": 7477,
+    "id": 7984,
     "exportedSymbols": {},
     "nodeType": "SourceUnit",
     "src": "0:25:42",
     "nodes": [
       {
-        "id": 7476,
+        "id": 7983,
         "nodeType": "PragmaDirective",
         "src": "0:24:42",
         "nodes": [],

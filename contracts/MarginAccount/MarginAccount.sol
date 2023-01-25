@@ -37,12 +37,13 @@ contract MarginAccount is IMarginAccount, UniExchange {
     address public underlyingToken;
 
     mapping(bytes32 => int256) public marginInMarket;
-    int256 totalMarginInMarkets;
+    int256 public totalMarginInMarkets;
 
     // constructor(address underlyingToken) {
     //     marginManager = msg.sender;
     //     underlyingToken = underlyingToken;
     // }
+
     constructor(address _router)
         //  address _marketManager
         //  address _contractRegistry
@@ -62,6 +63,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         address token,
         uint256 amount
     ) external {
+        // acl - only collateral manager.
         // convert
         IERC20(token).safeTransferFrom(from, address(this), amount);
         // update in collatral manager
@@ -112,17 +114,17 @@ contract MarginAccount is IMarginAccount, UniExchange {
     {
         uint256 len = _allowedMarkets.length;
         for (uint256 i = 0; i < len; i++) {
-            console.log(
-                "Position size",
-                i,
-                ":",
-                _absVal(positions[_allowedMarkets[i]])
-            );
+            // console.log(
+            //     "Position size",
+            //     i,
+            //     ":",
+            //     _absVal(positions[_allowedMarkets[i]])
+            // );
             totalNotional = totalNotional.add(
                 positions[_allowedMarkets[i]].abs()
             );
         }
-        console.log(" Total Position size:", totalNotional);
+        // console.log(" Total Position size:", totalNotional);
     }
 
     function _absVal(int256 val) internal pure returns (uint256) {

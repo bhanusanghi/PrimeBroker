@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.10;
 
-import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
-import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
-import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
-import {MarginManager} from "../MarginAccount/MarginManager.sol";
-import {IRiskManager} from "../Interfaces/IRiskManager.sol";
+import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
+import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
+import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
+import {MarginManager} from "./MarginManager.sol";
+import {IRiskManager} from "./Interfaces/IRiskManager.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
+import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import "hardhat/console.sol";
+
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
@@ -31,37 +33,32 @@ contract CollateralManager is ICollateralManager {
     mapping(address => uint8) private _decimals;
     mapping(address => bool) public isAllowed;
     mapping(address => mapping(address => uint256)) internal _balance;
+    event CollateralAdded(
+        address indexed,
+        address indexed,
+        uint256 indexed,
+        uint256
+    );
 
-    function initialize(
+    constructor(
         address _marginManager,
         address _riskManager,
         address _priceOracle
-    ) public {
+    ) {
         marginManager = MarginManager(_marginManager);
         riskManager = IRiskManager(_riskManager);
         priceOracle = IPriceOracle(_priceOracle);
     }
 
-    function addAllowedCollateral(
-        address[] calldata _allowed,
-        uint256[] calldata _collateralWeights
-    ) public {
-        require(
-            _allowed.length == _collateralWeights.length,
-            "CM: No array parity"
-        );
-        uint256 len = _allowed.length;
-        for (uint256 i = 0; i < len; i++) {
-            // Needed otherwise borrowing power can be inflated by pushing same collateral multiple times.
-            require(
-                isAllowed[_allowed[i]] == false,
-                "CM: Collateral already added"
-            );
-            allowedCollateral.push(_allowed[i]);
-            collateralWeight.push(_collateralWeights[i]);
-            isAllowed[_allowed[i]] = true;
-            _decimals[_allowed[i]] = ERC20(_allowed[i]).decimals();
-        }
+    function addAllowedCollateral(address _allowed, uint256 _collateralWeight)
+        public
+    {
+        require(_allowed != address(0), "CM: Zero Address");
+        require(isAllowed[_allowed] == false, "CM: Collateral already added");
+        allowedCollateral.push(_allowed);
+        collateralWeight.push(_collateralWeight);
+        isAllowed[_allowed] = true;
+        _decimals[_allowed] = ERC20(_allowed).decimals();
     }
 
     // @TODO should return in usd value the amount of free collateral.
@@ -85,6 +82,12 @@ contract CollateralManager is ICollateralManager {
         _balance[address(marginAccount)][_token] = _balance[
             address(marginAccount)
         ][_token].add(_amount);
+        emit CollateralAdded(
+            address(marginAccount),
+            _token,
+            _amount,
+            _totalCollateralValue(address(marginAccount))
+        );
     }
 
     // Should be accessed by Margin Manager only??
@@ -146,7 +149,6 @@ contract CollateralManager is ICollateralManager {
 
     function totalCollateralValue(address _marginAccount)
         external
-        view
         returns (uint256 totalAmount)
     {
         return _totalCollateralValue(_marginAccount);
@@ -154,14 +156,13 @@ contract CollateralManager is ICollateralManager {
 
     function _totalCollateralValue(address _marginAccount)
         internal
-        view
         returns (uint256 totalAmount)
     {
-        for (uint8 i = 0; i < allowedCollateral.length; i++) {
+        for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
                 priceOracle.convertToUSD(_balance[_marginAccount][token], token)
-            ).mulDiv(collateralWeight[i],100); // Index of token vs collateral weight should be same.
+            ).mulDiv(collateralWeight[i], 100); // Index of token vs collateral weight should be same.
             totalAmount = totalAmount.add(
                 tokenDollarValue.convertTokenDecimals(
                     _decimals[token],

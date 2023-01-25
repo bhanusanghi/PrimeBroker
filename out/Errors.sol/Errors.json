@@ -437,7 +437,7 @@
   },
   "deployedBytecode": {
     "object": "0x73000000000000000000000000000000000000000030146080604052600436106102055760003560e01c806387f88ef411610124578063bdcb2576116100b7578063de63cd4011610086578063de63cd40146105d0578063e7f3be0c146105f2578063ebbd977f14610613578063fe32e65d14610636578063ff2a04e31461065857600080fd5b8063bdcb257614610549578063beea5ec21461056a578063ccbf92781461058c578063d1a65a38146105ae57600080fd5b8063a988ac60116100f3578063a988ac60146104c0578063abc3d254146104e3578063ac75713914610505578063b563b3001461052757600080fd5b806387f88ef41461043957806394391a4a1461045b57806399a98c991461047c578063a27c03701461049e57600080fd5b80633647c9f91161019c57806343f6e4ab1161016b57806343f6e4ab146103b2578063447d8e42146103d357806353278911146103f557806376d9ebb81461041757600080fd5b80633647c9f91461032d5780633df46fe51461034f5780633f3153b2146103705780634349e3d81461039157600080fd5b80630f5ee482116101d85780630f5ee482146102a6578063119427c5146102c75780632357f362146102e957806328432c221461030b57600080fd5b8063029d23441461020a5780630a2b1d3a146102415780630afeee97146102635780630c9409e714610284575b600080fd5b61022b604051806040016040528060028152602001614d3160f01b81525081565b604051610238919061067a565b60405180910390f35b61022b6040518060400160405280600381526020016243523160e81b81525081565b61022b60405180604001604052806002815260200161052560f41b81525081565b61022b6040518060400160405280600381526020016241463160e81b81525081565b61022b60405180604001604052806002815260200161269960f11b81525081565b61022b6040518060400160405280600381526020016228299960e91b81525081565b61022b6040518060400160405280600381526020016221a09960e91b81525081565b61022b6040518060400160405280600381526020016250533360e81b81525081565b61022b6040518060400160405280600381526020016257473160e81b81525081565b61022b60405180604001604052806002815260200161141360f21b81525081565b61022b6040518060400160405280600281526020016105a360f41b81525081565b61022b604051806040016040528060028152602001614d3360f01b81525081565b61022b604051806040016040528060028152602001614e4960f01b81525081565b61022b604051806040016040528060038152602001622ba39960e91b81525081565b61022b6040518060400160405280600381526020016254443160e81b81525081565b61022b6040518060400160405280600381526020016205053360ec1b81525081565b61022b6040518060400160405280600381526020016220a31960e91b81525081565b61022b60405180604001604052806002815260200161043560f41b81525081565b61022b6040518060400160405280600381526020016221a91960e91b81525081565b61022b6040518060400160405280600381526020016250533160e81b81525081565b61022b6040518060400160405280600481526020016341434c3160e01b81525081565b61022b6040518060400160405280600381526020016254443360e81b81525081565b61022b6040518060400160405280600381526020016241463360e81b81525081565b61022b6040518060400160405280600381526020016215110d60ea1b81525081565b61022b60405180604001604052806002815260200161049560f41b81525081565b61022b6040518060400160405280600381526020016257473360e81b81525081565b61022b604051806040016040528060038152602001621414cd60ea1b81525081565b61022b6040518060400160405280600381526020016210518d60ea1b81525081565b61022b6040518060400160405280600381526020016241503160e81b81525081565b61022b6040518060400160405280600281526020016121a960f11b81525081565b61022b6040518060400160405280600481526020016320a1a61960e11b81525081565b61022b604051806040016040528060038152602001622a221960e91b81525081565b61022b6040518060400160405280600381526020016243413160e81b81525081565b600060208083528351808285015260005b818110156106a75785810183015185820160400152820161068b565b506000604082860101526040601f19601f830116850101925050509291505056fea26469706673582212208ef3ed026f953b6bf724cc32617ccf8f2f4ca676c5665c76437137abe1a1937264736f6c63430008110033",
-    "sourceMap": "188:2500:36:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;680:58;;;;;;;;;;;;;;;-1:-1:-1;;;680:58:36;;;;;;;;;;;;:::i;:::-;;;;;;;;1708:52;;;;;;;;;;;;;;;-1:-1:-1;;;1708:52:36;;;;;541:51;;;;;;;;;;;;;;;-1:-1:-1;;;541:51:36;;;;;1284:85;;;;;;;;;;;;;;;-1:-1:-1;;;1284:85:36;;;;;744:52;;;;;;;;;;;;;;;-1:-1:-1;;;744:52:36;;;;;1035:70;;;;;;;;;;;;;;;-1:-1:-1;;;1035:70:36;;;;;1940:46;;;;;;;;;;;;;;;-1:-1:-1;;;1940:46:36;;;;;1111:58;;;;;;;;;;;;;;;-1:-1:-1;;;1111:58:36;;;;;2185:68;;;;;;;;;;;;;;;-1:-1:-1;;;2185:68:36;;;;;351:51;;;;;;;;;;;;;;;-1:-1:-1;;;351:51:36;;;;;237:57;;;;;;;;;;;;;;;-1:-1:-1;;;237:57:36;;;;;802:51;;;;;;;;;;;;;;;-1:-1:-1;;;802:51:36;;;;;300:45;;;;;;;;;;;;;;;-1:-1:-1;;;300:45:36;;;;;2259:56;;;;;;;;;;;;;;;-1:-1:-1;;;2259:56:36;;;;;2417:67;;;;;;;;;;;;;;;-1:-1:-1;;;2417:67:36;;;;;886:66;;;;;;;;;;;;;;;-1:-1:-1;;;886:66:36;;;;;1375:52;;;;;;;;;;;;;;;-1:-1:-1;;;1375:52:36;;;;;466:69;;;;;;;;;;;;;;;-1:-1:-1;;;466:69:36;;;;;1766:62;;;;;;;;;;;;;;;-1:-1:-1;;;1766:62:36;;;;;958:71;;;;;;;;;;;;;;;-1:-1:-1;;;958:71:36;;;;;2018:61;;;;;;;;;;;;;;;-1:-1:-1;;;2018:61:36;;;;;2547:69;;;;;;;;;;;;;;;-1:-1:-1;;;2547:69:36;;;;;1433:61;;;;;;;;;;;;;;;-1:-1:-1;;;1433:61:36;;;;;2622:63;;;;;;;;;;;;;;;-1:-1:-1;;;2622:63:36;;;;;598:49;;;;;;;;;;;;;;;-1:-1:-1;;;598:49:36;;;;;2321:50;;;;;;;;;;;;;;;-1:-1:-1;;;2321:50:36;;;;;1175:65;;;;;;;;;;;;;;;-1:-1:-1;;;1175:65:36;;;;;1500;;;;;;;;;;;;;;;-1:-1:-1;;;1500:65:36;;;;;1610:51;;;;;;;;;;;;;;;-1:-1:-1;;;1610:51:36;;;;;408:52;;;;;;;;;;;;;;;-1:-1:-1;;;408:52:36;;;;;2085:59;;;;;;;;;;;;;;;-1:-1:-1;;;2085:59:36;;;;;2490:51;;;;;;;;;;;;;;;-1:-1:-1;;;2490:51:36;;;;;1871:63;;;;;;;;;;;;;;;-1:-1:-1;;;1871:63:36;;;;;14:556:98;134:4;163:2;192;181:9;174:21;224:6;218:13;267:6;262:2;251:9;247:18;240:34;292:1;302:140;316:6;313:1;310:13;302:140;;;411:14;;;407:23;;401:30;377:17;;;396:2;373:26;366:66;331:10;;302:140;;;306:3;491:1;486:2;477:6;466:9;462:22;458:31;451:42;561:2;554;550:7;545:2;537:6;533:15;529:29;518:9;514:45;510:54;502:62;;;;14:556;;;;:::o",
+    "sourceMap": "188:2500:36:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;680:58;;;;;;;;;;;;;;;-1:-1:-1;;;680:58:36;;;;;;;;;;;;:::i;:::-;;;;;;;;1708:52;;;;;;;;;;;;;;;-1:-1:-1;;;1708:52:36;;;;;541:51;;;;;;;;;;;;;;;-1:-1:-1;;;541:51:36;;;;;1284:85;;;;;;;;;;;;;;;-1:-1:-1;;;1284:85:36;;;;;744:52;;;;;;;;;;;;;;;-1:-1:-1;;;744:52:36;;;;;1035:70;;;;;;;;;;;;;;;-1:-1:-1;;;1035:70:36;;;;;1940:46;;;;;;;;;;;;;;;-1:-1:-1;;;1940:46:36;;;;;1111:58;;;;;;;;;;;;;;;-1:-1:-1;;;1111:58:36;;;;;2185:68;;;;;;;;;;;;;;;-1:-1:-1;;;2185:68:36;;;;;351:51;;;;;;;;;;;;;;;-1:-1:-1;;;351:51:36;;;;;237:57;;;;;;;;;;;;;;;-1:-1:-1;;;237:57:36;;;;;802:51;;;;;;;;;;;;;;;-1:-1:-1;;;802:51:36;;;;;300:45;;;;;;;;;;;;;;;-1:-1:-1;;;300:45:36;;;;;2259:56;;;;;;;;;;;;;;;-1:-1:-1;;;2259:56:36;;;;;2417:67;;;;;;;;;;;;;;;-1:-1:-1;;;2417:67:36;;;;;886:66;;;;;;;;;;;;;;;-1:-1:-1;;;886:66:36;;;;;1375:52;;;;;;;;;;;;;;;-1:-1:-1;;;1375:52:36;;;;;466:69;;;;;;;;;;;;;;;-1:-1:-1;;;466:69:36;;;;;1766:62;;;;;;;;;;;;;;;-1:-1:-1;;;1766:62:36;;;;;958:71;;;;;;;;;;;;;;;-1:-1:-1;;;958:71:36;;;;;2018:61;;;;;;;;;;;;;;;-1:-1:-1;;;2018:61:36;;;;;2547:69;;;;;;;;;;;;;;;-1:-1:-1;;;2547:69:36;;;;;1433:61;;;;;;;;;;;;;;;-1:-1:-1;;;1433:61:36;;;;;2622:63;;;;;;;;;;;;;;;-1:-1:-1;;;2622:63:36;;;;;598:49;;;;;;;;;;;;;;;-1:-1:-1;;;598:49:36;;;;;2321:50;;;;;;;;;;;;;;;-1:-1:-1;;;2321:50:36;;;;;1175:65;;;;;;;;;;;;;;;-1:-1:-1;;;1175:65:36;;;;;1500;;;;;;;;;;;;;;;-1:-1:-1;;;1500:65:36;;;;;1610:51;;;;;;;;;;;;;;;-1:-1:-1;;;1610:51:36;;;;;408:52;;;;;;;;;;;;;;;-1:-1:-1;;;408:52:36;;;;;2085:59;;;;;;;;;;;;;;;-1:-1:-1;;;2085:59:36;;;;;2490:51;;;;;;;;;;;;;;;-1:-1:-1;;;2490:51:36;;;;;1871:63;;;;;;;;;;;;;;;-1:-1:-1;;;1871:63:36;;;;;14:556:106;134:4;163:2;192;181:9;174:21;224:6;218:13;267:6;262:2;251:9;247:18;240:34;292:1;302:140;316:6;313:1;310:13;302:140;;;411:14;;;407:23;;401:30;377:17;;;396:2;373:26;366:66;331:10;;302:140;;;306:3;491:1;486:2;477:6;466:9;462:22;458:31;451:42;561:2;554;550:7;545:2;537:6;533:15;529:29;518:9;514:45;510:54;502:62;;;;14:556;;;;:::o",
     "linkReferences": {}
   },
   "methodIdentifiers": {
@@ -963,17 +963,17 @@
   },
   "ast": {
     "absolutePath": "contracts/Libraries/Errors.sol",
-    "id": 4999,
+    "id": 5569,
     "exportedSymbols": {
       "Errors": [
-        4998
+        5568
       ]
     },
     "nodeType": "SourceUnit",
     "src": "136:2553:36",
     "nodes": [
       {
-        "id": 4897,
+        "id": 5467,
         "nodeType": "PragmaDirective",
         "src": "136:24:36",
         "nodes": [],
@@ -985,12 +985,12 @@
         ]
       },
       {
-        "id": 4998,
+        "id": 5568,
         "nodeType": "ContractDefinition",
         "src": "188:2500:36",
         "nodes": [
           {
-            "id": 4901,
+            "id": 5471,
             "nodeType": "VariableDeclaration",
             "src": "237:57:36",
             "nodes": [],
@@ -999,7 +999,7 @@
             "mutability": "constant",
             "name": "ZERO_ADDRESS_IS_NOT_ALLOWED",
             "nameLocation": "260:27:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1007,7 +1007,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4899,
+              "id": 5469,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "237:6:36",
@@ -1018,7 +1018,7 @@
             },
             "value": {
               "hexValue": "5a30",
-              "id": 4900,
+              "id": 5470,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1035,7 +1035,7 @@
             "visibility": "public"
           },
           {
-            "id": 4904,
+            "id": 5474,
             "nodeType": "VariableDeclaration",
             "src": "300:45:36",
             "nodes": [],
@@ -1044,7 +1044,7 @@
             "mutability": "constant",
             "name": "NOT_IMPLEMENTED",
             "nameLocation": "323:15:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1052,7 +1052,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4902,
+              "id": 5472,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "300:6:36",
@@ -1063,7 +1063,7 @@
             },
             "value": {
               "hexValue": "4e49",
-              "id": 4903,
+              "id": 5473,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1080,7 +1080,7 @@
             "visibility": "public"
           },
           {
-            "id": 4907,
+            "id": 5477,
             "nodeType": "VariableDeclaration",
             "src": "351:51:36",
             "nodes": [],
@@ -1089,7 +1089,7 @@
             "mutability": "constant",
             "name": "INCORRECT_PATH_LENGTH",
             "nameLocation": "374:21:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1097,7 +1097,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4905,
+              "id": 5475,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "351:6:36",
@@ -1108,7 +1108,7 @@
             },
             "value": {
               "hexValue": "504c",
-              "id": 4906,
+              "id": 5476,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1125,7 +1125,7 @@
             "visibility": "public"
           },
           {
-            "id": 4910,
+            "id": 5480,
             "nodeType": "VariableDeclaration",
             "src": "408:52:36",
             "nodes": [],
@@ -1134,7 +1134,7 @@
             "mutability": "constant",
             "name": "INCORRECT_ARRAY_LENGTH",
             "nameLocation": "431:22:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1142,7 +1142,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4908,
+              "id": 5478,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "408:6:36",
@@ -1153,7 +1153,7 @@
             },
             "value": {
               "hexValue": "4352",
-              "id": 4909,
+              "id": 5479,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1170,7 +1170,7 @@
             "visibility": "public"
           },
           {
-            "id": 4913,
+            "id": 5483,
             "nodeType": "VariableDeclaration",
             "src": "466:69:36",
             "nodes": [],
@@ -1179,7 +1179,7 @@
             "mutability": "constant",
             "name": "REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY",
             "nameLocation": "489:39:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1187,7 +1187,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4911,
+              "id": 5481,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "466:6:36",
@@ -1198,7 +1198,7 @@
             },
             "value": {
               "hexValue": "4350",
-              "id": 4912,
+              "id": 5482,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1215,7 +1215,7 @@
             "visibility": "public"
           },
           {
-            "id": 4916,
+            "id": 5486,
             "nodeType": "VariableDeclaration",
             "src": "541:51:36",
             "nodes": [],
@@ -1224,7 +1224,7 @@
             "mutability": "constant",
             "name": "REGISTERED_POOLS_ONLY",
             "nameLocation": "564:21:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1232,7 +1232,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4914,
+              "id": 5484,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "541:6:36",
@@ -1243,7 +1243,7 @@
             },
             "value": {
               "hexValue": "5250",
-              "id": 4915,
+              "id": 5485,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1260,7 +1260,7 @@
             "visibility": "public"
           },
           {
-            "id": 4919,
+            "id": 5489,
             "nodeType": "VariableDeclaration",
             "src": "598:49:36",
             "nodes": [],
@@ -1269,7 +1269,7 @@
             "mutability": "constant",
             "name": "INCORRECT_PARAMETER",
             "nameLocation": "621:19:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1277,7 +1277,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4917,
+              "id": 5487,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "598:6:36",
@@ -1288,7 +1288,7 @@
             },
             "value": {
               "hexValue": "4950",
-              "id": 4918,
+              "id": 5488,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1305,7 +1305,7 @@
             "visibility": "public"
           },
           {
-            "id": 4922,
+            "id": 5492,
             "nodeType": "VariableDeclaration",
             "src": "680:58:36",
             "nodes": [],
@@ -1314,7 +1314,7 @@
             "mutability": "constant",
             "name": "MATH_MULTIPLICATION_OVERFLOW",
             "nameLocation": "703:28:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1322,7 +1322,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4920,
+              "id": 5490,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "680:6:36",
@@ -1333,7 +1333,7 @@
             },
             "value": {
               "hexValue": "4d31",
-              "id": 4921,
+              "id": 5491,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1350,7 +1350,7 @@
             "visibility": "public"
           },
           {
-            "id": 4925,
+            "id": 5495,
             "nodeType": "VariableDeclaration",
             "src": "744:52:36",
             "nodes": [],
@@ -1359,7 +1359,7 @@
             "mutability": "constant",
             "name": "MATH_ADDITION_OVERFLOW",
             "nameLocation": "767:22:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1367,7 +1367,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4923,
+              "id": 5493,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "744:6:36",
@@ -1378,7 +1378,7 @@
             },
             "value": {
               "hexValue": "4d32",
-              "id": 4924,
+              "id": 5494,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1395,7 +1395,7 @@
             "visibility": "public"
           },
           {
-            "id": 4928,
+            "id": 5498,
             "nodeType": "VariableDeclaration",
             "src": "802:51:36",
             "nodes": [],
@@ -1404,7 +1404,7 @@
             "mutability": "constant",
             "name": "MATH_DIVISION_BY_ZERO",
             "nameLocation": "825:21:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1412,7 +1412,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4926,
+              "id": 5496,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "802:6:36",
@@ -1423,7 +1423,7 @@
             },
             "value": {
               "hexValue": "4d33",
-              "id": 4927,
+              "id": 5497,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1440,7 +1440,7 @@
             "visibility": "public"
           },
           {
-            "id": 4931,
+            "id": 5501,
             "nodeType": "VariableDeclaration",
             "src": "886:66:36",
             "nodes": [],
@@ -1449,7 +1449,7 @@
             "mutability": "constant",
             "name": "POOL_CONNECTED_CREDIT_MANAGERS_ONLY",
             "nameLocation": "909:35:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1457,7 +1457,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4929,
+              "id": 5499,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "886:6:36",
@@ -1468,7 +1468,7 @@
             },
             "value": {
               "hexValue": "505330",
-              "id": 4930,
+              "id": 5500,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1485,7 +1485,7 @@
             "visibility": "public"
           },
           {
-            "id": 4934,
+            "id": 5504,
             "nodeType": "VariableDeclaration",
             "src": "958:71:36",
             "nodes": [],
@@ -1494,7 +1494,7 @@
             "mutability": "constant",
             "name": "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER",
             "nameLocation": "981:40:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1502,7 +1502,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4932,
+              "id": 5502,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "958:6:36",
@@ -1513,7 +1513,7 @@
             },
             "value": {
               "hexValue": "505331",
-              "id": 4933,
+              "id": 5503,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1530,7 +1530,7 @@
             "visibility": "public"
           },
           {
-            "id": 4937,
+            "id": 5507,
             "nodeType": "VariableDeclaration",
             "src": "1035:70:36",
             "nodes": [],
@@ -1539,7 +1539,7 @@
             "mutability": "constant",
             "name": "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT",
             "nameLocation": "1058:39:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1547,7 +1547,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4935,
+              "id": 5505,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1035:6:36",
@@ -1558,7 +1558,7 @@
             },
             "value": {
               "hexValue": "505332",
-              "id": 4936,
+              "id": 5506,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1575,7 +1575,7 @@
             "visibility": "public"
           },
           {
-            "id": 4940,
+            "id": 5510,
             "nodeType": "VariableDeclaration",
             "src": "1111:58:36",
             "nodes": [],
@@ -1584,7 +1584,7 @@
             "mutability": "constant",
             "name": "POOL_INCORRECT_WITHDRAW_FEE",
             "nameLocation": "1134:27:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1592,7 +1592,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4938,
+              "id": 5508,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1111:6:36",
@@ -1603,7 +1603,7 @@
             },
             "value": {
               "hexValue": "505333",
-              "id": 4939,
+              "id": 5509,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1620,7 +1620,7 @@
             "visibility": "public"
           },
           {
-            "id": 4943,
+            "id": 5513,
             "nodeType": "VariableDeclaration",
             "src": "1175:65:36",
             "nodes": [],
@@ -1629,7 +1629,7 @@
             "mutability": "constant",
             "name": "POOL_CANT_ADD_CREDIT_MANAGER_TWICE",
             "nameLocation": "1198:34:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1637,7 +1637,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4941,
+              "id": 5511,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1175:6:36",
@@ -1648,7 +1648,7 @@
             },
             "value": {
               "hexValue": "505334",
-              "id": 4942,
+              "id": 5512,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1665,7 +1665,7 @@
             "visibility": "public"
           },
           {
-            "id": 4946,
+            "id": 5516,
             "nodeType": "VariableDeclaration",
             "src": "1284:85:36",
             "nodes": [],
@@ -1674,7 +1674,7 @@
             "mutability": "constant",
             "name": "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK",
             "nameLocation": "1307:46:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1682,7 +1682,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4944,
+              "id": 5514,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1284:6:36",
@@ -1693,7 +1693,7 @@
             },
             "value": {
               "hexValue": "414631",
-              "id": 4945,
+              "id": 5515,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1710,7 +1710,7 @@
             "visibility": "public"
           },
           {
-            "id": 4949,
+            "id": 5519,
             "nodeType": "VariableDeclaration",
             "src": "1375:52:36",
             "nodes": [],
@@ -1719,7 +1719,7 @@
             "mutability": "constant",
             "name": "AF_MINING_IS_FINISHED",
             "nameLocation": "1398:21:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1727,7 +1727,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4947,
+              "id": 5517,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1375:6:36",
@@ -1738,7 +1738,7 @@
             },
             "value": {
               "hexValue": "414632",
-              "id": 4948,
+              "id": 5518,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1755,7 +1755,7 @@
             "visibility": "public"
           },
           {
-            "id": 4952,
+            "id": 5522,
             "nodeType": "VariableDeclaration",
             "src": "1433:61:36",
             "nodes": [],
@@ -1764,7 +1764,7 @@
             "mutability": "constant",
             "name": "AF_CREDIT_ACCOUNT_NOT_IN_STOCK",
             "nameLocation": "1456:30:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1772,7 +1772,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4950,
+              "id": 5520,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1433:6:36",
@@ -1783,7 +1783,7 @@
             },
             "value": {
               "hexValue": "414633",
-              "id": 4951,
+              "id": 5521,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1800,7 +1800,7 @@
             "visibility": "public"
           },
           {
-            "id": 4955,
+            "id": 5525,
             "nodeType": "VariableDeclaration",
             "src": "1500:65:36",
             "nodes": [],
@@ -1809,7 +1809,7 @@
             "mutability": "constant",
             "name": "AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN",
             "nameLocation": "1523:34:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1817,7 +1817,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4953,
+              "id": 5523,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1500:6:36",
@@ -1828,7 +1828,7 @@
             },
             "value": {
               "hexValue": "414634",
-              "id": 4954,
+              "id": 5524,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1845,7 +1845,7 @@
             "visibility": "public"
           },
           {
-            "id": 4958,
+            "id": 5528,
             "nodeType": "VariableDeclaration",
             "src": "1610:51:36",
             "nodes": [],
@@ -1854,7 +1854,7 @@
             "mutability": "constant",
             "name": "AS_ADDRESS_NOT_FOUND",
             "nameLocation": "1633:20:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1862,7 +1862,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4956,
+              "id": 5526,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1610:6:36",
@@ -1873,7 +1873,7 @@
             },
             "value": {
               "hexValue": "415031",
-              "id": 4957,
+              "id": 5527,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1890,7 +1890,7 @@
             "visibility": "public"
           },
           {
-            "id": 4961,
+            "id": 5531,
             "nodeType": "VariableDeclaration",
             "src": "1708:52:36",
             "nodes": [],
@@ -1899,7 +1899,7 @@
             "mutability": "constant",
             "name": "CR_POOL_ALREADY_ADDED",
             "nameLocation": "1731:21:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1907,7 +1907,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4959,
+              "id": 5529,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1708:6:36",
@@ -1918,7 +1918,7 @@
             },
             "value": {
               "hexValue": "435231",
-              "id": 4960,
+              "id": 5530,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1935,7 +1935,7 @@
             "visibility": "public"
           },
           {
-            "id": 4964,
+            "id": 5534,
             "nodeType": "VariableDeclaration",
             "src": "1766:62:36",
             "nodes": [],
@@ -1944,7 +1944,7 @@
             "mutability": "constant",
             "name": "CR_CREDIT_MANAGER_ALREADY_ADDED",
             "nameLocation": "1789:31:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1952,7 +1952,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4962,
+              "id": 5532,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1766:6:36",
@@ -1963,7 +1963,7 @@
             },
             "value": {
               "hexValue": "435232",
-              "id": 4963,
+              "id": 5533,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1980,7 +1980,7 @@
             "visibility": "public"
           },
           {
-            "id": 4967,
+            "id": 5537,
             "nodeType": "VariableDeclaration",
             "src": "1871:63:36",
             "nodes": [],
@@ -1989,7 +1989,7 @@
             "mutability": "constant",
             "name": "CA_CONNECTED_CREDIT_MANAGER_ONLY",
             "nameLocation": "1894:32:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1997,7 +1997,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4965,
+              "id": 5535,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1871:6:36",
@@ -2008,7 +2008,7 @@
             },
             "value": {
               "hexValue": "434131",
-              "id": 4966,
+              "id": 5536,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2025,7 +2025,7 @@
             "visibility": "public"
           },
           {
-            "id": 4970,
+            "id": 5540,
             "nodeType": "VariableDeclaration",
             "src": "1940:46:36",
             "nodes": [],
@@ -2034,7 +2034,7 @@
             "mutability": "constant",
             "name": "CA_FACTORY_ONLY",
             "nameLocation": "1963:15:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2042,7 +2042,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4968,
+              "id": 5538,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1940:6:36",
@@ -2053,7 +2053,7 @@
             },
             "value": {
               "hexValue": "434132",
-              "id": 4969,
+              "id": 5539,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2070,7 +2070,7 @@
             "visibility": "public"
           },
           {
-            "id": 4973,
+            "id": 5543,
             "nodeType": "VariableDeclaration",
             "src": "2018:61:36",
             "nodes": [],
@@ -2079,7 +2079,7 @@
             "mutability": "constant",
             "name": "ACL_CALLER_NOT_PAUSABLE_ADMIN",
             "nameLocation": "2041:29:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2087,7 +2087,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4971,
+              "id": 5541,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2018:6:36",
@@ -2098,7 +2098,7 @@
             },
             "value": {
               "hexValue": "41434c31",
-              "id": 4972,
+              "id": 5542,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2115,7 +2115,7 @@
             "visibility": "public"
           },
           {
-            "id": 4976,
+            "id": 5546,
             "nodeType": "VariableDeclaration",
             "src": "2085:59:36",
             "nodes": [],
@@ -2124,7 +2124,7 @@
             "mutability": "constant",
             "name": "ACL_CALLER_NOT_CONFIGURATOR",
             "nameLocation": "2108:27:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2132,7 +2132,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4974,
+              "id": 5544,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2085:6:36",
@@ -2143,7 +2143,7 @@
             },
             "value": {
               "hexValue": "41434c32",
-              "id": 4975,
+              "id": 5545,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2160,7 +2160,7 @@
             "visibility": "public"
           },
           {
-            "id": 4979,
+            "id": 5549,
             "nodeType": "VariableDeclaration",
             "src": "2185:68:36",
             "nodes": [],
@@ -2169,7 +2169,7 @@
             "mutability": "constant",
             "name": "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE",
             "nameLocation": "2208:37:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2177,7 +2177,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4977,
+              "id": 5547,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2185:6:36",
@@ -2188,7 +2188,7 @@
             },
             "value": {
               "hexValue": "574731",
-              "id": 4978,
+              "id": 5548,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2205,7 +2205,7 @@
             "visibility": "public"
           },
           {
-            "id": 4982,
+            "id": 5552,
             "nodeType": "VariableDeclaration",
             "src": "2259:56:36",
             "nodes": [],
@@ -2214,7 +2214,7 @@
             "mutability": "constant",
             "name": "WG_RECEIVE_IS_NOT_ALLOWED",
             "nameLocation": "2282:25:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2222,7 +2222,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4980,
+              "id": 5550,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2259:6:36",
@@ -2233,7 +2233,7 @@
             },
             "value": {
               "hexValue": "574732",
-              "id": 4981,
+              "id": 5551,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2250,7 +2250,7 @@
             "visibility": "public"
           },
           {
-            "id": 4985,
+            "id": 5555,
             "nodeType": "VariableDeclaration",
             "src": "2321:50:36",
             "nodes": [],
@@ -2259,7 +2259,7 @@
             "mutability": "constant",
             "name": "WG_NOT_ENOUGH_FUNDS",
             "nameLocation": "2344:19:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2267,7 +2267,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4983,
+              "id": 5553,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2321:6:36",
@@ -2278,7 +2278,7 @@
             },
             "value": {
               "hexValue": "574733",
-              "id": 4984,
+              "id": 5554,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2295,7 +2295,7 @@
             "visibility": "public"
           },
           {
-            "id": 4988,
+            "id": 5558,
             "nodeType": "VariableDeclaration",
             "src": "2417:67:36",
             "nodes": [],
@@ -2304,7 +2304,7 @@
             "mutability": "constant",
             "name": "TD_WALLET_IS_ALREADY_CONNECTED_TO_VC",
             "nameLocation": "2440:36:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2312,7 +2312,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4986,
+              "id": 5556,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2417:6:36",
@@ -2323,7 +2323,7 @@
             },
             "value": {
               "hexValue": "544431",
-              "id": 4987,
+              "id": 5557,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2340,7 +2340,7 @@
             "visibility": "public"
           },
           {
-            "id": 4991,
+            "id": 5561,
             "nodeType": "VariableDeclaration",
             "src": "2490:51:36",
             "nodes": [],
@@ -2349,7 +2349,7 @@
             "mutability": "constant",
             "name": "TD_INCORRECT_WEIGHTS",
             "nameLocation": "2513:20:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2357,7 +2357,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4989,
+              "id": 5559,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2490:6:36",
@@ -2368,7 +2368,7 @@
             },
             "value": {
               "hexValue": "544432",
-              "id": 4990,
+              "id": 5560,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2385,7 +2385,7 @@
             "visibility": "public"
           },
           {
-            "id": 4994,
+            "id": 5564,
             "nodeType": "VariableDeclaration",
             "src": "2547:69:36",
             "nodes": [],
@@ -2394,7 +2394,7 @@
             "mutability": "constant",
             "name": "TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION",
             "nameLocation": "2570:38:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2402,7 +2402,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4992,
+              "id": 5562,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2547:6:36",
@@ -2413,7 +2413,7 @@
             },
             "value": {
               "hexValue": "544433",
-              "id": 4993,
+              "id": 5563,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2430,7 +2430,7 @@
             "visibility": "public"
           },
           {
-            "id": 4997,
+            "id": 5567,
             "nodeType": "VariableDeclaration",
             "src": "2622:63:36",
             "nodes": [],
@@ -2439,7 +2439,7 @@
             "mutability": "constant",
             "name": "TD_CONTRIBUTOR_IS_NOT_REGISTERED",
             "nameLocation": "2645:32:36",
-            "scope": 4998,
+            "scope": 5568,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2447,7 +2447,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4995,
+              "id": 5565,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2622:6:36",
@@ -2458,7 +2458,7 @@
             },
             "value": {
               "hexValue": "544434",
-              "id": 4996,
+              "id": 5566,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2481,18 +2481,18 @@
         "contractDependencies": [],
         "contractKind": "library",
         "documentation": {
-          "id": 4898,
+          "id": 5468,
           "nodeType": "StructuredDocumentation",
           "src": "162:26:36",
           "text": "@title Errors library"
         },
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          4998
+          5568
         ],
         "name": "Errors",
         "nameLocation": "196:6:36",
-        "scope": 4999,
+        "scope": 5569,
         "usedErrors": []
       }
     ],
