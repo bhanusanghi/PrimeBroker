@@ -480,7 +480,7 @@ describe("Margin Manager", () => {
       console.log("eth market position", await EthFutures.positions(accAddress))
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
     });
-    it("MarginAccount add position:perpfi case", async () => {
+    it.only("MarginAccount add position:perpfi case", async () => {
 
       await usdc.approve(accAddress, ethers.utils.parseUnits("6500", 6))
       await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("6500", 6))
@@ -490,7 +490,7 @@ describe("Margin Manager", () => {
       let sizeDelta = ethers.utils.parseUnits("830", 18);
       let posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
-
+      console.log("pending fee 0", await marginAcc.pendingFee())
       let out = await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
       const perpfiOwner = await ethers.getImpersonatedSigner("0x76Ff908b6d43C182DAEC59b35CebC1d7A17D8086");
       const EXCABI = (
@@ -543,6 +543,7 @@ describe("Margin Manager", () => {
       console.log("yohoooo")
       // console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       //positions,posData,
+      console.log("pending fee 1", await marginAcc.pendingFee())
       reciept = await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
       console.log("eth market position", await EthFutures.positions(accAddress))
 
@@ -566,6 +567,7 @@ describe("Margin Manager", () => {
         ethers.constants.HashZero)
 
       console.log("perpOpenPositionCallData - ", _perpOpenPositionCallData, "--------------\n", await usdc.balanceOf(accAddress))
+      console.log("pending fee 2", await marginAcc.pendingFee())
       reciept = await marginManager.openPosition(
         PERP_MARKET_KEY_AAVE,
         [erc20.usdc, perpVault.address, perpClearingHouse.address],
@@ -584,13 +586,14 @@ describe("Margin Manager", () => {
 
       console.log(ETH_MARKET, ":....", await EthFutures.baseAsset(), await EthFutures.assetPrice(), await EthFutures.positions(accAddress));
       //positions,posData,
+      console.log("pending fee 3", await marginAcc.pendingFee())
       await marginManager.liquidate([SNX_MARKET_KEY_sETH], [ETH_MARKET], [posData])
-
+      console.log("pending fee 4", await marginAcc.pendingFee())
       console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
       const outt = await accountBalance.connect(account0).getAccountInfo(accAddress, "0x34235C8489b06482A99bb7fcaB6d7c467b92d248")
       console.log("eth market position", await EthFutures.positions(accAddress), await accountBalance.connect(account0).getPnlAndPendingFee(accAddress), outt)
     });
-    it.only("MarginAccount add position: perpfi Fees", async () => {
+    it("MarginAccount add position: perpfi Fees", async () => {
       await usdc.approve(accAddress, ethers.utils.parseUnits("6500", 6))
       console.log("balanceOf", await usdc.balanceOf(account0.address), await CollateralManager.totalCollateralValue(accAddress))
       await CollateralManager.addCollateral(usdc.address, ethers.utils.parseUnits("6500", 6))

@@ -18,10 +18,12 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
+    using Math for uint256;
     using SafeCastUpgradeable for uint256;
     using SafeCastUpgradeable for int256;
     using SignedMath for int256;
@@ -185,7 +187,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                console.log(marketRegistry.getFeeRatio(_baseToken),":-fee");
+                fee = marketRegistry.getFeeRatio(_baseToken);
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     // get price should return in normalized values.
@@ -207,6 +209,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 }
             }
         }
+        fee = totalPosition.abs().mulDiv(fee,10**5);
+        console.log("perpfi final:",fee);
     }
     function verifyClose(address protocol,address[] memory destinations,bytes[] calldata data)
         public

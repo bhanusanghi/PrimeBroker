@@ -164,7 +164,7 @@ contract MarginManager is ReentrancyGuard {
         int256 positionSize;
         address tokenOut;
         uint256 interestAccrued = _getInterestAccrued(address(marginAcc));
-        uint256 fee;
+        uint256 fee;// @note fee is assumed to be in usdc value
         (tokensToTransfer, positionSize, fee, tokenOut) = riskManager.verifyTrade(
             address(marginAcc),
             marketKey,
@@ -174,7 +174,7 @@ contract MarginManager is ReentrancyGuard {
         );
         // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
-
+        console.log("fee and tokenout:",fee,tokenOut);
         // @TODO - Make sure the accounting works fine when closing/updating position
         // Self Note - Bhanu - This will always be 0 with current assumptions.
         uint256 balance = IERC20(tokenOut).balanceOf(address(marginAcc));
@@ -224,7 +224,7 @@ contract MarginManager is ReentrancyGuard {
         // marginAcc.updatePosition(marketKey, positionSize, true);
         // execute at end to avoid re-entrancy
         marginAcc.execMultiTx(destinations, data);
-        marginAcc.addPosition(marketKey, positionSize);
+        marginAcc.addPosition(marketKey, positionSize,fee);
     }
 
     function updatePosition(

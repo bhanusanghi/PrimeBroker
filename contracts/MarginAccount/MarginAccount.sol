@@ -75,10 +75,11 @@ contract MarginAccount is IMarginAccount, UniExchange {
         IERC20(token).approve(protocol, type(uint256).max);
     }
 
-    function addPosition(bytes32 market, int256 size) public {
+    function addPosition(bytes32 market, int256 size, uint256 fee) public {
         // only riskmanagger
         positions[market] = size;
         existingPosition[market] = true;
+        pendingFee += int256(fee);
     }
 
     function updatePosition(bytes32 market, int256 size) public {
@@ -174,7 +175,6 @@ contract MarginAccount is IMarginAccount, UniExchange {
         _totalBorrowed = _totalBorrowedAmount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
-
     function updateMarginInMarket(bytes32 market, int256 transferredMargin)
         public
     {
