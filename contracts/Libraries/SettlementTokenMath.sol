@@ -126,6 +126,7 @@ library SettlementTokenMath {
     }
 
     // returns number converted between specified decimals
+    // TODO - Does not work with values less than 1 (decimal value)
     function convertTokenDecimals(
         uint256 amount,
         uint8 fromDecimals,
@@ -141,6 +142,7 @@ library SettlementTokenMath {
     }
 
     // returns number converted between specified decimals
+    // TODO - Does not work with values less than 1 (decimal value)
     function convertTokenDecimals(
         int256 amount,
         uint8 fromDecimals,

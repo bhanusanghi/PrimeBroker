@@ -62,6 +62,7 @@ contract MarginManager is ReentrancyGuard {
         uint256
     );
 
+    // marginAccount, protocol, assetOut, size, openNotional
     event PositionAdded(
         address indexed,
         address indexed,
@@ -176,123 +177,111 @@ contract MarginManager is ReentrancyGuard {
     ) external {
         // TODO - Use Interface rather than class.
         MarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
-        // TODO add a check to make sure person is not overwriting an existing position using this method.
         require(!marginAcc.existingPosition(marketKey), "Existing position");
-
-        uint256 interestAccrued = _getInterestAccrued(address(marginAcc));
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             address(marginAcc),
             marketKey,
             destinations,
             data,
-            interestAccrued
+            _getInterestAccrued(address(marginAcc))
         );
-        // find actual transfer amount and find exchange price using oracle.
         address tokenIn = vault.asset();
-
-        // @TODO - Make sure the accounting works fine when closing/updating position
-        // Self Note - Bhanu - This will always be 0 with current assumptions.
-        uint256 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
-            address(marginAcc)
-        );
-        // add one var where increase debt only if needed,
-        //coz transfermargin can be done without it if margin acc has balance\
-        // Get dollar value in terms of vault underlying token.
-        // Since vault token is currently only Stable Dollar.
-        uint256 dollarValueOfTokensToTransfer = priceOracle.convertToUSD(
-            verificationResult.transferAmount.abs(),
-            verificationResult.tokenOut
-        );
-        dollarValueOfTokensToTransfer = dollarValueOfTokensToTransfer
-            .convertTokenDecimals(
-                ERC20(verificationResult.tokenOut).decimals(),
-                ERC20(tokenIn).decimals()
-            );
-
-        if (verificationResult.positionSize > 0) {
+        if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            marginAcc.addPosition(marketKey, verificationResult.positionSize);
-
+            console.log("positionSize");
+            console.logInt(verificationResult.position.size);
+            marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
                 verificationResult.protocolAddress,
                 verificationResult.tokenOut,
-                verificationResult.positionSize,
-                0
-                // positionOpenNotional
+                verificationResult.position.size,
+                verificationResult.position.openNotional
             );
         }
-        // console.log("MM: Final verificationResult.transferAmount");
-        // console.logInt(verificationResult.transferAmount);
-        // console.log(
-        //     "MM: dollarValueOfTokensToTransfer ",
-        //     dollarValueOfTokensToTransfer
-        // );
-        if (dollarValueOfTokensToTransfer > 0) {
+        if (verificationResult.marginDeltaDollarValue < 0) {
+            revert(
+                "MM: Invalid Operation. Cannot use open position to reduce margin from a Market."
+            );
+            // return as this is not opening of new position but modifying existing position.
+        }
+        if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
                 marketKey,
-                dollarValueOfTokensToTransfer.toInt256()
+                verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(
                 address(marginAcc),
                 verificationResult.protocolAddress,
                 verificationResult.tokenOut,
-                verificationResult.transferAmount,
-                dollarValueOfTokensToTransfer
+                verificationResult.marginDelta,
+                verificationResult.marginDeltaDollarValue
             );
-            if (verificationResult.transferAmount > 0) {
-                // TODO - Account for slippage and remmove the excess 100 sent
-                verificationResult.transferAmount = verificationResult
-                    .transferAmount
-                    .add(
-                        int256(100).convertTokenDecimals(
-                            0,
-                            ERC20(verificationResult.tokenOut).decimals()
+            // check if we need to swap tokens for depositing margin.
+            uint256 tokenOutBalance = IERC20(verificationResult.tokenOut)
+                .balanceOf(address(marginAcc));
+            uint256 tokenInBalance = IERC20(tokenIn).balanceOf(
+                address(marginAcc)
+            );
+
+            if (tokenOutBalance < verificationResult.marginDelta.abs()) {
+                // TODO add oracle to get asset value.
+                uint256 diff = verificationResult.marginDelta.abs().sub(
+                    tokenOutBalance
+                );
+                uint256 dollarValueOfTokenDifference = priceOracle
+                    .convertToUSD(diff.toInt256(), verificationResult.tokenOut)
+                    .convertTokenDecimals(
+                        ERC20(verificationResult.tokenOut).decimals(),
+                        ERC20(tokenIn).decimals()
+                    );
+                if (dollarValueOfTokenDifference > tokenInBalance) {
+                    increaseDebt(
+                        address(marginAcc),
+                        dollarValueOfTokenDifference.sub(tokenInBalance).add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
+                            uint256(500).convertTokenDecimals(
+                                0,
+                                ERC20(tokenIn).decimals()
+                            )
                         )
                     );
-                if (tokenOutBalance < verificationResult.transferAmount.abs()) {
-                    // TODO add oracle to get asset value.
-                    uint256 diff = verificationResult.transferAmount.abs().sub(
-                        tokenOutBalance
-                    );
-                    // console.log("prev tokenOutBalance", tokenOutBalance);
-                    // console.log("verificationResult.transferAmount from vault", diff);
-                    uint256 dollarValueOfTokenDifference = priceOracle
-                        .convertToUSD(diff, verificationResult.tokenOut)
-                        .convertTokenDecimals(
-                            ERC20(verificationResult.tokenOut).decimals(),
-                            ERC20(tokenIn).decimals()
-                        );
-                    // check if diff is > 0
-                    uint256 newCredit = dollarValueOfTokenDifference -
-                        IERC20(tokenIn).balanceOf(address(marginAcc));
-                    // console.log("newCredit", newCredit);
-                    increaseDebt(address(marginAcc), newCredit);
-                    // console.log(
-                    //     "Final tokenIn Balance Margin Account",
-                    //     IERC20(tokenIn).balanceOf(address(marginAcc))
-                    // );
-                    // Note - change this to get exact token out and remove extra token in of 100 given above
-                    if (tokenIn != verificationResult.tokenOut) {
-                        IExchange.SwapParams memory params = IExchange
-                            .SwapParams({
-                                tokenIn: tokenIn,
-                                tokenOut: verificationResult.tokenOut,
-                                amountIn: dollarValueOfTokenDifference,
-                                amountOut: 0,
-                                isExactInput: true,
-                                sqrtPriceLimitX96: 0
-                            });
-                        uint256 amountOut = marginAcc.swap(params);
-                        // console.log("Swapped amount out", amountOut);
-                        // require(amountOut == (absVal(transferAmount)), "RM: Bad Swap.");
-                    }
+                }
+                // console.log(
+                //     "amountIn ",
+                //     dollarValueOfTokenDifference.add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
+                //         uint256(500).convertTokenDecimals(
+                //             0,
+                //             ERC20(tokenIn).decimals()
+                //         )
+                //     )
+                // );
+                // console.log(
+                //     "token In balance",
+                //     tokenInBalance
+                // );
+                // Note - change this to get exact token out and remove extra token in of 100 given above
+                if (tokenIn != verificationResult.tokenOut) {
+                    IExchange.SwapParams memory params = IExchange.SwapParams({
+                        tokenIn: tokenIn,
+                        tokenOut: verificationResult.tokenOut,
+                        amountIn: dollarValueOfTokenDifference.add( // TODO - Account for slippage and remmove the excess 500 sent
+                            uint256(500).convertTokenDecimals(
+                                0,
+                                ERC20(tokenIn).decimals()
+                            )
+                        ),
+                        amountOut: 0,
+                        isExactInput: true,
+                        sqrtPriceLimitX96: 0,
+                        amountOutMinimum: diff
+                    });
+                    uint256 amountOut = marginAcc.swap(params);
+                    require(amountOut >= diff, "RM: Bad Swap");
                 }
             }
         }
-        if (dollarValueOfTokensToTransfer < 0) {}
-        // execute at end to avoid re-entrancy
+
         marginAcc.execMultiTx(destinations, data);
     }
 
@@ -316,6 +305,7 @@ contract MarginManager is ReentrancyGuard {
         // VerifyTradeResult verificationResult;
         int256 _oldPositionSize = marginAcc.getPositionOpenNotional(marketKey);
         uint256 interestAccrued = _getInterestAccrued(msg.sender);
+
         // (
         //     protocolAddress,
         //     tokensToTransfer,
@@ -351,7 +341,7 @@ contract MarginManager is ReentrancyGuard {
         //         });
         //         uint256 amountOut = marginAcc.swap(params);
         //         // require(
-        //         //     amountOut == (absVal(transferAmount)),
+        //         //     amountOut == (absVal.marginDelta)),
         //         //     "RM: Bad exchange."
         //         // );
         //     }
@@ -394,7 +384,7 @@ contract MarginManager is ReentrancyGuard {
             data
         );
         require(
-            positionSize == marginAcc.getPositionValue(marketKey),
+            positionSize == marginAcc.getPositionOpenNotional(marketKey),
             "Invalid close pos"
         );
         require(
@@ -422,7 +412,7 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        // require(positionSize.abs() == marginAcc.getTotalNotional(marketKeys),"Invalid close pos");
+        // require(positionSize.abs() == marginAcc.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
         require(
             tokensToTransfer <= 0 && positionSize < 0,
             "add margin is not allowed in close position"
@@ -487,6 +477,7 @@ contract MarginManager is ReentrancyGuard {
     }
 
     // handles accounting and transfers requestedCredit
+    // amount with vault base decimals (6 in usdc)
     function increaseDebt(address marginAcc, uint256 amount)
         internal
         returns (uint256 newBorrowedAmount)

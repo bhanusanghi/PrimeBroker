@@ -103,8 +103,8 @@
       }
     },
     "contracts/Exchange/UniExchange.sol": {
-      "lastModificationDate": 1669628300717,
-      "contentHash": "928867231751aa1d66bc097dff7133f9",
+      "lastModificationDate": 1674826510136,
+      "contentHash": "9db39e1e5956d858a2f45add5ba7a46d",
       "sourceName": "contracts/Exchange/UniExchange.sol",
       "solcConfig": {
         "settings": {
@@ -474,8 +474,8 @@
       }
     },
     "contracts/Interfaces/IExchange.sol": {
-      "lastModificationDate": 1665676466986,
-      "contentHash": "4b5dd8c1dbdf189e22c0cd215f780a2d",
+      "lastModificationDate": 1674826534629,
+      "contentHash": "19eb07db82aad4ef9e551c0cfe6e29d4",
       "sourceName": "contracts/Interfaces/IExchange.sol",
       "solcConfig": {
         "settings": {
@@ -1648,8 +1648,8 @@
       }
     },
     "contracts/Libraries/SettlementTokenMath.sol": {
-      "lastModificationDate": 1674671642499,
-      "contentHash": "001d168cfcd50d739573a162e5943d9a",
+      "lastModificationDate": 1674816253986,
+      "contentHash": "837ac4261ffea8eab7ab24bd994b0d0a",
       "sourceName": "contracts/Libraries/SettlementTokenMath.sol",
       "solcConfig": {
         "settings": {
@@ -1794,8 +1794,8 @@
       }
     },
     "contracts/MarginManager.sol": {
-      "lastModificationDate": 1674678399444,
-      "contentHash": "26213335b7975286571bdf846b1d6191",
+      "lastModificationDate": 1675260082917,
+      "contentHash": "a195e0bec785157e0f53043467f03494",
       "sourceName": "contracts/MarginManager.sol",
       "solcConfig": {
         "settings": {
@@ -2278,8 +2278,8 @@
       }
     },
     "contracts/RiskManager/SNXRiskManager.sol": {
-      "lastModificationDate": 1674672192885,
-      "contentHash": "1145248587d2fcf23ad5d5eb29049a38",
+      "lastModificationDate": 1675187256693,
+      "contentHash": "b16410f179f56c9c25262d8dbfd0898c",
       "sourceName": "contracts/RiskManager/SNXRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -4406,129 +4406,9 @@
         }
       }
     },
-    "test/foundry/AddNewPosition.t.sol": {
-      "lastModificationDate": 1674674330705,
-      "contentHash": "b80d4e5809121100e13bc20545f70aef",
-      "sourceName": "test/foundry/AddNewPosition.t.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "london",
-          "libraries": {}
-        }
-      },
-      "imports": [
-        "contracts/CollateralManager.sol",
-        "contracts/Exchange/UniExchange.sol",
-        "contracts/Interfaces/ICollateralManager.sol",
-        "contracts/Interfaces/IContractRegistry.sol",
-        "contracts/Interfaces/IExchange.sol",
-        "contracts/Interfaces/IInterestRateModel.sol",
-        "contracts/Interfaces/IMarginAccount.sol",
-        "contracts/Interfaces/IMarketManager.sol",
-        "contracts/Interfaces/IPriceOracle.sol",
-        "contracts/Interfaces/IProtocolRiskManager.sol",
-        "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
-        "contracts/Interfaces/Perpfi/IAccountBalance.sol",
-        "contracts/Interfaces/Perpfi/IExchange.sol",
-        "contracts/Interfaces/SNX/CollateralShort.sol",
-        "contracts/Interfaces/SNX/IAddressResolver.sol",
-        "contracts/Interfaces/SNX/IFuturesMarket.sol",
-        "contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol",
-        "contracts/Interfaces/SNX/IFuturesMarketManager.sol",
-        "contracts/Libraries/Constants.sol",
-        "contracts/Libraries/Errors.sol",
-        "contracts/Libraries/PercentageMath.sol",
-        "contracts/Libraries/SettlementTokenMath.sol",
-        "contracts/Libraries/WadRayMath.sol",
-        "contracts/MarginAccount/MarginAccount.sol",
-        "contracts/MarginManager.sol",
-        "contracts/MarginPool/LPToken.sol",
-        "contracts/MarginPool/LinearInterestRateModel.sol",
-        "contracts/MarginPool/Vault.sol",
-        "contracts/MarketManager.sol",
-        "contracts/RiskManager/PerpfiRiskManager.sol",
-        "contracts/RiskManager/RiskManager.sol",
-        "contracts/RiskManager/SNXRiskManager.sol",
-        "contracts/Utils/ContractRegistry.sol",
-        "contracts/Utils/PriceOracle.sol",
-        "lib/forge-std/lib/ds-test/src/test.sol",
-        "lib/forge-std/src/Base.sol",
-        "lib/forge-std/src/StdAssertions.sol",
-        "lib/forge-std/src/StdChains.sol",
-        "lib/forge-std/src/StdCheats.sol",
-        "lib/forge-std/src/StdError.sol",
-        "lib/forge-std/src/StdJson.sol",
-        "lib/forge-std/src/StdMath.sol",
-        "lib/forge-std/src/StdStorage.sol",
-        "lib/forge-std/src/StdUtils.sol",
-        "lib/forge-std/src/Test.sol",
-        "lib/forge-std/src/Vm.sol",
-        "lib/forge-std/src/console.sol",
-        "lib/forge-std/src/console2.sol",
-        "node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol",
-        "node_modules/@openzeppelin/contracts/access/AccessControl.sol",
-        "node_modules/@openzeppelin/contracts/access/IAccessControl.sol",
-        "node_modules/@openzeppelin/contracts/access/Ownable.sol",
-        "node_modules/@openzeppelin/contracts/interfaces/IERC4626.sol",
-        "node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "node_modules/@openzeppelin/contracts/utils/Address.sol",
-        "node_modules/@openzeppelin/contracts/utils/Context.sol",
-        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
-        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
-        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
-        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
-        "node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol",
-        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
-        "node_modules/@openzeppelin/contracts/utils/math/SignedSafeMath.sol",
-        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
-        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol",
-        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol",
-        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol",
-        "node_modules/@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol",
-        "node_modules/@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol",
-        "node_modules/hardhat/console.sol",
-        "test/foundry/BaseSetup.sol",
-        "test/foundry/utils/Utils.sol"
-      ],
-      "versionRequirement": "^0.8.10",
-      "artifacts": {
-        "AddNewPosition": {
-          "0.8.17+commit.8df45f5f.Darwin.appleclang": "AddNewPosition.t.sol/AddNewPosition.json"
-        }
-      }
-    },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1674673439411,
-      "contentHash": "a3098b6437356cc45fd5dc8dfe342a47",
+      "lastModificationDate": 1674817303748,
+      "contentHash": "9c30a9ee889f3c5306151f7bcd713e33",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
         "settings": {
@@ -4642,6 +4522,246 @@
       "artifacts": {
         "BaseSetup": {
           "0.8.17+commit.8df45f5f.Darwin.appleclang": "BaseSetup.sol/BaseSetup.json"
+        }
+      }
+    },
+    "test/foundry/OpenLongSnx.t.sol": {
+      "lastModificationDate": 1675273368435,
+      "contentHash": "0f2194bff6757c212ffa99ebcd3f5fcf",
+      "sourceName": "test/foundry/OpenLongSnx.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "contracts/CollateralManager.sol",
+        "contracts/Exchange/UniExchange.sol",
+        "contracts/Interfaces/ICollateralManager.sol",
+        "contracts/Interfaces/IContractRegistry.sol",
+        "contracts/Interfaces/IExchange.sol",
+        "contracts/Interfaces/IInterestRateModel.sol",
+        "contracts/Interfaces/IMarginAccount.sol",
+        "contracts/Interfaces/IMarketManager.sol",
+        "contracts/Interfaces/IPriceOracle.sol",
+        "contracts/Interfaces/IProtocolRiskManager.sol",
+        "contracts/Interfaces/IRiskManager.sol",
+        "contracts/Interfaces/ITypes.sol",
+        "contracts/Interfaces/Perpfi/IAccountBalance.sol",
+        "contracts/Interfaces/Perpfi/IExchange.sol",
+        "contracts/Interfaces/SNX/CollateralShort.sol",
+        "contracts/Interfaces/SNX/IAddressResolver.sol",
+        "contracts/Interfaces/SNX/IFuturesMarket.sol",
+        "contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol",
+        "contracts/Interfaces/SNX/IFuturesMarketManager.sol",
+        "contracts/Libraries/Constants.sol",
+        "contracts/Libraries/Errors.sol",
+        "contracts/Libraries/PercentageMath.sol",
+        "contracts/Libraries/SettlementTokenMath.sol",
+        "contracts/Libraries/WadRayMath.sol",
+        "contracts/MarginAccount/MarginAccount.sol",
+        "contracts/MarginManager.sol",
+        "contracts/MarginPool/LPToken.sol",
+        "contracts/MarginPool/LinearInterestRateModel.sol",
+        "contracts/MarginPool/Vault.sol",
+        "contracts/MarketManager.sol",
+        "contracts/RiskManager/PerpfiRiskManager.sol",
+        "contracts/RiskManager/RiskManager.sol",
+        "contracts/RiskManager/SNXRiskManager.sol",
+        "contracts/Utils/ContractRegistry.sol",
+        "contracts/Utils/PriceOracle.sol",
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Test.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol",
+        "node_modules/@openzeppelin/contracts/access/AccessControl.sol",
+        "node_modules/@openzeppelin/contracts/access/IAccessControl.sol",
+        "node_modules/@openzeppelin/contracts/access/Ownable.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC4626.sol",
+        "node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "node_modules/@openzeppelin/contracts/utils/Address.sol",
+        "node_modules/@openzeppelin/contracts/utils/Context.sol",
+        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedSafeMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol",
+        "node_modules/@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol",
+        "node_modules/@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol",
+        "node_modules/hardhat/console.sol",
+        "test/foundry/BaseSetup.sol",
+        "test/foundry/utils/Utils.sol"
+      ],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "OpenLongSnx": {
+          "0.8.17+commit.8df45f5f.Darwin.appleclang": "OpenLongSnx.t.sol/OpenLongSnx.json"
+        }
+      }
+    },
+    "test/foundry/TransferMargin.t.sol": {
+      "lastModificationDate": 1675078153242,
+      "contentHash": "f06ec48353f90828b76ab0df2f660804",
+      "sourceName": "test/foundry/TransferMargin.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "contracts/CollateralManager.sol",
+        "contracts/Exchange/UniExchange.sol",
+        "contracts/Interfaces/ICollateralManager.sol",
+        "contracts/Interfaces/IContractRegistry.sol",
+        "contracts/Interfaces/IExchange.sol",
+        "contracts/Interfaces/IInterestRateModel.sol",
+        "contracts/Interfaces/IMarginAccount.sol",
+        "contracts/Interfaces/IMarketManager.sol",
+        "contracts/Interfaces/IPriceOracle.sol",
+        "contracts/Interfaces/IProtocolRiskManager.sol",
+        "contracts/Interfaces/IRiskManager.sol",
+        "contracts/Interfaces/ITypes.sol",
+        "contracts/Interfaces/Perpfi/IAccountBalance.sol",
+        "contracts/Interfaces/Perpfi/IExchange.sol",
+        "contracts/Interfaces/SNX/CollateralShort.sol",
+        "contracts/Interfaces/SNX/IAddressResolver.sol",
+        "contracts/Interfaces/SNX/IFuturesMarket.sol",
+        "contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol",
+        "contracts/Interfaces/SNX/IFuturesMarketManager.sol",
+        "contracts/Libraries/Constants.sol",
+        "contracts/Libraries/Errors.sol",
+        "contracts/Libraries/PercentageMath.sol",
+        "contracts/Libraries/SettlementTokenMath.sol",
+        "contracts/Libraries/WadRayMath.sol",
+        "contracts/MarginAccount/MarginAccount.sol",
+        "contracts/MarginManager.sol",
+        "contracts/MarginPool/LPToken.sol",
+        "contracts/MarginPool/LinearInterestRateModel.sol",
+        "contracts/MarginPool/Vault.sol",
+        "contracts/MarketManager.sol",
+        "contracts/RiskManager/PerpfiRiskManager.sol",
+        "contracts/RiskManager/RiskManager.sol",
+        "contracts/RiskManager/SNXRiskManager.sol",
+        "contracts/Utils/ContractRegistry.sol",
+        "contracts/Utils/PriceOracle.sol",
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Test.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol",
+        "node_modules/@openzeppelin/contracts/access/AccessControl.sol",
+        "node_modules/@openzeppelin/contracts/access/IAccessControl.sol",
+        "node_modules/@openzeppelin/contracts/access/Ownable.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC4626.sol",
+        "node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "node_modules/@openzeppelin/contracts/utils/Address.sol",
+        "node_modules/@openzeppelin/contracts/utils/Context.sol",
+        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedSafeMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol",
+        "node_modules/@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol",
+        "node_modules/@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol",
+        "node_modules/hardhat/console.sol",
+        "test/foundry/BaseSetup.sol",
+        "test/foundry/utils/Utils.sol"
+      ],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "TransferMargin": {
+          "0.8.17+commit.8df45f5f.Darwin.appleclang": "TransferMargin.t.sol/TransferMargin.json"
         }
       }
     },

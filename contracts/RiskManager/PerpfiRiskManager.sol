@@ -10,7 +10,6 @@ import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/mat
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
-import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -18,6 +17,7 @@ import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
+import {Position} from "../Interfaces/IMarginAccount.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -28,10 +28,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // address public perp
     // function getPositionOpenNotional(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
-    bytes4 public OP = 0x47e7ef24;
+    bytes4 public MT = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
     address public baseToken;
+    uint8 private _decimals;
     IContractRegistry contractRegistry;
 
     // IExchange public perpExchange;
@@ -87,10 +88,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
+    // ** TODO - should return in 18 decimal points
+
     function getPositionPnL(address account)
         external
         virtual
-        returns (uint256 depositedMargin, int256 pnl)
+        returns (int256 pnl)
     {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
@@ -98,13 +101,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         // from this description - owedRealizedPnL also needs to be taken in account.
         // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
 
-        // realized PnL affects the deposited Margin. We need to also take that into account.
+        // todo - realized PnL affects the deposited Margin. We need to also take that into account.
+        // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
+        //          or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
         pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
-
-        depositedMargin = 1; // @note placeholder for now for some new params or remove
-        return (depositedMargin, pnl);
     }
 
     function verifyTrade(
@@ -115,8 +117,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         public
         view
         returns (
-            int256 amount,
-            int256 totalPosition,
+            // int256 amount,
+            // int256 totalPosition,
+            // uint256 fee
+
+            int256 marginDelta,
+            Position memory position,
             uint256 fee
         )
     {
@@ -134,8 +140,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
-            } else if (funSig == OP) {
-                amount = abi.decode(data[i][36:], (int256));
+            } else if (funSig == MT) {
+                marginDelta = marginDelta + abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
                 // refer -
@@ -171,10 +177,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     //     : int256(value);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort ? -amount : amount;
+                    // totalPosition = isShort ? -amount : amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort ? -amount : amount;
+                    // totalPosition = isShort ? -amount : amount;
                 } else if (isShort && !isExactInput) {
                     // get price
                 } else {

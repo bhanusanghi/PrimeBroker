@@ -13,6 +13,7 @@ import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {Position} from "../Interfaces/IMarginAccount.sol";
 import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
@@ -56,10 +57,11 @@ contract SNXRiskManager is IProtocolRiskManager {
        */
     }
 
+    // ** returns in vault base asset decimal points
     function getPositionPnL(address account)
         external
         virtual
-        returns (uint256 _marginDeposited, int256 pnl)
+        returns (int256 pnl)
     {
         int256 funding;
         address[] memory allMarkets = IMarketManager(
@@ -83,21 +85,25 @@ contract SNXRiskManager is IProtocolRiskManager {
             // console.log("funding", funding.abs());
             funding = funding.add(_funding);
         }
-        return (
-            0,
-            pnl.sub(funding).convertTokenDecimals(_decimals, vaultAssetDecimals)
+        // return (pnl.add(funding).convertTokenDecimals(_decimals, 18));
+        pnl = pnl.add(funding).convertTokenDecimals(
+            _decimals,
+            vaultAssetDecimals
         );
     }
 
+    // assumes all destinations refer to same market.
+    // Can have same destination
     function verifyTrade(
         address protocol,
         address[] memory destinations,
         bytes[] calldata data
     )
         public
+        view
         returns (
-            int256 amount,
-            int256 totalPosition,
+            int256 marginDelta,
+            Position memory position,
             uint256 fee
         )
     {
@@ -108,31 +114,36 @@ contract SNXRiskManager is IProtocolRiskManager {
         for (uint256 i = 0; i < len; i++) {
             require(
                 whitelistedAddresses[destinations[i]] == true,
-                "PRM: Calling non whitelistes contract"
+                "PRM: Calling non whitelisted contract"
             );
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                amount = amount.add(abi.decode(data[i][4:], (int256)));
+                marginDelta = marginDelta.add(
+                    abi.decode(data[i][4:], (int256))
+                );
                 // amount = amount.convertTokenDecimals(
                 //     _decimals,
                 //     vaultAssetDecimals
                 // );
             } else if (funSig == OP) {
-                totalPosition = totalPosition.add(
-                    abi.decode(data[i][4:], (int256))
+                int256 positionSize = abi.decode(data[i][4:], (int256));
+                // asset price is recvd with 18 decimals.
+                (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
+                    .assetPrice();
+                require(
+                    !isInvalid,
+                    "Error fetching asset price from third party protocol"
                 );
+                position.openNotional = position.openNotional.add(
+                    positionSize * (int256(assetPrice) / 1 ether)
+                );
+                position.size = position.size.add(positionSize);
                 // .convertTokenDecimals(_decimals, vaultAssetDecimals);
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
         }
-        uint256 price;
-        (price, ) = IFuturesMarket(protocol).assetPrice();
-        (fee, ) = IFuturesMarket(protocol).orderFee(totalPosition);
-        // console.log(fee,":feeeee",price, price.convertTokenDecimals(_decimals,0));
-        price = price.convertTokenDecimals(_decimals, 0); // @todo aaah need more precision
-        totalPosition = totalPosition.mul(price.toInt256());
     }
 
     function verifyClose(
@@ -147,11 +158,11 @@ contract SNXRiskManager is IProtocolRiskManager {
             uint256 fee
         )
     {
-        (amount, totalPosition, fee) = verifyTrade(
-            protocol,
-            destinations,
-            data
-        );
+        // (amount, totalPosition, fee) = verifyTrade(
+        //     protocol,
+        //     destinations,
+        //     data
+        // );
         //    require(totalPosition<0&&amount<=0,"Invalid close data:SNX");
     }
 }

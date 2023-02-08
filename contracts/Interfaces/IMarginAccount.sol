@@ -1,5 +1,11 @@
 pragma solidity ^0.8.10;
 
+struct Position {
+    address protocol;
+    int256 openNotional;
+    int256 size;
+}
+
 interface IMarginAccount {
     function underlyingToken() external view returns (address);
 
@@ -19,4 +25,16 @@ interface IMarginAccount {
         address token,
         uint256 amount
     ) external;
+
+    function getPositionOpenNotional(bytes32 marketKey)
+        external
+        view
+        returns (int256);
+
+    function totalMarginInMarkets() external view returns (int256);
+
+    function getTotalOpeningNotional(bytes32[] memory _allowedMarkets)
+        external
+        view
+        returns (int256 totalNotional);
 }

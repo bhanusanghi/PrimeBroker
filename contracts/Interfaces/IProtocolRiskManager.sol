@@ -1,13 +1,11 @@
 pragma solidity ^0.8.10;
-import {ITypes} from "./ITypes.sol";
+import {Position} from "./IMarginAccount.sol";
 
 interface IProtocolRiskManager {
     // mapping(bytes4=>string) public abiStrings;
     // bytes4[] public supportedFunctions;
 
-    function getPositionPnL(address marginAccount)
-        external
-        returns (uint256, int256);
+    function getPositionPnL(address marginAccount) external returns (int256);
 
     function verifyTrade(
         address protocol,
@@ -17,7 +15,7 @@ interface IProtocolRiskManager {
         external
         returns (
             int256 amount,
-            int256 totalPosition,
+            Position memory deltaPosition,
             uint256 fee
         );
 

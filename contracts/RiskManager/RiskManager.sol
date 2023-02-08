@@ -13,7 +13,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
-import {MarginAccount} from "../MarginAccount/MarginAccount.sol";
+import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager, VerifyTradeResult} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
@@ -94,42 +94,50 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data,
         uint256 interestAccrued
     ) external returns (VerifyTradeResult memory result) {
-        uint256 totalNotional;
+        int256 totalNotional;
         uint256 buyingPower;
-        {
-            int256 PnL;
-            address _protocolRiskManager;
-            (result.protocolAddress, _protocolRiskManager) = marketManager
-                .getProtocolAddressByMarketName(marketKey);
-            IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-                _protocolRiskManager
-            );
-            result.tokenOut = protocolRiskManager.getBaseToken();
+        int256 PnL;
+        address _protocolRiskManager;
+        (result.protocolAddress, _protocolRiskManager) = marketManager
+            .getProtocolAddressByMarketName(marketKey);
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            _protocolRiskManager
+        );
+        result.tokenOut = protocolRiskManager.getBaseToken();
 
-            (totalNotional, PnL) = getPositionsValPnL(marginAcc);
+        // totalNotional is in 18 decimals
+        (totalNotional, PnL) = getPositionsValPnL(marginAcc);
 
-            buyingPower = GetCurrentBuyingPower(marginAcc, PnL, interestAccrued)
-                .convertTokenDecimals(
-                    ERC20(vault.asset()).decimals(),
-                    ERC20(result.tokenOut).decimals()
-                );
-            uint256 fee;
-            (
-                result.transferAmount,
-                result.positionSize,
-                fee
-            ) = protocolRiskManager.verifyTrade(
-                result.protocolAddress,
-                destinations,
-                data
+        // interest accrued is in vault decimals
+        // pnl is in vault decimals
+        // BP is in vault decimals
+        buyingPower = GetCurrentBuyingPower(marginAcc, PnL, interestAccrued)
+            .convertTokenDecimals(
+                ERC20(vault.asset()).decimals(),
+                ERC20(result.tokenOut).decimals()
             );
-        }
-        _checkPositionHealth(buyingPower, totalNotional, result.positionSize);
+        // TODO - Use this fee variable.
+        uint256 fee;
+        (result.marginDelta, result.position, fee) = protocolRiskManager
+            .verifyTrade(result.protocolAddress, destinations, data);
+
+        result.marginDeltaDollarValue = priceOracle
+            .convertToUSD(result.marginDelta, result.tokenOut)
+            .convertTokenDecimals(
+                ERC20(result.tokenOut).decimals(),
+                ERC20(vault.asset()).decimals()
+            );
+
+        // BP is in tokenOut decimals
+        // Position Size is in 18 decimals -> need to convert
+        // totalNotional is in 18 decimals
+        _checkPositionHealth(buyingPower, totalNotional, result.position.size);
+        // Bp is in dollars vault asset decimals
+        // marginDeltaDollarValue is in dollars vault asset decimals
         _checkMarginTransferHealth(
             buyingPower,
-            MarginAccount(marginAcc),
-            result.tokenOut,
-            result.transferAmount
+            IMarginAccount(marginAcc),
+            result.marginDeltaDollarValue
         );
         // require(
         //     buyingPower >= totalNotional.add(positionSize.abs()),
@@ -140,27 +148,27 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         //     buyingPower -
         //         (
         //             (
-        //                 MarginAccount(marginAcc)
+        //                 IMarginAccount(marginAcc)
         //                     .totalBorrowed()
         //                     .toInt256()
         //                     .convertTokenDecimals(
         //                         ERC20(vault.asset()).decimals(),
         //                         ERC20(tokenOut).decimals()
         //                     )
-        //             ).add(transferAmount)
+        //             ).add.marginDelta)
         //         ).abs()
         // );
         // require(
         //     buyingPower >=
         //         (
         //             (
-        //                 MarginAccount(marginAcc)
+        //                 IMarginAccount(marginAcc)
         //                     .totalMarginInMarkets()
         //                     .convertTokenDecimals(
         //                         ERC20(vault.asset()).decimals(),
         //                         ERC20(tokenOut).decimals()
         //                     )
-        //             ).add(transferAmount)
+        //             ).add.marginDelta)
         //         ).abs(),
         //     "Extra Transfer not allowed"
         // );
@@ -168,30 +176,26 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function _checkPositionHealth(
         uint256 buyingPower,
-        uint256 totalNotional,
-        int256 positionSize
+        int256 totalNotional,
+        int256 positionOpenNotional
     ) internal pure {
         require(
-            buyingPower >= totalNotional.add(positionSize.abs()),
+            buyingPower >= totalNotional.add(positionOpenNotional).abs(),
             "Extra leverage not allowed"
         );
     }
 
+    // Bp is in dollars vault asset decimals
+    // marginDeltaDollarValue is in dollars vault asset decimals
     function _checkMarginTransferHealth(
         uint256 buyingPower,
-        MarginAccount marginAcc,
-        address tokenOut,
-        int256 transferAmount
+        IMarginAccount marginAcc,
+        int256 marginDeltaDollarValue
     ) internal {
         require(
             buyingPower >=
                 (
-                    (
-                        marginAcc.totalMarginInMarkets().convertTokenDecimals(
-                            ERC20(vault.asset()).decimals(),
-                            ERC20(tokenOut).decimals()
-                        )
-                    ).add(transferAmount)
+                    marginAcc.totalMarginInMarkets().add(marginDeltaDollarValue) // this is also in vault asset decimals
                 ).abs(),
             "Extra Transfer not allowed"
         );
@@ -202,8 +206,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
-    ) external returns (int256 transferAmount, int256 positionSize) {
-        MarginAccount marginAcc = MarginAccount(_marginAcc);
+    ) external returns (int256 marginDelta, int256 positionSize) {
+        IMarginAccount marginAcc = IMarginAccount(_marginAcc);
         address _protocolAddress;
         address _protocolRiskManager;
         (_protocolAddress, _protocolRiskManager) = marketManager
@@ -212,15 +216,14 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             _protocolRiskManager
         );
         uint256 fee;
-        (transferAmount, positionSize, fee) = protocolRiskManager.verifyTrade(
+        Position memory position;
+        (marginDelta, position, fee) = protocolRiskManager.verifyTrade(
             _protocolAddress,
             destinations,
             data
         );
-        // console.log(transferAmount, "close pos, tm");
-        int256 _currentPositionSize = marginAcc.getPositionOpenNotional(
-            marketKey
-        );
+        // console.log.marginDelta, "close pos, tm");
+        // int256 _currentPositionSize = marginAcc.getPosition(marketKey);
         // basically checks for if its closing opposite position
         // require(positionSize + _currentPositionSize == 0);
 
@@ -235,15 +238,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory marketKeys,
         address[] memory destinations,
         bytes[] memory data
-    ) external returns (int256 transferAmount, int256 positionSize) {
+    ) external returns (int256 marginDelta, int256 positionSize) {
         uint256 fee;
         // newbuyPow, pnl, tn
         // uint256 closingTotal;
-        // MarginAccount marginAcc = MarginAccount(_marginAcc);
+        // IMarginAccount marginAcc = IMarginAccount(_marginAcc);
         for (uint256 i = 0; i < marketKeys.length; i++) {
             address _protocolAddress;
             address _protocolRiskManager;
-            int256 _transferAmount;
+            int256 marginDelta;
             int256 _positionSize;
             uint256 _fee;
             (_protocolAddress, _protocolRiskManager) = marketManager
@@ -251,27 +254,27 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
                 _protocolRiskManager
             );
-            (_transferAmount, _positionSize, _fee) = protocolRiskManager
+            (marginDelta, _positionSize, _fee) = protocolRiskManager
                 .verifyClose(_protocolAddress, destinations, data);
-            transferAmount = transferAmount.add(_transferAmount);
+            marginDelta = marginDelta.add(marginDelta);
             positionSize = positionSize.add(_positionSize);
-            // closingTotal = closingTotal.add(marginAcc.getPositionValue(marketKeys[i]).abs());
+            // closingTotal = closingTotal.add(marginAcc.getPositionOpenNotional(marketKeys[i]).abs());
             fee = fee.add(_fee);
         }
-        uint256 totalNotioanl;
+        int256 totalNotional;
         int256 PnL;
-        (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
+        (totalNotional, PnL) = getPositionsValPnL(_marginAcc);
 
-        uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
+        uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         // require(PnL<0 && temp<=PnL.abs(),"Liq:");
         console.log("Liqidation!!");
         //  uint256 newBuyPow = getBuyingPower(_marginAcc,PnL);
         // require(
-        //     buyingPower >= totalNotioanl.add(positionSize.abs()),
+        //     buyingPower >= totalNotional.add(positionSize.abs()),
         //     "Extra leverage not allowed"
         // );
         // require(
-        //     buyingPower >= MarginAccount(marginAcc).totalBorrowed().add(transferAmount).abs(),
+        //     buyingPower >= IMarginAccount(marginAcc).totalBorrowed().add.marginDelta).abs(),
         //     "Extra Transfer not allowed"
         // );
     }
@@ -292,16 +295,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function liquidatable(address _marginAcc) public returns (int256 diff) {
-        uint256 totalNotioanl;
+        int256 totalNotional;
         int256 PnL;
-        (totalNotioanl, PnL) = getPositionsValPnL(_marginAcc);
+        (totalNotional, PnL) = getPositionsValPnL(_marginAcc);
         // console.log(
         //     "TN PnL",
-        //     totalNotioanl,
+        //     totalNotional,
         //     PnL.abs(),
         //     collateralManager.getFreeCollateralValue(_marginAcc)
         // );
-        uint256 temp = totalNotioanl.mulDiv(maintanaceMarginFactor, 100);
+        uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         if (PnL < 0) {
             require(temp <= PnL.abs(), "Liq:");
             return PnL.add(temp.toInt256());
@@ -332,25 +335,29 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
     }
 
+    // @note Should return the total PnL trader has across all markets in dollar value ( usdc value )
+    // totalNotional ->  18 decimals
+    // PnL ->  18 decimals
     function getPositionsValPnL(address marginAccount)
         public
-        returns (uint256 totalNotional, int256 PnL)
+        returns (int256 totalNotional, int256 PnL)
     {
+        // todo - can be moved into margin account and removed from here. See whats the better design.
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
-        MarginAccount marginAcc = MarginAccount(marginAccount);
-        totalNotional = marginAcc.getTotalNotional(_whitelistedMarketNames);
-        uint256 marginInProtocols; // @todo store it when transferring margin
+        IMarginAccount marginAcc = IMarginAccount(marginAccount);
+        totalNotional = marginAcc.getTotalOpeningNotional(
+            _whitelistedMarketNames
+        );
         uint256 len = _riskManagers.length;
         for (uint256 i = 0; i < len; i++) {
             // margin acc get bitmask
             int256 _pnl;
-            uint256 _deposit;
-            (_deposit, _pnl) = IProtocolRiskManager(_riskManagers[i])
-                .getPositionPnL(marginAccount);
-            marginInProtocols = marginInProtocols.add(_deposit);
+            _pnl = IProtocolRiskManager(_riskManagers[i]).getPositionPnL(
+                marginAccount
+            );
             PnL = PnL.add(_pnl);
         }
     }

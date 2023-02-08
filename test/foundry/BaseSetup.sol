@@ -87,6 +87,53 @@ contract BaseSetup is Test {
         uint256 indexed,
         uint256
     );
+    // ============= Margin Manager Events =============
+    event MarginTransferred(
+        address indexed,
+        address indexed,
+        address indexed,
+        int256,
+        uint256
+    );
+
+    event PositionAdded(
+        address indexed,
+        address indexed,
+        address indexed,
+        int256,
+        uint256
+    );
+    event PositionUpdated(
+        address indexed,
+        address indexed,
+        address indexed,
+        uint256,
+        uint256
+    );
+    event PositionRemoved(
+        address indexed,
+        address indexed,
+        address indexed,
+        uint256,
+        uint256
+    );
+
+    // Synthetix events
+
+    event MarginTransferred(address indexed account, int256 marginDelta);
+
+    event PositionModified(
+        uint256 indexed id,
+        address indexed account,
+        uint256 margin,
+        int256 size,
+        int256 tradeSize,
+        uint256 lastPrice,
+        uint256 fundingIndex,
+        uint256 fee
+    );
+    event Burned(address indexed account, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
     // ============= Setup Functions =============
 

@@ -1,10 +1,10 @@
 pragma solidity ^0.8.10;
 
 interface IPriceOracle {
-    function convertToUSD(uint256 amount, address token)
+    function convertToUSD(int256 amount, address token)
         external
         view
-        returns (uint256);
+        returns (int256);
 
     function convertFromUSD(uint256 amount, address token)
         external

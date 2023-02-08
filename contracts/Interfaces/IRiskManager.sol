@@ -1,8 +1,11 @@
 pragma solidity ^0.8.10;
+import {Position} from "./IMarginAccount.sol";
+
 struct VerifyTradeResult {
     address protocolAddress;
-    int256 transferAmount;
-    int256 positionSize;
+    int256 marginDelta;
+    int256 marginDeltaDollarValue;
+    Position position;
     address tokenOut;
 }
 

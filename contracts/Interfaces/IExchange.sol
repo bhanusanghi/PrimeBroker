@@ -10,6 +10,7 @@ interface IExchange {
         uint256 amountOut;
         bool isExactInput;
         uint160 sqrtPriceLimitX96;
+        uint256 amountOutMinimum;
     }
 
     function swap(SwapParams memory _swapParams)
