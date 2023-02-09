@@ -59,7 +59,7 @@ contract MarginManager is ReentrancyGuard {
         address indexed,
         address indexed,
         int256,
-        uint256
+        int256
     );
 
     // marginAccount, protocol, assetOut, size, openNotional
@@ -68,21 +68,21 @@ contract MarginManager is ReentrancyGuard {
         address indexed,
         address indexed,
         int256,
-        uint256
+        int256
     );
     event PositionUpdated(
         address indexed,
         address indexed,
         address indexed,
-        uint256,
-        uint256
+        int256,
+        int256
     );
     event PositionRemoved(
         address indexed,
         address indexed,
         address indexed,
-        uint256,
-        uint256
+        int256,
+        int256
     );
 
     constructor(
@@ -232,6 +232,7 @@ contract MarginManager is ReentrancyGuard {
                 );
                 uint256 dollarValueOfTokenDifference = priceOracle
                     .convertToUSD(diff.toInt256(), verificationResult.tokenOut)
+                    .abs()
                     .convertTokenDecimals(
                         ERC20(verificationResult.tokenOut).decimals(),
                         ERC20(tokenIn).decimals()

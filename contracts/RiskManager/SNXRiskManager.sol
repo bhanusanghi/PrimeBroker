@@ -121,11 +121,9 @@ contract SNXRiskManager is IProtocolRiskManager {
                 marginDelta = marginDelta.add(
                     abi.decode(data[i][4:], (int256))
                 );
-                // amount = amount.convertTokenDecimals(
-                //     _decimals,
-                //     vaultAssetDecimals
-                // );
+               
             } else if (funSig == OP) {
+                //TODO - check Is this a standard of 18 decimals 
                 int256 positionSize = abi.decode(data[i][4:], (int256));
                 // asset price is recvd with 18 decimals.
                 (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
@@ -135,10 +133,10 @@ contract SNXRiskManager is IProtocolRiskManager {
                     "Error fetching asset price from third party protocol"
                 );
                 position.openNotional = position.openNotional.add(
+                    // TODO - wont work with asset price < 1
                     positionSize * (int256(assetPrice) / 1 ether)
                 );
                 position.size = position.size.add(positionSize);
-                // .convertTokenDecimals(_decimals, vaultAssetDecimals);
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");

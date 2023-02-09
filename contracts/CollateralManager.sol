@@ -102,7 +102,7 @@ contract CollateralManager is ICollateralManager {
             address(marginAccount)
         );
         require(
-            priceOracle.convertToUSD(int256(_amount), _token) <=
+            priceOracle.convertToUSD(int256(_amount), _token).abs() <=
                 freeCollateralValue,
             "CM: Withdrawing more than free collateral not allowed"
         );
@@ -163,10 +163,12 @@ contract CollateralManager is ICollateralManager {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
-                priceOracle.convertToUSD(
-                    int256(_balance[_marginAccount][token]),
-                    token
-                )
+                priceOracle
+                    .convertToUSD(
+                        int256(_balance[_marginAccount][token]),
+                        token
+                    )
+                    .abs()
             ).mulDiv(collateralWeight[i], 100); // Index of token vs collateral weight should be same.
             totalAmount = totalAmount.add(
                 tokenDollarValue.convertTokenDecimals(

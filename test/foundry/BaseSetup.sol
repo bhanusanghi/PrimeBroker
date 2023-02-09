@@ -93,7 +93,7 @@ contract BaseSetup is Test {
         address indexed,
         address indexed,
         int256,
-        uint256
+        int256
     );
 
     event PositionAdded(
@@ -101,21 +101,21 @@ contract BaseSetup is Test {
         address indexed,
         address indexed,
         int256,
-        uint256
+        int256
     );
     event PositionUpdated(
         address indexed,
         address indexed,
         address indexed,
-        uint256,
-        uint256
+        int256,
+        int256
     );
     event PositionRemoved(
         address indexed,
         address indexed,
         address indexed,
-        uint256,
-        uint256
+        int256,
+        int256
     );
 
     // Synthetix events

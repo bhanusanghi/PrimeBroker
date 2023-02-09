@@ -1,5 +1,7 @@
 pragma solidity ^0.8.10;
 
+// position openNotional should be in 18 decimal points
+// position size should be in 18 decimal points
 struct Position {
     address protocol;
     int256 openNotional;

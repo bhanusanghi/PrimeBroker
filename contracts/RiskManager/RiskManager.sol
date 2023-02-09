@@ -111,11 +111,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
-        buyingPower = GetCurrentBuyingPower(marginAcc, PnL, interestAccrued)
-            .convertTokenDecimals(
-                ERC20(vault.asset()).decimals(),
-                ERC20(result.tokenOut).decimals()
-            );
+        buyingPower = GetCurrentBuyingPower(marginAcc, PnL, interestAccrued);
+
         // TODO - Use this fee variable.
         uint256 fee;
         (result.marginDelta, result.position, fee) = protocolRiskManager
@@ -128,7 +125,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 ERC20(vault.asset()).decimals()
             );
 
-        // BP is in tokenOut decimals
+        // Bp is in dollars vault asset decimals
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
         _checkPositionHealth(buyingPower, totalNotional, result.position.size);
@@ -174,13 +171,18 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // );
     }
 
+    // send B.P in vault decimals
+    // position openNotional should be in 18 decimal points
     function _checkPositionHealth(
         uint256 buyingPower,
         int256 totalNotional,
         int256 positionOpenNotional
-    ) internal pure {
+    ) internal {
         require(
-            buyingPower >= totalNotional.add(positionOpenNotional).abs(),
+            buyingPower.convertTokenDecimals(
+                ERC20(vault.asset()).decimals(),
+                18
+            ) >= totalNotional.add(positionOpenNotional).abs(),
             "Extra leverage not allowed"
         );
     }
@@ -191,7 +193,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 buyingPower,
         IMarginAccount marginAcc,
         int256 marginDeltaDollarValue
-    ) internal {
+    ) internal view {
+        console.log("buyingPower", buyingPower);
+        console.log("marginDeltaDollarValue");
+        console.logInt(marginDeltaDollarValue);
+        console.log("marginAcc.totalMarginInMarkets()");
+        console.logInt(marginAcc.totalMarginInMarkets());
         require(
             buyingPower >=
                 (
