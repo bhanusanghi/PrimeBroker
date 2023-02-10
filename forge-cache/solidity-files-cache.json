@@ -1361,6 +1361,46 @@
         }
       }
     },
+    "contracts/Interfaces/SNX/IFuturesMarketSettings.sol": {
+      "lastModificationDate": 1676040748383,
+      "contentHash": "600b832f8b149f82e5622d562ea30329",
+      "sourceName": "contracts/Interfaces/SNX/IFuturesMarketSettings.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "IFuturesMarketSettings": {
+          "0.8.17+commit.8df45f5f.Darwin.appleclang": "IFuturesMarketSettings.sol/IFuturesMarketSettings.json"
+        }
+      }
+    },
     "contracts/Interfaces/SNX/IPerpsV2Market.sol": {
       "lastModificationDate": 1665600760263,
       "contentHash": "f426ba1ac1c4b49f6224272f27ab733a",
@@ -2189,8 +2229,8 @@
       }
     },
     "contracts/RiskManager/RiskManager.sol": {
-      "lastModificationDate": 1675884723806,
-      "contentHash": "1bbbad9b81fa2332c2eca58233adfbf8",
+      "lastModificationDate": 1675935474344,
+      "contentHash": "d954e90a9aef399a5f8d49106a4ed1b0",
       "sourceName": "contracts/RiskManager/RiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2279,8 +2319,8 @@
       }
     },
     "contracts/RiskManager/SNXRiskManager.sol": {
-      "lastModificationDate": 1675884560997,
-      "contentHash": "71a33486d8bd966700152e68880add36",
+      "lastModificationDate": 1675944651959,
+      "contentHash": "8a5af45e70a6428c8ca649560e8a72ff",
       "sourceName": "contracts/RiskManager/SNXRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -4409,8 +4449,8 @@
       }
     },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1675885165022,
-      "contentHash": "0e4ebb73cc2c8b65fb4a0329044c3e82",
+      "lastModificationDate": 1676040805871,
+      "contentHash": "aff8d921505e3ae2057d30ea745332e2",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
         "settings": {
@@ -4528,8 +4568,8 @@
       }
     },
     "test/foundry/OpenLongSnx.t.sol": {
-      "lastModificationDate": 1675882305330,
-      "contentHash": "2f75eded18a9918a90caf9ee6b4a1dcc",
+      "lastModificationDate": 1676041194959,
+      "contentHash": "0f5bb9740b954d51fe2a89c80f363eb8",
       "sourceName": "test/foundry/OpenLongSnx.t.sol",
       "solcConfig": {
         "settings": {
@@ -4579,6 +4619,8 @@
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
         "contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol",
         "contracts/Interfaces/SNX/IFuturesMarketManager.sol",
+        "contracts/Interfaces/SNX/IFuturesMarketSettings.sol",
+        "contracts/Interfaces/SNX/IPerpsV2Market.sol",
         "contracts/Libraries/Constants.sol",
         "contracts/Libraries/Errors.sol",
         "contracts/Libraries/PercentageMath.sol",
@@ -4648,8 +4690,8 @@
       }
     },
     "test/foundry/TransferMargin.t.sol": {
-      "lastModificationDate": 1675930986742,
-      "contentHash": "a6c2ac5b289924b0588a9435db7c3f18",
+      "lastModificationDate": 1676039320233,
+      "contentHash": "188547547509b40df3792fbc48b933bb",
       "sourceName": "test/foundry/TransferMargin.t.sol",
       "solcConfig": {
         "settings": {

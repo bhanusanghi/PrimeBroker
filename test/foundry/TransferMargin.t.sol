@@ -78,6 +78,7 @@ contract TransferMargin is BaseSetup {
         vm.label(uniFuturesMarket, "UNI futures Market");
         ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
             .marketForKey(snxEth_marketKey);
+        // ethPerpsV2Market = 0x35CcAC0A67D2a1EF1FDa8898AEcf1415FE6cf94c;
         vm.label(ethFuturesMarket, "ETH futures Market");
 
         marketManager.addMarket(

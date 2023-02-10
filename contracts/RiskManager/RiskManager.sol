@@ -128,7 +128,11 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // Bp is in dollars vault asset decimals
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
-        _checkPositionHealth(buyingPower, totalNotional, result.position.size);
+        _checkPositionHealth(
+            buyingPower,
+            totalNotional,
+            result.position.openNotional
+        );
         // Bp is in dollars vault asset decimals
         // marginDeltaDollarValue is in dollars vault asset decimals
         _checkMarginTransferHealth(
@@ -182,7 +186,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             buyingPower.convertTokenDecimals(
                 ERC20(vault.asset()).decimals(),
                 18
-            ) >= totalNotional.add(positionOpenNotional).abs(),
+            ) >= (totalNotional.add(positionOpenNotional)).abs(),
             "Extra leverage not allowed"
         );
     }

@@ -73,7 +73,7 @@ contract BaseSetup is Test {
     address perpClearingHouse = 0x82ac2CE43e33683c58BE4cDc40975E73aA50f459;
     // synthetix (ReadProxyAddressResolver)
     address SNX_ADDRESS_RESOLVER = 0x1Cb059b7e74fD21665968C908806143E744D5F30;
-
+    address futuresMarketSettings = 0x0dde87714C3bdACB93bB1d38605aFff209a85998;
     address sUsdPriceFeed = 0x7f99817d87baD03ea21E05112Ca799d715730efe;
     address usdcPriceFeed = 0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3;
     address snxFuturesMarketManager;
