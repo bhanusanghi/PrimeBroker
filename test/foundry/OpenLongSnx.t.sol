@@ -267,9 +267,167 @@ contract OpenLongSnx is BaseSetup {
         int256 openNotional;
     }
 
-    function testBobOpensPositionWithLeverage() public {
+    function testBobOpensLongPositionWithLeverage(int256 positionSize) public {
         SNXTradingData memory tradeData;
-        int256 positionSize = 10 ether;
+        int256 positionSizeAfterTrade256;
+        (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
+            .assetPrice();
+        uint256 maxPossiblePositionSize = maxBuyingPower
+            .convertTokenDecimals(6, 18)
+            .div(tradeData.assetPriceBeforeTrade / 1 ether);
+        vm.assume(
+            positionSize < int256(maxPossiblePositionSize) && positionSize > 0
+        );
+        // postTradeDetails
+        // returns (
+        //     uint margin,
+        //     int size,
+        //     uint price,
+        //     uint liqPrice,
+        //     uint fee,
+        //     IFuturesMarketBaseTypes.Status status
+        // );
+        (
+            tradeData.marginRemainingAfterTrade,
+            positionSizeAfterTrade256,
+            ,
+            ,
+            tradeData.orderFee,
+
+        ) = IFuturesMarket(ethFuturesMarket).postTradeDetails(
+            positionSize,
+            bobMarginAccount
+        );
+        tradeData.positionSizeAfterTrade = int128(positionSizeAfterTrade256);
+
+        (tradeData.marginRemainingBeforeTrade, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).remainingMargin(bobMarginAccount);
+
+        (tradeData.accessibleMarginBeforeTrade, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).accessibleMargin(bobMarginAccount);
+
+        int256 openNotional = int256(
+            uint256(positionSize).mulDiv(
+                tradeData.assetPriceBeforeTrade,
+                1 ether
+            )
+        );
+        assertEq(tradeData.marginRemainingBeforeTrade, marginSNX);
+        assertEq(tradeData.accessibleMarginBeforeTrade, marginSNX);
+        bytes memory openPositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            positionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = openPositionData;
+
+        // check event for position opened on our side.
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            ethFuturesMarket,
+            susd,
+            positionSize,
+            openNotional
+        );
+
+        // TODO - use in PerpsV2 market not in FuturesMarket,
+
+        // tradeData.positionId = IPerpsV2Market(ethFuturesMarket)
+        //     .lastPositionId()
+        //     .add(1);
+
+        // console2.log(
+        //     "latest funding seq",
+        //     IFuturesMarket(ethFuturesMarket).fundingSequenceLength()
+        // );
+        // tradeData.latestFundingIndex = IFuturesMarket(ethFuturesMarket)
+        //     .fundingSequenceLength()
+        //     .sub(1);
+        // check position opened event on tpp
+        // vm.expectEmit(true, true, false, true, ethFuturesMarket);
+        // emit PositionModified(
+        //     tradeData.positionId,
+        //     bobMarginAccount,
+        //     tradeData.marginRemainingAfterTrade, // final margin
+        //     tradeData.positionSizeAfterTrade, // position size delta
+        //     positionSize, // finalSize of position
+        //     tradeData.assetPriceBeforeTrade,
+        //     tradeData.latestFundingIndex,
+        //     tradeData.orderFee
+        // );
+
+        marginManager.openPosition(snxEthKey, destinations, data);
+
+        assertEq(
+            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            positionSize
+        );
+
+        (tradeData.marginRemainingAfterTrade, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).remainingMargin(bobMarginAccount);
+        (tradeData.accessibleMarginAfterTrade, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).accessibleMargin(bobMarginAccount);
+
+        // check position size on tpp
+        (, , , , tradeData.positionSizeAfterTrade) = IFuturesMarket(
+            ethFuturesMarket
+        ).positions(bobMarginAccount);
+
+        assertEq(
+            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            tradeData.positionSizeAfterTrade
+        );
+
+        // check position open notional and size on our protocol.
+        assertEq(
+            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            ((tradeData.positionSizeAfterTrade *
+                int256(tradeData.assetPriceBeforeTrade)) / 1 ether)
+        );
+        assertEq(
+            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            openNotional
+        );
+
+        int256 marginDiff = int256(tradeData.marginRemainingBeforeTrade) -
+            int256(tradeData.marginRemainingAfterTrade);
+        // check if margin in snx is reduced by a value of orderFee
+        assertEq(marginDiff.abs(), tradeData.orderFee);
+
+        // TODO - check why this call is not working
+        // uint256 maxLeverage = IFuturesMarketSettings(futuresMarketSettings)
+        //     .maxLeverage(snxEth_marketKey);
+        // console2.log("maxLeverage", maxLeverage);
+        // int256 inacessibleMargin = int256(tradeData.marginRemainingAfterTrade) -
+        //     int256(tradeData.accessibleMarginAfterTrade);
+        // // check if margin in snx is reduced by a value of orderFee
+        // assertEq(
+        //     inacessibleMargin.abs(),
+        //     openNotional.abs() / (maxLeverage / 1 ether)
+        // );
+
+        // check fee etc.
+    }
+
+    function testBobOpensShortPositionWithLeverage(int256 positionSize) public {
+        SNXTradingData memory tradeData;
+        (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
+            .assetPrice();
+        // int256 positionSize = -10 ether;
+        uint256 maxPossiblePositionSize = maxBuyingPower
+            .convertTokenDecimals(6, 18)
+            .div(tradeData.assetPriceBeforeTrade / 1 ether);
+        vm.assume(
+            positionSize > -int256(maxPossiblePositionSize) && positionSize < 0
+        );
         int256 positionSizeAfterTrade256;
         // postTradeDetails
         // returns (
@@ -301,15 +459,17 @@ contract OpenLongSnx is BaseSetup {
             ethFuturesMarket
         ).accessibleMargin(bobMarginAccount);
 
-        (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
-            .assetPrice();
-
+        console2.log("reached here brah");
+        uint256 positionSizeUint = positionSize.abs();
+        console2.log("positionSizeUint", positionSizeUint);
+        console2.log("positionSize");
+        console2.logInt(positionSize);
         int256 openNotional = int256(
-            uint256(positionSize).mulDiv(
-                tradeData.assetPriceBeforeTrade,
-                1 ether
-            )
+            positionSize.abs().mulDiv(tradeData.assetPriceBeforeTrade, 1 ether)
         );
+        if (positionSize < 0) {
+            openNotional = -openNotional;
+        }
         assertEq(tradeData.marginRemainingBeforeTrade, marginSNX);
         assertEq(tradeData.accessibleMarginBeforeTrade, marginSNX);
         bytes memory openPositionData = abi.encodeWithSignature(

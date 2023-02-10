@@ -4568,8 +4568,8 @@
       }
     },
     "test/foundry/OpenLongSnx.t.sol": {
-      "lastModificationDate": 1676041194959,
-      "contentHash": "0f5bb9740b954d51fe2a89c80f363eb8",
+      "lastModificationDate": 1676044060235,
+      "contentHash": "41cfd0cc620260e66a0b5a81065542f6",
       "sourceName": "test/foundry/OpenLongSnx.t.sol",
       "solcConfig": {
         "settings": {
