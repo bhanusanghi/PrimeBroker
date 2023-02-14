@@ -1,0 +1,24 @@
+
+===============================================================
+Vault - 
+===============================================================
+
+To do -
+- How to allow marginAcc to vault repayment allowance.
+
+===============================================================
+General Notes
+===============================================================
+
+When is PnL realized.
+
+balance of margin account should be equal to 0 always. Check that accounting while closing and updating positions.
+
+Handle by - realized PnL should directly alter your margin value.
+
+important note -> 
+To be able to provide more leverage on our protocol (Risk increases) to avoid bad debt we need to 
+  - Track TotalDeployedMargin 
+  - When opening positions make sure 
+   TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
+   

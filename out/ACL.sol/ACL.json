@@ -1,0 +1,33 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "contracts/Libraries/ACL.sol",
+    "id": 4847,
+    "exportedSymbols": {},
+    "nodeType": "SourceUnit",
+    "src": "0:25:34",
+    "nodes": [
+      {
+        "id": 4846,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:34",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".10"
+        ]
+      }
+    ]
+  },
+  "id": 34
+}

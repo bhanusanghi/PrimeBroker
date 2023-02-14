@@ -19,7 +19,9 @@ import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
+import {Position} from "../Interfaces/IMarginAccount.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -31,32 +33,46 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // address public perp
     // function getPositionOpenNotional(address marginAcc) public override {}
     bytes4 public AP = 0x095ea7b3;
-    bytes4 public OP = 0x47e7ef24;
+    bytes4 public MT = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
     address public baseToken;
     bytes4 public settleFeeSelector = 0xeb9b912e;
-    IExchange public perpExchange;
+    uint8 private _decimals;
+    IContractRegistry contractRegistry;
+
+    // IExchange public perpExchange;
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
+    mapping(address => bool) whitelistedAddresses;
+
     constructor(
         address _baseToken,
+        address _contractRegistry,
         address _accountBalance,
-        address _perpExchange,
         address _marketRegistry,
         address _clearingHouse
     ) {
+        contractRegistry = IContractRegistry(_contractRegistry);
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
-        perpExchange = IExchange(_perpExchange);
+        // perpExchange = IExchange(_perpExchange);
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
     }
+
     //@note: use _init :pointup
-    function updateExchangeAddress(address _perpExchange) external {
-        perpExchange = IExchange(_perpExchange);
+    function toggleAddressWhitelisting(address contractAddress, bool isAllowed)
+        external
+    {
+        require(contractAddress != address(0));
+        whitelistedAddresses[contractAddress] = isAllowed;
     }
+
+    // function updateExchangeAddress(address _perpExchange) external {
+    //     perpExchange = IExchange(_perpExchange);
+    // }
 
     // function getTotalPnL(address marginAcc) public returns (int256) {
 
@@ -80,7 +96,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
        */
     }
-    function settleFeeForMarket(address account) external returns(int256){
+
+    function settleFeeForMarket(address account) external returns (int256) {
         //getFees
         // aproval or something
         //send/settle Fee
@@ -89,25 +106,40 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        console.log("MM:",owedRealizedPnl.abs(), unrealizedPnl.abs(), pendingFee);
+        console.log(
+            "MM:",
+            owedRealizedPnl.abs(),
+            unrealizedPnl.abs(),
+            pendingFee
+        );
         // clearingHouse.settleAllFunding(account);
         bytes memory data = abi.encodeWithSelector(settleFeeSelector, account);
-        console.log("return hua perp me se",address(clearingHouse),data.length);
+        console.log(
+            "return hua perp me se",
+            address(clearingHouse),
+            data.length
+        );
         // @note basetoken is confusing w/ market base tokens
         // there can be multiple like basetoken for protocol fee and like eth/btc mkt
-        IMarginAccount(account).approveToProtocol(baseToken,address(clearingHouse));
+        IMarginAccount(account).approveToProtocol(
+            baseToken,
+            address(clearingHouse)
+        );
         console.log("approve done:");
-        data = IMarginAccount(account).executeTx(address(clearingHouse),data);
+        data = IMarginAccount(account).executeTx(address(clearingHouse), data);
         console.log(data.length);
         // MA call ic, data
         return 0;
     }
+
     function getFees(address _baseToken) public view returns (uint256) {
         return marketRegistry.getFeeRatio(_baseToken);
     }
+
     function getBaseToken() external view returns (address) {
         return baseToken;
     }
+
     // function getIndexPrice() public view override returns (uint256 indexPrice) {
     //     uint256 _twapInterval = IClearingHouseConfig(clearingHouseConfig).getTwapInterval();
     //     indexPrice = IIndexPrice(usdlBaseTokenAddress).getIndexPrice(_twapInterval);
@@ -118,19 +150,25 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     //     (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(usdlBaseTokenAddress)).slot0();
     //     token0Price = ((uint256(sqrtPriceX96)**2) / (2**192)) * 1e18;
     // }
+
+    // ** TODO - should return in 18 decimal points
     function getPositionPnL(address account)
         external
         virtual
-        returns (uint256 depositedMargin, int256 pnl)
+        returns (int256 pnl)
     {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
+        // from this description - owedRealizedPnL also needs to be taken in account.
+        // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
+
+        // todo - realized PnL affects the deposited Margin. We need to also take that into account.
+        // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
+        //          or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl.sub(pendingFee.toInt256());
-        depositedMargin = 1; // @note placeholder for now for some new params or remove
-        return (depositedMargin, pnl);
+        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
     }
 
     function verifyTrade(
@@ -141,9 +179,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         public
         view
         returns (
-            int256 amount,
-            int256 totalPosition,
-            uint256 fee
+            // int256 amount,
+            // int256 totalPosition,
+            // uint256 fee
+
+            int256 marginDelta,
+            Position memory position
         )
     {
         /**  market key : 32bytes
@@ -160,8 +201,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
-            } else if (funSig == OP) {
-                amount = abi.decode(data[i][36:], (int256));
+            } else if (funSig == MT) {
+                marginDelta = marginDelta + abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
                 // refer -
@@ -187,39 +228,53 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                fee = marketRegistry.getFeeRatio(_baseToken);
+                // this refers to position opening fee.
+                uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
+
+                position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     // get price should return in normalized values.
                     // uint256 price = _getPrice;
                     // uint256 value = _amount * price;
-                    totalPosition = isShort
-                        ? -int256(_amount)
-                        : int256(_amount);
+                    // totalPosition = isShort
+                    //     ? -int256(_amount)
+                    //     : int256(_amount);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort ? -_amount : _amount;
+                    // totalPosition = isShort ? -amount : amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    totalPosition = isShort ? -_amount : _amount;
+                    // totalPosition = isShort ? -amount : amount;
                 } else if (isShort && !isExactInput) {
                     // get price
                 } else {
                     revert("impossible shit");
                 }
+            } else {
+                // Unsupported Function call
+                revert("PRM: Unsupported Function call");
             }
         }
-        fee = totalPosition.abs().mulDiv(fee,10**5);
-        console.log("perpfi final:",fee);
+        // Todo - Bhanu. Verify this fee calculation and decimals.
     }
-    function verifyClose(address protocol,address[] memory destinations,bytes[] calldata data)
+
+    function verifyClose(
+        address protocol,
+        address[] memory destinations,
+        bytes[] calldata data
+    )
         public
         view
-        returns (int256 amount, int256 totalPosition, uint256 fee)
+        returns (
+            int256 amount,
+            int256 totalPosition,
+            uint256 fee
+        )
     {
         uint8 len = data.length.toUint8(); // limit to 2
-        fee=1;
-        require(destinations.length.toUint8() == len,"should match");
+        fee = 1;
+        require(destinations.length.toUint8() == len, "should match");
         for (uint8 i = 0; i < len; i++) {
             bytes4 funSig = bytes4(data[i]);
             if (funSig == AP) {
@@ -247,7 +302,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                totalPosition = isShort ? -(_amount.toInt256()) : (_amount.toInt256());
+                totalPosition = isShort
+                    ? -(_amount.toInt256())
+                    : (_amount.toInt256());
+            } else {
+                // Unsupported Function call
+                revert("PRM: Unsupported Function call");
             }
         }
     }

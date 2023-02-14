@@ -1,0 +1,7 @@
+
+
+Things pending in current codebase - 
+
+1. Currently returning hardcoded value 0 as marginDeposited in protocols from PRM.sol -> getPositionPnL
+2. Perp changes deposited Margin for realized PnL 
+3. 

@@ -184,7 +184,7 @@ const setup = async () => {
   await usdc.connect(account0).approve(vault.address, VAULT_AMOUNT)
   await vault.deposit(VAULT_AMOUNT, account0.address)
   const perpVaultAmount = ethers.utils.parseUnits("2000", 6)
-  await riskManager.setcollateralManager(CollateralManager.address)
+  await riskManager.setCollateralManager(CollateralManager.address)
   await usdc.approve(perpVault.address, perpVaultAmount)
 
   // await perpVault.deposit(erc20.usdc, perpVaultAmount)
@@ -258,9 +258,9 @@ describe("Margin Manager", () => {
       await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
       await MarketManager.addMarket(SNX_MARKET_KEY_sETH, ETH_MARKET, sNXRiskManager.address)
 
-      await riskManager.addNewMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET)
-      await riskManager.addNewMarket(SNX_MARKET_KEY_sETH, ETH_MARKET)
-      await riskManager.addNewMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address)
+      // await riskManager.addNewMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET)
+      // await riskManager.addNewMarket(SNX_MARKET_KEY_sETH, ETH_MARKET)
+      // await riskManager.addNewMarket(PERP_MARKET_KEY_AAVE, metadata.contracts.ClearingHouse.address)
       // await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
 
       // await sUSD.approve(accAddress, ethers.utils.parseUnits("5000", 6))
