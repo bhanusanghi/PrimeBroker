@@ -1,12 +1,16 @@
 pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "hardhat/console.sol";
 
 contract PriceOracle is IPriceOracle {
     using Math for uint256;
+    using SignedMath for int256;
     using SafeCastUpgradeable for int256;
     mapping(address => address) public tokenPriceFeed;
     address baseUsdToken;
@@ -52,13 +56,15 @@ contract PriceOracle is IPriceOracle {
         delete tokenPriceFeed[_token];
     }
 
-    function convertToUSD(uint256 amount, address token)
+    // Value sent back with same token decimals sent in amount param.
+    function convertToUSD(int256 amount, address token)
         external
         view
-        returns (uint256 value)
+        returns (int256 value)
     {
         (int256 price, uint256 decimals) = _getTokenPrice(token);
-        value = amount.mulDiv(price.toUint256(), decimals);
+        value = int256((amount.abs()).mulDiv(price.abs(), 10**decimals));
+        if (amount < 0) value = -value;
     }
 
     function convertFromUSD(uint256 amount, address token)
@@ -99,13 +105,8 @@ contract PriceOracle is IPriceOracle {
             tokenPriceFeed[token] != address(0),
             "PO: Token feed not available"
         );
-        (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        ) = AggregatorV3Interface(tokenPriceFeed[token]).latestRoundData();
+        (, int256 answer, , , ) = AggregatorV3Interface(tokenPriceFeed[token])
+            .latestRoundData();
         uint256 decimals = AggregatorV3Interface(tokenPriceFeed[token])
             .decimals();
         return (answer, decimals);

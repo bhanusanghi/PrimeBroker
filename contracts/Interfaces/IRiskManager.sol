@@ -1,20 +1,24 @@
 pragma solidity ^0.8.10;
-import {ITypes} from "./ITypes.sol";
+import {Position} from "./IMarginAccount.sol";
 
-interface IRiskManager is ITypes {
+struct VerifyTradeResult {
+    address protocolAddress;
+    int256 marginDelta;
+    int256 marginDeltaDollarValue;
+    Position position;
+    address tokenOut;
+}
+
+interface IRiskManager {
     function verifyTrade(
-        address _marginAccount,
-        bytes32[] memory contractName,
-        txMetaType[] memory transactionMetadata,
-        address[] memory contractAddress,
-        bytes[] memory data
-    )
-        external
-        returns (
-            address[] memory destination,
-            bytes[] memory dataArray,
-            uint256 tokens
-        );
+        address marginAcc,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] memory data,
+        uint256 interestAccrued
+    ) external returns (VerifyTradeResult memory result);
 
     function initialMarginFactor() external returns (uint256);
+
+    function setPriceOracle(address oracle) external;
 }

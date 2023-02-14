@@ -1,0 +1,33 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "contracts/MarginPool/InterestRate.sol",
+    "id": 7984,
+    "exportedSymbols": {},
+    "nodeType": "SourceUnit",
+    "src": "0:25:42",
+    "nodes": [
+      {
+        "id": 7983,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:42",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".10"
+        ]
+      }
+    ]
+  },
+  "id": 42
+}

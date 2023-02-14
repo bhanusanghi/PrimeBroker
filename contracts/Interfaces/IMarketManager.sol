@@ -22,7 +22,15 @@ interface IMarketManager {
         view
         returns (address, address);
 
-    function getAllMarketAddresses() external view returns (address[] memory);
+    function getUniqueMarketAddresses()
+        external
+        view
+        returns (address[] memory);
 
     function getAllMarketNames() external view returns (bytes32[] memory);
+
+    function getMarketsForRiskManager(address _riskManager)
+        external
+        view
+        returns (address[] memory);
 }

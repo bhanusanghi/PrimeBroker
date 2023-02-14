@@ -12,7 +12,7 @@ import {
 } from "../typechain-types";
 import { erc20 } from "./integrations/addresses";
 import { getVaultFixture } from "./fixtures";
- ̰
+ 
 type VaultFixture = {
   vault: Vault;
   interestRateModel: IInterestRateModel;

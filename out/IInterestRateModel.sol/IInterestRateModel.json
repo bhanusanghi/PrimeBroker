@@ -1,0 +1,300 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "expectedLiquidity",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "availableLiquidity",
+          "type": "uint256"
+        }
+      ],
+      "name": "calcBorrowRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "calcBorrowRate(uint256,uint256)": "42568d44"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expectedLiquidity\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"availableLiquidity\",\"type\":\"uint256\"}],\"name\":\"calcBorrowRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interface for the calculation of the interest rates\",\"kind\":\"dev\",\"methods\":{\"calcBorrowRate(uint256,uint256)\":{\"details\":\"Calculated borrow rate based on expectedLiquidity and availableLiquidity\",\"params\":{\"availableLiquidity\":\"Available liquidity in the pool\",\"expectedLiquidity\":\"Expected liquidity in the pool\"}}},\"title\":\"IInterestRateModel interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IInterestRateModel.sol\":\"IInterestRateModel\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IInterestRateModel.sol\":{\"keccak256\":\"0xee0996b623c056a13600c16be68c6dbaa12d9bd24c3b61237d885ce20cbcde0f\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://8be0cbdedd36986df9459cbc0546a4a451c37d9b4459a6fe83327a1802bbb958\",\"dweb:/ipfs/QmPgdYwmsnPd9BHfEo8jyBPGUfEkCBzzgFfb5qVPFF1acz\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.17+commit.8df45f5f"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "expectedLiquidity",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "availableLiquidity",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "calcBorrowRate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {
+          "calcBorrowRate(uint256,uint256)": {
+            "details": "Calculated borrow rate based on expectedLiquidity and availableLiquidity",
+            "params": {
+              "availableLiquidity": "Available liquidity in the pool",
+              "expectedLiquidity": "Expected liquidity in the pool"
+            }
+          }
+        },
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@chainlink/=node_modules/@chainlink/",
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@openzeppelin/=node_modules/@openzeppelin/",
+        ":@perp/=node_modules/@perp/",
+        ":@uniswap/=node_modules/@uniswap/",
+        ":base64-sol/=node_modules/base64-sol/",
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=lib/forge-std/src/",
+        ":hardhat/=node_modules/hardhat/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "contracts/Interfaces/IInterestRateModel.sol": "IInterestRateModel"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/Interfaces/IInterestRateModel.sol": {
+        "keccak256": "0xee0996b623c056a13600c16be68c6dbaa12d9bd24c3b61237d885ce20cbcde0f",
+        "urls": [
+          "bzz-raw://8be0cbdedd36986df9459cbc0546a4a451c37d9b4459a6fe83327a1802bbb958",
+          "dweb:/ipfs/QmPgdYwmsnPd9BHfEo8jyBPGUfEkCBzzgFfb5qVPFF1acz"
+        ],
+        "license": "GPL-3.0-or-later"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/Interfaces/IInterestRateModel.sol",
+    "id": 1045,
+    "exportedSymbols": {
+      "IInterestRateModel": [
+        1044
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "45:514:11",
+    "nodes": [
+      {
+        "id": 1032,
+        "nodeType": "PragmaDirective",
+        "src": "45:24:11",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".10"
+        ]
+      },
+      {
+        "id": 1044,
+        "nodeType": "ContractDefinition",
+        "src": "172:386:11",
+        "nodes": [
+          {
+            "id": 1043,
+            "nodeType": "FunctionDefinition",
+            "src": "423:133:11",
+            "nodes": [],
+            "documentation": {
+              "id": 1034,
+              "nodeType": "StructuredDocumentation",
+              "src": "207:211:11",
+              "text": "@dev Calculated borrow rate based on expectedLiquidity and availableLiquidity\n @param expectedLiquidity Expected liquidity in the pool\n @param availableLiquidity Available liquidity in the pool"
+            },
+            "functionSelector": "42568d44",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "calcBorrowRate",
+            "nameLocation": "432:14:11",
+            "parameters": {
+              "id": 1039,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1036,
+                  "mutability": "mutable",
+                  "name": "expectedLiquidity",
+                  "nameLocation": "464:17:11",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1043,
+                  "src": "456:25:11",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1035,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "456:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 1038,
+                  "mutability": "mutable",
+                  "name": "availableLiquidity",
+                  "nameLocation": "499:18:11",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1043,
+                  "src": "491:26:11",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1037,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "491:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "446:77:11"
+            },
+            "returnParameters": {
+              "id": 1042,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1041,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1043,
+                  "src": "547:7:11",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1040,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "547:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "546:9:11"
+            },
+            "scope": 1044,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IInterestRateModel",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 1033,
+          "nodeType": "StructuredDocumentation",
+          "src": "71:101:11",
+          "text": "@title IInterestRateModel interface\n @dev Interface for the calculation of the interest rates"
+        },
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          1044
+        ],
+        "name": "IInterestRateModel",
+        "nameLocation": "182:18:11",
+        "scope": 1045,
+        "usedErrors": []
+      }
+    ],
+    "license": "GPL-3.0-or-later"
+  },
+  "id": 11
+}

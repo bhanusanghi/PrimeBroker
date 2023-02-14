@@ -7,13 +7,9 @@ interface ITypes {
         Spot
     } // add more
     struct Position {
-        uint256 internalLev;
-        uint256 externalLev; //@note for future use only
         address protocol;
-        PositionType positionType;
         uint256 notionalValue;
-        uint256 marketValue;
-        uint256 underlyingMarginValue;
+        int256 position;
     }
     struct TradeResult {
         address marginAccount;

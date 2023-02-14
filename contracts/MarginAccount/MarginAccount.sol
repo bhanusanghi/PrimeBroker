@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
@@ -11,7 +12,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
-import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
+import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
 import "hardhat/console.sol";
 
@@ -19,15 +20,17 @@ contract MarginAccount is IMarginAccount, UniExchange {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using SafeMath for uint256;
     using SafeCastUpgradeable for uint256;
     using SignedMath for int256;
+    using SignedMath for uint256;
     using SignedSafeMath for int256;
-    IMarketManager public marketManager;
+    // IMarketManager public marketManager;
 
     mapping(bytes32 => bool) public existingPosition;
     address public baseToken; //usdt/c
     // perp.eth, snx.eth, snx.btc
-    mapping(bytes32 => int256) public positions;
+    mapping(bytes32 => Position) public positions;
     // address.MKT
     address public marginManager;
     uint256 public totalInternalLev;
@@ -37,12 +40,13 @@ contract MarginAccount is IMarginAccount, UniExchange {
     address public underlyingToken;
 
     mapping(bytes32 => int256) public marginInMarket;
-    int256 totalMarginInMarkets;
+    int256 public totalMarginInMarkets;
 
     // constructor(address underlyingToken) {
     //     marginManager = msg.sender;
     //     underlyingToken = underlyingToken;
     // }
+
     constructor(address _router)
         //  address _marketManager
         //  address _contractRegistry
@@ -62,6 +66,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         address token,
         uint256 amount
     ) external {
+        // acl - only collateral manager.
         // convert
         IERC20(token).safeTransferFrom(from, address(this), amount);
         // update in collatral manager
@@ -72,15 +77,15 @@ contract MarginAccount is IMarginAccount, UniExchange {
         IERC20(token).approve(protocol, type(uint256).max);
     }
 
-    function addPosition(bytes32 market, int256 size) public {
+    function addPosition(bytes32 market, Position memory position) public {
         // only riskmanagger
-        positions[market] = size;
+        positions[market] = position;
         existingPosition[market] = true;
     }
 
     function updatePosition(bytes32 market, int256 size) public {
         // only riskmanagger
-        positions[market] = size;
+        // positions[market] = size;
     }
 
     function removePosition(bytes32 market) public {
@@ -90,39 +95,58 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     // TODO return value with unrealized PnL
-    function getPositionValue(bytes32 market) public view returns (int256) {
-        return positions[market];
-        // and pnl
-        // send protocol risk manager address
-        // protocol rm . getPnl(address(this), _protocol)
-    }
-
     function getPositionOpenNotional(bytes32 market)
         public
         view
         returns (int256)
     {
-        return positions[market];
+        return positions[market].openNotional;
+        // and pnl
+        // protocol rm . getPnl(address(this), _protocol)
     }
 
-    function getTotalNotional(bytes32[] memory _allowedMarkets)
+    function getPosition(bytes32 market) public view returns (int256) {
+        return positions[market].size;
+    }
+
+    function getTotalOpeningAbsoluteNotional(bytes32[] memory _allowedMarkets)
         public
         view
         returns (uint256 totalNotional)
     {
         uint256 len = _allowedMarkets.length;
         for (uint256 i = 0; i < len; i++) {
-            console.log(
-                "Position size",
-                i,
-                ":",
-                _absVal(positions[_allowedMarkets[i]])
-            );
+            // console.log(
+            //     "Position size",
+            //     i,
+            //     ":",
+            //     _absVal(positions[_allowedMarkets[i]])
+            // );
             totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].abs()
+                positions[_allowedMarkets[i]].openNotional.abs()
             );
         }
-        console.log(" Total Position size:", totalNotional);
+        // console.log(" Total Position size:", totalNotional);
+    }
+
+    function getTotalOpeningNotional(bytes32[] memory _allowedMarkets)
+        public
+        view
+        returns (int256 totalNotional)
+    {
+        uint256 len = _allowedMarkets.length;
+        for (uint256 i = 0; i < len; i++) {
+            // console.log(
+            //     "Position size",
+            //     i,
+            //     ":",
+            //     _absVal(positions[_allowedMarkets[i]])
+            // );
+            totalNotional = totalNotional.add(
+                positions[_allowedMarkets[i]].openNotional
+            );
+        }
+        // console.log(" Total Position size:", totalNotional);
     }
 
     function _absVal(int256 val) internal pure returns (uint256) {
@@ -183,9 +207,9 @@ contract MarginAccount is IMarginAccount, UniExchange {
         marginInMarket[market] = marginInMarket[market].add(transferredMargin);
     }
 
-    function getTotalMarginInMarkets() public view returns (int256) {
-        return totalMarginInMarkets;
-    }
+    // function getTotalMarginInMarkets() public view returns (int256) {
+    //     return totalMarginInMarkets;
+    // }
 
     function totalBorrowed() external view override returns (uint256) {
         return _totalBorrowed;

@@ -65,7 +65,7 @@ contract UniExchange is IExchange {
                         recipient: address(this),
                         deadline: block.timestamp,
                         amountIn: _swapParams.amountIn,
-                        amountOutMinimum: 0, //amountOutMinimum
+                        amountOutMinimum: _swapParams.amountOutMinimum, //amountOutMinimum
                         sqrtPriceLimitX96: _swapParams.sqrtPriceLimitX96
                     });
                 amountOut = router.exactInputSingle(params);
