@@ -1875,8 +1875,8 @@
       }
     },
     "contracts/MarginManager.sol": {
-      "lastModificationDate": 1676388951268,
-      "contentHash": "911847dd7a4fe2e48e63c834f71ab9b2",
+      "lastModificationDate": 1676540308378,
+      "contentHash": "b5f634304c484b80b828ec5e21910ffe",
       "sourceName": "contracts/MarginManager.sol",
       "solcConfig": {
         "settings": {
@@ -4492,8 +4492,8 @@
       }
     },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1676389489751,
-      "contentHash": "7b4b665ed9f5e9c96d5d6572cc08b325",
+      "lastModificationDate": 1676541171904,
+      "contentHash": "cdf6cfb758120c6ff868fe3de598638e",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
         "settings": {
@@ -4612,8 +4612,8 @@
       }
     },
     "test/foundry/OpenPosition.t.sol": {
-      "lastModificationDate": 1676374527222,
-      "contentHash": "41cfd0cc620260e66a0b5a81065542f6",
+      "lastModificationDate": 1676542585169,
+      "contentHash": "298af08b5a0ea40306f7194e958b4f68",
       "sourceName": "test/foundry/OpenPosition.t.sol",
       "solcConfig": {
         "settings": {

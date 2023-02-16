@@ -203,8 +203,8 @@ contract MarginManager is ReentrancyGuard {
         address tokenIn = vault.asset();
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            console.log("positionSize");
-            console.logInt(verificationResult.position.size);
+            // console.log("positionSize");
+            // console.logInt(verificationResult.position.size);
             marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
@@ -296,10 +296,9 @@ contract MarginManager is ReentrancyGuard {
                     require(amountOut >= diff, "RM: Bad Swap");
                 }
             }
-            // }
-
-            marginAcc.execMultiTx(destinations, data);
         }
+
+        marginAcc.execMultiTx(destinations, data);
     }
 
     function updatePosition(
