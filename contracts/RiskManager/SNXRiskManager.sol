@@ -57,6 +57,34 @@ contract SNXRiskManager is IProtocolRiskManager {
        */
     }
 
+    function settleFeeForMarket(address account) external returns (int256) {
+        int256 funding;
+        int256 pnl;
+
+        address[] memory allMarkets = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketsForRiskManager(address(this));
+        uint8 len = allMarkets.length.toUint8();
+        for (uint8 i = 0; i < len; i++) {
+            IFuturesMarket market = IFuturesMarket(allMarkets[i]);
+            int256 _pnl;
+            int256 _funding;
+            (_funding, ) = market.accruedFunding(account);
+            (_pnl, ) = market.profitLoss(account);
+            if (funding < 0) {
+                console.log("negative pnl");
+            }
+            if (_funding < 0) {
+                console.log("negative _funding");
+            }
+            pnl = pnl.add(_pnl);
+            console.log("funding", funding.abs());
+            funding = funding.add(_funding);
+        }
+        console.log("funding and pnl settle fee", funding.abs(), pnl.abs());
+        return funding;
+    }
+
     // ** returns in vault base asset decimal points
     function getPositionPnL(address account)
         external
@@ -101,11 +129,8 @@ contract SNXRiskManager is IProtocolRiskManager {
     )
         public
         view
-        returns (
-            int256 marginDelta,
-            Position memory position,
-            uint256 fee
-        )
+        returns (int256 marginDelta, Position memory position)
+    // uint256 fee
     {
         // use marketKey
         uint256 len = data.length; // limit to 2
@@ -123,7 +148,7 @@ contract SNXRiskManager is IProtocolRiskManager {
                 );
             } else if (funSig == OP) {
                 //TODO - check Is this a standard of 18 decimals
-                int256 positionSize = abi.decode(data[i][4:], (int256));
+                int256 positionDelta = abi.decode(data[i][4:], (int256));
                 // asset price is recvd with 18 decimals.
                 (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
                     .assetPrice();
@@ -132,10 +157,14 @@ contract SNXRiskManager is IProtocolRiskManager {
                     "Error fetching asset price from third party protocol"
                 );
                 position.openNotional = position.openNotional.add(
-                    (positionSize * int256(assetPrice)) / 1 ether
+                    (positionDelta * int256(assetPrice)) / 1 ether
                 );
 
-                position.size = position.size.add(positionSize);
+                position.size = position.size.add(positionDelta);
+                // this refers to position opening fee.
+                (position.fee, ) = IFuturesMarket(protocol).orderFee(
+                    positionDelta
+                );
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");

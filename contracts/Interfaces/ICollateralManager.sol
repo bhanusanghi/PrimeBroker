@@ -8,7 +8,6 @@ interface ICollateralManager {
 
     function updateCollateralWeight(
         address token,
-        uint256 allowlistIndex,
         uint256 collateralWeight
     ) external;
 

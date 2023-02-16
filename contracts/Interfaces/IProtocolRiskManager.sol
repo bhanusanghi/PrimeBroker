@@ -15,8 +15,8 @@ interface IProtocolRiskManager {
         external
         returns (
             int256 amount,
-            Position memory deltaPosition,
-            uint256 fee
+            Position memory deltaPosition
+            // uint256 fee
         );
 
     function verifyClose(
@@ -32,6 +32,8 @@ interface IProtocolRiskManager {
         );
 
     function getBaseToken() external view returns (address);
+
+    function settleFeeForMarket(address account) external returns (int256);
 
     function toggleAddressWhitelisting(address contractAddress, bool isAllowed)
         external;

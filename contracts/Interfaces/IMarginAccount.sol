@@ -6,6 +6,7 @@ struct Position {
     address protocol;
     int256 openNotional;
     int256 size;
+    uint256 fee; // this refers to position opening fee as seen from SNX and Perp PRMs
 }
 
 interface IMarginAccount {
@@ -22,11 +23,23 @@ interface IMarginAccount {
 
     function baseToken() external returns (address);
 
+    function approveToProtocol(address token, address protocol) external;
+
     function addCollateral(
         address from,
         address token,
         uint256 amount
     ) external;
+
+    function transferTokens(
+        address token,
+        address to,
+        uint256 amount // onlyMarginManager
+    ) external;
+
+    function executeTx(address destination, bytes memory data)
+        external
+        returns (bytes memory);
 
     function getPositionOpenNotional(bytes32 marketKey)
         external

@@ -38,7 +38,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     uint256 public _totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     address public underlyingToken;
-
+    int256 public pendingFee; // keeping it int for -ve update(pay fee) Is this order fee or is this fundingRate Fee.
     mapping(bytes32 => int256) public marginInMarket;
     int256 public totalMarginInMarkets;
 
@@ -72,6 +72,12 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // update in collatral manager
     }
 
+    // TODO - ASHISH - which position's fee is this ??
+    function updateFee(int256 fee) public {
+        //only marginManager
+        pendingFee = pendingFee.add(fee);
+    }
+
     function approveToProtocol(address token, address protocol) external {
         // onlyMarginmanager
         IERC20(token).approve(protocol, type(uint256).max);
@@ -81,6 +87,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // only riskmanagger
         positions[market] = position;
         existingPosition[market] = true;
+        pendingFee += int256(position.fee);
     }
 
     function updatePosition(bytes32 market, int256 size) public {

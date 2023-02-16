@@ -16,11 +16,11 @@ import {Vault} from "./MarginPool/Vault.sol";
 import {IRiskManager, VerifyTradeResult} from "./Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
-import {ITypes} from "./Interfaces/ITypes.sol";
 import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
 import {IExchange} from "./Interfaces/IExchange.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
+import {IProtocolRiskManager} from "./Interfaces/IProtocolRiskManager.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is ReentrancyGuard {
@@ -162,6 +162,20 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
+    function settleFee(address acc) public {
+        // for each market
+        // prm.settleFeeForMarket()
+        // bytes32[] memory _allowedMarketNames = marketManager.getAllMarketNames();
+        int256 fee;
+        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+        for (uint256 i = 0; i < _riskManagers.length; i++) {
+            fee += IProtocolRiskManager(_riskManagers[i]).settleFeeForMarket(
+                acc
+            );
+        }
+        console.log("MM:totalFee", fee.abs());
+    }
+
     function _getMarginAccount(address trader) internal view returns (address) {
         require(
             marginAccounts[trader] != address(0),
@@ -178,6 +192,7 @@ contract MarginManager is ReentrancyGuard {
         // TODO - Use Interface rather than class.
         MarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
         require(!marginAcc.existingPosition(marketKey), "Existing position");
+        // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             address(marginAcc),
             marketKey,
@@ -188,8 +203,8 @@ contract MarginManager is ReentrancyGuard {
         address tokenIn = vault.asset();
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            console.log("positionSize");
-            console.logInt(verificationResult.position.size);
+            // console.log("positionSize");
+            // console.logInt(verificationResult.position.size);
             marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
@@ -291,6 +306,7 @@ contract MarginManager is ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external {
+        // settleFee();
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         require(
             marginAcc.existingPosition(marketKey),
@@ -370,6 +386,7 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        settleFee(address(marginAcc));
         // address protocolAddress = marginAcc.positions(positionIndex);
         require(
             marginAcc.existingPosition(marketKey),
@@ -405,6 +422,8 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
+        settleFee(address(marginAcc));
+        console.log(address(marginAcc), "Margin acc");
         int256 tokensToTransfer;
         int256 positionSize;
         (tokensToTransfer, positionSize) = riskManager.isliquidatable(
@@ -431,6 +450,7 @@ contract MarginManager is ReentrancyGuard {
     function RemoveCollateral() external {
         /**
         check margin, open positions
+        settleFee();
         withdraw
          */
     }

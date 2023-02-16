@@ -113,10 +113,11 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // BP is in vault decimals
         buyingPower = GetCurrentBuyingPower(marginAcc, PnL, interestAccrued);
 
-        // TODO - Use this fee variable.
-        uint256 fee;
-        (result.marginDelta, result.position, fee) = protocolRiskManager
-            .verifyTrade(result.protocolAddress, destinations, data);
+        (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
+            result.protocolAddress,
+            destinations,
+            data
+        );
 
         result.marginDeltaDollarValue = priceOracle
             .convertToUSD(result.marginDelta, result.tokenOut)
@@ -226,9 +227,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
-        uint256 fee;
         Position memory position;
-        (marginDelta, position, fee) = protocolRiskManager.verifyTrade(
+        (marginDelta, position) = protocolRiskManager.verifyTrade(
             _protocolAddress,
             destinations,
             data

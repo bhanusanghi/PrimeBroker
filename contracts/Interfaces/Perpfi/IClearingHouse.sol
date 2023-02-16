@@ -345,4 +345,7 @@ interface IClearingHouse {
         external
         view
         returns (address delegateApproval);
+      function getPrice(
+    address token
+  ) external returns (uint256);
 }

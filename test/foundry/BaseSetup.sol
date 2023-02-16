@@ -70,10 +70,12 @@ contract BaseSetup is Test {
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
 
     address perpAccountBalance = 0xA7f3FC32043757039d5e13d790EE43edBcBa8b7c;
+    address perpMarketRegistry = 0xd5820eE0F55205f6cdE8BB0647072143b3060067;
     address perpClearingHouse = 0x82ac2CE43e33683c58BE4cDc40975E73aA50f459;
     // synthetix (ReadProxyAddressResolver)
     address SNX_ADDRESS_RESOLVER = 0x1Cb059b7e74fD21665968C908806143E744D5F30;
-    address futuresMarketSettings = 0x0dde87714C3bdACB93bB1d38605aFff209a85998;
+    // address futuresMarketSettings = 0x0dde87714C3bdACB93bB1d38605aFff209a85998;
+    address futuresMarketSettings = 0xaE55F163337A2A46733AA66dA9F35299f9A46e9e;
     address sUsdPriceFeed = 0x7f99817d87baD03ea21E05112Ca799d715730efe;
     address usdcPriceFeed = 0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3;
     address snxFuturesMarketManager;
@@ -222,7 +224,9 @@ contract BaseSetup is Test {
         perpfiRiskManager = new PerpfiRiskManager(
             usdc,
             address(contractRegistry),
-            perpAccountBalance
+            perpAccountBalance,
+            perpMarketRegistry,
+            perpClearingHouse
         );
         snxRiskManager = new SNXRiskManager(susd, address(contractRegistry));
     }

@@ -276,7 +276,9 @@ contract OpenLongSnx is BaseSetup {
             .convertTokenDecimals(6, 18)
             .div(tradeData.assetPriceBeforeTrade / 1 ether);
         vm.assume(
-            positionSize < int256(maxPossiblePositionSize) && positionSize > 0
+            positionSize < int256(maxPossiblePositionSize) &&
+                // positionSize > 1 ether
+                positionSize > 0
         );
         // postTradeDetails
         // returns (
@@ -377,9 +379,9 @@ contract OpenLongSnx is BaseSetup {
         ).accessibleMargin(bobMarginAccount);
 
         // check position size on tpp
-        (, , , , tradeData.positionSizeAfterTrade) = IFuturesMarket(
-            ethFuturesMarket
-        ).positions(bobMarginAccount);
+        (, , , , int256 posSizeTPP) = IFuturesMarket(ethFuturesMarket)
+            .positions(bobMarginAccount);
+        tradeData.positionSizeAfterTrade = int128(posSizeTPP);
 
         assertEq(
             MarginAccount(bobMarginAccount).getPosition(snxEthKey),
@@ -402,16 +404,26 @@ contract OpenLongSnx is BaseSetup {
         // check if margin in snx is reduced by a value of orderFee
         assertEq(marginDiff.abs(), tradeData.orderFee);
 
-        // TODO - check why this call is not working
-        // uint256 maxLeverage = IFuturesMarketSettings(futuresMarketSettings)
-        //     .maxLeverage(snxEth_marketKey);
-        // console2.log("maxLeverage", maxLeverage);
-        // int256 inacessibleMargin = int256(tradeData.marginRemainingAfterTrade) -
-        //     int256(tradeData.accessibleMarginAfterTrade);
-        // // check if margin in snx is reduced by a value of orderFee
+        console2.log("snxEth_marketKey");
+        console2.logBytes32(snxEth_marketKey);
+
+        uint256 maxLeverage = IFuturesMarketSettings(futuresMarketSettings)
+            .maxLeverage(snxEth_marketKey);
+        console2.log(
+            "tradeData.marginRemainingAfterTrade",
+            tradeData.marginRemainingAfterTrade
+        );
+        console2.log(
+            "tradeData.accessibleMarginAfterTrade",
+            tradeData.accessibleMarginAfterTrade
+        );
+        int256 inacessibleMargin = int256(tradeData.marginRemainingAfterTrade) -
+            int256(tradeData.accessibleMarginAfterTrade);
+        console2.log("inacessibleMargin", inacessibleMargin);
+        // TODO - check why this assertion fails.
         // assertEq(
-        //     inacessibleMargin.abs(),
-        //     openNotional.abs() / (maxLeverage / 1 ether)
+        //     (openNotional.abs() * maxLeverage) / 1 ether,
+        //     inacessibleMargin.abs()
         // );
 
         // check fee etc.

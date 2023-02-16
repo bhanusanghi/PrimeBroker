@@ -13,8 +13,8 @@
   },
   "files": {
     "contracts/CollateralManager.sol": {
-      "lastModificationDate": 1675881966491,
-      "contentHash": "95fdf7802f3ddb1c875c6bc43d0955ba",
+      "lastModificationDate": 1676389849462,
+      "contentHash": "9e0993363d4451dac0f3bac524d2fb3d",
       "sourceName": "contracts/CollateralManager.sol",
       "solcConfig": {
         "settings": {
@@ -56,7 +56,6 @@
         "contracts/Interfaces/IPriceOracle.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
@@ -354,8 +353,8 @@
       }
     },
     "contracts/Interfaces/ICollateralManager.sol": {
-      "lastModificationDate": 1669628300718,
-      "contentHash": "5588bdb64405be28fef2fe73f9680499",
+      "lastModificationDate": 1676372312247,
+      "contentHash": "11687122940b0876c5396719aeecddfa",
       "sourceName": "contracts/Interfaces/ICollateralManager.sol",
       "solcConfig": {
         "settings": {
@@ -554,8 +553,8 @@
       }
     },
     "contracts/Interfaces/IMarginAccount.sol": {
-      "lastModificationDate": 1675884504980,
-      "contentHash": "ddf4aaca3161f6bad3108665c4b3f739",
+      "lastModificationDate": 1676388591687,
+      "contentHash": "57626e3c2b363fb4b3d817947ff8c838",
       "sourceName": "contracts/Interfaces/IMarginAccount.sol",
       "solcConfig": {
         "settings": {
@@ -674,8 +673,8 @@
       }
     },
     "contracts/Interfaces/IProtocolRiskManager.sol": {
-      "lastModificationDate": 1675848840088,
-      "contentHash": "3781a2f3f1486583e48743a77f559982",
+      "lastModificationDate": 1676387284561,
+      "contentHash": "04aa36cedb45adf6112b314c0d15f515",
       "sourceName": "contracts/Interfaces/IProtocolRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -716,7 +715,7 @@
       }
     },
     "contracts/Interfaces/IRiskManager.sol": {
-      "lastModificationDate": 1675865570917,
+      "lastModificationDate": 1676374527090,
       "contentHash": "6a0e433db94232d58075d438169d1849",
       "sourceName": "contracts/Interfaces/IRiskManager.sol",
       "solcConfig": {
@@ -925,8 +924,8 @@
       }
     },
     "contracts/Interfaces/Perpfi/IClearingHouse.sol": {
-      "lastModificationDate": 1665600760262,
-      "contentHash": "28b7c195102b06ff325be137ecd594fa",
+      "lastModificationDate": 1676372312248,
+      "contentHash": "584f2507e3f81aa865fc7716997886b9",
       "sourceName": "contracts/Interfaces/Perpfi/IClearingHouse.sol",
       "solcConfig": {
         "settings": {
@@ -1001,6 +1000,46 @@
       "artifacts": {
         "IExchange": {
           "0.8.17+commit.8df45f5f.Darwin.appleclang": "Perpfi/IExchange.sol/IExchange.json"
+        }
+      }
+    },
+    "contracts/Interfaces/Perpfi/IMarketRegistry.sol": {
+      "lastModificationDate": 1676372312249,
+      "contentHash": "89f0c3a5b26555f008555afda7c7ec27",
+      "sourceName": "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "=0.8.17",
+      "artifacts": {
+        "IMarketRegistry": {
+          "0.8.17+commit.8df45f5f.Darwin.appleclang": "IMarketRegistry.sol/IMarketRegistry.json"
         }
       }
     },
@@ -1776,8 +1815,8 @@
       }
     },
     "contracts/MarginAccount/MarginAccount.sol": {
-      "lastModificationDate": 1675865684549,
-      "contentHash": "4089a96e859d34e37e4591530dfc7f34",
+      "lastModificationDate": 1676388480819,
+      "contentHash": "585e7add7fdc87e9e7ef013d0c4e6a9c",
       "sourceName": "contracts/MarginAccount/MarginAccount.sol",
       "solcConfig": {
         "settings": {
@@ -1836,8 +1875,8 @@
       }
     },
     "contracts/MarginManager.sol": {
-      "lastModificationDate": 1675881870456,
-      "contentHash": "8fbb4bd4daed95230e48c155d5801315",
+      "lastModificationDate": 1676540308378,
+      "contentHash": "b5f634304c484b80b828ec5e21910ffe",
       "sourceName": "contracts/MarginManager.sol",
       "solcConfig": {
         "settings": {
@@ -1879,7 +1918,6 @@
         "contracts/Interfaces/IPriceOracle.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
@@ -2168,8 +2206,8 @@
       }
     },
     "contracts/RiskManager/PerpfiRiskManager.sol": {
-      "lastModificationDate": 1675863954546,
-      "contentHash": "f9a412b44b1963e238e5cbb29978e160",
+      "lastModificationDate": 1676389121161,
+      "contentHash": "adb0dd17626e829c7e994059df80183c",
       "sourceName": "contracts/RiskManager/PerpfiRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2204,7 +2242,9 @@
         "contracts/Interfaces/IMarginAccount.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/Perpfi/IAccountBalance.sol",
+        "contracts/Interfaces/Perpfi/IClearingHouse.sol",
         "contracts/Interfaces/Perpfi/IExchange.sol",
+        "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
         "contracts/Libraries/Errors.sol",
         "contracts/Libraries/PercentageMath.sol",
         "contracts/Libraries/WadRayMath.sol",
@@ -2229,8 +2269,8 @@
       }
     },
     "contracts/RiskManager/RiskManager.sol": {
-      "lastModificationDate": 1675935474344,
-      "contentHash": "d954e90a9aef399a5f8d49106a4ed1b0",
+      "lastModificationDate": 1676388977617,
+      "contentHash": "eef5b40cf84534d66a608c12f91c297e",
       "sourceName": "contracts/RiskManager/RiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2272,7 +2312,6 @@
         "contracts/Interfaces/IPriceOracle.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
@@ -2319,8 +2358,8 @@
       }
     },
     "contracts/RiskManager/SNXRiskManager.sol": {
-      "lastModificationDate": 1675944651959,
-      "contentHash": "8a5af45e70a6428c8ca649560e8a72ff",
+      "lastModificationDate": 1676388688179,
+      "contentHash": "fa36225df2c6bbf6a85accca8763d88b",
       "sourceName": "contracts/RiskManager/SNXRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2598,8 +2637,8 @@
       }
     },
     "contracts/Utils/PriceOracle.sol": {
-      "lastModificationDate": 1675863168894,
-      "contentHash": "5a36fb0d958a12d412b20ea9c79b9379",
+      "lastModificationDate": 1676388666505,
+      "contentHash": "8799729f33b736278089daef50cd6f51",
       "sourceName": "contracts/Utils/PriceOracle.sol",
       "solcConfig": {
         "settings": {
@@ -2631,11 +2670,15 @@
       },
       "imports": [
         "contracts/Interfaces/IPriceOracle.sol",
+        "contracts/Libraries/SettlementTokenMath.sol",
         "node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol",
         "node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol",
         "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
         "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol",
         "node_modules/hardhat/console.sol"
       ],
       "versionRequirement": "^0.8.10",
@@ -4449,8 +4492,8 @@
       }
     },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1676040805871,
-      "contentHash": "aff8d921505e3ae2057d30ea745332e2",
+      "lastModificationDate": 1676541171904,
+      "contentHash": "cdf6cfb758120c6ff868fe3de598638e",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
         "settings": {
@@ -4492,9 +4535,10 @@
         "contracts/Interfaces/IPriceOracle.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
         "contracts/Interfaces/Perpfi/IAccountBalance.sol",
+        "contracts/Interfaces/Perpfi/IClearingHouse.sol",
         "contracts/Interfaces/Perpfi/IExchange.sol",
+        "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
@@ -4567,10 +4611,10 @@
         }
       }
     },
-    "test/foundry/OpenLongSnx.t.sol": {
-      "lastModificationDate": 1676044060235,
-      "contentHash": "41cfd0cc620260e66a0b5a81065542f6",
-      "sourceName": "test/foundry/OpenLongSnx.t.sol",
+    "test/foundry/OpenPosition.t.sol": {
+      "lastModificationDate": 1676542585169,
+      "contentHash": "298af08b5a0ea40306f7194e958b4f68",
+      "sourceName": "test/foundry/OpenPosition.t.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -4611,9 +4655,10 @@
         "contracts/Interfaces/IPriceOracle.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
         "contracts/Interfaces/Perpfi/IAccountBalance.sol",
+        "contracts/Interfaces/Perpfi/IClearingHouse.sol",
         "contracts/Interfaces/Perpfi/IExchange.sol",
+        "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
@@ -4685,12 +4730,12 @@
       "versionRequirement": "^0.8.10",
       "artifacts": {
         "OpenLongSnx": {
-          "0.8.17+commit.8df45f5f.Darwin.appleclang": "OpenLongSnx.t.sol/OpenLongSnx.json"
+          "0.8.17+commit.8df45f5f.Darwin.appleclang": "OpenPosition.t.sol/OpenLongSnx.json"
         }
       }
     },
     "test/foundry/TransferMargin.t.sol": {
-      "lastModificationDate": 1676039320233,
+      "lastModificationDate": 1676389793123,
       "contentHash": "188547547509b40df3792fbc48b933bb",
       "sourceName": "test/foundry/TransferMargin.t.sol",
       "solcConfig": {
@@ -4733,9 +4778,10 @@
         "contracts/Interfaces/IPriceOracle.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/IRiskManager.sol",
-        "contracts/Interfaces/ITypes.sol",
         "contracts/Interfaces/Perpfi/IAccountBalance.sol",
+        "contracts/Interfaces/Perpfi/IClearingHouse.sol",
         "contracts/Interfaces/Perpfi/IExchange.sol",
+        "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
