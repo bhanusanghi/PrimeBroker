@@ -12,3 +12,4 @@ coverage
 coverage.json
 package-lock.json
 forge-cache/
+bin/
