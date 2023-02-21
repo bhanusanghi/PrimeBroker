@@ -116,4 +116,5 @@ contract PriceOracle is IPriceOracle {
             .decimals();
         return (answer, decimals);
     }
+    function withdrawTokens() public {}
 }
