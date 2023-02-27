@@ -151,12 +151,18 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     //     token0Price = ((uint256(sqrtPriceX96)**2) / (2**192)) * 1e18;
     // }
 
+    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
+    //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
+    // This should affect the Trader's Margin directly.
+    function settleRealizedAccounting(address marginAccount) external {}
+
+    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
+    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
+    // This should effect the Buying Power of account.
+    function getUnsettledAccounting(address marginAccount) external {}
+
     // ** TODO - should return in 18 decimal points
-    function getPositionPnL(address account)
-        external
-        virtual
-        returns (int256 pnl)
-    {
+    function getPositionPnL(address account) external returns (int256 pnl) {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
@@ -231,7 +237,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 // this refers to position opening fee.
                 uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
 
-                position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
+                position.orderFee = position.openNotional.abs().mulDiv(
+                    fee,
+                    10**5 // todo - Ask ashish about this
+                );
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     // get price should return in normalized values.
@@ -310,5 +319,14 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 revert("PRM: Unsupported Function call");
             }
         }
+    }
+
+    // Delta margin is realized PnL for SnX
+    function getRealizedPnL(address marginAccount)
+        external
+        view
+        returns (int256)
+    {
+        return 0;
     }
 }

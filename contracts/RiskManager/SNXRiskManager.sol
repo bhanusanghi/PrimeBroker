@@ -13,6 +13,7 @@ import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import "hardhat/console.sol";
 
@@ -85,12 +86,51 @@ contract SNXRiskManager is IProtocolRiskManager {
         return funding;
     }
 
-    // ** returns in vault base asset decimal points
-    function getPositionPnL(address account)
-        external
-        virtual
-        returns (int256 pnl)
+    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
+    // realized PnL,
+    // Order Fee,
+    // settled funding fee,
+    // liquidation Penalty
+    // This affect the Trader's Margin directly.
+    function settleRealizedAccounting(address marginAccount) external {
+        // margin to begin with.
+        // emit settleRealized()
+        // update in collateral manager.
+    }
+
+    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
+    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
+    // This should effect the Buying Power of account.
+    function getUnsettledAccounting(address marginAccount) external {}
+
+    function getMarginDeltaAcrossMarkets(address marginAccount)
+        internal
+        view
+        returns (
+            // override
+            int256 marginDelta
+        )
     {
+        // uint256 currentMargin;
+        // int256 initialMargin;
+        address[] memory allMarkets = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketsForRiskManager(address(this));
+        for (uint256 i = 0; i < allMarkets.length; i++) {
+            // This is in 18 decimal digits
+            (uint256 remainingMargin, ) = IFuturesMarket(allMarkets[i])
+                .remainingMargin(marginAccount);
+
+            // This is in 6 decimal digits.
+            int256 initialMargin = IMarginAccount(marginAccount).marginInMarket(
+                allMarkets[i]
+            );
+            marginDelta += (remainingMargin.toInt256() - initialMargin);
+        }
+    }
+
+    // ** returns in vault base asset decimal points
+    function getPositionPnL(address account) external returns (int256 pnl) {
         int256 funding;
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
@@ -113,11 +153,11 @@ contract SNXRiskManager is IProtocolRiskManager {
             // console.log("funding", funding.abs());
             funding = funding.add(_funding);
         }
-        // return (pnl.add(funding).convertTokenDecimals(_decimals, 18));
-        pnl = pnl.add(funding).convertTokenDecimals(
-            _decimals,
-            vaultAssetDecimals
-        );
+
+        // @Bhanu TODO - move this funding pnl to unrealizedPnL
+
+        // pnl = pnl.add(funding).convertTokenDecimals(
+        pnl = pnl.convertTokenDecimals(_decimals, vaultAssetDecimals);
     }
 
     // assumes all destinations refer to same market.
@@ -162,7 +202,7 @@ contract SNXRiskManager is IProtocolRiskManager {
 
                 position.size = position.size.add(positionDelta);
                 // this refers to position opening fee.
-                (position.fee, ) = IFuturesMarket(protocol).orderFee(
+                (position.orderFee, ) = IFuturesMarket(protocol).orderFee(
                     positionDelta
                 );
             } else {
@@ -170,6 +210,23 @@ contract SNXRiskManager is IProtocolRiskManager {
                 revert("PRM: Unsupported Function call");
             }
         }
+    }
+
+    // Delta margin is realized PnL for SnX
+    function getRealizedPnL(address marginAccount)
+        external
+        view
+        returns (int256)
+    {
+        return getMarginDeltaAcrossMarkets(marginAccount);
+    }
+
+    function getUnrealizedPnL(address marginAccount)
+        external
+        view
+        returns (int256)
+    {
+        return getMarginDeltaAcrossMarkets(marginAccount);
     }
 
     function verifyClose(

@@ -97,6 +97,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         int256 totalNotional;
         uint256 buyingPower;
         int256 PnL;
+        int256 unsettledRealizedPnL;
+        int256 unrealizedPnL;
         address _protocolRiskManager;
         (result.protocolAddress, _protocolRiskManager) = marketManager
             .getProtocolAddressByMarketName(marketKey);
@@ -107,11 +109,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         // totalNotional is in 18 decimals
         (totalNotional, PnL) = getPositionsValPnL(marginAcc);
-
+        unsettledRealizedPnL = IMarginAccount(marginAcc).unsettledRealizedPnL();
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
-        buyingPower = GetCurrentBuyingPower(marginAcc, PnL, interestAccrued);
+        buyingPower = GetCurrentBuyingPower(
+            marginAcc,
+            PnL,
+            interestAccrued,
+            unsettledRealizedPnL
+        );
 
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
             result.protocolAddress,
@@ -199,11 +206,11 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         IMarginAccount marginAcc,
         int256 marginDeltaDollarValue
     ) internal view {
-        console.log("buyingPower", buyingPower);
-        console.log("marginDeltaDollarValue");
-        console.logInt(marginDeltaDollarValue);
-        console.log("marginAcc.totalMarginInMarkets()");
-        console.logInt(marginAcc.totalMarginInMarkets());
+        // console.log("buyingPower", buyingPower);
+        // console.log("marginDeltaDollarValue");
+        // console.logInt(marginDeltaDollarValue);
+        // console.log("marginAcc.totalMarginInMarkets()");
+        // console.logInt(marginAcc.totalMarginInMarkets());
         require(
             buyingPower >=
                 (
@@ -290,21 +297,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // );
     }
 
-    // total free buying power
-    //@note replace with GetCurrentBuyingPower
-    function getBuyingPower(address _marginAcc, int256 PnL)
-        public
-        returns (uint256 buyPow)
-    {
-        return
-            collateralManager
-                .getFreeCollateralValue(_marginAcc)
-                .toInt256()
-                .add(PnL)
-                .toUint256()
-                .mulDiv(100, initialMarginFactor);
-    }
-
     function liquidatable(address _marginAcc) public returns (int256 diff) {
         int256 totalNotional;
         int256 PnL;
@@ -329,12 +321,13 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // total free buying power
     // Need to account the interest accrued to our vault.
 
-    // remainingBuyingPower = (TotalCollateralValue - interest accrued + unrealized PnL) / marginFactor
+    // remainingBuyingPower = (TotalCollateralValue - interest accrue + unsettledRealizedPnL + unrealized PnL) / marginFactor
     // note @dev - returns buying power in vault.asset.decimals
     function GetCurrentBuyingPower(
         address marginAccount,
         int256 PnL,
-        uint256 interestAccrued
+        uint256 interestAccrued,
+        int256 unsettledRealizedPnL
     ) public returns (uint256 buyPow) {
         return
             collateralManager
@@ -342,6 +335,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 .sub(interestAccrued)
                 .toInt256()
                 .add(PnL)
+                .add(unsettledRealizedPnL)
                 .toUint256()
                 .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
     }
@@ -376,4 +370,35 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function TotalPositionValue() external {}
 
     function TotalLeverage() external {}
+
+    // @note This finds and returns delta margin across all markets.
+    // This does not take profit or stop loss
+    function getRealizedPnL(address marginAccount)
+        external
+        override
+        returns (int256 totalRealizedPnL)
+    {
+        // todo - can be moved into margin account and removed from here. See whats the better design.
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketNames();
+        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+
+        for (uint256 i = 0; i < _riskManagers.length; i++) {
+            // margin acc get bitmask
+            int256 realizedPnL = IProtocolRiskManager(_riskManagers[i])
+                .getRealizedPnL(marginAccount);
+            totalRealizedPnL += realizedPnL;
+        }
+    }
+
+    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
+    //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
+    // This should affect the Trader's Margin directly.
+    // This actually stops loss or takes profit.
+    function settleRealizedAccounting(address marginAccount) external {}
+
+    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
+    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
+    // This should effect the Buying Power of account.
+    function getUnsettledAccounting(address marginAccount) external {}
 }

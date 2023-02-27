@@ -13,7 +13,7 @@
   },
   "files": {
     "contracts/CollateralManager.sol": {
-      "lastModificationDate": 1676389849462,
+      "lastModificationDate": 1676550898938,
       "contentHash": "9e0993363d4451dac0f3bac524d2fb3d",
       "sourceName": "contracts/CollateralManager.sol",
       "solcConfig": {
@@ -553,8 +553,8 @@
       }
     },
     "contracts/Interfaces/IMarginAccount.sol": {
-      "lastModificationDate": 1676388591687,
-      "contentHash": "57626e3c2b363fb4b3d817947ff8c838",
+      "lastModificationDate": 1677238489930,
+      "contentHash": "ab104d9dd20b6e1addb620e09e5103b8",
       "sourceName": "contracts/Interfaces/IMarginAccount.sol",
       "solcConfig": {
         "settings": {
@@ -584,7 +584,9 @@
           "libraries": {}
         }
       },
-      "imports": [],
+      "imports": [
+        "contracts/Interfaces/IExchange.sol"
+      ],
       "versionRequirement": "^0.8.10",
       "artifacts": {
         "IMarginAccount": {
@@ -673,8 +675,8 @@
       }
     },
     "contracts/Interfaces/IProtocolRiskManager.sol": {
-      "lastModificationDate": 1676387284561,
-      "contentHash": "04aa36cedb45adf6112b314c0d15f515",
+      "lastModificationDate": 1676566070101,
+      "contentHash": "47008efd5c0415df96ecbd83e196546f",
       "sourceName": "contracts/Interfaces/IProtocolRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -705,6 +707,7 @@
         }
       },
       "imports": [
+        "contracts/Interfaces/IExchange.sol",
         "contracts/Interfaces/IMarginAccount.sol"
       ],
       "versionRequirement": "^0.8.10",
@@ -715,8 +718,8 @@
       }
     },
     "contracts/Interfaces/IRiskManager.sol": {
-      "lastModificationDate": 1676374527090,
-      "contentHash": "6a0e433db94232d58075d438169d1849",
+      "lastModificationDate": 1676566080056,
+      "contentHash": "76ecd0f8101ab3a1f45dec25a3ad310c",
       "sourceName": "contracts/Interfaces/IRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -747,6 +750,7 @@
         }
       },
       "imports": [
+        "contracts/Interfaces/IExchange.sol",
         "contracts/Interfaces/IMarginAccount.sol"
       ],
       "versionRequirement": "^0.8.10",
@@ -1815,8 +1819,8 @@
       }
     },
     "contracts/MarginAccount/MarginAccount.sol": {
-      "lastModificationDate": 1676388480819,
-      "contentHash": "585e7add7fdc87e9e7ef013d0c4e6a9c",
+      "lastModificationDate": 1677238303618,
+      "contentHash": "7759a38019e34c50a2c718f402d5888b",
       "sourceName": "contracts/MarginAccount/MarginAccount.sol",
       "solcConfig": {
         "settings": {
@@ -1875,8 +1879,8 @@
       }
     },
     "contracts/MarginManager.sol": {
-      "lastModificationDate": 1676540308378,
-      "contentHash": "b5f634304c484b80b828ec5e21910ffe",
+      "lastModificationDate": 1677234805652,
+      "contentHash": "27ae34ab229b79c9e25ca9c88c9849fb",
       "sourceName": "contracts/MarginManager.sol",
       "solcConfig": {
         "settings": {
@@ -2206,8 +2210,8 @@
       }
     },
     "contracts/RiskManager/PerpfiRiskManager.sol": {
-      "lastModificationDate": 1676389121161,
-      "contentHash": "adb0dd17626e829c7e994059df80183c",
+      "lastModificationDate": 1676566504680,
+      "contentHash": "033ed88dd8426a145566e55f61643b48",
       "sourceName": "contracts/RiskManager/PerpfiRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2239,6 +2243,7 @@
       },
       "imports": [
         "contracts/Interfaces/IContractRegistry.sol",
+        "contracts/Interfaces/IExchange.sol",
         "contracts/Interfaces/IMarginAccount.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
         "contracts/Interfaces/Perpfi/IAccountBalance.sol",
@@ -2269,8 +2274,8 @@
       }
     },
     "contracts/RiskManager/RiskManager.sol": {
-      "lastModificationDate": 1676388977617,
-      "contentHash": "eef5b40cf84534d66a608c12f91c297e",
+      "lastModificationDate": 1677238268411,
+      "contentHash": "fe809f95a995741644cebe32394d8ae3",
       "sourceName": "contracts/RiskManager/RiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2358,8 +2363,8 @@
       }
     },
     "contracts/RiskManager/SNXRiskManager.sol": {
-      "lastModificationDate": 1676388688179,
-      "contentHash": "fa36225df2c6bbf6a85accca8763d88b",
+      "lastModificationDate": 1677237821787,
+      "contentHash": "ace9874e3eb41b356f03969d56bcb24d",
       "sourceName": "contracts/RiskManager/SNXRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -2391,6 +2396,7 @@
       },
       "imports": [
         "contracts/Interfaces/IContractRegistry.sol",
+        "contracts/Interfaces/IExchange.sol",
         "contracts/Interfaces/IMarginAccount.sol",
         "contracts/Interfaces/IMarketManager.sol",
         "contracts/Interfaces/IProtocolRiskManager.sol",
@@ -4492,7 +4498,7 @@
       }
     },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1676541171904,
+      "lastModificationDate": 1676550898976,
       "contentHash": "cdf6cfb758120c6ff868fe3de598638e",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
@@ -4612,7 +4618,7 @@
       }
     },
     "test/foundry/OpenPosition.t.sol": {
-      "lastModificationDate": 1676542585169,
+      "lastModificationDate": 1676550898976,
       "contentHash": "298af08b5a0ea40306f7194e958b4f68",
       "sourceName": "test/foundry/OpenPosition.t.sol",
       "solcConfig": {

@@ -190,8 +190,11 @@ contract MarginManager is ReentrancyGuard {
         bytes[] calldata data
     ) external {
         // TODO - Use Interface rather than class.
-        MarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
+        IMarginAccount marginAcc = MarginAccount(_getMarginAccount(msg.sender));
         require(!marginAcc.existingPosition(marketKey), "Existing position");
+
+        _updateUnsettledRealizedPnL(address(marginAcc));
+
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             address(marginAcc),
@@ -223,7 +226,7 @@ contract MarginManager is ReentrancyGuard {
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
-                marketKey,
+                verificationResult.protocolAddress,
                 verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(
@@ -601,4 +604,23 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function _approveTokens() private {}
+
+    // @notice this iterates through all the markets and finds the current Realized PnL and updates the totalUnRealizedPnL variable in our margin account.
+    function updateUnsettledRealizedPnL(address trader) external {
+        address marginAccount = _getMarginAccount(trader);
+        _updateUnsettledRealizedPnL(marginAccount);
+    }
+
+    function _updateUnsettledRealizedPnL(address marginAccount) internal {
+        int256 realizedPnL = IRiskManager(riskManager).getRealizedPnL(
+            marginAccount
+        );
+        IMarginAccount(marginAccount).updateUnsettledRealizedPnL(realizedPnL);
+    }
+
+    // this will actually take profit or stop loss by closing the respective positions.
+    function settleRealizedAccounting(address trader) external {
+        address marginAccount = _getMarginAccount(trader);
+        IRiskManager(riskManager).settleRealizedAccounting(marginAccount);
+    }
 }

@@ -28,7 +28,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     // IMarketManager public marketManager;
 
     mapping(bytes32 => bool) public existingPosition;
-    address public baseToken; //usdt/c
+    // address public baseToken; //usdt/c
     // perp.eth, snx.eth, snx.btc
     mapping(bytes32 => Position) public positions;
     // address.MKT
@@ -37,10 +37,21 @@ contract MarginAccount is IMarginAccount, UniExchange {
     uint256 public cumulative_RAY;
     uint256 public _totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
-    address public underlyingToken;
+    // address public underlyingToken;
     int256 public pendingFee; // keeping it int for -ve update(pay fee) Is this order fee or is this fundingRate Fee.
-    mapping(bytes32 => int256) public marginInMarket;
+    // mapping(bytes32 => int256) public marginInMarket;
+
+    // dollar value in 6 decimal digits.
+    mapping(address => int256) public marginInMarket;
     int256 public totalMarginInMarkets;
+
+    /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
+     serves multiple purposes
+     1. Affects buyingPower correctly
+     2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
+     3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
+    */
+    int256 public unsettledRealizedPnL;
 
     // constructor(address underlyingToken) {
     //     marginManager = msg.sender;
@@ -65,7 +76,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         address from,
         address token,
         uint256 amount
-    ) external {
+    ) external override {
         // acl - only collateral manager.
         // convert
         IERC20(token).safeTransferFrom(from, address(this), amount);
@@ -73,29 +84,35 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     // TODO - ASHISH - which position's fee is this ??
-    function updateFee(int256 fee) public {
+    function updateFee(int256 fee) public override {
         //only marginManager
         pendingFee = pendingFee.add(fee);
     }
 
-    function approveToProtocol(address token, address protocol) external {
+    function approveToProtocol(address token, address protocol)
+        external
+        override
+    {
         // onlyMarginmanager
         IERC20(token).approve(protocol, type(uint256).max);
     }
 
-    function addPosition(bytes32 market, Position memory position) public {
+    function addPosition(bytes32 market, Position memory position)
+        public
+        override
+    {
         // only riskmanagger
         positions[market] = position;
         existingPosition[market] = true;
-        pendingFee += int256(position.fee);
+        pendingFee += int256(position.orderFee);
     }
 
-    function updatePosition(bytes32 market, int256 size) public {
+    function updatePosition(bytes32 market, int256 size) public override {
         // only riskmanagger
         // positions[market] = size;
     }
 
-    function removePosition(bytes32 market) public {
+    function removePosition(bytes32 market) public override {
         // only riskmanagger
         existingPosition[market] = false;
         delete positions[market];
@@ -105,6 +122,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function getPositionOpenNotional(bytes32 market)
         public
         view
+        override
         returns (int256)
     {
         return positions[market].openNotional;
@@ -119,6 +137,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function getTotalOpeningAbsoluteNotional(bytes32[] memory _allowedMarkets)
         public
         view
+        override
         returns (uint256 totalNotional)
     {
         uint256 len = _allowedMarkets.length;
@@ -139,6 +158,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function getTotalOpeningNotional(bytes32[] memory _allowedMarkets)
         public
         view
+        override
         returns (int256 totalNotional)
     {
         uint256 len = _allowedMarkets.length;
@@ -154,10 +174,6 @@ contract MarginAccount is IMarginAccount, UniExchange {
             );
         }
         // console.log(" Total Position size:", totalNotional);
-    }
-
-    function _absVal(int256 val) internal pure returns (uint256) {
-        return uint256(val < 0 ? -val : val);
     }
 
     function transferTokens(
@@ -182,7 +198,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function execMultiTx(
         address[] calldata destinations,
         bytes[] memory dataArray
-    ) external returns (bytes memory returnData) {
+    ) external override returns (bytes memory returnData) {
         // onlyMarginManager
         uint8 len = destinations.length.toUint8();
         for (uint8 i = 0; i < len; i++) {
@@ -203,8 +219,23 @@ contract MarginAccount is IMarginAccount, UniExchange {
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
-    function updateMarginInMarket(bytes32 market, int256 transferredMargin)
+    // @note updates margin in perticular market and increases totalMarginInMarket.
+    // function updateMarginInMarket(bytes32 market, int256 transferredMargin)
+    //     public
+    //     override
+    // {
+    //     require(
+    //         marginInMarket[market].add(transferredMargin) > 0,
+    //         "MA: Cannot have negative margin In protocol"
+    //     );
+    //     totalMarginInMarkets = totalMarginInMarkets.add(transferredMargin);
+    //     marginInMarket[market] = marginInMarket[market].add(transferredMargin);
+    // }
+
+    // @note updates margin in perticular market and increases totalMarginInMarket.
+    function updateMarginInMarket(address market, int256 transferredMargin)
         public
+        override
     {
         require(
             marginInMarket[market].add(transferredMargin) > 0,
@@ -214,7 +245,11 @@ contract MarginAccount is IMarginAccount, UniExchange {
         marginInMarket[market] = marginInMarket[market].add(transferredMargin);
     }
 
-    // function getTotalMarginInMarkets() public view returns (int256) {
+    function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
+        unsettledRealizedPnL = _realizedPnL;
+    }
+
+    // function gettotalMarginInMarkets() public view returns (int256) {
     //     return totalMarginInMarkets;
     // }
 
