@@ -55,7 +55,8 @@ contract Perpfitest is BaseSetup {
     address uniFuturesMarket;
 
     address ethFuturesMarket;
-    address perpAaveMarket;
+    address perpAaveMarket = 0x34235C8489b06482A99bb7fcaB6d7c467b92d248;
+    address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
    function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
@@ -112,6 +113,9 @@ contract Perpfitest is BaseSetup {
         );
         snxRiskManager.toggleAddressWhitelisting(uniFuturesMarket, true);
         snxRiskManager.toggleAddressWhitelisting(ethFuturesMarket, true);
+        perpfiRiskManager.toggleAddressWhitelisting(perpClearingHouse, true);
+        perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
+        perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
         uint256 usdcWhaleContractBal = IERC20(usdc).balanceOf(
             usdcWhaleContract
         );
@@ -160,6 +164,7 @@ contract Perpfitest is BaseSetup {
     // Internal 
     function testOpenPositionPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
+        uint256 depositAmt = 1000 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -167,19 +172,37 @@ contract Perpfitest is BaseSetup {
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
         console.log(bobMarginAccount,'bob margin account in test',
-        IERC20(usdc).balanceOf(bob),collateralManager.totalCollateralValue(bobMarginAccount));
+        IERC20(usdc).balanceOf(bobMarginAccount),collateralManager.totalCollateralValue(bobMarginAccount));
         // vm.assume(
         //     marginSNX1 > 1000 ether && marginSNX1 < 100_000 ether // otherwise the uniswap swap is extra bad
         // );
-        address[] memory destinations = new address[](2);
-        bytes[] memory data1 = new bytes[](2);
-        // destinations[0] = 0x00;
-        
+        address[] memory destinations = new address[](3);
+        bytes[] memory data1 = new bytes[](3);
+        destinations[0] = address(address(usdc));
+        destinations[1] = perpVault;
+        destinations[2] = address(perpClearingHouse);
+
         data1[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
-            address(perpClearingHouse),
+            address(perpVault),
             liquiMargin  
         );
+        data1[1] = abi.encodeWithSignature(
+            "deposit(address,uint256)",
+            address(usdc),
+            10000*ONE_USDC  
+        );
+        data1[2] = abi.encodeWithSignature(
+            "openPosition([address,bool,bool,uint256,uint256,uint256,uint160,bytes32])",
+            [perpAaveMarket,
+            false,
+            true,
+            0,
+            5000*ONE_USDC,
+            type(uint256).max,
+            bytes32(0)]
+        );
+        console.logBytes(data1[2]);
         // iface.encodeFunctionData("openPosition", [baseToken, isBaseToQuote, isExactInput, oppositeAmountBound, amount, sqrtPriceLimitX96, deadline, referralCode])
         // data1[1] = abi.encodeWithSignature(
         //     "openPosition(address,uint256)",
@@ -201,6 +224,13 @@ contract Perpfitest is BaseSetup {
         // vm.expectEmit(true, false, false, true, address(uniFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginSNX1));
 
-        // marginManager.openPosition(snxUniKey, destinations, data1);
+        marginManager.openPosition(perpAaveKey, destinations, data1);
     }
 }
+//  struct ClosePositionParams {
+//         address baseToken;
+//         uint160 sqrtPriceLimitX96;
+//         uint256 oppositeAmountBound;
+//         uint256 deadline;
+//         bytes32 referralCode;
+//     }
