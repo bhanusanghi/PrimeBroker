@@ -27,6 +27,10 @@ interface IRiskManager {
     // This should affect the Trader's Margin directly.
     function getRealizedPnL(address marginAccount) external returns (int256);
 
+    function getUnrealizedPnL(address marginAccount)
+        external
+        returns (int256 totalUnrealizedPnL);
+
     // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
     //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
     // This should affect the Trader's Margin directly.

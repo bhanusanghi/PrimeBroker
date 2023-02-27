@@ -173,6 +173,7 @@ contract OpenLongSnx is BaseSetup {
         maxBuyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
             0,
+            0,
             0
         );
         console2.log("Max B.P. - ", maxBuyingPower);

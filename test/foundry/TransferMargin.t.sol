@@ -186,11 +186,12 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
+        int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
             currentPnL,
-            interestAccrued
+            interestAccrued,
+            unsettledRealizedPnL
         );
         uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18) + 1 ether;
         bytes memory transferMarginData = abi.encodeWithSignature(
@@ -226,10 +227,12 @@ contract TransferMargin is BaseSetup {
 
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
+        int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
             currentPnL,
-            interestAccrued
+            interestAccrued,
+            unsettledRealizedPnL
         );
         uint256 maxBP = buyingPower.convertTokenDecimals(6, 18);
 
@@ -319,11 +322,12 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
+        int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
             currentPnL,
-            interestAccrued
+            interestAccrued,
+            unsettledRealizedPnL
         );
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
         uint256 marginSNX2 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -390,11 +394,12 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
+        int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
             0,
-            0
+            0,
+            unsettledRealizedPnL
         );
 
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -440,11 +445,12 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
+        int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
             currentPnL,
-            interestAccrued
+            interestAccrued,
+            unsettledRealizedPnL
         );
         int256 marginSNX = int256(buyingPower.convertTokenDecimals(6, 18));
         bytes memory transferMarginData = abi.encodeWithSignature(
@@ -478,11 +484,11 @@ contract TransferMargin is BaseSetup {
     //     vm.expectEmit(true, true, true, false, address(collateralManager));
     //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
     //     collateralManager.addCollateral(usdc, liquiMargin);
-
+    //     int256 unsettledRealizedPnL = 0;
     //     uint256 buyingPower = riskManager.GetCurrentBuyingPower(
     //         bobMarginAccount,
     //         0,
-    //         0
+    //         0, unsettledRealizedPnL
     //     );
     //     uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
     //     bytes memory transferMarginData = abi.encodeWithSignature(
@@ -542,11 +548,11 @@ contract TransferMargin is BaseSetup {
     //     vm.expectEmit(true, true, true, false, address(collateralManager));
     //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
     //     collateralManager.addCollateral(usdc, liquiMargin);
-
+    //     int256 unsettledRealizedPnL = 0;
     //     uint256 buyingPower = riskManager.GetCurrentBuyingPower(
     //         bobMarginAccount,
     //         0,
-    //         0
+    //         0, unsettledRealizedPnL
     //     );
     //     uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
     //     bytes memory transferMarginData = abi.encodeWithSignature(

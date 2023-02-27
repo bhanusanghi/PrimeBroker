@@ -329,4 +329,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     {
         return 0;
     }
+
+    function getUnrealizedPnL(address marginAccount)
+        external
+        view
+        override
+        returns (int256 unrealizedPnL)
+    {}
 }
