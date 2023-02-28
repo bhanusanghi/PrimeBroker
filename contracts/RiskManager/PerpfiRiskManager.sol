@@ -36,6 +36,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public MT = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
+    bytes4 public WA = 0xf3fef3a3;
     address public baseToken;
     bytes4 public settleFeeSelector = 0xeb9b912e;
     uint8 private _decimals;
@@ -106,28 +107,15 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        console.log(
-            "MM:",
-            owedRealizedPnl.abs(),
-            unrealizedPnl.abs(),
-            pendingFee
-        );
         // clearingHouse.settleAllFunding(account);
         bytes memory data = abi.encodeWithSelector(settleFeeSelector, account);
-        console.log(
-            "return hua perp me se",
-            address(clearingHouse),
-            data.length
-        );
         // @note basetoken is confusing w/ market base tokens
         // there can be multiple like basetoken for protocol fee and like eth/btc mkt
         IMarginAccount(account).approveToProtocol(
             baseToken,
             address(clearingHouse)
         );
-        console.log("approve done:");
         data = IMarginAccount(account).executeTx(address(clearingHouse), data);
-        console.log(data.length);
         // MA call ic, data
         return 0;
     }
@@ -202,7 +190,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == MT) {
-                marginDelta = marginDelta + abi.decode(data[i][36:], (int256));
+                // @note for now will restrict only one TM and combine multiple interactions via higher order functions
+                // marginDelta + abi.decode(data[i][36:], (int256));
+                marginDelta = abi.decode(data[i][36:], (int256));
+            } else if (funSig == WA) {
+                marginDelta = -abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
                 // refer -

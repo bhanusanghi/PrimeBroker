@@ -145,21 +145,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         //     buyingPower >= totalNotional.add(positionSize.abs()),
         //     "Extra leverage not allowed"
         // );
-        // console.log(
-        //     "remainingCreditValue",
-        //     buyingPower -
-        //         (
-        //             (
-        //                 IMarginAccount(marginAcc)
-        //                     .totalBorrowed()
-        //                     .toInt256()
-        //                     .convertTokenDecimals(
-        //                         ERC20(vault.asset()).decimals(),
-        //                         ERC20(tokenOut).decimals()
-        //                     )
-        //             ).add.marginDelta)
-        //         ).abs()
-        // );
         // require(
         //     buyingPower >=
         //         (
@@ -199,11 +184,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         IMarginAccount marginAcc,
         int256 marginDeltaDollarValue
     ) internal view {
-        console.log("buyingPower", buyingPower);
-        console.log("marginDeltaDollarValue");
-        console.logInt(marginDeltaDollarValue);
-        console.log("marginAcc.totalMarginInMarkets()");
-        console.logInt(marginAcc.totalMarginInMarkets());
         require(
             buyingPower >=
                 (
@@ -233,7 +213,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             destinations,
             data
         );
-        // console.log.marginDelta, "close pos, tm");
         // int256 _currentPositionSize = marginAcc.getPosition(marketKey);
         // basically checks for if its closing opposite position
         // require(positionSize + _currentPositionSize == 0);
@@ -278,7 +257,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         // require(PnL<0 && temp<=PnL.abs(),"Liq:");
-        console.log("Liqidation!!");
         //  uint256 newBuyPow = getBuyingPower(_marginAcc,PnL);
         // require(
         //     buyingPower >= totalNotional.add(positionSize.abs()),
@@ -309,12 +287,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         int256 totalNotional;
         int256 PnL;
         (totalNotional, PnL) = getPositionsValPnL(_marginAcc);
-        // console.log(
-        //     "TN PnL",
-        //     totalNotional,
-        //     PnL.abs(),
-        //     collateralManager.getFreeCollateralValue(_marginAcc)
-        // );
         uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         if (PnL < 0) {
             require(temp <= PnL.abs(), "Liq:");

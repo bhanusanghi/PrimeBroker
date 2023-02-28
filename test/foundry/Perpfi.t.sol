@@ -1,14 +1,16 @@
 pragma solidity ^0.8.10;
-
+pragma abicoder v2;
 import {BaseSetup} from "./BaseSetup.sol";
 import {Utils} from "./utils/Utils.sol";
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
+import {IVault} from "../../contracts/Interfaces/Perpfi/IVault.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
@@ -30,7 +32,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
  * pnl with ranges and multiple positions
  */
 contract Perpfitest is BaseSetup {
-     using SafeMath for uint256;
+    using SafeMath for uint256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
@@ -48,7 +50,26 @@ contract Perpfitest is BaseSetup {
     bytes32 invalidKey = keccak256("BKL.MKC");
     bytes32 snxUniKey = keccak256("SNX.UNI");
     bytes32 snxEthKey = keccak256("SNX.ETH");
-
+    struct OpenPositionParams {
+        address baseToken;
+        bool isBaseToQuote;
+        bool isExactInput;
+        uint256 amount;
+        uint256 oppositeAmountBound;
+        uint256 deadline;
+        uint160 sqrtPriceLimitX96;
+        bytes32 referralCode;
+    }
+    event Deposited(
+        address indexed collateralToken,
+        address indexed trader,
+        uint256 amount
+    );
+    event Withdrawn(
+        address indexed collateralToken,
+        address indexed trader,
+        uint256 amount
+    );
     address bobMarginAccount;
     address aliceMarginAccount;
 
@@ -162,6 +183,55 @@ contract Perpfitest is BaseSetup {
         );
     }
     // Internal 
+    function testMarginTransferPerp() public {
+        uint256 liquiMargin = 100_000 * ONE_USDC;
+        uint256 depositAmt = 10000 * ONE_USDC;
+        assertEq(vault.expectedLiquidity(), largeAmount);
+        vm.startPrank(bob);
+        IERC20(usdc).approve(bobMarginAccount, liquiMargin);
+        vm.expectEmit(true, true, true, false, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        collateralManager.addCollateral(usdc, liquiMargin);
+        address[] memory destinations = new address[](2);
+        bytes[] memory data = new bytes[](2);
+        destinations[0] = usdc;
+        destinations[1] = perpVault;
+
+        data[0] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            perpVault,
+            depositAmt
+        );
+        data[1] = abi.encodeWithSignature(
+            "deposit(address,uint256)",
+            usdc,
+            depositAmt
+        );
+       
+        vm.expectEmit(true, true, true,false, perpVault);
+        emit Deposited(
+            usdc,
+            bobMarginAccount,
+            depositAmt
+        );
+        marginManager.openPosition(perpAaveKey, destinations, data);
+        assertEq(int(depositAmt),MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey));
+        // address[] memory destinations1 = new address[](1);
+        // bytes[] memory data1 = new bytes[](1);
+        // destinations1[0] = perpVault;
+        // data1[0]=abi.encodeWithSignature(
+        //     "withdraw(address,uint256)",
+        //     usdc,
+        //     depositAmt
+        // );
+        // vm.expectEmit(true,true,true,false,perpVault);
+        // emit Withdrawn(
+        //     usdc,
+        //     bobMarginAccount,
+        //     depositAmt
+        // );
+        // marginManager.openPosition(perpAaveKey, destinations1, data1);
+    }
     function testOpenPositionPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
         uint256 depositAmt = 1000 * ONE_USDC;
@@ -171,11 +241,6 @@ contract Perpfitest is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-        console.log(bobMarginAccount,'bob margin account in test',
-        IERC20(usdc).balanceOf(bobMarginAccount),collateralManager.totalCollateralValue(bobMarginAccount));
-        // vm.assume(
-        //     marginSNX1 > 1000 ether && marginSNX1 < 100_000 ether // otherwise the uniswap swap is extra bad
-        // );
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);
         destinations[0] = address(address(usdc));
@@ -185,30 +250,24 @@ contract Perpfitest is BaseSetup {
         data1[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             address(perpVault),
-            liquiMargin  
+            10000*ONE_USDC  
         );
         data1[1] = abi.encodeWithSignature(
             "deposit(address,uint256)",
             address(usdc),
             10000*ONE_USDC  
         );
-        data1[2] = abi.encodeWithSignature(
-            "openPosition([address,bool,bool,uint256,uint256,uint256,uint160,bytes32])",
-            [perpAaveMarket,
+        data1[2] = abi.encodeWithSelector(
+            0xb6b1b6c3,
+            perpAaveMarket,
             false,
             true,
+            uint256(5000*10**6),
             0,
-            5000*ONE_USDC,
             type(uint256).max,
-            bytes32(0)]
+            uint160(0),
+            bytes32(0)
         );
-        console.logBytes(data1[2]);
-        // iface.encodeFunctionData("openPosition", [baseToken, isBaseToQuote, isExactInput, oppositeAmountBound, amount, sqrtPriceLimitX96, deadline, referralCode])
-        // data1[1] = abi.encodeWithSignature(
-        //     "openPosition(address,uint256)",
-        //     int256,
-        //     bytes32  
-        // );
         // vm.expectEmit(true, true, true, true, address(marginManager));
         // emit MarginTransferred(
         //     bobMarginAccount,
@@ -227,10 +286,3 @@ contract Perpfitest is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data1);
     }
 }
-//  struct ClosePositionParams {
-//         address baseToken;
-//         uint160 sqrtPriceLimitX96;
-//         uint256 oppositeAmountBound;
-//         uint256 deadline;
-//         bytes32 referralCode;
-//     }

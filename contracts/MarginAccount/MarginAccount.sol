@@ -123,17 +123,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
     {
         uint256 len = _allowedMarkets.length;
         for (uint256 i = 0; i < len; i++) {
-            // console.log(
-            //     "Position size",
-            //     i,
-            //     ":",
-            //     _absVal(positions[_allowedMarkets[i]])
-            // );
             totalNotional = totalNotional.add(
                 positions[_allowedMarkets[i]].openNotional.abs()
             );
         }
-        // console.log(" Total Position size:", totalNotional);
     }
 
     function getTotalOpeningNotional(bytes32[] memory _allowedMarkets)
@@ -143,17 +136,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
     {
         uint256 len = _allowedMarkets.length;
         for (uint256 i = 0; i < len; i++) {
-            // console.log(
-            //     "Position size",
-            //     i,
-            //     ":",
-            //     _absVal(positions[_allowedMarkets[i]])
-            // );
             totalNotional = totalNotional.add(
                 positions[_allowedMarkets[i]].openNotional
             );
         }
-        // console.log(" Total Position size:", totalNotional);
     }
 
     function _absVal(int256 val) internal pure returns (uint256) {
@@ -206,10 +192,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function updateMarginInMarket(bytes32 market, int256 transferredMargin)
         public
     {
-        require(
-            marginInMarket[market].add(transferredMargin) > 0,
-            "MA: Cannot have negative margin In protocol"
-        );
+        // require(
+        //     marginInMarket[market].add(transferredMargin) > 0,
+        //     "MA: Cannot have negative margin In protocol"
+        // );
         totalMarginInMarkets = totalMarginInMarkets.add(transferredMargin);
         marginInMarket[market] = marginInMarket[market].add(transferredMargin);
     }
