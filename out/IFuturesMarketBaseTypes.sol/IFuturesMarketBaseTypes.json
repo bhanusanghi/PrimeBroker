@@ -11,7 +11,7 @@
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol\":\"IFuturesMarketBaseTypes\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol\":{\"keccak256\":\"0x3fa03f4c39f00e6f6bb8d0bf9d2aaa4c28a2bbb971364857ae2f917d7b033b91\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://ccfba208793f4cf37c2c8473fd945e116a5b266e631b61f13cadb3fa439074e3\",\"dweb:/ipfs/QmP7vQLGDa43QvuFiDhJ3xTwRMtHTJaTLTm1zEHtvJ1mdB\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol\":\"IFuturesMarketBaseTypes\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol\":{\"keccak256\":\"0x3fa03f4c39f00e6f6bb8d0bf9d2aaa4c28a2bbb971364857ae2f917d7b033b91\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://ccfba208793f4cf37c2c8473fd945e116a5b266e631b61f13cadb3fa439074e3\",\"dweb:/ipfs/QmP7vQLGDa43QvuFiDhJ3xTwRMtHTJaTLTm1zEHtvJ1mdB\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -44,7 +44,7 @@
         ":hardhat/=node_modules/hardhat/"
       ],
       "optimizer": {
-        "enabled": true,
+        "enabled": false,
         "runs": 200
       },
       "metadata": {
@@ -69,19 +69,19 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol",
-    "id": 4703,
+    "id": 5252,
     "exportedSymbols": {
       "IFuturesMarketBaseTypes": [
-        4702
+        5251
       ]
     },
     "nodeType": "SourceUnit",
-    "src": "39:1238:29",
+    "src": "39:1238:31",
     "nodes": [
       {
-        "id": 4666,
+        "id": 5215,
         "nodeType": "PragmaDirective",
-        "src": "39:24:29",
+        "src": "39:24:31",
         "nodes": [],
         "literals": [
           "solidity",
@@ -91,121 +91,121 @@
         ]
       },
       {
-        "id": 4702,
+        "id": 5251,
         "nodeType": "ContractDefinition",
-        "src": "65:1211:29",
+        "src": "65:1211:31",
         "nodes": [
           {
-            "id": 4679,
+            "id": 5228,
             "nodeType": "EnumDefinition",
-            "src": "144:303:29",
+            "src": "144:303:31",
             "nodes": [],
             "canonicalName": "IFuturesMarketBaseTypes.Status",
             "members": [
               {
-                "id": 4667,
+                "id": 5216,
                 "name": "Ok",
-                "nameLocation": "166:2:29",
+                "nameLocation": "166:2:31",
                 "nodeType": "EnumValue",
-                "src": "166:2:29"
+                "src": "166:2:31"
               },
               {
-                "id": 4668,
+                "id": 5217,
                 "name": "InvalidPrice",
-                "nameLocation": "178:12:29",
+                "nameLocation": "178:12:31",
                 "nodeType": "EnumValue",
-                "src": "178:12:29"
+                "src": "178:12:31"
               },
               {
-                "id": 4669,
+                "id": 5218,
                 "name": "PriceOutOfBounds",
-                "nameLocation": "200:16:29",
+                "nameLocation": "200:16:31",
                 "nodeType": "EnumValue",
-                "src": "200:16:29"
+                "src": "200:16:31"
               },
               {
-                "id": 4670,
+                "id": 5219,
                 "name": "CanLiquidate",
-                "nameLocation": "226:12:29",
+                "nameLocation": "226:12:31",
                 "nodeType": "EnumValue",
-                "src": "226:12:29"
+                "src": "226:12:31"
               },
               {
-                "id": 4671,
+                "id": 5220,
                 "name": "CannotLiquidate",
-                "nameLocation": "248:15:29",
+                "nameLocation": "248:15:31",
                 "nodeType": "EnumValue",
-                "src": "248:15:29"
+                "src": "248:15:31"
               },
               {
-                "id": 4672,
+                "id": 5221,
                 "name": "MaxMarketSizeExceeded",
-                "nameLocation": "273:21:29",
+                "nameLocation": "273:21:31",
                 "nodeType": "EnumValue",
-                "src": "273:21:29"
+                "src": "273:21:31"
               },
               {
-                "id": 4673,
+                "id": 5222,
                 "name": "MaxLeverageExceeded",
-                "nameLocation": "304:19:29",
+                "nameLocation": "304:19:31",
                 "nodeType": "EnumValue",
-                "src": "304:19:29"
+                "src": "304:19:31"
               },
               {
-                "id": 4674,
+                "id": 5223,
                 "name": "InsufficientMargin",
-                "nameLocation": "333:18:29",
+                "nameLocation": "333:18:31",
                 "nodeType": "EnumValue",
-                "src": "333:18:29"
+                "src": "333:18:31"
               },
               {
-                "id": 4675,
+                "id": 5224,
                 "name": "NotPermitted",
-                "nameLocation": "361:12:29",
+                "nameLocation": "361:12:31",
                 "nodeType": "EnumValue",
-                "src": "361:12:29"
+                "src": "361:12:31"
               },
               {
-                "id": 4676,
+                "id": 5225,
                 "name": "NilOrder",
-                "nameLocation": "383:8:29",
+                "nameLocation": "383:8:31",
                 "nodeType": "EnumValue",
-                "src": "383:8:29"
+                "src": "383:8:31"
               },
               {
-                "id": 4677,
+                "id": 5226,
                 "name": "NoPositionOpen",
-                "nameLocation": "401:14:29",
+                "nameLocation": "401:14:31",
                 "nodeType": "EnumValue",
-                "src": "401:14:29"
+                "src": "401:14:31"
               },
               {
-                "id": 4678,
+                "id": 5227,
                 "name": "PriceTooVolatile",
-                "nameLocation": "425:16:29",
+                "nameLocation": "425:16:31",
                 "nodeType": "EnumValue",
-                "src": "425:16:29"
+                "src": "425:16:31"
               }
             ],
             "name": "Status",
-            "nameLocation": "149:6:29"
+            "nameLocation": "149:6:31"
           },
           {
-            "id": 4690,
+            "id": 5239,
             "nodeType": "StructDefinition",
-            "src": "541:147:29",
+            "src": "541:147:31",
             "nodes": [],
             "canonicalName": "IFuturesMarketBaseTypes.Position",
             "members": [
               {
                 "constant": false,
-                "id": 4681,
+                "id": 5230,
                 "mutability": "mutable",
                 "name": "id",
-                "nameLocation": "574:2:29",
+                "nameLocation": "574:2:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4690,
-                "src": "567:9:29",
+                "scope": 5239,
+                "src": "567:9:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -213,10 +213,10 @@
                   "typeString": "uint64"
                 },
                 "typeName": {
-                  "id": 4680,
+                  "id": 5229,
                   "name": "uint64",
                   "nodeType": "ElementaryTypeName",
-                  "src": "567:6:29",
+                  "src": "567:6:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint64",
                     "typeString": "uint64"
@@ -226,13 +226,13 @@
               },
               {
                 "constant": false,
-                "id": 4683,
+                "id": 5232,
                 "mutability": "mutable",
                 "name": "lastFundingIndex",
-                "nameLocation": "593:16:29",
+                "nameLocation": "593:16:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4690,
-                "src": "586:23:29",
+                "scope": 5239,
+                "src": "586:23:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -240,10 +240,10 @@
                   "typeString": "uint64"
                 },
                 "typeName": {
-                  "id": 4682,
+                  "id": 5231,
                   "name": "uint64",
                   "nodeType": "ElementaryTypeName",
-                  "src": "586:6:29",
+                  "src": "586:6:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint64",
                     "typeString": "uint64"
@@ -253,13 +253,13 @@
               },
               {
                 "constant": false,
-                "id": 4685,
+                "id": 5234,
                 "mutability": "mutable",
                 "name": "margin",
-                "nameLocation": "627:6:29",
+                "nameLocation": "627:6:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4690,
-                "src": "619:14:29",
+                "scope": 5239,
+                "src": "619:14:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -267,10 +267,10 @@
                   "typeString": "uint128"
                 },
                 "typeName": {
-                  "id": 4684,
+                  "id": 5233,
                   "name": "uint128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "619:7:29",
+                  "src": "619:7:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint128",
                     "typeString": "uint128"
@@ -280,13 +280,13 @@
               },
               {
                 "constant": false,
-                "id": 4687,
+                "id": 5236,
                 "mutability": "mutable",
                 "name": "lastPrice",
-                "nameLocation": "651:9:29",
+                "nameLocation": "651:9:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4690,
-                "src": "643:17:29",
+                "scope": 5239,
+                "src": "643:17:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -294,10 +294,10 @@
                   "typeString": "uint128"
                 },
                 "typeName": {
-                  "id": 4686,
+                  "id": 5235,
                   "name": "uint128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "643:7:29",
+                  "src": "643:7:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint128",
                     "typeString": "uint128"
@@ -307,13 +307,13 @@
               },
               {
                 "constant": false,
-                "id": 4689,
+                "id": 5238,
                 "mutability": "mutable",
                 "name": "size",
-                "nameLocation": "677:4:29",
+                "nameLocation": "677:4:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4690,
-                "src": "670:11:29",
+                "scope": 5239,
+                "src": "670:11:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -321,10 +321,10 @@
                   "typeString": "int128"
                 },
                 "typeName": {
-                  "id": 4688,
+                  "id": 5237,
                   "name": "int128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "670:6:29",
+                  "src": "670:6:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_int128",
                     "typeString": "int128"
@@ -334,26 +334,26 @@
               }
             ],
             "name": "Position",
-            "nameLocation": "548:8:29",
-            "scope": 4702,
+            "nameLocation": "548:8:31",
+            "scope": 5251,
             "visibility": "public"
           },
           {
-            "id": 4701,
+            "id": 5250,
             "nodeType": "StructDefinition",
-            "src": "726:548:29",
+            "src": "726:548:31",
             "nodes": [],
             "canonicalName": "IFuturesMarketBaseTypes.NextPriceOrder",
             "members": [
               {
                 "constant": false,
-                "id": 4692,
+                "id": 5241,
                 "mutability": "mutable",
                 "name": "sizeDelta",
-                "nameLocation": "765:9:29",
+                "nameLocation": "765:9:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4701,
-                "src": "758:16:29",
+                "scope": 5250,
+                "src": "758:16:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -361,10 +361,10 @@
                   "typeString": "int128"
                 },
                 "typeName": {
-                  "id": 4691,
+                  "id": 5240,
                   "name": "int128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "758:6:29",
+                  "src": "758:6:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_int128",
                     "typeString": "int128"
@@ -374,13 +374,13 @@
               },
               {
                 "constant": false,
-                "id": 4694,
+                "id": 5243,
                 "mutability": "mutable",
                 "name": "targetRoundId",
-                "nameLocation": "844:13:29",
+                "nameLocation": "844:13:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4701,
-                "src": "836:21:29",
+                "scope": 5250,
+                "src": "836:21:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -388,10 +388,10 @@
                   "typeString": "uint128"
                 },
                 "typeName": {
-                  "id": 4693,
+                  "id": 5242,
                   "name": "uint128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "836:7:29",
+                  "src": "836:7:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint128",
                     "typeString": "uint128"
@@ -401,13 +401,13 @@
               },
               {
                 "constant": false,
-                "id": 4696,
+                "id": 5245,
                 "mutability": "mutable",
                 "name": "commitDeposit",
-                "nameLocation": "945:13:29",
+                "nameLocation": "945:13:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4701,
-                "src": "937:21:29",
+                "scope": 5250,
+                "src": "937:21:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -415,10 +415,10 @@
                   "typeString": "uint128"
                 },
                 "typeName": {
-                  "id": 4695,
+                  "id": 5244,
                   "name": "uint128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "937:7:29",
+                  "src": "937:7:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint128",
                     "typeString": "uint128"
@@ -428,13 +428,13 @@
               },
               {
                 "constant": false,
-                "id": 4698,
+                "id": 5247,
                 "mutability": "mutable",
                 "name": "keeperDeposit",
-                "nameLocation": "1062:13:29",
+                "nameLocation": "1062:13:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4701,
-                "src": "1054:21:29",
+                "scope": 5250,
+                "src": "1054:21:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -442,10 +442,10 @@
                   "typeString": "uint128"
                 },
                 "typeName": {
-                  "id": 4697,
+                  "id": 5246,
                   "name": "uint128",
                   "nodeType": "ElementaryTypeName",
-                  "src": "1054:7:29",
+                  "src": "1054:7:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint128",
                     "typeString": "uint128"
@@ -455,13 +455,13 @@
               },
               {
                 "constant": false,
-                "id": 4700,
+                "id": 5249,
                 "mutability": "mutable",
                 "name": "trackingCode",
-                "nameLocation": "1187:12:29",
+                "nameLocation": "1187:12:31",
                 "nodeType": "VariableDeclaration",
-                "scope": 4701,
-                "src": "1179:20:29",
+                "scope": 5250,
+                "src": "1179:20:31",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -469,10 +469,10 @@
                   "typeString": "bytes32"
                 },
                 "typeName": {
-                  "id": 4699,
+                  "id": 5248,
                   "name": "bytes32",
                   "nodeType": "ElementaryTypeName",
-                  "src": "1179:7:29",
+                  "src": "1179:7:31",
                   "typeDescriptions": {
                     "typeIdentifier": "t_bytes32",
                     "typeString": "bytes32"
@@ -482,8 +482,8 @@
               }
             ],
             "name": "NextPriceOrder",
-            "nameLocation": "733:14:29",
-            "scope": 4702,
+            "nameLocation": "733:14:31",
+            "scope": 5251,
             "visibility": "public"
           }
         ],
@@ -494,15 +494,15 @@
         "contractKind": "interface",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          4702
+          5251
         ],
         "name": "IFuturesMarketBaseTypes",
-        "nameLocation": "75:23:29",
-        "scope": 4703,
+        "nameLocation": "75:23:31",
+        "scope": 5252,
         "usedErrors": []
       }
     ],
     "license": "UNLICENSED"
   },
-  "id": 29
+  "id": 31
 }

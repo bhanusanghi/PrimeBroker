@@ -207,7 +207,7 @@
     "owner()": "8da5cb5b",
     "setPriceFeed(address)": "724e78da"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"priceFeed\",\"type\":\"address\"}],\"name\":\"PriceFeedChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"enum IBaseToken.Status\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"StatusUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"interval\",\"type\":\"uint256\"}],\"name\":\"cacheTwap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"close\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getClosedPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"interval\",\"type\":\"uint256\"}],\"name\":\"getIndexPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPausedIndexPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPausedTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPriceFeed\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"priceFeed\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isClosed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isOpen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"priceFeedArg\",\"type\":\"address\"}],\"name\":\"setPriceFeed\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"cacheTwap(uint256)\":{\"params\":{\"interval\":\"The twap interval in seconds.\"}},\"getPriceFeed()\":{\"returns\":{\"priceFeed\":\"the current price feed\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"cacheTwap(uint256)\":{\"notice\":\"Update the cached index price of the token.\"},\"getPriceFeed()\":{\"notice\":\"Get the price feed address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/Perpfi/IBaseToken.sol\":\"IBaseToken\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/Perpfi/IBaseToken.sol\":{\"keccak256\":\"0x465dc104ea422b8a976bf9cabf7b54b7a52b5b0db11a17af2bd49b3ff201f1cd\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://f7026af04f413aacff9f319d399ec8efd93e32fa70fcf1e0fd172cbbf4e61cf7\",\"dweb:/ipfs/Qme6fYnubtmR4wrd1Hc7ToysjEeVX1PhoU3mdaNTjZUgRS\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"priceFeed\",\"type\":\"address\"}],\"name\":\"PriceFeedChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"enum IBaseToken.Status\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"StatusUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"interval\",\"type\":\"uint256\"}],\"name\":\"cacheTwap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"close\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getClosedPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"interval\",\"type\":\"uint256\"}],\"name\":\"getIndexPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPausedIndexPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPausedTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPriceFeed\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"priceFeed\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isClosed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isOpen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"priceFeedArg\",\"type\":\"address\"}],\"name\":\"setPriceFeed\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"cacheTwap(uint256)\":{\"params\":{\"interval\":\"The twap interval in seconds.\"}},\"getPriceFeed()\":{\"returns\":{\"priceFeed\":\"the current price feed\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"cacheTwap(uint256)\":{\"notice\":\"Update the cached index price of the token.\"},\"getPriceFeed()\":{\"notice\":\"Get the price feed address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/Perpfi/IBaseToken.sol\":\"IBaseToken\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/Perpfi/IBaseToken.sol\":{\"keccak256\":\"0x465dc104ea422b8a976bf9cabf7b54b7a52b5b0db11a17af2bd49b3ff201f1cd\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://f7026af04f413aacff9f319d399ec8efd93e32fa70fcf1e0fd172cbbf4e61cf7\",\"dweb:/ipfs/Qme6fYnubtmR4wrd1Hc7ToysjEeVX1PhoU3mdaNTjZUgRS\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -438,7 +438,7 @@
         ":hardhat/=node_modules/hardhat/"
       ],
       "optimizer": {
-        "enabled": true,
+        "enabled": false,
         "runs": 200
       },
       "metadata": {
@@ -463,17 +463,17 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/Perpfi/IBaseToken.sol",
-    "id": 1776,
+    "id": 2131,
     "exportedSymbols": {
       "IBaseToken": [
-        1775
+        2130
       ]
     },
     "nodeType": "SourceUnit",
     "src": "45:1224:20",
     "nodes": [
       {
-        "id": 1699,
+        "id": 2054,
         "nodeType": "PragmaDirective",
         "src": "45:24:20",
         "nodes": [],
@@ -485,33 +485,33 @@
         ]
       },
       {
-        "id": 1775,
+        "id": 2130,
         "nodeType": "ContractDefinition",
         "src": "93:1175:20",
         "nodes": [
           {
-            "id": 1703,
+            "id": 2058,
             "nodeType": "EnumDefinition",
             "src": "212:36:20",
             "nodes": [],
             "canonicalName": "IBaseToken.Status",
             "members": [
               {
-                "id": 1700,
+                "id": 2055,
                 "name": "Open",
                 "nameLocation": "226:4:20",
                 "nodeType": "EnumValue",
                 "src": "226:4:20"
               },
               {
-                "id": 1701,
+                "id": 2056,
                 "name": "Paused",
                 "nameLocation": "232:6:20",
                 "nodeType": "EnumValue",
                 "src": "232:6:20"
               },
               {
-                "id": 1702,
+                "id": 2057,
                 "name": "Closed",
                 "nameLocation": "240:6:20",
                 "nodeType": "EnumValue",
@@ -522,7 +522,7 @@
             "nameLocation": "217:6:20"
           },
           {
-            "id": 1707,
+            "id": 2062,
             "nodeType": "EventDefinition",
             "src": "254:50:20",
             "nodes": [],
@@ -531,18 +531,18 @@
             "name": "PriceFeedChanged",
             "nameLocation": "260:16:20",
             "parameters": {
-              "id": 1706,
+              "id": 2061,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1705,
+                  "id": 2060,
                   "indexed": true,
                   "mutability": "mutable",
                   "name": "priceFeed",
                   "nameLocation": "293:9:20",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1707,
+                  "scope": 2062,
                   "src": "277:25:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -551,7 +551,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1704,
+                    "id": 2059,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "277:7:20",
@@ -568,7 +568,7 @@
             }
           },
           {
-            "id": 1712,
+            "id": 2067,
             "nodeType": "EventDefinition",
             "src": "309:43:20",
             "nodes": [],
@@ -577,42 +577,42 @@
             "name": "StatusUpdated",
             "nameLocation": "315:13:20",
             "parameters": {
-              "id": 1711,
+              "id": 2066,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1710,
+                  "id": 2065,
                   "indexed": true,
                   "mutability": "mutable",
                   "name": "status",
                   "nameLocation": "344:6:20",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1712,
+                  "scope": 2067,
                   "src": "329:21:20",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_Status_$1703",
+                    "typeIdentifier": "t_enum$_Status_$2058",
                     "typeString": "enum IBaseToken.Status"
                   },
                   "typeName": {
-                    "id": 1709,
+                    "id": 2064,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 1708,
+                      "id": 2063,
                       "name": "Status",
                       "nameLocations": [
                         "329:6:20"
                       ],
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 1703,
+                      "referencedDeclaration": 2058,
                       "src": "329:6:20"
                     },
-                    "referencedDeclaration": 1703,
+                    "referencedDeclaration": 2058,
                     "src": "329:6:20",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_enum$_Status_$1703",
+                      "typeIdentifier": "t_enum$_Status_$2058",
                       "typeString": "enum IBaseToken.Status"
                     }
                   },
@@ -623,7 +623,7 @@
             }
           },
           {
-            "id": 1715,
+            "id": 2070,
             "nodeType": "FunctionDefinition",
             "src": "358:26:20",
             "nodes": [],
@@ -634,29 +634,29 @@
             "name": "close",
             "nameLocation": "367:5:20",
             "parameters": {
-              "id": 1713,
+              "id": 2068,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "372:2:20"
             },
             "returnParameters": {
-              "id": 1714,
+              "id": 2069,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "383:0:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1721,
+            "id": 2076,
             "nodeType": "FunctionDefinition",
             "src": "504:46:20",
             "nodes": [],
             "documentation": {
-              "id": 1716,
+              "id": 2071,
               "nodeType": "StructuredDocumentation",
               "src": "390:109:20",
               "text": "@notice Update the cached index price of the token.\n @param interval The twap interval in seconds."
@@ -668,17 +668,17 @@
             "name": "cacheTwap",
             "nameLocation": "513:9:20",
             "parameters": {
-              "id": 1719,
+              "id": 2074,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1718,
+                  "id": 2073,
                   "mutability": "mutable",
                   "name": "interval",
                   "nameLocation": "531:8:20",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1721,
+                  "scope": 2076,
                   "src": "523:16:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -687,7 +687,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1717,
+                    "id": 2072,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "523:7:20",
@@ -702,23 +702,23 @@
               "src": "522:18:20"
             },
             "returnParameters": {
-              "id": 1720,
+              "id": 2075,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "549:0:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1727,
+            "id": 2082,
             "nodeType": "FunctionDefinition",
             "src": "648:66:20",
             "nodes": [],
             "documentation": {
-              "id": 1722,
+              "id": 2077,
               "nodeType": "StructuredDocumentation",
               "src": "556:87:20",
               "text": "@notice Get the price feed address\n @return priceFeed the current price feed"
@@ -730,23 +730,23 @@
             "name": "getPriceFeed",
             "nameLocation": "657:12:20",
             "parameters": {
-              "id": 1723,
+              "id": 2078,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "669:2:20"
             },
             "returnParameters": {
-              "id": 1726,
+              "id": 2081,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1725,
+                  "id": 2080,
                   "mutability": "mutable",
                   "name": "priceFeed",
                   "nameLocation": "703:9:20",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1727,
+                  "scope": 2082,
                   "src": "695:17:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -755,7 +755,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1724,
+                    "id": 2079,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "695:7:20",
@@ -770,13 +770,13 @@
               ],
               "src": "694:19:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1732,
+            "id": 2087,
             "nodeType": "FunctionDefinition",
             "src": "719:53:20",
             "nodes": [],
@@ -787,17 +787,17 @@
             "name": "setPriceFeed",
             "nameLocation": "728:12:20",
             "parameters": {
-              "id": 1730,
+              "id": 2085,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1729,
+                  "id": 2084,
                   "mutability": "mutable",
                   "name": "priceFeedArg",
                   "nameLocation": "749:12:20",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1732,
+                  "scope": 2087,
                   "src": "741:20:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -806,7 +806,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1728,
+                    "id": 2083,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "741:7:20",
@@ -822,18 +822,18 @@
               "src": "740:22:20"
             },
             "returnParameters": {
-              "id": 1731,
+              "id": 2086,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "771:0:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1737,
+            "id": 2092,
             "nodeType": "FunctionDefinition",
             "src": "777:62:20",
             "nodes": [],
@@ -844,23 +844,23 @@
             "name": "getPausedTimestamp",
             "nameLocation": "786:18:20",
             "parameters": {
-              "id": 1733,
+              "id": 2088,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "804:2:20"
             },
             "returnParameters": {
-              "id": 1736,
+              "id": 2091,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1735,
+                  "id": 2090,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1737,
+                  "scope": 2092,
                   "src": "830:7:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -869,7 +869,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1734,
+                    "id": 2089,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "830:7:20",
@@ -883,13 +883,13 @@
               ],
               "src": "829:9:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1742,
+            "id": 2097,
             "nodeType": "FunctionDefinition",
             "src": "845:63:20",
             "nodes": [],
@@ -900,23 +900,23 @@
             "name": "getPausedIndexPrice",
             "nameLocation": "854:19:20",
             "parameters": {
-              "id": 1738,
+              "id": 2093,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "873:2:20"
             },
             "returnParameters": {
-              "id": 1741,
+              "id": 2096,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1740,
+                  "id": 2095,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1742,
+                  "scope": 2097,
                   "src": "899:7:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -925,7 +925,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1739,
+                    "id": 2094,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "899:7:20",
@@ -939,13 +939,13 @@
               ],
               "src": "898:9:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1749,
+            "id": 2104,
             "nodeType": "FunctionDefinition",
             "src": "913:73:20",
             "nodes": [],
@@ -956,17 +956,17 @@
             "name": "getIndexPrice",
             "nameLocation": "922:13:20",
             "parameters": {
-              "id": 1745,
+              "id": 2100,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1744,
+                  "id": 2099,
                   "mutability": "mutable",
                   "name": "interval",
                   "nameLocation": "944:8:20",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1749,
+                  "scope": 2104,
                   "src": "936:16:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -975,7 +975,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1743,
+                    "id": 2098,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "936:7:20",
@@ -990,17 +990,17 @@
               "src": "935:18:20"
             },
             "returnParameters": {
-              "id": 1748,
+              "id": 2103,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1747,
+                  "id": 2102,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1749,
+                  "scope": 2104,
                   "src": "977:7:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1009,7 +1009,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1746,
+                    "id": 2101,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "977:7:20",
@@ -1023,13 +1023,13 @@
               ],
               "src": "976:9:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1754,
+            "id": 2109,
             "nodeType": "FunctionDefinition",
             "src": "991:58:20",
             "nodes": [],
@@ -1040,23 +1040,23 @@
             "name": "getClosedPrice",
             "nameLocation": "1000:14:20",
             "parameters": {
-              "id": 1750,
+              "id": 2105,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1014:2:20"
             },
             "returnParameters": {
-              "id": 1753,
+              "id": 2108,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1752,
+                  "id": 2107,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1754,
+                  "scope": 2109,
                   "src": "1040:7:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1065,7 +1065,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1751,
+                    "id": 2106,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1040:7:20",
@@ -1079,13 +1079,13 @@
               ],
               "src": "1039:9:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1759,
+            "id": 2114,
             "nodeType": "FunctionDefinition",
             "src": "1055:47:20",
             "nodes": [],
@@ -1096,23 +1096,23 @@
             "name": "isOpen",
             "nameLocation": "1064:6:20",
             "parameters": {
-              "id": 1755,
+              "id": 2110,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1070:2:20"
             },
             "returnParameters": {
-              "id": 1758,
+              "id": 2113,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1757,
+                  "id": 2112,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1759,
+                  "scope": 2114,
                   "src": "1096:4:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1121,7 +1121,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 1756,
+                    "id": 2111,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1096:4:20",
@@ -1135,13 +1135,13 @@
               ],
               "src": "1095:6:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1764,
+            "id": 2119,
             "nodeType": "FunctionDefinition",
             "src": "1108:49:20",
             "nodes": [],
@@ -1152,23 +1152,23 @@
             "name": "isPaused",
             "nameLocation": "1117:8:20",
             "parameters": {
-              "id": 1760,
+              "id": 2115,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1125:2:20"
             },
             "returnParameters": {
-              "id": 1763,
+              "id": 2118,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1762,
+                  "id": 2117,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1764,
+                  "scope": 2119,
                   "src": "1151:4:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1177,7 +1177,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 1761,
+                    "id": 2116,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1151:4:20",
@@ -1191,13 +1191,13 @@
               ],
               "src": "1150:6:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1769,
+            "id": 2124,
             "nodeType": "FunctionDefinition",
             "src": "1163:49:20",
             "nodes": [],
@@ -1208,23 +1208,23 @@
             "name": "isClosed",
             "nameLocation": "1172:8:20",
             "parameters": {
-              "id": 1765,
+              "id": 2120,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1180:2:20"
             },
             "returnParameters": {
-              "id": 1768,
+              "id": 2123,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1767,
+                  "id": 2122,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1769,
+                  "scope": 2124,
                   "src": "1206:4:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1233,7 +1233,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 1766,
+                    "id": 2121,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1206:4:20",
@@ -1247,13 +1247,13 @@
               ],
               "src": "1205:6:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1774,
+            "id": 2129,
             "nodeType": "FunctionDefinition",
             "src": "1217:49:20",
             "nodes": [],
@@ -1264,23 +1264,23 @@
             "name": "owner",
             "nameLocation": "1226:5:20",
             "parameters": {
-              "id": 1770,
+              "id": 2125,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1231:2:20"
             },
             "returnParameters": {
-              "id": 1773,
+              "id": 2128,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1772,
+                  "id": 2127,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1774,
+                  "scope": 2129,
                   "src": "1257:7:20",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1289,7 +1289,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1771,
+                    "id": 2126,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1257:7:20",
@@ -1304,7 +1304,7 @@
               ],
               "src": "1256:9:20"
             },
-            "scope": 1775,
+            "scope": 2130,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -1317,11 +1317,11 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          1775
+          2130
         ],
         "name": "IBaseToken",
         "nameLocation": "103:10:20",
-        "scope": 1776,
+        "scope": 2131,
         "usedErrors": []
       }
     ],

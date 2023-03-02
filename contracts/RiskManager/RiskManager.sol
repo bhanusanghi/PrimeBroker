@@ -94,11 +94,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data,
         uint256 interestAccrued
     ) external returns (VerifyTradeResult memory result) {
-        int256 totalNotional;
         uint256 buyingPower;
-        int256 PnL;
-        int256 unsettledRealizedPnL;
-        int256 unrealizedPnL;
         address _protocolRiskManager;
         (result.protocolAddress, _protocolRiskManager) = marketManager
             .getProtocolAddressByMarketName(marketKey);
@@ -107,26 +103,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
         result.tokenOut = protocolRiskManager.getBaseToken();
 
-        // totalNotional is in 18 decimals
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        totalNotional = IMarginAccount(marginAccount).getTotalOpeningNotional(
-            _whitelistedMarketNames
-        );
-
-        unrealizedPnL = _getUnrealizedPnL(marginAccount);
-        unsettledRealizedPnL = IMarginAccount(marginAccount)
-            .unsettledRealizedPnL();
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
-        buyingPower = GetCurrentBuyingPower(
-            marginAccount,
-            unrealizedPnL,
-            interestAccrued,
-            unsettledRealizedPnL
-        );
+        buyingPower = GetCurrentBuyingPower(marginAccount, interestAccrued);
 
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
             result.protocolAddress,
@@ -145,8 +125,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
         _checkPositionHealth(
+            marginAccount,
             buyingPower,
-            totalNotional,
             result.position.openNotional
         );
         // Bp is in dollars vault asset decimals
@@ -161,10 +141,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // send B.P in vault decimals
     // position openNotional should be in 18 decimal points
     function _checkPositionHealth(
+        address marginAccount,
         uint256 buyingPower,
-        int256 totalNotional,
         int256 positionOpenNotional
     ) internal {
+        // totalNotional is in 18 decimals
+        // todo - can be moved into margin account and removed from here. See whats the better design.
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketNames();
+        int256 totalNotional = IMarginAccount(marginAccount)
+            .getTotalOpeningNotional(_whitelistedMarketNames);
         require(
             buyingPower.convertTokenDecimals(
                 ERC20(vault.asset()).decimals(),
@@ -241,7 +227,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         for (uint256 i = 0; i < marketKeys.length; i++) {
             address _protocolAddress;
             address _protocolRiskManager;
-            int256 marginDelta;
+            int256 marketMarginDelta;
             int256 _positionSize;
             uint256 _fee;
             (_protocolAddress, _protocolRiskManager) = marketManager
@@ -249,9 +235,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
                 _protocolRiskManager
             );
-            (marginDelta, _positionSize, _fee) = protocolRiskManager
+            (marketMarginDelta, _positionSize, _fee) = protocolRiskManager
                 .verifyClose(_protocolAddress, destinations, data);
-            marginDelta = marginDelta.add(marginDelta);
+            marginDelta = marginDelta.add(marketMarginDelta);
             positionSize = positionSize.add(_positionSize);
             // closingTotal = closingTotal.add(marginAccount.getPositionOpenNotional(marketKeys[i]).abs());
             fee = fee.add(_fee);
@@ -316,17 +302,17 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // note @dev - returns buying power in vault.asset.decimals
     function GetCurrentBuyingPower(
         address marginAccount,
-        int256 PnL,
-        uint256 interestAccrued,
-        int256 unsettledRealizedPnL
-    ) public returns (uint256 buyPow) {
+        uint256 interestAccrued
+    ) public returns (uint256) {
+        // unsettledRealizedPnL is in vault decimals
+        // unrealizedPnL is in vault decimals
         return
             collateralManager
                 .totalCollateralValue(marginAccount)
                 .sub(interestAccrued)
                 .toInt256()
-                .add(PnL)
-                .add(unsettledRealizedPnL)
+                .add(_getUnrealizedPnL(marginAccount))
+                .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
                 .toUint256()
                 .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
     }
@@ -388,13 +374,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return _getUnrealizedPnL(marginAccount);
     }
 
+    // returns in vault base decimals
     function _getUnrealizedPnL(address marginAccount)
         internal
         returns (int256 totalUnrealizedPnL)
     {
         // todo - can be moved into margin account and removed from here. See whats the better design.
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
         for (uint256 i = 0; i < _riskManagers.length; i++) {

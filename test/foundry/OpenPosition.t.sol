@@ -9,15 +9,17 @@ import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMark
 import {IPerpsV2Market} from "../../contracts/Interfaces/SNX/IPerpsV2Market.sol";
 import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
 import {IFuturesMarketBaseTypes} from "../../contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol";
-import {IFuturesMarketSettings} from "../../contracts/Interfaces/SNX/IFuturesMarketSettings.sol";
+import {IFuturesMarketBaseTypes} from "../../contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {IFuturesMarketSettings} from "../../contracts/Interfaces/SNX/IFuturesMarketSettings.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
+import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 
 contract OpenLongSnx is BaseSetup {
     struct PositionData {
@@ -27,11 +29,19 @@ contract OpenLongSnx is BaseSetup {
         uint128 lastPrice;
         int128 size;
     }
+    struct RoundData {
+        uint80 roundId;
+        int256 answer;
+        uint256 startedAt;
+        uint256 updatedAt;
+        uint80 answeredInRound;
+    }
 
     using SafeMath for uint256;
     using SafeMath for uint128;
     using Math for uint256;
     using SettlementTokenMath for uint256;
+    using SettlementTokenMath for int256;
     using SafeCastUpgradeable for uint256;
     using SafeCastUpgradeable for int256;
     using SignedMath for int256;
@@ -39,6 +49,7 @@ contract OpenLongSnx is BaseSetup {
     uint256 constant ONE_USDC = 10**6;
     int256 constant ONE_USDC_INT = 10**6;
     uint256 largeAmount = 1_000_000 * ONE_USDC;
+    uint256 largeEtherAmount = 1_000_000 ether;
     bytes32 snxUni_marketKey = bytes32("sUNI");
     bytes32 snxEth_marketKey = bytes32("sETH");
 
@@ -58,7 +69,7 @@ contract OpenLongSnx is BaseSetup {
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
-            71255016
+            77772792
         );
         vm.selectFork(forkId);
         utils = new Utils();
@@ -115,9 +126,11 @@ contract OpenLongSnx is BaseSetup {
         vm.startPrank(usdcWhaleContract);
         IERC20(usdc).transfer(admin, largeAmount * 2);
         IERC20(usdc).transfer(bob, largeAmount);
-        // IERC20(usdc).transfer(alice, largeAmount);
-        // IERC20(usdc).transfer(charlie, largeAmount);
-        // IERC20(usdc).transfer(david, largeAmount);
+        vm.stopPrank();
+
+        vm.startPrank(susdWhaleContract);
+        IERC20(susd).transfer(admin, largeEtherAmount * 2);
+        IERC20(susd).transfer(bob, largeEtherAmount);
         vm.stopPrank();
 
         uint256 adminBal = IERC20(usdc).balanceOf(admin);
@@ -133,32 +146,84 @@ contract OpenLongSnx is BaseSetup {
         vm.prank(alice);
         aliceMarginAccount = marginManager.openMarginAccount();
 
+        RoundData memory stablesRoundData = RoundData(
+            18446744073709552872,
+            100000000,
+            block.timestamp - 0,
+            block.timestamp - 0,
+            18446744073709552872
+        );
+        RoundData memory etherRoundData = RoundData(
+            18446744073709653558,
+            150000000000, //1500
+            block.timestamp - 0,
+            block.timestamp - 0,
+            18446744073709653558
+        );
         // assume usdc and susd value to be 1
-        uint80 roundId = 18446744073709552872;
-        int256 answer = 100000000;
-        uint256 startedAt = 1674660973;
-        uint256 updatedAt = 1674660973;
-        uint80 answeredInRound = 18446744073709552872;
         vm.mockCall(
             sUsdPriceFeed,
             abi.encodeWithSelector(
                 AggregatorV3Interface.latestRoundData.selector
             ),
-            abi.encode(roundId, answer, startedAt, updatedAt, answeredInRound)
+            abi.encode(
+                stablesRoundData.roundId,
+                stablesRoundData.answer,
+                stablesRoundData.startedAt,
+                stablesRoundData.updatedAt,
+                stablesRoundData.answeredInRound
+            )
         );
         vm.mockCall(
             usdcPriceFeed,
             abi.encodeWithSelector(
                 AggregatorV3Interface.latestRoundData.selector
             ),
-            abi.encode(roundId, answer, startedAt, updatedAt, answeredInRound)
+            abi.encode(
+                stablesRoundData.roundId,
+                stablesRoundData.answer,
+                stablesRoundData.startedAt,
+                stablesRoundData.updatedAt,
+                stablesRoundData.answeredInRound
+            )
         );
+        // vm.mockCall(
+        //     etherPriceFeed,
+        //     abi.encodeWithSelector(
+        //         AggregatorV3Interface.latestRoundData.selector
+        //     ),
+        //     abi.encode(
+        //         etherRoundData.roundId,
+        //         etherRoundData.answer,
+        //         etherRoundData.startedAt,
+        //         etherRoundData.updatedAt,
+        //         etherRoundData.answeredInRound
+        //     )
+        // );
+
+        // address[] memory addresses = new address[](1);
+        // uint256[] memory values = new uint256[](1);
+        // addresses[0] = etherPriceFeed;
+        // values[0] = etherRoundData.answer.toUint256();
+        // vm.prank(snxOwner);
+        // ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
+        // console2.log("isCircuitBrokenAlready");
+        // console2.log(
+        //     ICircuitBreaker(circuitBreaker).probeCircuitBreaker(
+        //         etherPriceFeed,
+        //         etherRoundData.answer.toUint256()
+        //     )
+        // );
 
         uint256 margin = 50000 * ONE_USDC;
-        marginSNX = margin.mul(2).convertTokenDecimals(6, 18);
+        uint256 marginInEther = 50000 ether;
+        marginSNX = marginInEther;
+        // marginSNX = marginInEther.mul(2);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, margin);
-        collateralManager.addCollateral(usdc, margin);
+        IERC20(susd).approve(bobMarginAccount, marginInEther);
+        // collateralManager.addCollateral(usdc, margin);
+        collateralManager.addCollateral(susd, marginInEther);
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
             marginSNX
@@ -170,17 +235,13 @@ contract OpenLongSnx is BaseSetup {
         vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.GetCurrentBuyingPower(
-            bobMarginAccount,
-            0,
-            0,
-            0
-        );
+        maxBuyingPower = riskManager.GetCurrentBuyingPower(bobMarginAccount, 0);
         console2.log("Max B.P. - ", maxBuyingPower);
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
         console2.log("futures price", futuresPrice);
+        vm.stopPrank();
     }
 
     function testBobAddsPositionOnInvalidMarket() public {
@@ -213,6 +274,7 @@ contract OpenLongSnx is BaseSetup {
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
         vm.expectRevert(bytes("PRM: Calling non whitelisted contract"));
+        vm.prank(bob);
         marginManager.openPosition(snxUniKey, destinations, data);
     }
 
@@ -247,6 +309,7 @@ contract OpenLongSnx is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
+        vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
     }
 
@@ -261,11 +324,25 @@ contract OpenLongSnx is BaseSetup {
         uint256 accessibleMarginAfterTrade;
         int128 positionSizeAfterTrade;
         uint256 assetPriceBeforeTrade;
+        uint256 assetPriceAfterManipulation;
         uint256 orderFee;
         uint256 assetPrice;
         uint256 positionId;
         uint256 latestFundingIndex;
         int256 openNotional;
+        int256 positionSize;
+    }
+
+    struct MarginAccountData {
+        uint256 bpBeforeTrade;
+        uint256 bpAfterTrade;
+        uint256 bpAfterPnL;
+        uint256 bpBeforePnL;
+        int256 pnlTPP;
+        int256 fundingAccruedTPP;
+        int256 unrealizedPnL;
+        int256 interestAccruedBeforeTimeskip;
+        int256 interestAccruedAfterTimeskip;
     }
 
     function testBobOpensLongPositionWithLeverage(int256 positionSize) public {
@@ -365,6 +442,7 @@ contract OpenLongSnx is BaseSetup {
         //     tradeData.orderFee
         // );
 
+        vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
 
         assertEq(
@@ -437,7 +515,7 @@ contract OpenLongSnx is BaseSetup {
         // int256 positionSize = -10 ether;
         uint256 maxPossiblePositionSize = maxBuyingPower
             .convertTokenDecimals(6, 18)
-            .div(tradeData.assetPriceBeforeTrade / 1 ether);
+            .div(tradeData.assetPriceBeforeTrade / 10 ether);
         vm.assume(
             positionSize > -int256(maxPossiblePositionSize) && positionSize < 0
         );
@@ -531,6 +609,7 @@ contract OpenLongSnx is BaseSetup {
         //     tradeData.orderFee
         // );
 
+        vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
 
         assertEq(
@@ -584,5 +663,140 @@ contract OpenLongSnx is BaseSetup {
         // );
 
         // check fee etc.
+    }
+
+    /* scenario ->
+        initial margin - 50k
+        initial BP - 250k
+        first transfer SNX - 50k
+
+        open 1 eth long at price - x - from setup
+        change price by +100$ 
+        check bp changes.
+        try to transfer extra margin
+    */
+    function testUpdatePositionAccounting() public {
+        SNXTradingData memory tradeData;
+        MarginAccountData memory marginAccountData;
+        tradeData.positionSize = 1 ether;
+        (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
+            .assetPrice();
+        bytes memory openPositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            tradeData.positionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = openPositionData;
+        // check event for position opened on our side.
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            ethFuturesMarket,
+            susd,
+            tradeData.positionSize,
+            int256( // openNotional
+                uint256(tradeData.positionSize).mulDiv(
+                    tradeData.assetPriceBeforeTrade,
+                    1 ether
+                )
+            )
+        );
+        vm.prank(bob);
+        marginManager.openPosition(snxEthKey, destinations, data);
+        assertEq(
+            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            tradeData.positionSize
+        );
+
+        marginAccountData.bpBeforePnL = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            0
+        );
+        // Update market price to 1600 ( Delta +100)
+        // increase blocks
+        // get interest -> TODO write tests for interest calculations for vault separately. Currently its wrong always returns 0;
+        //
+
+        // increare 1000 blocks
+        vm.roll(block.number + 10);
+        vm.warp(block.timestamp + 100);
+
+        RoundData memory etherRoundData = RoundData(
+            18446744073709653558,
+            int256(
+                tradeData.assetPriceBeforeTrade.convertTokenDecimals(18, 8).add(
+                    100 * 10**8
+                )
+            ),
+            block.timestamp,
+            block.timestamp,
+            18446744073709653558
+        );
+        vm.mockCall(
+            etherPriceFeed,
+            abi.encodeWithSelector(
+                AggregatorV3Interface.latestRoundData.selector
+            ),
+            abi.encode(
+                etherRoundData.roundId,
+                etherRoundData.answer,
+                etherRoundData.startedAt,
+                etherRoundData.updatedAt,
+                etherRoundData.answeredInRound
+            )
+        );
+        address[] memory addresses = new address[](1);
+        uint256[] memory values = new uint256[](1);
+        addresses[0] = etherPriceFeed;
+        values[0] = tradeData.assetPriceBeforeTrade.add(100 ether);
+        vm.prank(snxOwner);
+        ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
+        // get new bp and check if it is right.
+
+        // 6 decimals.
+        // interest = marginManager.getInterestAccrued(bobMarginAccount);
+        marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
+            bobMarginAccount
+        );
+        console2.log("marginAccountData.unrealizedPnL");
+        console2.logInt(marginAccountData.unrealizedPnL);
+        // check if marginAccountData.unrealizedPnL values are correct.
+        (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)
+            .profitLoss(bobMarginAccount);
+        (marginAccountData.fundingAccruedTPP, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).accruedFunding(bobMarginAccount);
+
+        (tradeData.assetPriceAfterManipulation, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).assetPrice();
+        assertEq(
+            marginAccountData.unrealizedPnL,
+            marginAccountData.fundingAccruedTPP.convertTokenDecimals(18, 6) +
+                marginAccountData.pnlTPP.convertTokenDecimals(18, 6)
+        );
+        marginAccountData.bpAfterPnL = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            0
+        );
+        assertApproxEqAbs(
+            marginAccountData.bpAfterPnL,
+            marginAccountData.bpBeforePnL +
+                marginAccountData.unrealizedPnL.toUint256(),
+            0.001 ether
+        );
+        bytes memory updatePositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            tradeData.positionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        // send update position call
+        vm.prank(bob);
+        destinations[0] = ethFuturesMarket;
+        data[0] = updatePositionData;
+        // marginManager.updatePosition(snxEthKey, destinations, data);
     }
 }

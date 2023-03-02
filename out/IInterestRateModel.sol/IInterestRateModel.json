@@ -38,7 +38,7 @@
   "methodIdentifiers": {
     "calcBorrowRate(uint256,uint256)": "42568d44"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expectedLiquidity\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"availableLiquidity\",\"type\":\"uint256\"}],\"name\":\"calcBorrowRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interface for the calculation of the interest rates\",\"kind\":\"dev\",\"methods\":{\"calcBorrowRate(uint256,uint256)\":{\"details\":\"Calculated borrow rate based on expectedLiquidity and availableLiquidity\",\"params\":{\"availableLiquidity\":\"Available liquidity in the pool\",\"expectedLiquidity\":\"Expected liquidity in the pool\"}}},\"title\":\"IInterestRateModel interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IInterestRateModel.sol\":\"IInterestRateModel\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IInterestRateModel.sol\":{\"keccak256\":\"0xee0996b623c056a13600c16be68c6dbaa12d9bd24c3b61237d885ce20cbcde0f\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://8be0cbdedd36986df9459cbc0546a4a451c37d9b4459a6fe83327a1802bbb958\",\"dweb:/ipfs/QmPgdYwmsnPd9BHfEo8jyBPGUfEkCBzzgFfb5qVPFF1acz\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expectedLiquidity\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"availableLiquidity\",\"type\":\"uint256\"}],\"name\":\"calcBorrowRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interface for the calculation of the interest rates\",\"kind\":\"dev\",\"methods\":{\"calcBorrowRate(uint256,uint256)\":{\"details\":\"Calculated borrow rate based on expectedLiquidity and availableLiquidity\",\"params\":{\"availableLiquidity\":\"Available liquidity in the pool\",\"expectedLiquidity\":\"Expected liquidity in the pool\"}}},\"title\":\"IInterestRateModel interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IInterestRateModel.sol\":\"IInterestRateModel\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IInterestRateModel.sol\":{\"keccak256\":\"0xee0996b623c056a13600c16be68c6dbaa12d9bd24c3b61237d885ce20cbcde0f\",\"license\":\"GPL-3.0-or-later\",\"urls\":[\"bzz-raw://8be0cbdedd36986df9459cbc0546a4a451c37d9b4459a6fe83327a1802bbb958\",\"dweb:/ipfs/QmPgdYwmsnPd9BHfEo8jyBPGUfEkCBzzgFfb5qVPFF1acz\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -104,7 +104,7 @@
         ":hardhat/=node_modules/hardhat/"
       ],
       "optimizer": {
-        "enabled": true,
+        "enabled": false,
         "runs": 200
       },
       "metadata": {
@@ -129,17 +129,17 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/IInterestRateModel.sol",
-    "id": 1045,
+    "id": 1236,
     "exportedSymbols": {
       "IInterestRateModel": [
-        1044
+        1235
       ]
     },
     "nodeType": "SourceUnit",
     "src": "45:514:11",
     "nodes": [
       {
-        "id": 1032,
+        "id": 1223,
         "nodeType": "PragmaDirective",
         "src": "45:24:11",
         "nodes": [],
@@ -151,17 +151,17 @@
         ]
       },
       {
-        "id": 1044,
+        "id": 1235,
         "nodeType": "ContractDefinition",
         "src": "172:386:11",
         "nodes": [
           {
-            "id": 1043,
+            "id": 1234,
             "nodeType": "FunctionDefinition",
             "src": "423:133:11",
             "nodes": [],
             "documentation": {
-              "id": 1034,
+              "id": 1225,
               "nodeType": "StructuredDocumentation",
               "src": "207:211:11",
               "text": "@dev Calculated borrow rate based on expectedLiquidity and availableLiquidity\n @param expectedLiquidity Expected liquidity in the pool\n @param availableLiquidity Available liquidity in the pool"
@@ -173,17 +173,17 @@
             "name": "calcBorrowRate",
             "nameLocation": "432:14:11",
             "parameters": {
-              "id": 1039,
+              "id": 1230,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1036,
+                  "id": 1227,
                   "mutability": "mutable",
                   "name": "expectedLiquidity",
                   "nameLocation": "464:17:11",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1043,
+                  "scope": 1234,
                   "src": "456:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -192,7 +192,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1035,
+                    "id": 1226,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "456:7:11",
@@ -205,12 +205,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1038,
+                  "id": 1229,
                   "mutability": "mutable",
                   "name": "availableLiquidity",
                   "nameLocation": "499:18:11",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1043,
+                  "scope": 1234,
                   "src": "491:26:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -219,7 +219,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1037,
+                    "id": 1228,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "491:7:11",
@@ -234,17 +234,17 @@
               "src": "446:77:11"
             },
             "returnParameters": {
-              "id": 1042,
+              "id": 1233,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1041,
+                  "id": 1232,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1043,
+                  "scope": 1234,
                   "src": "547:7:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -253,7 +253,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1040,
+                    "id": 1231,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "547:7:11",
@@ -267,7 +267,7 @@
               ],
               "src": "546:9:11"
             },
-            "scope": 1044,
+            "scope": 1235,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -279,18 +279,18 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "documentation": {
-          "id": 1033,
+          "id": 1224,
           "nodeType": "StructuredDocumentation",
           "src": "71:101:11",
           "text": "@title IInterestRateModel interface\n @dev Interface for the calculation of the interest rates"
         },
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          1044
+          1235
         ],
         "name": "IInterestRateModel",
         "nameLocation": "182:18:11",
-        "scope": 1045,
+        "scope": 1236,
         "usedErrors": []
       }
     ],

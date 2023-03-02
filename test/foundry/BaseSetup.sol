@@ -67,6 +67,7 @@ contract BaseSetup is Test {
 
     address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
     address usdcWhaleContract = 0x625E7708f30cA75bfd92586e17077590C60eb4cD;
+    address susdWhaleContract = 0xd16232ad60188B68076a235c65d692090caba155;
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
 
     address perpAccountBalance = 0xA7f3FC32043757039d5e13d790EE43edBcBa8b7c;
@@ -78,8 +79,10 @@ contract BaseSetup is Test {
     address futuresMarketSettings = 0xaE55F163337A2A46733AA66dA9F35299f9A46e9e;
     address sUsdPriceFeed = 0x7f99817d87baD03ea21E05112Ca799d715730efe;
     address usdcPriceFeed = 0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3;
+    address etherPriceFeed = 0x13e3Ee699D1909E989722E753853AE30b17e08c5;
     address snxFuturesMarketManager;
-
+    address snxOwner = 0x6d4a64C57612841c2C6745dB2a4E4db34F002D20;
+    address circuitBreaker = 0x803FD1d99C3a6cbcbABAB79C44e108dC2fb67102;
     // ======================================= Test Events =======================================
 
     // ============= Collateral Manager Events =============

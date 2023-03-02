@@ -324,7 +324,7 @@
     "setInsuranceFundFeeRatio(address,uint24)": "3feb4212",
     "setMaxOrdersPerMarket(uint8)": "831f72b4"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"FeeRatioChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"InsuranceFundFeeRatioChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"maxOrdersPerMarket\",\"type\":\"uint8\"}],\"name\":\"MaxOrdersPerMarketChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"}],\"name\":\"PoolAdded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"addPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getFeeRatio\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getInsuranceFundFeeRatio\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getMarketInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"exchangeFeeRatio\",\"type\":\"uint24\"},{\"internalType\":\"uint24\",\"name\":\"uniswapFeeRatio\",\"type\":\"uint24\"},{\"internalType\":\"uint24\",\"name\":\"insuranceFundFeeRatio\",\"type\":\"uint24\"}],\"internalType\":\"struct IMarketRegistry.MarketInfo\",\"name\":\"info\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMaxOrdersPerMarket\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"maxOrdersPerMarket\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getQuoteToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"quoteToken\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUniswapV3Factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"hasPool\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"setFeeRatio\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"insuranceFundFeeRatioArg\",\"type\":\"uint24\"}],\"name\":\"setInsuranceFundFeeRatio\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"maxOrdersPerMarketArg\",\"type\":\"uint8\"}],\"name\":\"setMaxOrdersPerMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"events\":{\"FeeRatioChanged(address,uint24)\":{\"params\":{\"baseToken\":\"The address of the base token\",\"feeRatio\":\"Fee ratio of the market\"}},\"InsuranceFundFeeRatioChanged(uint24)\":{\"params\":{\"feeRatio\":\"Insurance fund fee ratio\"}},\"MaxOrdersPerMarketChanged(uint8)\":{\"params\":{\"maxOrdersPerMarket\":\"Max orders per market\"}},\"PoolAdded(address,uint24,address)\":{\"params\":{\"baseToken\":\"The address of the base token\",\"feeRatio\":\"Fee ratio of the market\",\"pool\":\"The address of the pool\"}}},\"kind\":\"dev\",\"methods\":{\"addPool(address,uint24)\":{\"details\":\"Add a new pool to the registry.\",\"params\":{\"baseToken\":\"The token that the pool is for.\",\"feeRatio\":\"The fee ratio for the pool.\"},\"returns\":{\"pool\":\"The address of the pool.\"}},\"getFeeRatio(address)\":{\"details\":\"The ratio is in `1e6` format, that means `1% = 1e4`\",\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"feeRatio\":\"The fee ratio of the market, it is a decimal in `1e6`\"}},\"getInsuranceFundFeeRatio(address)\":{\"details\":\"The ratio is in `1e6` format, that means `1% = 1e4`\",\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"feeRatio\":\"The fee ratio of the market, it is a decimal in `1e6`\"}},\"getMarketInfo(address)\":{\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"info\":\"The market info encoded as `MarketInfo`\"}},\"getMaxOrdersPerMarket()\":{\"returns\":{\"maxOrdersPerMarket\":\"The max allowed orders per market\"}},\"getPool(address)\":{\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"pool\":\"The address of the pool\"}},\"getQuoteToken()\":{\"returns\":{\"quoteToken\":\"The address of the quote token\"}},\"getUniswapV3Factory()\":{\"returns\":{\"factory\":\"The address of the Uniswap factory\"}},\"hasPool(address)\":{\"returns\":{\"_0\":\"hasPool True if the pool exist, false otherwise\"}},\"setFeeRatio(address,uint24)\":{\"details\":\"Set the fee ratio for a pool\",\"params\":{\"baseToken\":\"The token address of the pool.\",\"feeRatio\":\"The fee ratio for the pool.\"}},\"setInsuranceFundFeeRatio(address,uint24)\":{\"details\":\"Set insurance fund fee ratio for a pool\",\"params\":{\"baseToken\":\"The token address of the pool.\",\"insuranceFundFeeRatioArg\":\"The fee ratio for the pool.\"}},\"setMaxOrdersPerMarket(uint8)\":{\"details\":\"Set max allowed orders per market\",\"params\":{\"maxOrdersPerMarketArg\":\"The max allowed orders per market\"}}},\"version\":1},\"userdoc\":{\"events\":{\"FeeRatioChanged(address,uint24)\":{\"notice\":\"Emitted when the fee ratio of a market is updated.\"},\"InsuranceFundFeeRatioChanged(uint24)\":{\"notice\":\"Emitted when the insurance fund fee ratio is updated.\"},\"MaxOrdersPerMarketChanged(uint8)\":{\"notice\":\"Emitted when the max orders per market is updated.\"},\"PoolAdded(address,uint24,address)\":{\"notice\":\"Emitted when a new market is created.\"}},\"kind\":\"user\",\"methods\":{\"getFeeRatio(address)\":{\"notice\":\"Get the fee ratio of a given market\"},\"getInsuranceFundFeeRatio(address)\":{\"notice\":\"Get the insurance fund fee ratio of a given market\"},\"getMarketInfo(address)\":{\"notice\":\"Get the market info by given base token address\"},\"getMaxOrdersPerMarket()\":{\"notice\":\"Get max allowed orders per market\"},\"getPool(address)\":{\"notice\":\"Get the pool address (UNIv3 pool) by given base token address\"},\"getQuoteToken()\":{\"notice\":\"Get the quote token address\"},\"getUniswapV3Factory()\":{\"notice\":\"Get Uniswap factory address\"},\"hasPool(address)\":{\"notice\":\"Check if a pool exist by given base token address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/Perpfi/IMarketRegistry.sol\":\"IMarketRegistry\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/Perpfi/IMarketRegistry.sol\":{\"keccak256\":\"0xd5fd2ff5467ee80579ee5c1e100290c31331793053ce107015445b406065be88\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://5c503c89534979e31fe8aac0a22530e8c7ccd55c81fd1bc5179fd079d0680022\",\"dweb:/ipfs/QmZMk6KFvSB5NuhaTqrN8Zt1wYhtZZ8bkdWuBptrk511do\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"FeeRatioChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"InsuranceFundFeeRatioChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"maxOrdersPerMarket\",\"type\":\"uint8\"}],\"name\":\"MaxOrdersPerMarketChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"}],\"name\":\"PoolAdded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"addPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getFeeRatio\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getInsuranceFundFeeRatio\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getMarketInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"exchangeFeeRatio\",\"type\":\"uint24\"},{\"internalType\":\"uint24\",\"name\":\"uniswapFeeRatio\",\"type\":\"uint24\"},{\"internalType\":\"uint24\",\"name\":\"insuranceFundFeeRatio\",\"type\":\"uint24\"}],\"internalType\":\"struct IMarketRegistry.MarketInfo\",\"name\":\"info\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMaxOrdersPerMarket\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"maxOrdersPerMarket\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"getPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getQuoteToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"quoteToken\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUniswapV3Factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"}],\"name\":\"hasPool\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"feeRatio\",\"type\":\"uint24\"}],\"name\":\"setFeeRatio\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"baseToken\",\"type\":\"address\"},{\"internalType\":\"uint24\",\"name\":\"insuranceFundFeeRatioArg\",\"type\":\"uint24\"}],\"name\":\"setInsuranceFundFeeRatio\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"maxOrdersPerMarketArg\",\"type\":\"uint8\"}],\"name\":\"setMaxOrdersPerMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"events\":{\"FeeRatioChanged(address,uint24)\":{\"params\":{\"baseToken\":\"The address of the base token\",\"feeRatio\":\"Fee ratio of the market\"}},\"InsuranceFundFeeRatioChanged(uint24)\":{\"params\":{\"feeRatio\":\"Insurance fund fee ratio\"}},\"MaxOrdersPerMarketChanged(uint8)\":{\"params\":{\"maxOrdersPerMarket\":\"Max orders per market\"}},\"PoolAdded(address,uint24,address)\":{\"params\":{\"baseToken\":\"The address of the base token\",\"feeRatio\":\"Fee ratio of the market\",\"pool\":\"The address of the pool\"}}},\"kind\":\"dev\",\"methods\":{\"addPool(address,uint24)\":{\"details\":\"Add a new pool to the registry.\",\"params\":{\"baseToken\":\"The token that the pool is for.\",\"feeRatio\":\"The fee ratio for the pool.\"},\"returns\":{\"pool\":\"The address of the pool.\"}},\"getFeeRatio(address)\":{\"details\":\"The ratio is in `1e6` format, that means `1% = 1e4`\",\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"feeRatio\":\"The fee ratio of the market, it is a decimal in `1e6`\"}},\"getInsuranceFundFeeRatio(address)\":{\"details\":\"The ratio is in `1e6` format, that means `1% = 1e4`\",\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"feeRatio\":\"The fee ratio of the market, it is a decimal in `1e6`\"}},\"getMarketInfo(address)\":{\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"info\":\"The market info encoded as `MarketInfo`\"}},\"getMaxOrdersPerMarket()\":{\"returns\":{\"maxOrdersPerMarket\":\"The max allowed orders per market\"}},\"getPool(address)\":{\"params\":{\"baseToken\":\"The address of the base token\"},\"returns\":{\"pool\":\"The address of the pool\"}},\"getQuoteToken()\":{\"returns\":{\"quoteToken\":\"The address of the quote token\"}},\"getUniswapV3Factory()\":{\"returns\":{\"factory\":\"The address of the Uniswap factory\"}},\"hasPool(address)\":{\"returns\":{\"_0\":\"hasPool True if the pool exist, false otherwise\"}},\"setFeeRatio(address,uint24)\":{\"details\":\"Set the fee ratio for a pool\",\"params\":{\"baseToken\":\"The token address of the pool.\",\"feeRatio\":\"The fee ratio for the pool.\"}},\"setInsuranceFundFeeRatio(address,uint24)\":{\"details\":\"Set insurance fund fee ratio for a pool\",\"params\":{\"baseToken\":\"The token address of the pool.\",\"insuranceFundFeeRatioArg\":\"The fee ratio for the pool.\"}},\"setMaxOrdersPerMarket(uint8)\":{\"details\":\"Set max allowed orders per market\",\"params\":{\"maxOrdersPerMarketArg\":\"The max allowed orders per market\"}}},\"version\":1},\"userdoc\":{\"events\":{\"FeeRatioChanged(address,uint24)\":{\"notice\":\"Emitted when the fee ratio of a market is updated.\"},\"InsuranceFundFeeRatioChanged(uint24)\":{\"notice\":\"Emitted when the insurance fund fee ratio is updated.\"},\"MaxOrdersPerMarketChanged(uint8)\":{\"notice\":\"Emitted when the max orders per market is updated.\"},\"PoolAdded(address,uint24,address)\":{\"notice\":\"Emitted when a new market is created.\"}},\"kind\":\"user\",\"methods\":{\"getFeeRatio(address)\":{\"notice\":\"Get the fee ratio of a given market\"},\"getInsuranceFundFeeRatio(address)\":{\"notice\":\"Get the insurance fund fee ratio of a given market\"},\"getMarketInfo(address)\":{\"notice\":\"Get the market info by given base token address\"},\"getMaxOrdersPerMarket()\":{\"notice\":\"Get max allowed orders per market\"},\"getPool(address)\":{\"notice\":\"Get the pool address (UNIv3 pool) by given base token address\"},\"getQuoteToken()\":{\"notice\":\"Get the quote token address\"},\"getUniswapV3Factory()\":{\"notice\":\"Get Uniswap factory address\"},\"hasPool(address)\":{\"notice\":\"Check if a pool exist by given base token address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/Perpfi/IMarketRegistry.sol\":\"IMarketRegistry\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/Perpfi/IMarketRegistry.sol\":{\"keccak256\":\"0xd5fd2ff5467ee80579ee5c1e100290c31331793053ce107015445b406065be88\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://5c503c89534979e31fe8aac0a22530e8c7ccd55c81fd1bc5179fd079d0680022\",\"dweb:/ipfs/QmZMk6KFvSB5NuhaTqrN8Zt1wYhtZZ8bkdWuBptrk511do\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -764,7 +764,7 @@
         ":hardhat/=node_modules/hardhat/"
       ],
       "optimizer": {
-        "enabled": true,
+        "enabled": false,
         "runs": 200
       },
       "metadata": {
@@ -789,19 +789,19 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
-    "id": 2372,
+    "id": 2808,
     "exportedSymbols": {
       "IMarketRegistry": [
-        2371
+        2807
       ]
     },
     "nodeType": "SourceUnit",
-    "src": "39:4087:15",
+    "src": "39:4087:23",
     "nodes": [
       {
-        "id": 2244,
+        "id": 2680,
         "nodeType": "PragmaDirective",
-        "src": "39:23:15",
+        "src": "39:23:23",
         "nodes": [],
         "literals": [
           "solidity",
@@ -810,26 +810,26 @@
         ]
       },
       {
-        "id": 2371,
+        "id": 2807,
         "nodeType": "ContractDefinition",
-        "src": "64:4061:15",
+        "src": "64:4061:23",
         "nodes": [
           {
-            "id": 2253,
+            "id": 2689,
             "nodeType": "StructDefinition",
-            "src": "96:150:15",
+            "src": "96:150:23",
             "nodes": [],
             "canonicalName": "IMarketRegistry.MarketInfo",
             "members": [
               {
                 "constant": false,
-                "id": 2246,
+                "id": 2682,
                 "mutability": "mutable",
                 "name": "pool",
-                "nameLocation": "132:4:15",
+                "nameLocation": "132:4:23",
                 "nodeType": "VariableDeclaration",
-                "scope": 2253,
-                "src": "124:12:15",
+                "scope": 2689,
+                "src": "124:12:23",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -837,10 +837,10 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 2245,
+                  "id": 2681,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
-                  "src": "124:7:15",
+                  "src": "124:7:23",
                   "stateMutability": "nonpayable",
                   "typeDescriptions": {
                     "typeIdentifier": "t_address",
@@ -851,13 +851,13 @@
               },
               {
                 "constant": false,
-                "id": 2248,
+                "id": 2684,
                 "mutability": "mutable",
                 "name": "exchangeFeeRatio",
-                "nameLocation": "153:16:15",
+                "nameLocation": "153:16:23",
                 "nodeType": "VariableDeclaration",
-                "scope": 2253,
-                "src": "146:23:15",
+                "scope": 2689,
+                "src": "146:23:23",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -865,10 +865,10 @@
                   "typeString": "uint24"
                 },
                 "typeName": {
-                  "id": 2247,
+                  "id": 2683,
                   "name": "uint24",
                   "nodeType": "ElementaryTypeName",
-                  "src": "146:6:15",
+                  "src": "146:6:23",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint24",
                     "typeString": "uint24"
@@ -878,13 +878,13 @@
               },
               {
                 "constant": false,
-                "id": 2250,
+                "id": 2686,
                 "mutability": "mutable",
                 "name": "uniswapFeeRatio",
-                "nameLocation": "186:15:15",
+                "nameLocation": "186:15:23",
                 "nodeType": "VariableDeclaration",
-                "scope": 2253,
-                "src": "179:22:15",
+                "scope": 2689,
+                "src": "179:22:23",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -892,10 +892,10 @@
                   "typeString": "uint24"
                 },
                 "typeName": {
-                  "id": 2249,
+                  "id": 2685,
                   "name": "uint24",
                   "nodeType": "ElementaryTypeName",
-                  "src": "179:6:15",
+                  "src": "179:6:23",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint24",
                     "typeString": "uint24"
@@ -905,13 +905,13 @@
               },
               {
                 "constant": false,
-                "id": 2252,
+                "id": 2688,
                 "mutability": "mutable",
                 "name": "insuranceFundFeeRatio",
-                "nameLocation": "218:21:15",
+                "nameLocation": "218:21:23",
                 "nodeType": "VariableDeclaration",
-                "scope": 2253,
-                "src": "211:28:15",
+                "scope": 2689,
+                "src": "211:28:23",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
@@ -919,10 +919,10 @@
                   "typeString": "uint24"
                 },
                 "typeName": {
-                  "id": 2251,
+                  "id": 2687,
                   "name": "uint24",
                   "nodeType": "ElementaryTypeName",
-                  "src": "211:6:15",
+                  "src": "211:6:23",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint24",
                     "typeString": "uint24"
@@ -932,39 +932,39 @@
               }
             ],
             "name": "MarketInfo",
-            "nameLocation": "103:10:15",
-            "scope": 2371,
+            "nameLocation": "103:10:23",
+            "scope": 2807,
             "visibility": "public"
           },
           {
-            "id": 2262,
+            "id": 2698,
             "nodeType": "EventDefinition",
-            "src": "453:90:15",
+            "src": "453:90:23",
             "nodes": [],
             "anonymous": false,
             "documentation": {
-              "id": 2254,
+              "id": 2690,
               "nodeType": "StructuredDocumentation",
-              "src": "252:196:15",
+              "src": "252:196:23",
               "text": "@notice Emitted when a new market is created.\n @param baseToken The address of the base token\n @param feeRatio Fee ratio of the market\n @param pool The address of the pool"
             },
             "eventSelector": "8b17db32f8ec22477a8f9475d5b92052ef2ce8c6c73ad79be1eb297a8fdd2ff1",
             "name": "PoolAdded",
-            "nameLocation": "459:9:15",
+            "nameLocation": "459:9:23",
             "parameters": {
-              "id": 2261,
+              "id": 2697,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2256,
+                  "id": 2692,
                   "indexed": true,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "485:9:15",
+                  "nameLocation": "485:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2262,
-                  "src": "469:25:15",
+                  "scope": 2698,
+                  "src": "469:25:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -972,10 +972,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2255,
+                    "id": 2691,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "469:7:15",
+                    "src": "469:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -986,14 +986,14 @@
                 },
                 {
                   "constant": false,
-                  "id": 2258,
+                  "id": 2694,
                   "indexed": true,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "511:8:15",
+                  "nameLocation": "511:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2262,
-                  "src": "496:23:15",
+                  "scope": 2698,
+                  "src": "496:23:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1001,10 +1001,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2257,
+                    "id": 2693,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "496:6:15",
+                    "src": "496:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1014,14 +1014,14 @@
                 },
                 {
                   "constant": false,
-                  "id": 2260,
+                  "id": 2696,
                   "indexed": true,
                   "mutability": "mutable",
                   "name": "pool",
-                  "nameLocation": "537:4:15",
+                  "nameLocation": "537:4:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2262,
-                  "src": "521:20:15",
+                  "scope": 2698,
+                  "src": "521:20:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1029,10 +1029,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2259,
+                    "id": 2695,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "521:7:15",
+                    "src": "521:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1042,38 +1042,38 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "468:74:15"
+              "src": "468:74:23"
             }
           },
           {
-            "id": 2269,
+            "id": 2705,
             "nodeType": "EventDefinition",
-            "src": "719:58:15",
+            "src": "719:58:23",
             "nodes": [],
             "anonymous": false,
             "documentation": {
-              "id": 2263,
+              "id": 2699,
               "nodeType": "StructuredDocumentation",
-              "src": "549:165:15",
+              "src": "549:165:23",
               "text": "@notice Emitted when the fee ratio of a market is updated.\n @param baseToken The address of the base token\n @param feeRatio Fee ratio of the market"
             },
             "eventSelector": "8129297a1a8d252870739804c1d9cdbc86121230ce172c23ec11a940ccab01ef",
             "name": "FeeRatioChanged",
-            "nameLocation": "725:15:15",
+            "nameLocation": "725:15:23",
             "parameters": {
-              "id": 2268,
+              "id": 2704,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2265,
+                  "id": 2701,
                   "indexed": false,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "749:9:15",
+                  "nameLocation": "749:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2269,
-                  "src": "741:17:15",
+                  "scope": 2705,
+                  "src": "741:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1081,10 +1081,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2264,
+                    "id": 2700,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "741:7:15",
+                    "src": "741:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1095,14 +1095,14 @@
                 },
                 {
                   "constant": false,
-                  "id": 2267,
+                  "id": 2703,
                   "indexed": false,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "767:8:15",
+                  "nameLocation": "767:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2269,
-                  "src": "760:15:15",
+                  "scope": 2705,
+                  "src": "760:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1110,10 +1110,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2266,
+                    "id": 2702,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "760:6:15",
+                    "src": "760:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1122,38 +1122,38 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "740:36:15"
+              "src": "740:36:23"
             }
           },
           {
-            "id": 2274,
+            "id": 2710,
             "nodeType": "EventDefinition",
-            "src": "902:52:15",
+            "src": "902:52:23",
             "nodes": [],
             "anonymous": false,
             "documentation": {
-              "id": 2270,
+              "id": 2706,
               "nodeType": "StructuredDocumentation",
-              "src": "783:114:15",
+              "src": "783:114:23",
               "text": "@notice Emitted when the insurance fund fee ratio is updated.\n @param feeRatio Insurance fund fee ratio"
             },
             "eventSelector": "0b4bf524b123dd9f9252f2f17e6f842313eb705045a2259faccd2530bae3ff5c",
             "name": "InsuranceFundFeeRatioChanged",
-            "nameLocation": "908:28:15",
+            "nameLocation": "908:28:23",
             "parameters": {
-              "id": 2273,
+              "id": 2709,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2272,
+                  "id": 2708,
                   "indexed": false,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "944:8:15",
+                  "nameLocation": "944:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2274,
-                  "src": "937:15:15",
+                  "scope": 2710,
+                  "src": "937:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1161,10 +1161,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2271,
+                    "id": 2707,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "937:6:15",
+                    "src": "937:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1173,38 +1173,38 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "936:17:15"
+              "src": "936:17:23"
             }
           },
           {
-            "id": 2279,
+            "id": 2715,
             "nodeType": "EventDefinition",
-            "src": "1083:58:15",
+            "src": "1083:58:23",
             "nodes": [],
             "anonymous": false,
             "documentation": {
-              "id": 2275,
+              "id": 2711,
               "nodeType": "StructuredDocumentation",
-              "src": "960:118:15",
+              "src": "960:118:23",
               "text": "@notice Emitted when the max orders per market is updated.\n @param maxOrdersPerMarket Max orders per market"
             },
             "eventSelector": "f3d121ca0d4fa5acf57cf8a09acedf5326b6ca02f25764d2a05a4dba8e4a777e",
             "name": "MaxOrdersPerMarketChanged",
-            "nameLocation": "1089:25:15",
+            "nameLocation": "1089:25:23",
             "parameters": {
-              "id": 2278,
+              "id": 2714,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2277,
+                  "id": 2713,
                   "indexed": false,
                   "mutability": "mutable",
                   "name": "maxOrdersPerMarket",
-                  "nameLocation": "1121:18:15",
+                  "nameLocation": "1121:18:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2279,
-                  "src": "1115:24:15",
+                  "scope": 2715,
+                  "src": "1115:24:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1212,10 +1212,10 @@
                     "typeString": "uint8"
                   },
                   "typeName": {
-                    "id": 2276,
+                    "id": 2712,
                     "name": "uint8",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1115:5:15",
+                    "src": "1115:5:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint8",
                       "typeString": "uint8"
@@ -1224,18 +1224,18 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1114:26:15"
+              "src": "1114:26:23"
             }
           },
           {
-            "id": 2289,
+            "id": 2725,
             "nodeType": "FunctionDefinition",
-            "src": "1347:85:15",
+            "src": "1347:85:23",
             "nodes": [],
             "documentation": {
-              "id": 2280,
+              "id": 2716,
               "nodeType": "StructuredDocumentation",
-              "src": "1147:195:15",
+              "src": "1147:195:23",
               "text": "@dev Add a new pool to the registry.\n @param baseToken The token that the pool is for.\n @param feeRatio The fee ratio for the pool.\n @return pool The address of the pool."
             },
             "functionSelector": "c7bf4434",
@@ -1243,20 +1243,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "addPool",
-            "nameLocation": "1356:7:15",
+            "nameLocation": "1356:7:23",
             "parameters": {
-              "id": 2285,
+              "id": 2721,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2282,
+                  "id": 2718,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "1372:9:15",
+                  "nameLocation": "1372:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2289,
-                  "src": "1364:17:15",
+                  "scope": 2725,
+                  "src": "1364:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1264,10 +1264,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2281,
+                    "id": 2717,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1364:7:15",
+                    "src": "1364:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1278,13 +1278,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2284,
+                  "id": 2720,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "1390:8:15",
+                  "nameLocation": "1390:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2289,
-                  "src": "1383:15:15",
+                  "scope": 2725,
+                  "src": "1383:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1292,10 +1292,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2283,
+                    "id": 2719,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1383:6:15",
+                    "src": "1383:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1304,21 +1304,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1363:36:15"
+              "src": "1363:36:23"
             },
             "returnParameters": {
-              "id": 2288,
+              "id": 2724,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2287,
+                  "id": 2723,
                   "mutability": "mutable",
                   "name": "pool",
-                  "nameLocation": "1426:4:15",
+                  "nameLocation": "1426:4:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2289,
-                  "src": "1418:12:15",
+                  "scope": 2725,
+                  "src": "1418:12:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1326,10 +1326,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2286,
+                    "id": 2722,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1418:7:15",
+                    "src": "1418:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1339,22 +1339,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1417:14:15"
+              "src": "1417:14:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2297,
+            "id": 2733,
             "nodeType": "FunctionDefinition",
-            "src": "1588:66:15",
+            "src": "1588:66:23",
             "nodes": [],
             "documentation": {
-              "id": 2290,
+              "id": 2726,
               "nodeType": "StructuredDocumentation",
-              "src": "1438:145:15",
+              "src": "1438:145:23",
               "text": "@dev Set the fee ratio for a pool\n @param baseToken The token address of the pool.\n @param feeRatio The fee ratio for the pool."
             },
             "functionSelector": "bb235d11",
@@ -1362,20 +1362,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "setFeeRatio",
-            "nameLocation": "1597:11:15",
+            "nameLocation": "1597:11:23",
             "parameters": {
-              "id": 2295,
+              "id": 2731,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2292,
+                  "id": 2728,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "1617:9:15",
+                  "nameLocation": "1617:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2297,
-                  "src": "1609:17:15",
+                  "scope": 2733,
+                  "src": "1609:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1383,10 +1383,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2291,
+                    "id": 2727,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1609:7:15",
+                    "src": "1609:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1397,13 +1397,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2294,
+                  "id": 2730,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "1635:8:15",
+                  "nameLocation": "1635:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2297,
-                  "src": "1628:15:15",
+                  "scope": 2733,
+                  "src": "1628:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1411,10 +1411,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2293,
+                    "id": 2729,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1628:6:15",
+                    "src": "1628:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1423,28 +1423,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1608:36:15"
+              "src": "1608:36:23"
             },
             "returnParameters": {
-              "id": 2296,
+              "id": 2732,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1653:0:15"
+              "src": "1653:0:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2305,
+            "id": 2741,
             "nodeType": "FunctionDefinition",
-            "src": "1837:95:15",
+            "src": "1837:95:23",
             "nodes": [],
             "documentation": {
-              "id": 2298,
+              "id": 2734,
               "nodeType": "StructuredDocumentation",
-              "src": "1660:172:15",
+              "src": "1660:172:23",
               "text": "@dev Set insurance fund fee ratio for a pool\n @param baseToken The token address of the pool.\n @param insuranceFundFeeRatioArg The fee ratio for the pool."
             },
             "functionSelector": "3feb4212",
@@ -1452,20 +1452,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "setInsuranceFundFeeRatio",
-            "nameLocation": "1846:24:15",
+            "nameLocation": "1846:24:23",
             "parameters": {
-              "id": 2303,
+              "id": 2739,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2300,
+                  "id": 2736,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "1879:9:15",
+                  "nameLocation": "1879:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2305,
-                  "src": "1871:17:15",
+                  "scope": 2741,
+                  "src": "1871:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1473,10 +1473,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2299,
+                    "id": 2735,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1871:7:15",
+                    "src": "1871:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1487,13 +1487,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2302,
+                  "id": 2738,
                   "mutability": "mutable",
                   "name": "insuranceFundFeeRatioArg",
-                  "nameLocation": "1897:24:15",
+                  "nameLocation": "1897:24:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2305,
-                  "src": "1890:31:15",
+                  "scope": 2741,
+                  "src": "1890:31:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1501,10 +1501,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2301,
+                    "id": 2737,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1890:6:15",
+                    "src": "1890:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1513,28 +1513,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1870:52:15"
+              "src": "1870:52:23"
             },
             "returnParameters": {
-              "id": 2304,
+              "id": 2740,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1931:0:15"
+              "src": "1931:0:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2311,
+            "id": 2747,
             "nodeType": "FunctionDefinition",
-            "src": "2056:69:15",
+            "src": "2056:69:23",
             "nodes": [],
             "documentation": {
-              "id": 2306,
+              "id": 2742,
               "nodeType": "StructuredDocumentation",
-              "src": "1938:113:15",
+              "src": "1938:113:23",
               "text": "@dev Set max allowed orders per market\n @param maxOrdersPerMarketArg The max allowed orders per market"
             },
             "functionSelector": "831f72b4",
@@ -1542,20 +1542,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "setMaxOrdersPerMarket",
-            "nameLocation": "2065:21:15",
+            "nameLocation": "2065:21:23",
             "parameters": {
-              "id": 2309,
+              "id": 2745,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2308,
+                  "id": 2744,
                   "mutability": "mutable",
                   "name": "maxOrdersPerMarketArg",
-                  "nameLocation": "2093:21:15",
+                  "nameLocation": "2093:21:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2311,
-                  "src": "2087:27:15",
+                  "scope": 2747,
+                  "src": "2087:27:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1563,10 +1563,10 @@
                     "typeString": "uint8"
                   },
                   "typeName": {
-                    "id": 2307,
+                    "id": 2743,
                     "name": "uint8",
                     "nodeType": "ElementaryTypeName",
-                    "src": "2087:5:15",
+                    "src": "2087:5:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint8",
                       "typeString": "uint8"
@@ -1575,28 +1575,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "2086:29:15"
+              "src": "2086:29:23"
             },
             "returnParameters": {
-              "id": 2310,
+              "id": 2746,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "2124:0:15"
+              "src": "2124:0:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2319,
+            "id": 2755,
             "nodeType": "FunctionDefinition",
-            "src": "2309:73:15",
+            "src": "2309:73:23",
             "nodes": [],
             "documentation": {
-              "id": 2312,
+              "id": 2748,
               "nodeType": "StructuredDocumentation",
-              "src": "2131:173:15",
+              "src": "2131:173:23",
               "text": "@notice Get the pool address (UNIv3 pool) by given base token address\n @param baseToken The address of the base token\n @return pool The address of the pool"
             },
             "functionSelector": "bbe4f6db",
@@ -1604,20 +1604,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "getPool",
-            "nameLocation": "2318:7:15",
+            "nameLocation": "2318:7:23",
             "parameters": {
-              "id": 2315,
+              "id": 2751,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2314,
+                  "id": 2750,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "2334:9:15",
+                  "nameLocation": "2334:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2319,
-                  "src": "2326:17:15",
+                  "scope": 2755,
+                  "src": "2326:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1625,10 +1625,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2313,
+                    "id": 2749,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "2326:7:15",
+                    "src": "2326:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1638,21 +1638,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "2325:19:15"
+              "src": "2325:19:23"
             },
             "returnParameters": {
-              "id": 2318,
+              "id": 2754,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2317,
+                  "id": 2753,
                   "mutability": "mutable",
                   "name": "pool",
-                  "nameLocation": "2376:4:15",
+                  "nameLocation": "2376:4:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2319,
-                  "src": "2368:12:15",
+                  "scope": 2755,
+                  "src": "2368:12:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1660,10 +1660,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2316,
+                    "id": 2752,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "2368:7:15",
+                    "src": "2368:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1673,22 +1673,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "2367:14:15"
+              "src": "2367:14:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2327,
+            "id": 2763,
             "nodeType": "FunctionDefinition",
-            "src": "2639:80:15",
+            "src": "2639:80:23",
             "nodes": [],
             "documentation": {
-              "id": 2320,
+              "id": 2756,
               "nodeType": "StructuredDocumentation",
-              "src": "2388:246:15",
+              "src": "2388:246:23",
               "text": "@notice Get the fee ratio of a given market\n @dev The ratio is in `1e6` format, that means `1% = 1e4`\n @param baseToken The address of the base token\n @return feeRatio The fee ratio of the market, it is a decimal in `1e6`"
             },
             "functionSelector": "edd0b5cb",
@@ -1696,20 +1696,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "getFeeRatio",
-            "nameLocation": "2648:11:15",
+            "nameLocation": "2648:11:23",
             "parameters": {
-              "id": 2323,
+              "id": 2759,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2322,
+                  "id": 2758,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "2668:9:15",
+                  "nameLocation": "2668:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2327,
-                  "src": "2660:17:15",
+                  "scope": 2763,
+                  "src": "2660:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1717,10 +1717,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2321,
+                    "id": 2757,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "2660:7:15",
+                    "src": "2660:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1730,21 +1730,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "2659:19:15"
+              "src": "2659:19:23"
             },
             "returnParameters": {
-              "id": 2326,
+              "id": 2762,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2325,
+                  "id": 2761,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "2709:8:15",
+                  "nameLocation": "2709:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2327,
-                  "src": "2702:15:15",
+                  "scope": 2763,
+                  "src": "2702:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1752,10 +1752,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2324,
+                    "id": 2760,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "2702:6:15",
+                    "src": "2702:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1764,22 +1764,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "2701:17:15"
+              "src": "2701:17:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2335,
+            "id": 2771,
             "nodeType": "FunctionDefinition",
-            "src": "2991:93:15",
+            "src": "2991:93:23",
             "nodes": [],
             "documentation": {
-              "id": 2328,
+              "id": 2764,
               "nodeType": "StructuredDocumentation",
-              "src": "2725:261:15",
+              "src": "2725:261:23",
               "text": "@notice Get the insurance fund fee ratio of a given market\n @dev The ratio is in `1e6` format, that means `1% = 1e4`\n @param baseToken The address of the base token\n @return feeRatio The fee ratio of the market, it is a decimal in `1e6`"
             },
             "functionSelector": "08ff49ad",
@@ -1787,20 +1787,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "getInsuranceFundFeeRatio",
-            "nameLocation": "3000:24:15",
+            "nameLocation": "3000:24:23",
             "parameters": {
-              "id": 2331,
+              "id": 2767,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2330,
+                  "id": 2766,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "3033:9:15",
+                  "nameLocation": "3033:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2335,
-                  "src": "3025:17:15",
+                  "scope": 2771,
+                  "src": "3025:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1808,10 +1808,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2329,
+                    "id": 2765,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "3025:7:15",
+                    "src": "3025:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1821,21 +1821,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "3024:19:15"
+              "src": "3024:19:23"
             },
             "returnParameters": {
-              "id": 2334,
+              "id": 2770,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2333,
+                  "id": 2769,
                   "mutability": "mutable",
                   "name": "feeRatio",
-                  "nameLocation": "3074:8:15",
+                  "nameLocation": "3074:8:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2335,
-                  "src": "3067:15:15",
+                  "scope": 2771,
+                  "src": "3067:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1843,10 +1843,10 @@
                     "typeString": "uint24"
                   },
                   "typeName": {
-                    "id": 2332,
+                    "id": 2768,
                     "name": "uint24",
                     "nodeType": "ElementaryTypeName",
-                    "src": "3067:6:15",
+                    "src": "3067:6:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint24",
                       "typeString": "uint24"
@@ -1855,22 +1855,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "3066:17:15"
+              "src": "3066:17:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2344,
+            "id": 2780,
             "nodeType": "FunctionDefinition",
-            "src": "3270:89:15",
+            "src": "3270:89:23",
             "nodes": [],
             "documentation": {
-              "id": 2336,
+              "id": 2772,
               "nodeType": "StructuredDocumentation",
-              "src": "3090:175:15",
+              "src": "3090:175:23",
               "text": "@notice Get the market info by given base token address\n @param baseToken The address of the base token\n @return info The market info encoded as `MarketInfo`"
             },
             "functionSelector": "0cf85bcc",
@@ -1878,20 +1878,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "getMarketInfo",
-            "nameLocation": "3279:13:15",
+            "nameLocation": "3279:13:23",
             "parameters": {
-              "id": 2339,
+              "id": 2775,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2338,
+                  "id": 2774,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "3301:9:15",
+                  "nameLocation": "3301:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2344,
-                  "src": "3293:17:15",
+                  "scope": 2780,
+                  "src": "3293:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1899,10 +1899,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2337,
+                    "id": 2773,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "3293:7:15",
+                    "src": "3293:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1912,66 +1912,66 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "3292:19:15"
+              "src": "3292:19:23"
             },
             "returnParameters": {
-              "id": 2343,
+              "id": 2779,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2342,
+                  "id": 2778,
                   "mutability": "mutable",
                   "name": "info",
-                  "nameLocation": "3353:4:15",
+                  "nameLocation": "3353:4:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2344,
-                  "src": "3335:22:15",
+                  "scope": 2780,
+                  "src": "3335:22:23",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_MarketInfo_$2253_memory_ptr",
+                    "typeIdentifier": "t_struct$_MarketInfo_$2689_memory_ptr",
                     "typeString": "struct IMarketRegistry.MarketInfo"
                   },
                   "typeName": {
-                    "id": 2341,
+                    "id": 2777,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 2340,
+                      "id": 2776,
                       "name": "MarketInfo",
                       "nameLocations": [
-                        "3335:10:15"
+                        "3335:10:23"
                       ],
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 2253,
-                      "src": "3335:10:15"
+                      "referencedDeclaration": 2689,
+                      "src": "3335:10:23"
                     },
-                    "referencedDeclaration": 2253,
-                    "src": "3335:10:15",
+                    "referencedDeclaration": 2689,
+                    "src": "3335:10:23",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_MarketInfo_$2253_storage_ptr",
+                      "typeIdentifier": "t_struct$_MarketInfo_$2689_storage_ptr",
                       "typeString": "struct IMarketRegistry.MarketInfo"
                     }
                   },
                   "visibility": "internal"
                 }
               ],
-              "src": "3334:24:15"
+              "src": "3334:24:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2350,
+            "id": 2786,
             "nodeType": "FunctionDefinition",
-            "src": "3467:68:15",
+            "src": "3467:68:23",
             "nodes": [],
             "documentation": {
-              "id": 2345,
+              "id": 2781,
               "nodeType": "StructuredDocumentation",
-              "src": "3365:97:15",
+              "src": "3365:97:23",
               "text": "@notice Get the quote token address\n @return quoteToken The address of the quote token"
             },
             "functionSelector": "4a64d67d",
@@ -1979,26 +1979,26 @@
             "kind": "function",
             "modifiers": [],
             "name": "getQuoteToken",
-            "nameLocation": "3476:13:15",
+            "nameLocation": "3476:13:23",
             "parameters": {
-              "id": 2346,
+              "id": 2782,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "3489:2:15"
+              "src": "3489:2:23"
             },
             "returnParameters": {
-              "id": 2349,
+              "id": 2785,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2348,
+                  "id": 2784,
                   "mutability": "mutable",
                   "name": "quoteToken",
-                  "nameLocation": "3523:10:15",
+                  "nameLocation": "3523:10:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2350,
-                  "src": "3515:18:15",
+                  "scope": 2786,
+                  "src": "3515:18:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -2006,10 +2006,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2347,
+                    "id": 2783,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "3515:7:15",
+                    "src": "3515:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -2019,22 +2019,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "3514:20:15"
+              "src": "3514:20:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2356,
+            "id": 2792,
             "nodeType": "FunctionDefinition",
-            "src": "3644:71:15",
+            "src": "3644:71:23",
             "nodes": [],
             "documentation": {
-              "id": 2351,
+              "id": 2787,
               "nodeType": "StructuredDocumentation",
-              "src": "3541:98:15",
+              "src": "3541:98:23",
               "text": "@notice Get Uniswap factory address\n @return factory The address of the Uniswap factory"
             },
             "functionSelector": "b081983b",
@@ -2042,26 +2042,26 @@
             "kind": "function",
             "modifiers": [],
             "name": "getUniswapV3Factory",
-            "nameLocation": "3653:19:15",
+            "nameLocation": "3653:19:23",
             "parameters": {
-              "id": 2352,
+              "id": 2788,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "3672:2:15"
+              "src": "3672:2:23"
             },
             "returnParameters": {
-              "id": 2355,
+              "id": 2791,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2354,
+                  "id": 2790,
                   "mutability": "mutable",
                   "name": "factory",
-                  "nameLocation": "3706:7:15",
+                  "nameLocation": "3706:7:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2356,
-                  "src": "3698:15:15",
+                  "scope": 2792,
+                  "src": "3698:15:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -2069,10 +2069,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2353,
+                    "id": 2789,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "3698:7:15",
+                    "src": "3698:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -2082,22 +2082,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "3697:17:15"
+              "src": "3697:17:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2362,
+            "id": 2798,
             "nodeType": "FunctionDefinition",
-            "src": "3840:82:15",
+            "src": "3840:82:23",
             "nodes": [],
             "documentation": {
-              "id": 2357,
+              "id": 2793,
               "nodeType": "StructuredDocumentation",
-              "src": "3721:114:15",
+              "src": "3721:114:23",
               "text": "@notice Get max allowed orders per market\n @return maxOrdersPerMarket The max allowed orders per market"
             },
             "functionSelector": "ece090c4",
@@ -2105,26 +2105,26 @@
             "kind": "function",
             "modifiers": [],
             "name": "getMaxOrdersPerMarket",
-            "nameLocation": "3849:21:15",
+            "nameLocation": "3849:21:23",
             "parameters": {
-              "id": 2358,
+              "id": 2794,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "3870:2:15"
+              "src": "3870:2:23"
             },
             "returnParameters": {
-              "id": 2361,
+              "id": 2797,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2360,
+                  "id": 2796,
                   "mutability": "mutable",
                   "name": "maxOrdersPerMarket",
-                  "nameLocation": "3902:18:15",
+                  "nameLocation": "3902:18:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2362,
-                  "src": "3896:24:15",
+                  "scope": 2798,
+                  "src": "3896:24:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -2132,10 +2132,10 @@
                     "typeString": "uint8"
                   },
                   "typeName": {
-                    "id": 2359,
+                    "id": 2795,
                     "name": "uint8",
                     "nodeType": "ElementaryTypeName",
-                    "src": "3896:5:15",
+                    "src": "3896:5:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint8",
                       "typeString": "uint8"
@@ -2144,22 +2144,22 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "3895:26:15"
+              "src": "3895:26:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2370,
+            "id": 2806,
             "nodeType": "FunctionDefinition",
-            "src": "4058:65:15",
+            "src": "4058:65:23",
             "nodes": [],
             "documentation": {
-              "id": 2363,
+              "id": 2799,
               "nodeType": "StructuredDocumentation",
-              "src": "3928:125:15",
+              "src": "3928:125:23",
               "text": "@notice Check if a pool exist by given base token address\n @return hasPool True if the pool exist, false otherwise"
             },
             "functionSelector": "1246dbf5",
@@ -2167,20 +2167,20 @@
             "kind": "function",
             "modifiers": [],
             "name": "hasPool",
-            "nameLocation": "4067:7:15",
+            "nameLocation": "4067:7:23",
             "parameters": {
-              "id": 2366,
+              "id": 2802,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2365,
+                  "id": 2801,
                   "mutability": "mutable",
                   "name": "baseToken",
-                  "nameLocation": "4083:9:15",
+                  "nameLocation": "4083:9:23",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2370,
-                  "src": "4075:17:15",
+                  "scope": 2806,
+                  "src": "4075:17:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -2188,10 +2188,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2364,
+                    "id": 2800,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "4075:7:15",
+                    "src": "4075:7:23",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -2201,21 +2201,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "4074:19:15"
+              "src": "4074:19:23"
             },
             "returnParameters": {
-              "id": 2369,
+              "id": 2805,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2368,
+                  "id": 2804,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2370,
-                  "src": "4117:4:15",
+                  "scope": 2806,
+                  "src": "4117:4:23",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -2223,10 +2223,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 2367,
+                    "id": 2803,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "4117:4:15",
+                    "src": "4117:4:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -2235,9 +2235,9 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "4116:6:15"
+              "src": "4116:6:23"
             },
-            "scope": 2371,
+            "scope": 2807,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -2250,15 +2250,15 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          2371
+          2807
         ],
         "name": "IMarketRegistry",
-        "nameLocation": "74:15:15",
-        "scope": 2372,
+        "nameLocation": "74:15:23",
+        "scope": 2808,
         "usedErrors": []
       }
     ],
     "license": "UNLICENSED"
   },
-  "id": 15
+  "id": 23
 }

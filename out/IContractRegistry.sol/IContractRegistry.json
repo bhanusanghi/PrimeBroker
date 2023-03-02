@@ -66,7 +66,7 @@
     "getContractByName(bytes32)": "95610926",
     "removeContractFromRegistry(bytes32)": "3d108f8d"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"}],\"name\":\"addContractToRegistry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"}],\"name\":\"getContractByName\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"}],\"name\":\"removeContractFromRegistry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IContractRegistry.sol\":\"IContractRegistry\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IContractRegistry.sol\":{\"keccak256\":\"0x7db60c2f2ddcbcf2d8111036f5aebbe9c989e6cb8c06f4a0bcc150992d72c591\",\"urls\":[\"bzz-raw://855a8b661954ccbb7006a5ab4e8d12ebce2d6be218128154bc449e2014693965\",\"dweb:/ipfs/QmVv4nLdT3eW9w5bgASbcMLqziMJqzGWaSQAi39UkbBEXm\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"}],\"name\":\"addContractToRegistry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"}],\"name\":\"getContractByName\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"}],\"name\":\"removeContractFromRegistry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IContractRegistry.sol\":\"IContractRegistry\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IContractRegistry.sol\":{\"keccak256\":\"0x7db60c2f2ddcbcf2d8111036f5aebbe9c989e6cb8c06f4a0bcc150992d72c591\",\"urls\":[\"bzz-raw://855a8b661954ccbb7006a5ab4e8d12ebce2d6be218128154bc449e2014693965\",\"dweb:/ipfs/QmVv4nLdT3eW9w5bgASbcMLqziMJqzGWaSQAi39UkbBEXm\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -148,7 +148,7 @@
         ":hardhat/=node_modules/hardhat/"
       ],
       "optimizer": {
-        "enabled": true,
+        "enabled": false,
         "runs": 200
       },
       "metadata": {
@@ -173,17 +173,17 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/IContractRegistry.sol",
-    "id": 994,
+    "id": 1183,
     "exportedSymbols": {
       "IContractRegistry": [
-        993
+        1182
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:356:8",
     "nodes": [
       {
-        "id": 973,
+        "id": 1162,
         "nodeType": "PragmaDirective",
         "src": "0:24:8",
         "nodes": [],
@@ -195,12 +195,12 @@
         ]
       },
       {
-        "id": 993,
+        "id": 1182,
         "nodeType": "ContractDefinition",
         "src": "26:329:8",
         "nodes": [
           {
-            "id": 980,
+            "id": 1169,
             "nodeType": "FunctionDefinition",
             "src": "60:109:8",
             "nodes": [],
@@ -211,17 +211,17 @@
             "name": "addContractToRegistry",
             "nameLocation": "69:21:8",
             "parameters": {
-              "id": 978,
+              "id": 1167,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 975,
+                  "id": 1164,
                   "mutability": "mutable",
                   "name": "contractName",
                   "nameLocation": "108:12:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 980,
+                  "scope": 1169,
                   "src": "100:20:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -230,7 +230,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 974,
+                    "id": 1163,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "100:7:8",
@@ -243,12 +243,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 977,
+                  "id": 1166,
                   "mutability": "mutable",
                   "name": "contractAddress",
                   "nameLocation": "138:15:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 980,
+                  "scope": 1169,
                   "src": "130:23:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -257,7 +257,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 976,
+                    "id": 1165,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "130:7:8",
@@ -273,18 +273,18 @@
               "src": "90:69:8"
             },
             "returnParameters": {
-              "id": 979,
+              "id": 1168,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "168:0:8"
             },
-            "scope": 993,
+            "scope": 1182,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 985,
+            "id": 1174,
             "nodeType": "FunctionDefinition",
             "src": "175:67:8",
             "nodes": [],
@@ -295,17 +295,17 @@
             "name": "removeContractFromRegistry",
             "nameLocation": "184:26:8",
             "parameters": {
-              "id": 983,
+              "id": 1172,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 982,
+                  "id": 1171,
                   "mutability": "mutable",
                   "name": "contractName",
                   "nameLocation": "219:12:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 985,
+                  "scope": 1174,
                   "src": "211:20:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -314,7 +314,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 981,
+                    "id": 1170,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "211:7:8",
@@ -329,18 +329,18 @@
               "src": "210:22:8"
             },
             "returnParameters": {
-              "id": 984,
+              "id": 1173,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "241:0:8"
             },
-            "scope": 993,
+            "scope": 1182,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 992,
+            "id": 1181,
             "nodeType": "FunctionDefinition",
             "src": "248:105:8",
             "nodes": [],
@@ -351,17 +351,17 @@
             "name": "getContractByName",
             "nameLocation": "257:17:8",
             "parameters": {
-              "id": 988,
+              "id": 1177,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 987,
+                  "id": 1176,
                   "mutability": "mutable",
                   "name": "contractName",
                   "nameLocation": "283:12:8",
                   "nodeType": "VariableDeclaration",
-                  "scope": 992,
+                  "scope": 1181,
                   "src": "275:20:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -370,7 +370,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 986,
+                    "id": 1175,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "275:7:8",
@@ -385,17 +385,17 @@
               "src": "274:22:8"
             },
             "returnParameters": {
-              "id": 991,
+              "id": 1180,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 990,
+                  "id": 1179,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 992,
+                  "scope": 1181,
                   "src": "344:7:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -404,7 +404,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 989,
+                    "id": 1178,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "344:7:8",
@@ -419,7 +419,7 @@
               ],
               "src": "343:9:8"
             },
-            "scope": 993,
+            "scope": 1182,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -432,11 +432,11 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          993
+          1182
         ],
         "name": "IContractRegistry",
         "nameLocation": "36:17:8",
-        "scope": 994,
+        "scope": 1183,
         "usedErrors": []
       }
     ]

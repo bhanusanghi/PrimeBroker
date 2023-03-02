@@ -105,7 +105,6 @@ contract SNXRiskManager is IProtocolRiskManager {
 
     function getMarginDeltaAcrossMarkets(address marginAccount)
         internal
-        view
         returns (
             // override
             int256 marginDelta
@@ -118,11 +117,12 @@ contract SNXRiskManager is IProtocolRiskManager {
         ).getMarketsForRiskManager(address(this));
         for (uint256 i = 0; i < allMarkets.length; i++) {
             // This is in 18 decimal digits
-            // TODO - This is wrong. Remaining Margin includes pnl and accrued funding.
-
             (, , uint256 remainingMargin, , ) = IFuturesMarket(allMarkets[i])
                 .positions(marginAccount);
-
+            remainingMargin = remainingMargin.convertTokenDecimals(
+                _decimals,
+                vaultAssetDecimals
+            );
             // This is in 6 decimal digits.
             int256 initialMargin = IMarginAccount(marginAccount).marginInMarket(
                 allMarkets[i]
@@ -134,7 +134,6 @@ contract SNXRiskManager is IProtocolRiskManager {
     // ** returns in vault base asset decimal points
     function _getPositionPnLAcrossMarkets(address account)
         public
-        view
         returns (int256 pnl)
     {
         int256 funding;
@@ -163,7 +162,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         // @Bhanu TODO - move this funding pnl to unrealizedPnL
 
         // pnl = pnl.add(funding).convertTokenDecimals(
-        // pnl = pnl.convertTokenDecimals(_decimals, vaultAssetDecimals);
+        pnl = pnl.convertTokenDecimals(_decimals, vaultAssetDecimals);
     }
 
     // assumes all destinations refer to same market.
@@ -198,10 +197,10 @@ contract SNXRiskManager is IProtocolRiskManager {
                 // asset price is recvd with 18 decimals.
                 (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
                     .assetPrice();
-                require(
-                    !isInvalid,
-                    "Error fetching asset price from third party protocol"
-                );
+                // require(
+                //     !isInvalid,
+                //     "Error fetching asset price from third party protocol"
+                // );
                 position.openNotional = position.openNotional.add(
                     (positionDelta * int256(assetPrice)) / 1 ether
                 );
@@ -221,17 +220,15 @@ contract SNXRiskManager is IProtocolRiskManager {
     // Delta margin is realized PnL for SnX
     function getRealizedPnL(address marginAccount)
         external
-        view
         override
         returns (int256)
     {
         return getMarginDeltaAcrossMarkets(marginAccount);
     }
 
-    // returns value in 18 decimals
+    // returns value in vault decimals
     function _getAccruedFundingAcrossMarkets(address marginAccount)
         internal
-        view
         returns (int256 totalAccruedFunding)
     {
         address[] memory allMarkets = IMarketManager(
@@ -243,19 +240,20 @@ contract SNXRiskManager is IProtocolRiskManager {
             (int256 _funding, bool isValid) = market.accruedFunding(
                 marginAccount
             );
-            require(isValid, "PRM: Could not fetch accrued funding from SNX");
+            // require(isValid, "PRM: Could not fetch accrued funding from SNX");
             totalAccruedFunding += _funding;
         }
-        // totalAccruedFunding = totalAccruedFunding.convertTokenDecimals(
-        //     _decimals,
-        //     vaultAssetDecimals
-        // );
+        totalAccruedFunding = totalAccruedFunding.convertTokenDecimals(
+            _decimals,
+            vaultAssetDecimals
+        );
+        console.log("accruedFunding");
+        console.logInt(totalAccruedFunding);
     }
 
-    // returns value in 18 decimals
+    // returns value in vault decimals
     function getUnrealizedPnL(address marginAccount)
         external
-        view
         override
         returns (int256 unrealizedPnL)
     {

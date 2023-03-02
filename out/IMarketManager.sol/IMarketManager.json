@@ -162,7 +162,7 @@
     "removeMarket(bytes32)": "5c5212dd",
     "updateMarket(bytes32,address,address)": "a21a5e65"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_market\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_riskManager\",\"type\":\"address\"}],\"name\":\"addMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAllMarketNames\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_riskManager\",\"type\":\"address\"}],\"name\":\"getMarketsForRiskManager\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"}],\"name\":\"getProtocolAddressByMarketName\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUniqueMarketAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUniqueRiskManagers\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"}],\"name\":\"removeMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_market\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_riskManager\",\"type\":\"address\"}],\"name\":\"updateMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IMarketManager.sol\":\"IMarketManager\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IMarketManager.sol\":{\"keccak256\":\"0x232e7ffdbb6aa11056da14a7f749e67f45526f7e3c6bf7c03aec20b7eb6c208b\",\"urls\":[\"bzz-raw://14dbfcd56267fa8e91dcbb69a1d1f9221bfd17b5d18e275e52913397351127f3\",\"dweb:/ipfs/QmNZvGp6DKqvFyRigEvWp1kXszUb1PPcJ1JwJ9v9jRqsrS\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_market\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_riskManager\",\"type\":\"address\"}],\"name\":\"addMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAllMarketNames\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_riskManager\",\"type\":\"address\"}],\"name\":\"getMarketsForRiskManager\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"}],\"name\":\"getProtocolAddressByMarketName\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUniqueMarketAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUniqueRiskManagers\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"}],\"name\":\"removeMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"marketName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_market\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_riskManager\",\"type\":\"address\"}],\"name\":\"updateMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Interfaces/IMarketManager.sol\":\"IMarketManager\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@chainlink/=node_modules/@chainlink/\",\":@ensdomains/=node_modules/@ensdomains/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@perp/=node_modules/@perp/\",\":@uniswap/=node_modules/@uniswap/\",\":base64-sol/=node_modules/base64-sol/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=lib/forge-std/src/\",\":hardhat/=node_modules/hardhat/\"]},\"sources\":{\"contracts/Interfaces/IMarketManager.sol\":{\"keccak256\":\"0x232e7ffdbb6aa11056da14a7f749e67f45526f7e3c6bf7c03aec20b7eb6c208b\",\"urls\":[\"bzz-raw://14dbfcd56267fa8e91dcbb69a1d1f9221bfd17b5d18e275e52913397351127f3\",\"dweb:/ipfs/QmNZvGp6DKqvFyRigEvWp1kXszUb1PPcJ1JwJ9v9jRqsrS\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -334,7 +334,7 @@
         ":hardhat/=node_modules/hardhat/"
       ],
       "optimizer": {
-        "enabled": true,
+        "enabled": false,
         "runs": 200
       },
       "metadata": {
@@ -359,17 +359,17 @@
   },
   "ast": {
     "absolutePath": "contracts/Interfaces/IMarketManager.sol",
-    "id": 1145,
+    "id": 1459,
     "exportedSymbols": {
       "IMarketManager": [
-        1144
+        1458
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:876:13",
     "nodes": [
       {
-        "id": 1085,
+        "id": 1399,
         "nodeType": "PragmaDirective",
         "src": "0:24:13",
         "nodes": [],
@@ -381,12 +381,12 @@
         ]
       },
       {
-        "id": 1144,
+        "id": 1458,
         "nodeType": "ContractDefinition",
         "src": "26:849:13",
         "nodes": [
           {
-            "id": 1094,
+            "id": 1408,
             "nodeType": "FunctionDefinition",
             "src": "57:117:13",
             "nodes": [],
@@ -397,17 +397,17 @@
             "name": "addMarket",
             "nameLocation": "66:9:13",
             "parameters": {
-              "id": 1092,
+              "id": 1406,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1087,
+                  "id": 1401,
                   "mutability": "mutable",
                   "name": "marketName",
                   "nameLocation": "93:10:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1094,
+                  "scope": 1408,
                   "src": "85:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -416,7 +416,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1086,
+                    "id": 1400,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "85:7:13",
@@ -429,12 +429,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1089,
+                  "id": 1403,
                   "mutability": "mutable",
                   "name": "_market",
                   "nameLocation": "121:7:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1094,
+                  "scope": 1408,
                   "src": "113:15:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -443,7 +443,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1088,
+                    "id": 1402,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "113:7:13",
@@ -457,12 +457,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1091,
+                  "id": 1405,
                   "mutability": "mutable",
                   "name": "_riskManager",
                   "nameLocation": "146:12:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1094,
+                  "scope": 1408,
                   "src": "138:20:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -471,7 +471,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1090,
+                    "id": 1404,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "138:7:13",
@@ -487,18 +487,18 @@
               "src": "75:89:13"
             },
             "returnParameters": {
-              "id": 1093,
+              "id": 1407,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "173:0:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1103,
+            "id": 1417,
             "nodeType": "FunctionDefinition",
             "src": "180:120:13",
             "nodes": [],
@@ -509,17 +509,17 @@
             "name": "updateMarket",
             "nameLocation": "189:12:13",
             "parameters": {
-              "id": 1101,
+              "id": 1415,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1096,
+                  "id": 1410,
                   "mutability": "mutable",
                   "name": "marketName",
                   "nameLocation": "219:10:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1103,
+                  "scope": 1417,
                   "src": "211:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -528,7 +528,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1095,
+                    "id": 1409,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "211:7:13",
@@ -541,12 +541,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1098,
+                  "id": 1412,
                   "mutability": "mutable",
                   "name": "_market",
                   "nameLocation": "247:7:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1103,
+                  "scope": 1417,
                   "src": "239:15:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -555,7 +555,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1097,
+                    "id": 1411,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "239:7:13",
@@ -569,12 +569,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1100,
+                  "id": 1414,
                   "mutability": "mutable",
                   "name": "_riskManager",
                   "nameLocation": "272:12:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1103,
+                  "scope": 1417,
                   "src": "264:20:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -583,7 +583,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1099,
+                    "id": 1413,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "264:7:13",
@@ -599,18 +599,18 @@
               "src": "201:89:13"
             },
             "returnParameters": {
-              "id": 1102,
+              "id": 1416,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "299:0:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1109,
+            "id": 1423,
             "nodeType": "FunctionDefinition",
             "src": "306:69:13",
             "nodes": [],
@@ -621,23 +621,23 @@
             "name": "getUniqueRiskManagers",
             "nameLocation": "315:21:13",
             "parameters": {
-              "id": 1104,
+              "id": 1418,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "336:2:13"
             },
             "returnParameters": {
-              "id": 1108,
+              "id": 1422,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1107,
+                  "id": 1421,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1109,
+                  "scope": 1423,
                   "src": "357:16:13",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -647,7 +647,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 1105,
+                      "id": 1419,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "357:7:13",
@@ -657,7 +657,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 1106,
+                    "id": 1420,
                     "nodeType": "ArrayTypeName",
                     "src": "357:9:13",
                     "typeDescriptions": {
@@ -670,13 +670,13 @@
               ],
               "src": "356:18:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1114,
+            "id": 1428,
             "nodeType": "FunctionDefinition",
             "src": "381:51:13",
             "nodes": [],
@@ -687,17 +687,17 @@
             "name": "removeMarket",
             "nameLocation": "390:12:13",
             "parameters": {
-              "id": 1112,
+              "id": 1426,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1111,
+                  "id": 1425,
                   "mutability": "mutable",
                   "name": "marketName",
                   "nameLocation": "411:10:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1114,
+                  "scope": 1428,
                   "src": "403:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -706,7 +706,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1110,
+                    "id": 1424,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "403:7:13",
@@ -721,18 +721,18 @@
               "src": "402:20:13"
             },
             "returnParameters": {
-              "id": 1113,
+              "id": 1427,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "431:0:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1123,
+            "id": 1437,
             "nodeType": "FunctionDefinition",
             "src": "438:125:13",
             "nodes": [],
@@ -743,17 +743,17 @@
             "name": "getProtocolAddressByMarketName",
             "nameLocation": "447:30:13",
             "parameters": {
-              "id": 1117,
+              "id": 1431,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1116,
+                  "id": 1430,
                   "mutability": "mutable",
                   "name": "marketName",
                   "nameLocation": "486:10:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1123,
+                  "scope": 1437,
                   "src": "478:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -762,7 +762,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1115,
+                    "id": 1429,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "478:7:13",
@@ -777,17 +777,17 @@
               "src": "477:20:13"
             },
             "returnParameters": {
-              "id": 1122,
+              "id": 1436,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1119,
+                  "id": 1433,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1123,
+                  "scope": 1437,
                   "src": "545:7:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -796,7 +796,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1118,
+                    "id": 1432,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "545:7:13",
@@ -810,12 +810,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1121,
+                  "id": 1435,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1123,
+                  "scope": 1437,
                   "src": "554:7:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -824,7 +824,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1120,
+                    "id": 1434,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "554:7:13",
@@ -839,13 +839,13 @@
               ],
               "src": "544:18:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1129,
+            "id": 1443,
             "nodeType": "FunctionDefinition",
             "src": "569:101:13",
             "nodes": [],
@@ -856,23 +856,23 @@
             "name": "getUniqueMarketAddresses",
             "nameLocation": "578:24:13",
             "parameters": {
-              "id": 1124,
+              "id": 1438,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "602:2:13"
             },
             "returnParameters": {
-              "id": 1128,
+              "id": 1442,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1127,
+                  "id": 1441,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1129,
+                  "scope": 1443,
                   "src": "652:16:13",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -882,7 +882,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 1125,
+                      "id": 1439,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "652:7:13",
@@ -892,7 +892,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 1126,
+                    "id": 1440,
                     "nodeType": "ArrayTypeName",
                     "src": "652:9:13",
                     "typeDescriptions": {
@@ -905,13 +905,13 @@
               ],
               "src": "651:18:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1135,
+            "id": 1449,
             "nodeType": "FunctionDefinition",
             "src": "676:70:13",
             "nodes": [],
@@ -922,23 +922,23 @@
             "name": "getAllMarketNames",
             "nameLocation": "685:17:13",
             "parameters": {
-              "id": 1130,
+              "id": 1444,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "702:2:13"
             },
             "returnParameters": {
-              "id": 1134,
+              "id": 1448,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1133,
+                  "id": 1447,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1135,
+                  "scope": 1449,
                   "src": "728:16:13",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -948,7 +948,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 1131,
+                      "id": 1445,
                       "name": "bytes32",
                       "nodeType": "ElementaryTypeName",
                       "src": "728:7:13",
@@ -957,7 +957,7 @@
                         "typeString": "bytes32"
                       }
                     },
-                    "id": 1132,
+                    "id": 1446,
                     "nodeType": "ArrayTypeName",
                     "src": "728:9:13",
                     "typeDescriptions": {
@@ -970,13 +970,13 @@
               ],
               "src": "727:18:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 1143,
+            "id": 1457,
             "nodeType": "FunctionDefinition",
             "src": "752:121:13",
             "nodes": [],
@@ -987,17 +987,17 @@
             "name": "getMarketsForRiskManager",
             "nameLocation": "761:24:13",
             "parameters": {
-              "id": 1138,
+              "id": 1452,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1137,
+                  "id": 1451,
                   "mutability": "mutable",
                   "name": "_riskManager",
                   "nameLocation": "794:12:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1143,
+                  "scope": 1457,
                   "src": "786:20:13",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1006,7 +1006,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1136,
+                    "id": 1450,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "786:7:13",
@@ -1022,17 +1022,17 @@
               "src": "785:22:13"
             },
             "returnParameters": {
-              "id": 1142,
+              "id": 1456,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1141,
+                  "id": 1455,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1143,
+                  "scope": 1457,
                   "src": "855:16:13",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1042,7 +1042,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 1139,
+                      "id": 1453,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "855:7:13",
@@ -1052,7 +1052,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 1140,
+                    "id": 1454,
                     "nodeType": "ArrayTypeName",
                     "src": "855:9:13",
                     "typeDescriptions": {
@@ -1065,7 +1065,7 @@
               ],
               "src": "854:18:13"
             },
-            "scope": 1144,
+            "scope": 1458,
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -1078,11 +1078,11 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          1144
+          1458
         ],
         "name": "IMarketManager",
         "nameLocation": "36:14:13",
-        "scope": 1145,
+        "scope": 1459,
         "usedErrors": []
       }
     ]

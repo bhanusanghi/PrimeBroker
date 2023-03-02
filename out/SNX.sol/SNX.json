@@ -10,13 +10,13 @@
   },
   "ast": {
     "absolutePath": "contracts/Integrations/SNX.sol",
-    "id": 811,
+    "id": 1002,
     "exportedSymbols": {},
     "nodeType": "SourceUnit",
     "src": "0:93:5",
     "nodes": [
       {
-        "id": 810,
+        "id": 1001,
         "nodeType": "PragmaDirective",
         "src": "0:24:5",
         "nodes": [],

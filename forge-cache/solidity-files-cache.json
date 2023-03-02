@@ -13,13 +13,13 @@
   },
   "files": {
     "contracts/CollateralManager.sol": {
-      "lastModificationDate": 1676550898938,
-      "contentHash": "9e0993363d4451dac0f3bac524d2fb3d",
+      "lastModificationDate": 1677682869829,
+      "contentHash": "3bf1e86e4885e14e6d38deae6493467a",
       "sourceName": "contracts/CollateralManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -102,13 +102,13 @@
       }
     },
     "contracts/Exchange/UniExchange.sol": {
-      "lastModificationDate": 1674826510136,
+      "lastModificationDate": 1676374527088,
       "contentHash": "9db39e1e5956d858a2f45add5ba7a46d",
       "sourceName": "contracts/Exchange/UniExchange.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -157,7 +157,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -197,7 +197,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -237,7 +237,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -279,7 +279,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -313,13 +313,13 @@
       }
     },
     "contracts/Interfaces/IACLRegistry.sol": {
-      "lastModificationDate": 1674071221397,
+      "lastModificationDate": 1676374527088,
       "contentHash": "985298d42b9024f7376ca18cf77c1a11",
       "sourceName": "contracts/Interfaces/IACLRegistry.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -353,13 +353,13 @@
       }
     },
     "contracts/Interfaces/ICollateralManager.sol": {
-      "lastModificationDate": 1676372312247,
+      "lastModificationDate": 1676550898938,
       "contentHash": "11687122940b0876c5396719aeecddfa",
       "sourceName": "contracts/Interfaces/ICollateralManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -399,7 +399,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -439,7 +439,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -473,13 +473,13 @@
       }
     },
     "contracts/Interfaces/IExchange.sol": {
-      "lastModificationDate": 1674826534629,
+      "lastModificationDate": 1676374527089,
       "contentHash": "19eb07db82aad4ef9e551c0cfe6e29d4",
       "sourceName": "contracts/Interfaces/IExchange.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -519,7 +519,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -553,13 +553,13 @@
       }
     },
     "contracts/Interfaces/IMarginAccount.sol": {
-      "lastModificationDate": 1677238489930,
-      "contentHash": "ab104d9dd20b6e1addb620e09e5103b8",
+      "lastModificationDate": 1677513000278,
+      "contentHash": "cf106046eeb111278b5cc2adc61111d6",
       "sourceName": "contracts/Interfaces/IMarginAccount.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -595,13 +595,13 @@
       }
     },
     "contracts/Interfaces/IMarketManager.sol": {
-      "lastModificationDate": 1674144601301,
+      "lastModificationDate": 1676374527089,
       "contentHash": "cb05f0961d499ef936d7f05bc35bb867",
       "sourceName": "contracts/Interfaces/IMarketManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -635,13 +635,13 @@
       }
     },
     "contracts/Interfaces/IPriceOracle.sol": {
-      "lastModificationDate": 1675862676815,
+      "lastModificationDate": 1676374527090,
       "contentHash": "c190cd20bc27d97f7074b93ea69091f3",
       "sourceName": "contracts/Interfaces/IPriceOracle.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -675,13 +675,13 @@
       }
     },
     "contracts/Interfaces/IProtocolRiskManager.sol": {
-      "lastModificationDate": 1676566070101,
-      "contentHash": "47008efd5c0415df96ecbd83e196546f",
+      "lastModificationDate": 1677513000278,
+      "contentHash": "9a73f92f7fad8d4704ee4ff571951297",
       "sourceName": "contracts/Interfaces/IProtocolRiskManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -718,13 +718,13 @@
       }
     },
     "contracts/Interfaces/IRiskManager.sol": {
-      "lastModificationDate": 1676566080056,
-      "contentHash": "76ecd0f8101ab3a1f45dec25a3ad310c",
+      "lastModificationDate": 1677513000279,
+      "contentHash": "a5c59f2ebbcd826cb91ededcc66d1a3e",
       "sourceName": "contracts/Interfaces/IRiskManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -761,13 +761,13 @@
       }
     },
     "contracts/Interfaces/ITypes.sol": {
-      "lastModificationDate": 1675848840089,
+      "lastModificationDate": 1676374527091,
       "contentHash": "104d0f956e372f4a6318bff93a0d0011",
       "sourceName": "contracts/Interfaces/ITypes.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -807,7 +807,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -851,7 +851,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -894,7 +894,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -928,13 +928,13 @@
       }
     },
     "contracts/Interfaces/Perpfi/IClearingHouse.sol": {
-      "lastModificationDate": 1676372312248,
+      "lastModificationDate": 1676550898939,
       "contentHash": "584f2507e3f81aa865fc7716997886b9",
       "sourceName": "contracts/Interfaces/Perpfi/IClearingHouse.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -974,7 +974,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1008,13 +1008,13 @@
       }
     },
     "contracts/Interfaces/Perpfi/IMarketRegistry.sol": {
-      "lastModificationDate": 1676372312249,
+      "lastModificationDate": 1676550898940,
       "contentHash": "89f0c3a5b26555f008555afda7c7ec27",
       "sourceName": "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1054,7 +1054,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1094,7 +1094,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1163,7 +1163,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1203,7 +1203,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1249,7 +1249,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1282,6 +1282,46 @@
         }
       }
     },
+    "contracts/Interfaces/SNX/ICircuitBreaker.sol": {
+      "lastModificationDate": 1677592584438,
+      "contentHash": "e953cca6493874cb57fba5889f2acb66",
+      "sourceName": "contracts/Interfaces/SNX/ICircuitBreaker.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "ICircuitBreaker": {
+          "0.8.17+commit.8df45f5f.Darwin.appleclang": "ICircuitBreaker.sol/ICircuitBreaker.json"
+        }
+      }
+    },
     "contracts/Interfaces/SNX/IFuturesMarket.sol": {
       "lastModificationDate": 1665600760262,
       "contentHash": "04a5f89162b24d687a81c14e2e2048b5",
@@ -1289,7 +1329,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1331,7 +1371,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1371,7 +1411,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1405,13 +1445,13 @@
       }
     },
     "contracts/Interfaces/SNX/IFuturesMarketSettings.sol": {
-      "lastModificationDate": 1676040748383,
+      "lastModificationDate": 1676374527091,
       "contentHash": "600b832f8b149f82e5622d562ea30329",
       "sourceName": "contracts/Interfaces/SNX/IFuturesMarketSettings.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1451,7 +1491,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1494,7 +1534,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1534,7 +1574,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1577,7 +1617,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1619,7 +1659,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1659,7 +1699,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1699,7 +1739,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1733,13 +1773,13 @@
       }
     },
     "contracts/Libraries/SettlementTokenMath.sol": {
-      "lastModificationDate": 1674816253986,
+      "lastModificationDate": 1676374527091,
       "contentHash": "837ac4261ffea8eab7ab24bd994b0d0a",
       "sourceName": "contracts/Libraries/SettlementTokenMath.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1783,7 +1823,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1819,13 +1859,13 @@
       }
     },
     "contracts/MarginAccount/MarginAccount.sol": {
-      "lastModificationDate": 1677238303618,
-      "contentHash": "7759a38019e34c50a2c718f402d5888b",
+      "lastModificationDate": 1677594638957,
+      "contentHash": "0aace2a48034ca3198fa57f70c9c7da5",
       "sourceName": "contracts/MarginAccount/MarginAccount.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1879,13 +1919,13 @@
       }
     },
     "contracts/MarginManager.sol": {
-      "lastModificationDate": 1677234805652,
-      "contentHash": "27ae34ab229b79c9e25ca9c88c9849fb",
+      "lastModificationDate": 1677683471364,
+      "contentHash": "f508d379648dd7e96a9a6e1955a3a0be",
       "sourceName": "contracts/MarginManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -1974,7 +2014,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2014,7 +2054,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2060,7 +2100,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2099,13 +2139,13 @@
       }
     },
     "contracts/MarginPool/Vault.sol": {
-      "lastModificationDate": 1674553360641,
+      "lastModificationDate": 1676374527092,
       "contentHash": "c1a91442cf5cd97021f9f703ef2086d1",
       "sourceName": "contracts/MarginPool/Vault.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2161,13 +2201,13 @@
       }
     },
     "contracts/MarketManager.sol": {
-      "lastModificationDate": 1674537898547,
+      "lastModificationDate": 1676374527092,
       "contentHash": "d14b6704ef793e8cfc6dee0ef34ba648",
       "sourceName": "contracts/MarketManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2210,13 +2250,13 @@
       }
     },
     "contracts/RiskManager/PerpfiRiskManager.sol": {
-      "lastModificationDate": 1676566504680,
-      "contentHash": "033ed88dd8426a145566e55f61643b48",
+      "lastModificationDate": 1677513000280,
+      "contentHash": "56e8ae12e14a52aee9594119f90cac43",
       "sourceName": "contracts/RiskManager/PerpfiRiskManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2274,13 +2314,13 @@
       }
     },
     "contracts/RiskManager/RiskManager.sol": {
-      "lastModificationDate": 1677238268411,
-      "contentHash": "fe809f95a995741644cebe32394d8ae3",
+      "lastModificationDate": 1677684302434,
+      "contentHash": "844ed0d1c89e8e9e4b10b76bd2eff1ea",
       "sourceName": "contracts/RiskManager/RiskManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2363,13 +2403,13 @@
       }
     },
     "contracts/RiskManager/SNXRiskManager.sol": {
-      "lastModificationDate": 1677237821787,
-      "contentHash": "ace9874e3eb41b356f03969d56bcb24d",
+      "lastModificationDate": 1677744224646,
+      "contentHash": "b8d4a57c77c7955088394e813ff597c8",
       "sourceName": "contracts/RiskManager/SNXRiskManager.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2426,13 +2466,13 @@
       }
     },
     "contracts/Utils/ACLAuth.sol": {
-      "lastModificationDate": 1674151592906,
+      "lastModificationDate": 1676374527093,
       "contentHash": "9d9df6b749180d87bf936473f034b194",
       "sourceName": "contracts/Utils/ACLAuth.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2468,13 +2508,13 @@
       }
     },
     "contracts/Utils/ACLRegistry.sol": {
-      "lastModificationDate": 1674135579333,
+      "lastModificationDate": 1676374527093,
       "contentHash": "c5038d8034749543df186ead21968d71",
       "sourceName": "contracts/Utils/ACLRegistry.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2510,13 +2550,13 @@
       }
     },
     "contracts/Utils/ArrayUtils.sol": {
-      "lastModificationDate": 1673952177537,
+      "lastModificationDate": 1676374527093,
       "contentHash": "474573669454ae979dfb59b726fdca15",
       "sourceName": "contracts/Utils/ArrayUtils.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2556,7 +2596,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2604,7 +2644,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2643,13 +2683,13 @@
       }
     },
     "contracts/Utils/PriceOracle.sol": {
-      "lastModificationDate": 1676388666505,
+      "lastModificationDate": 1677493900628,
       "contentHash": "8799729f33b736278089daef50cd6f51",
       "sourceName": "contracts/Utils/PriceOracle.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2701,7 +2741,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2737,13 +2777,13 @@
       }
     },
     "lib/forge-std/lib/ds-test/src/test.sol": {
-      "lastModificationDate": 1672918457516,
+      "lastModificationDate": 1676374527103,
       "contentHash": "962996f0e05d5218857a538a62d7c47e",
       "sourceName": "lib/forge-std/lib/ds-test/src/test.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2777,13 +2817,13 @@
       }
     },
     "lib/forge-std/src/Base.sol": {
-      "lastModificationDate": 1672918457518,
+      "lastModificationDate": 1676374527103,
       "contentHash": "1870c8c1d5470db8c3e956c839db8364",
       "sourceName": "lib/forge-std/src/Base.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2826,13 +2866,13 @@
       }
     },
     "lib/forge-std/src/StdAssertions.sol": {
-      "lastModificationDate": 1672918457518,
+      "lastModificationDate": 1676374527103,
       "contentHash": "93fa608efd4df1e671b043437fddd457",
       "sourceName": "lib/forge-std/src/StdAssertions.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2869,13 +2909,13 @@
       }
     },
     "lib/forge-std/src/StdChains.sol": {
-      "lastModificationDate": 1672918457519,
+      "lastModificationDate": 1676374527103,
       "contentHash": "80138bc1765b08a6db58237c26985fd9",
       "sourceName": "lib/forge-std/src/StdChains.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2911,13 +2951,13 @@
       }
     },
     "lib/forge-std/src/StdCheats.sol": {
-      "lastModificationDate": 1672918457519,
+      "lastModificationDate": 1676374527104,
       "contentHash": "fa245ffd8b36936bbb114ab441d5756f",
       "sourceName": "lib/forge-std/src/StdCheats.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2957,13 +2997,13 @@
       }
     },
     "lib/forge-std/src/StdError.sol": {
-      "lastModificationDate": 1672918457520,
+      "lastModificationDate": 1676374527104,
       "contentHash": "64c896e1276a291776e5ea5aecb3870a",
       "sourceName": "lib/forge-std/src/StdError.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -2997,13 +3037,13 @@
       }
     },
     "lib/forge-std/src/StdJson.sol": {
-      "lastModificationDate": 1672918457520,
+      "lastModificationDate": 1676374527104,
       "contentHash": "016de2d7ee55960094cc97ec792025bb",
       "sourceName": "lib/forge-std/src/StdJson.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3039,13 +3079,13 @@
       }
     },
     "lib/forge-std/src/StdMath.sol": {
-      "lastModificationDate": 1672918457520,
+      "lastModificationDate": 1676374527104,
       "contentHash": "9da8f453eba6bb98f3d75bc6822bfb29",
       "sourceName": "lib/forge-std/src/StdMath.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3079,13 +3119,13 @@
       }
     },
     "lib/forge-std/src/StdStorage.sol": {
-      "lastModificationDate": 1672918457521,
+      "lastModificationDate": 1676374527104,
       "contentHash": "1b6b8a6cbaaaf5a72860a56f0cde4e33",
       "sourceName": "lib/forge-std/src/StdStorage.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3124,13 +3164,13 @@
       }
     },
     "lib/forge-std/src/StdUtils.sol": {
-      "lastModificationDate": 1672918457521,
+      "lastModificationDate": 1676374527106,
       "contentHash": "ec75addbeee075c61fa5aff2faee0465",
       "sourceName": "lib/forge-std/src/StdUtils.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3166,13 +3206,13 @@
       }
     },
     "lib/forge-std/src/Test.sol": {
-      "lastModificationDate": 1672918457521,
+      "lastModificationDate": 1676374527106,
       "contentHash": "9ca73393dbc2f8cde2aa628f8d05c5d5",
       "sourceName": "lib/forge-std/src/Test.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3220,13 +3260,13 @@
       }
     },
     "lib/forge-std/src/Vm.sol": {
-      "lastModificationDate": 1672918457522,
+      "lastModificationDate": 1676374527106,
       "contentHash": "7d92321fbeea01d10f89778af1d0e074",
       "sourceName": "lib/forge-std/src/Vm.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3263,13 +3303,13 @@
       }
     },
     "lib/forge-std/src/console.sol": {
-      "lastModificationDate": 1672918457522,
+      "lastModificationDate": 1676374527106,
       "contentHash": "100b8a33b917da1147740d7ab8b0ded3",
       "sourceName": "lib/forge-std/src/console.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3303,13 +3343,13 @@
       }
     },
     "lib/forge-std/src/console2.sol": {
-      "lastModificationDate": 1672918457523,
+      "lastModificationDate": 1676374527106,
       "contentHash": "2096b4e5f252c5df9909cccbe3d2da2e",
       "sourceName": "lib/forge-std/src/console2.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3349,7 +3389,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3389,7 +3429,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3435,7 +3475,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3475,7 +3515,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3517,7 +3557,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3560,7 +3600,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3600,7 +3640,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3644,7 +3684,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3684,7 +3724,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3734,7 +3774,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3776,7 +3816,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3816,7 +3856,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3860,7 +3900,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3900,7 +3940,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3940,7 +3980,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -3980,7 +4020,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4022,7 +4062,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4062,7 +4102,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4102,7 +4142,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4142,7 +4182,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4182,7 +4222,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4222,7 +4262,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4262,7 +4302,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4302,7 +4342,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4342,7 +4382,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4382,7 +4422,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4422,7 +4462,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4464,7 +4504,7 @@
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4498,13 +4538,13 @@
       }
     },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1676550898976,
-      "contentHash": "cdf6cfb758120c6ff868fe3de598638e",
+      "lastModificationDate": 1677676680281,
+      "contentHash": "fd6fe2119f1711836e19661309b2fce8",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4618,13 +4658,13 @@
       }
     },
     "test/foundry/OpenPosition.t.sol": {
-      "lastModificationDate": 1676550898976,
-      "contentHash": "298af08b5a0ea40306f7194e958b4f68",
+      "lastModificationDate": 1677757822539,
+      "contentHash": "e788f709af016a71b45586910c9efd9e",
       "sourceName": "test/foundry/OpenPosition.t.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4667,6 +4707,7 @@
         "contracts/Interfaces/Perpfi/IMarketRegistry.sol",
         "contracts/Interfaces/SNX/CollateralShort.sol",
         "contracts/Interfaces/SNX/IAddressResolver.sol",
+        "contracts/Interfaces/SNX/ICircuitBreaker.sol",
         "contracts/Interfaces/SNX/IFuturesMarket.sol",
         "contracts/Interfaces/SNX/IFuturesMarketBaseTypes.sol",
         "contracts/Interfaces/SNX/IFuturesMarketManager.sol",
@@ -4741,13 +4782,13 @@
       }
     },
     "test/foundry/TransferMargin.t.sol": {
-      "lastModificationDate": 1676389793123,
-      "contentHash": "188547547509b40df3792fbc48b933bb",
+      "lastModificationDate": 1677520932961,
+      "contentHash": "8a1be3f0f0d0352e636eea36b4d629f8",
       "sourceName": "test/foundry/TransferMargin.t.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4862,13 +4903,13 @@
       }
     },
     "test/foundry/Vault.t.sol": {
-      "lastModificationDate": 1674147510016,
+      "lastModificationDate": 1676374527222,
       "contentHash": "efabc65d6af69dbe25d78d8eae7460f8",
       "sourceName": "test/foundry/Vault.t.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {
@@ -4940,13 +4981,13 @@
       }
     },
     "test/foundry/utils/Utils.sol": {
-      "lastModificationDate": 1673271771348,
+      "lastModificationDate": 1676374527222,
       "contentHash": "9839f81b7bc81e662872bd6d4df48c15",
       "sourceName": "test/foundry/utils/Utils.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 200
           },
           "metadata": {

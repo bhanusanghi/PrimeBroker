@@ -10,15 +10,15 @@
   },
   "ast": {
     "absolutePath": "contracts/MarginPool/InterestRate.sol",
-    "id": 7984,
+    "id": 8901,
     "exportedSymbols": {},
     "nodeType": "SourceUnit",
-    "src": "0:25:42",
+    "src": "0:25:45",
     "nodes": [
       {
-        "id": 7983,
+        "id": 8900,
         "nodeType": "PragmaDirective",
-        "src": "0:24:42",
+        "src": "0:24:45",
         "nodes": [],
         "literals": [
           "solidity",
@@ -29,5 +29,5 @@
       }
     ]
   },
-  "id": 42
+  "id": 45
 }

@@ -35,7 +35,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
-    uint256 public _totalBorrowed; // in usd terms
+    uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     // address public underlyingToken;
     int256 public pendingFee; // keeping it int for -ve update(pay fee) Is this order fee or is this fundingRate Fee.
@@ -104,12 +104,17 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // only riskmanagger
         positions[market] = position;
         existingPosition[market] = true;
-        pendingFee += int256(position.orderFee);
+        // pendingFee += int256(position.orderFee);
     }
 
-    function updatePosition(bytes32 market, int256 size) public override {
+    function updatePosition(bytes32 market, Position memory position)
+        public
+        override
+    {
         // only riskmanagger
-        // positions[market] = size;
+        require(existingPosition[market], "Not an existing Position");
+        positions[market] = position;
+        // pendingFee += int256(position.orderFee);
     }
 
     function removePosition(bytes32 market) public override {
@@ -130,8 +135,17 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // protocol rm . getPnl(address(this), _protocol)
     }
 
-    function getPosition(bytes32 market) public view returns (int256) {
+    function getPosition(bytes32 market) public view override returns (int256) {
         return positions[market].size;
+    }
+
+    function getPositionOrderFee(bytes32 market)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return positions[market].orderFee;
     }
 
     function getTotalOpeningAbsoluteNotional(bytes32[] memory _allowedMarkets)
@@ -209,13 +223,13 @@ contract MarginAccount is IMarginAccount, UniExchange {
     }
 
     /// @dev Updates borrowed amount. Restricted for current credit manager only
-    /// @param _totalBorrowedAmount Amount which pool lent to credit account
+    /// @param totalBorrowedAmount Amount which pool lent to credit account
     function updateBorrowData(
-        uint256 _totalBorrowedAmount,
+        uint256 totalBorrowedAmount,
         uint256 _cumulativeIndexAtOpen
     ) external override {
         // add acl check
-        _totalBorrowed = _totalBorrowedAmount;
+        totalBorrowed = totalBorrowedAmount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
@@ -252,8 +266,4 @@ contract MarginAccount is IMarginAccount, UniExchange {
     // function gettotalMarginInMarkets() public view returns (int256) {
     //     return totalMarginInMarkets;
     // }
-
-    function totalBorrowed() external view override returns (uint256) {
-        return _totalBorrowed;
-    }
 }
