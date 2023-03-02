@@ -17,11 +17,17 @@ import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
+import {IClearingHouseConfig} from "../Interfaces/Perpfi/IClearingHouseConfig.sol";
+
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
+
+interface IUniswapV3Pool {
+    function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint32 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
+}
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -46,6 +52,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
+    IClearingHouseConfig public clearingHouseConfig;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
@@ -59,6 +66,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
         // perpExchange = IExchange(_perpExchange);
+        //clearingHouseConfig  IClearingHouseConfig(clearingHouseConfig)
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
     }
@@ -79,15 +87,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     // }
 
-    // function getTotalPositionSize(address marginAcc)
-    //     public
-    //     virtual
-    //     returns (uint256);
-
-    // function getTotalAssetsValue(address marginAcc)
-    //     public
-    //     virtual
-    //     returns (uint256);
+    /// @notice Returns the price of th UniV3Pool.
+    function getMarkPrice(address _baseToken) public view returns (uint256 token0Price) {
+        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(_baseToken)).slot0();
+        token0Price = ((uint256(sqrtPriceX96)**2) / (2**192));
+    }
 
     function previewPosition(bytes memory data) public {
         /**
@@ -128,16 +132,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
-    // function getIndexPrice() public view override returns (uint256 indexPrice) {
-    //     uint256 _twapInterval = IClearingHouseConfig(clearingHouseConfig).getTwapInterval();
-    //     indexPrice = IIndexPrice(usdlBaseTokenAddress).getIndexPrice(_twapInterval);
-    // }
-
-    // /// @notice Returns the price of th UniV3Pool.
-    // function getMarkPrice() public view override returns (uint256 token0Price) {
-    //     (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(usdlBaseTokenAddress)).slot0();
-    //     token0Price = ((uint256(sqrtPriceX96)**2) / (2**192)) * 1e18;
-    // }
 
     // ** TODO - should return in 18 decimal points
     function getPositionPnL(address account)
@@ -220,34 +214,35 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                // this refers to position opening fee.
-                uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
-
-                position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     // get price should return in normalized values.
-                    // uint256 price = _getPrice;
-                    // uint256 value = _amount * price;
-                    // totalPosition = isShort
-                    //     ? -int256(_amount)
-                    //     : int256(_amount);
+                    position.size = isShort
+                        ? -int256(_amount)
+                        : int256(_amount);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    // totalPosition = isShort ? -amount : amount;
+                    position.size = isShort ? -_amount : _amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    // totalPosition = isShort ? -amount : amount;
+                    position.size = isShort ? -_amount : _amount;
                 } else if (isShort && !isExactInput) {
                     // get price
                 } else {
                     revert("impossible shit");
                 }
+                position.openNotional = position.size.mul(getMarkPrice(_baseToken).toInt256());
+                uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
+                position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
+        
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
         }
+        // this refers to position opening fee.
+        
+        
         // Todo - Bhanu. Verify this fee calculation and decimals.
     }
 
