@@ -222,6 +222,61 @@ contract Perpfitest is BaseSetup {
         // );
         // marginManager.openPosition(perpAaveKey, destinations1, data1);
     }
+    function testFailMarginTransferPerp() public {
+        uint256 liquiMargin = 100_000 * ONE_USDC;
+         uint256 newDpositAmt = 500 * ONE_USDC;
+        assertEq(vault.expectedLiquidity(), largeAmount);
+        vm.startPrank(bob);
+        IERC20(usdc).approve(bobMarginAccount, liquiMargin);
+        vm.expectEmit(true, true, true, false, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        collateralManager.addCollateral(usdc, 100*ONE_USDC);
+        address[] memory destinations = new address[](2);
+        bytes[] memory data = new bytes[](2);
+        destinations[0] = usdc;
+        destinations[1] = perpVault;
+
+        data[0] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            perpVault,
+            newDpositAmt
+        );
+        data[1] = abi.encodeWithSignature(
+            "deposit(address,uint256)",
+            usdc,
+            newDpositAmt
+        );
+       
+        // vm.expectEmit(true, true, true,false, perpVault);
+        // emit Deposited(
+        //     usdc,
+        //     bobMarginAccount,
+        //     newDpositAmt
+        // );
+        marginManager.openPosition(perpAaveKey, destinations, data);
+        console.log("Margin in market",newDpositAmt, MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs());
+        // assertEq(int(newDpositAmt),MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey));
+        //@0xAshish @note after slippage fix this should be equal to newDpositAmt
+        // assertApproxEqAbs(MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),newDpositAmt,10**7);//10usdc
+        IVault pvault = IVault(perpVault);
+        // assertEq(pvault.getFreeCollateral(bobMarginAccount),newDpositAmt);
+        console.log("getFreeCollateral:",pvault.getFreeCollateral(bobMarginAccount));
+        // address[] memory destinations1 = new address[](1);
+        // bytes[] memory data1 = new bytes[](1);
+        // destinations1[0] = perpVault;
+        // data1[0]=abi.encodeWithSignature(
+        //     "withdraw(address,uint256)",
+        //     usdc,
+        //     newDpositAmt
+        // );
+        // vm.expectEmit(true,true,true,false,perpVault);
+        // emit Withdrawn(
+        //     usdc,
+        //     bobMarginAccount,
+        //     depositAmt
+        // );
+        // marginManager.openPosition(perpAaveKey, destinations1, data1);
+    }
     function testOpenPositionPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
