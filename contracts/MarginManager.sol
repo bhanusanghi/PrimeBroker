@@ -173,7 +173,6 @@ contract MarginManager is ReentrancyGuard {
                 acc
             );
         }
-        console.log("MM:totalFee", fee.abs());
     }
 
     function _getMarginAccount(address trader) internal view returns (address) {
@@ -203,8 +202,6 @@ contract MarginManager is ReentrancyGuard {
         address tokenIn = vault.asset();
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            // console.log("positionSize");
-            // console.logInt(verificationResult.position.size);
             marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
@@ -263,19 +260,6 @@ contract MarginManager is ReentrancyGuard {
                         )
                     );
                 }
-                // console.log(
-                //     "amountIn ",
-                //     dollarValueOfTokenDifference.add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
-                //         uint256(500).convertTokenDecimals(
-                //             0,
-                //             ERC20(tokenIn).decimals()
-                //         )
-                //     )
-                // );
-                // console.log(
-                //     "token In balance",
-                //     tokenInBalance
-                // );
                 // Note - change this to get exact token out and remove extra token in of 100 given above
                 if (tokenIn != verificationResult.tokenOut) {
                     IExchange.SwapParams memory params = IExchange.SwapParams({
@@ -367,11 +351,6 @@ contract MarginManager is ReentrancyGuard {
         //     decreaseDebt(address(marginAcc), tokensToTransfer.abs());
         // }
         // marginAcc.execMultiTx(destinations, data);
-        // console.log(
-        //     _oldPositionSize.abs(),
-        //     _currentPositionSize.abs(),
-        //     "old and new position"
-        // );
         // int256 sizeDelta = _oldPositionSize.add(_currentPositionSize);
         // if (sizeDelta == 0) {
         //     marginAcc.removePosition(marketKey);
@@ -423,7 +402,6 @@ contract MarginManager is ReentrancyGuard {
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         settleFee(address(marginAcc));
-        console.log(address(marginAcc), "Margin acc");
         int256 tokensToTransfer;
         int256 positionSize;
         (tokensToTransfer, positionSize) = riskManager.isliquidatable(

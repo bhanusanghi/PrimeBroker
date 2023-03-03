@@ -136,7 +136,6 @@ contract CollateralManager is ICollateralManager {
         uint256 freeCollateralValue = _getFreeCollateralValue(
             address(marginAccount)
         );
-        console.log(freeCollateralValue, "free collateral");
         require(
             priceOracle
                 .convertToUSD(_amount.toInt256(), _token)
@@ -146,7 +145,6 @@ contract CollateralManager is ICollateralManager {
             //     freeCollateralValue,
             "CM: Withdrawing more than free collateral not allowed"
         );
-        console.log(_balance[address(marginAccount)][_token].abs(), _amount);
         _balance[address(marginAccount)][_token] = _balance[
             address(marginAccount)
         ][_token].sub(_amount.toInt256());
@@ -177,16 +175,9 @@ contract CollateralManager is ICollateralManager {
         returns (uint256 freeCollateral)
     {
         // free collateral
-        console.log(
-            _totalCollateralValue(_marginAccount),
-            marginManager.getInterestAccrued(_marginAccount),
-            IMarginAccount(_marginAccount).totalBorrowed(),
-            "gfcol"
-        );
         (, uint256 x) = IMarginAccount(_marginAccount).totalBorrowed().tryMul(
             riskManager.initialMarginFactor()
         );
-        console.log(x);
         freeCollateral = _totalCollateralValue(_marginAccount)
             .sub(marginManager.getInterestAccrued(_marginAccount))
             .sub(x);

@@ -611,7 +611,6 @@ contract CumulativeTwap is BlockContext {
 
         // run at most 256 times
         uint256 observationLen = observations.length;
-        // console.log(observationLen,index,"OBV len and index");
         uint256 i;
         for (i = 0; i < observationLen; i++) {
             if (observations[index].timestamp <= targetTimestamp) {
