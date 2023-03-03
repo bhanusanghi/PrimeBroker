@@ -192,10 +192,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function updateMarginInMarket(bytes32 market, int256 transferredMargin)
         public
     {
-        // require(
-        //     marginInMarket[market].add(transferredMargin) > 0,
-        //     "MA: Cannot have negative margin In protocol"
-        // );
+        require(
+            marginInMarket[market].add(transferredMargin) > 0,
+            "MA: Cannot have negative margin In protocol"
+        );
         totalMarginInMarkets = totalMarginInMarkets.add(transferredMargin);
         marginInMarket[market] = marginInMarket[market].add(transferredMargin);
     }
