@@ -144,7 +144,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
         // todo - realized PnL affects the deposited Margin. We need to also take that into account.
         // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
-        //          or periodically update the margin in tpp and before executing any new transactions from the same account
+        //or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
         pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
