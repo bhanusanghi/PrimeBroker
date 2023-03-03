@@ -17,8 +17,6 @@ import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
-import {IClearingHouseConfig} from "../Interfaces/Perpfi/IClearingHouseConfig.sol";
-
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
@@ -52,7 +50,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
-    IClearingHouseConfig public clearingHouseConfig;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
