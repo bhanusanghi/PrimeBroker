@@ -82,7 +82,6 @@ contract SNXRiskManager is IProtocolRiskManager {
             console.log("funding", funding.abs());
             funding = funding.add(_funding);
         }
-        console.log("funding and pnl settle fee", funding.abs(), pnl.abs());
         return funding;
     }
 

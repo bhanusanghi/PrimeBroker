@@ -167,11 +167,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         int256 marginDeltaDollarValue
     ) internal view {
-        // console.log("buyingPower", buyingPower);
-        // console.log("marginDeltaDollarValue");
-        // console.logInt(marginDeltaDollarValue);
-        // console.log("marginAccount.totalMarginInMarkets()");
-        // console.logInt(marginAccount.totalMarginInMarkets());
         require(
             buyingPower >=
                 (
@@ -203,8 +198,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             destinations,
             data
         );
-        // console.log.marginDelta, "close pos, tm");
-        // int256 _currentPositionSize = marginAccount.getPosition(marketKey);
         // basically checks for if its closing opposite position
         // require(positionSize + _currentPositionSize == 0);
 
@@ -255,8 +248,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         // require(PnL<0 && temp<=PnL.abs(),"Liq:");
-        console.log("Liqidation!!");
-        //  uint256 newBuyPow = getBuyingPower(marginAccount,PnL);
         // require(
         //     buyingPower >= totalNotional.add(positionSize.abs()),
         //     "Extra leverage not allowed"

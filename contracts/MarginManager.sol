@@ -207,8 +207,6 @@ contract MarginManager is ReentrancyGuard {
         address tokenIn = vault.asset();
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            // console.log("positionSize");
-            // console.logInt(verificationResult.position.size);
             marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
@@ -266,19 +264,6 @@ contract MarginManager is ReentrancyGuard {
                         )
                     );
                 }
-                // console.log(
-                //     "amountIn ",
-                //     dollarValueOfTokenDifference.add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
-                //         uint256(500).convertTokenDecimals(
-                //             0,
-                //             ERC20(tokenIn).decimals()
-                //         )
-                //     )
-                // );
-                // console.log(
-                //     "token In balance",
-                //     tokenInBalance
-                // );
                 // Note - change this to get exact token out and remove extra token in of 100 given above
                 if (tokenIn != verificationResult.tokenOut) {
                     IExchange.SwapParams memory params = IExchange.SwapParams({
@@ -336,7 +321,6 @@ contract MarginManager is ReentrancyGuard {
         address protocolAddress;
         (protocolAddress, protocolRiskManager) = marketManager
             .getProtocolAddressByMarketName(marketKey);
-
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
             // console.log("positionSize");

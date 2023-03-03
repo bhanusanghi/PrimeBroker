@@ -23,6 +23,10 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import "hardhat/console.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 
+interface IUniswapV3Pool {
+    function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint32 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
+}
+
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
     using Math for uint256;
@@ -36,6 +40,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public MT = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
+    bytes4 public WA = 0xf3fef3a3;
     address public baseToken;
     bytes4 public settleFeeSelector = 0xeb9b912e;
     uint8 private _decimals;
@@ -58,6 +63,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         baseToken = _baseToken;
         accountBalance = IAccountBalance(_accountBalance);
         // perpExchange = IExchange(_perpExchange);
+        //clearingHouseConfig  IClearingHouseConfig(clearingHouseConfig)
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
     }
@@ -78,15 +84,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     // }
 
-    // function getTotalPositionSize(address marginAcc)
-    //     public
-    //     virtual
-    //     returns (uint256);
-
-    // function getTotalAssetsValue(address marginAcc)
-    //     public
-    //     virtual
-    //     returns (uint256);
+    /// @notice Returns the price of th UniV3Pool.
+    function getMarkPrice(address _baseToken) public view returns (uint256 token0Price) {
+        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(_baseToken)).slot0();
+        token0Price = ((uint256(sqrtPriceX96)**2) / (2**192));
+    }
 
     function previewPosition(bytes memory data) public {
         /**
@@ -106,28 +108,15 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        console.log(
-            "MM:",
-            owedRealizedPnl.abs(),
-            unrealizedPnl.abs(),
-            pendingFee
-        );
         // clearingHouse.settleAllFunding(account);
         bytes memory data = abi.encodeWithSelector(settleFeeSelector, account);
-        console.log(
-            "return hua perp me se",
-            address(clearingHouse),
-            data.length
-        );
         // @note basetoken is confusing w/ market base tokens
         // there can be multiple like basetoken for protocol fee and like eth/btc mkt
         IMarginAccount(account).approveToProtocol(
             baseToken,
             address(clearingHouse)
         );
-        console.log("approve done:");
         data = IMarginAccount(account).executeTx(address(clearingHouse), data);
-        console.log(data.length);
         // MA call ic, data
         return 0;
     }
@@ -140,16 +129,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
-    // function getIndexPrice() public view override returns (uint256 indexPrice) {
-    //     uint256 _twapInterval = IClearingHouseConfig(clearingHouseConfig).getTwapInterval();
-    //     indexPrice = IIndexPrice(usdlBaseTokenAddress).getIndexPrice(_twapInterval);
-    // }
-
-    // /// @notice Returns the price of th UniV3Pool.
-    // function getMarkPrice() public view override returns (uint256 token0Price) {
-    //     (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(usdlBaseTokenAddress)).slot0();
-    //     token0Price = ((uint256(sqrtPriceX96)**2) / (2**192)) * 1e18;
-    // }
 
     // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
     //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
@@ -208,7 +187,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (funSig == AP) {
                 // amount = abi.decode(data[i][36:], (int256));
             } else if (funSig == MT) {
-                marginDelta = marginDelta + abi.decode(data[i][36:], (int256));
+                // @note for now will restrict only one TM and combine multiple interactions via higher order functions
+                // marginDelta + abi.decode(data[i][36:], (int256));
+                marginDelta = abi.decode(data[i][36:], (int256));
+            } else if (funSig == WA) {
+                marginDelta = -abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
                 // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
                 // refer -
@@ -234,37 +217,40 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
-                // this refers to position opening fee.
-                uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
-
-                position.orderFee = position.openNotional.abs().mulDiv(
-                    fee,
-                    10**5 // todo - Ask ashish about this
-                );
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     // get price should return in normalized values.
-                    // uint256 price = _getPrice;
-                    // uint256 value = _amount * price;
-                    // totalPosition = isShort
-                    //     ? -int256(_amount)
-                    //     : int256(_amount);
+                    position.size = isShort
+                        ? -int256(_amount)
+                        : int256(_amount);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    // totalPosition = isShort ? -amount : amount;
+                    position.size = isShort ? -_amount : _amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    // totalPosition = isShort ? -amount : amount;
+                    position.size = isShort ? -_amount : _amount;
                 } else if (isShort && !isExactInput) {
                     // get price
                 } else {
                     revert("impossible shit");
                 }
+                position.openNotional = position.size.mul(getMarkPrice(_baseToken).toInt256());
+                uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
+                // position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
+                // this refers to position opening fee.
+                 position.orderFee = position.openNotional.abs().mulDiv(
+                    fee,
+                    10**5 // todo - Ask ashish about this
+                );
+        
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
         }
+        // this refers to position opening fee.
+        
+        
         // Todo - Bhanu. Verify this fee calculation and decimals.
     }
 

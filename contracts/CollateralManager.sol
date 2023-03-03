@@ -175,7 +175,6 @@ contract CollateralManager is ICollateralManager {
         returns (uint256 freeCollateral)
     {
         // free collateral
-
         (, uint256 x) = IMarginAccount(_marginAccount).totalBorrowed().tryMul(
             riskManager.initialMarginFactor()
         );
