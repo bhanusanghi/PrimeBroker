@@ -1,0 +1,20 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "test/foundry/UpdatePosition.t.sol",
+    "id": 59496,
+    "exportedSymbols": {},
+    "nodeType": "SourceUnit",
+    "src": "13494:0:110",
+    "nodes": []
+  },
+  "id": 110
+}
