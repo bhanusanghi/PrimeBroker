@@ -151,6 +151,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
             .getTotalOpeningNotional(_whitelistedMarketNames);
+        // console.log("totalNotional", totalNotional.abs());
+        // console.log("buyingPower", buyingPower);
+        // console.log(
+        //     "buyingPower - marginDelta",
+        //     buyingPower.convertTokenDecimals(
+        //         ERC20(vault.asset()).decimals(),
+        //         18
+        //     ) - (totalNotional.add(positionOpenNotional)).abs()
+        // );
         require(
             buyingPower.convertTokenDecimals(
                 ERC20(vault.asset()).decimals(),
@@ -158,6 +167,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             ) >= (totalNotional.add(positionOpenNotional)).abs(),
             "Extra leverage not allowed"
         );
+        // console.log("reached here brah");
     }
 
     // Bp is in dollars vault asset decimals
@@ -298,18 +308,27 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function GetCurrentBuyingPower(
         address marginAccount,
         uint256 interestAccrued
-    ) public returns (uint256) {
+    ) public returns (uint256 buyingPower) {
         // unsettledRealizedPnL is in vault decimals
         // unrealizedPnL is in vault decimals
-        return
-            collateralManager
-                .totalCollateralValue(marginAccount)
-                .sub(interestAccrued)
-                .toInt256()
-                .add(_getUnrealizedPnL(marginAccount))
-                .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
-                .toUint256()
-                .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
+        buyingPower = collateralManager
+            .totalCollateralValue(marginAccount)
+            .sub(interestAccrued)
+            .toInt256()
+            .add(_getUnrealizedPnL(marginAccount))
+            .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
+            .toUint256()
+            .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
+
+        // console.log("GetCurrentBP", buyingPower);
+        // console.log(
+        //     "totalCollateralValue",
+        //     collateralManager.totalCollateralValue(marginAccount)
+        // );
+        // console.log("IMarginAccount(marginAccount).unsettledRealizedPnL()");
+        // console.logInt(IMarginAccount(marginAccount).unsettledRealizedPnL());
+        // console.log("_getUnrealizedPnL(marginAccount)");
+        // console.logInt(_getUnrealizedPnL(marginAccount));
     }
 
     // // @note Should return the total PnL trader has across all markets in dollar value ( usdc value )

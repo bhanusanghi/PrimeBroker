@@ -14,7 +14,7 @@ import {SNXRiskManager} from "../../contracts/RiskManager/SNXRiskManager.sol";
 import {PerpfiRiskManager} from "../../contracts/RiskManager/PerpfiRiskManager.sol";
 import {MarginManager} from "../../contracts/MarginManager.sol";
 import {PriceOracle} from "../../contracts/utils/PriceOracle.sol";
-
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterestRateModel.sol";
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
 import {IProtocolRiskManager} from "../../contracts/Interfaces/IProtocolRiskManager.sol";
@@ -200,7 +200,7 @@ contract BaseSetup is Test {
         );
     }
 
-    function setupVault() internal {
+    function setupVault(address token) internal {
         uint256 optimalUse = 9000;
         uint256 rBase = 0;
         uint256 rSlope1 = 200;
@@ -213,7 +213,7 @@ contract BaseSetup is Test {
         );
         uint256 maxExpectedLiquidity = 1_000_000 * (10**6);
         vault = new Vault(
-            usdc,
+            token,
             "GigaLP",
             "GLP",
             address(interestModel),
@@ -231,7 +231,11 @@ contract BaseSetup is Test {
             perpMarketRegistry,
             perpClearingHouse
         );
-        snxRiskManager = new SNXRiskManager(susd, address(contractRegistry));
+        snxRiskManager = new SNXRiskManager(
+            susd,
+            address(contractRegistry),
+            ERC20(vault.asset()).decimals()
+        );
     }
 
     // function setup() public {

@@ -27,15 +27,20 @@ contract SNXRiskManager is IProtocolRiskManager {
     using SignedSafeMath for int256;
     IFuturesMarketManager public futureManager;
     address public baseToken;
-    uint8 private vaultAssetDecimals = 6; // @todo take it from init/ constructor
+    uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
 
-    constructor(address _baseToken, address _contractRegistry) {
+    constructor(
+        address _baseToken,
+        address _contractRegistry,
+        uint8 _vaultAssetDecimals
+    ) {
         contractRegistry = IContractRegistry(_contractRegistry);
+        vaultAssetDecimals = _vaultAssetDecimals;
         baseToken = _baseToken;
         _decimals = ERC20(_baseToken).decimals();
     }
@@ -147,21 +152,10 @@ contract SNXRiskManager is IProtocolRiskManager {
             int256 _funding;
             // (_funding, ) = market.accruedFunding(account);
             (_pnl, ) = market.profitLoss(account);
-            // if (_pnl < 0) {
-            //     console.log("negative pnl");
-            // }
-            // if (_funding < 0) {
-            //     console.log("negative _funding");
-            // }
-            // console.log(_pnl.abs(), ":pnl", allMarkets[i]);
             pnl = pnl.add(_pnl);
-            // console.log("funding", funding.abs());
-            // funding = funding.add(_funding);
         }
 
         // @Bhanu TODO - move this funding pnl to unrealizedPnL
-
-        // pnl = pnl.add(funding).convertTokenDecimals(
         pnl = pnl.convertTokenDecimals(_decimals, vaultAssetDecimals);
     }
 
@@ -247,8 +241,6 @@ contract SNXRiskManager is IProtocolRiskManager {
             _decimals,
             vaultAssetDecimals
         );
-        console.log("accruedFunding");
-        console.logInt(totalAccruedFunding);
     }
 
     // returns value in vault decimals

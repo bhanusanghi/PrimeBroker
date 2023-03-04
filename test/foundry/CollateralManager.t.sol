@@ -93,7 +93,7 @@ contract CollateralManagerTest is BaseSetup {
         setupMarginManager();
         setupRiskManager();
         setupCollateralManager();
-        setupVault();
+        setupVault(usdc);
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
