@@ -224,7 +224,7 @@ contract Perpfitest is BaseSetup {
     }
     function testFailMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
-         uint256 newDpositAmt = 500 * ONE_USDC;
+        uint256 newDpositAmt = 100000000 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -253,7 +253,9 @@ contract Perpfitest is BaseSetup {
         //     bobMarginAccount,
         //     newDpositAmt
         // );
+        vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data);
+        
         console.log("Margin in market",newDpositAmt, MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs());
         // assertEq(int(newDpositAmt),MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey));
         //@0xAshish @note after slippage fix this should be equal to newDpositAmt
@@ -294,19 +296,19 @@ contract Perpfitest is BaseSetup {
         data1[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             address(perpVault),
-            10000*ONE_USDC  
+            100000*ONE_USDC  
         );
         data1[1] = abi.encodeWithSignature(
             "deposit(address,uint256)",
             address(usdc),
-            10000*ONE_USDC  
+            100000*ONE_USDC  
         );
         data1[2] = abi.encodeWithSelector(
             0xb6b1b6c3,
             perpAaveMarket,
             false,
             true,
-            uint256(5000*10**6),
+            uint256(500000*10**6),
             0,
             type(uint256).max,
             uint160(0),
