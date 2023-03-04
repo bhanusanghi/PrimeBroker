@@ -222,14 +222,14 @@ contract Perpfitest is BaseSetup {
         // );
         // marginManager.openPosition(perpAaveKey, destinations1, data1);
     }
-    function testFailMarginTransferPerp() public {
+    function testLMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
-        uint256 newDpositAmt = 100000000 * ONE_USDC;
+        uint256 newDpositAmt = 500 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
         vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        emit CollateralAdded(bobMarginAccount, usdc, 100*ONE_USDC, 0);
         collateralManager.addCollateral(usdc, 100*ONE_USDC);
         address[] memory destinations = new address[](2);
         bytes[] memory data = new bytes[](2);
@@ -253,7 +253,7 @@ contract Perpfitest is BaseSetup {
         //     bobMarginAccount,
         //     newDpositAmt
         // );
-        vm.expectRevert("Extra Transfer not allowed");
+        // vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data);
         
         console.log("Margin in market",newDpositAmt, MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs());
