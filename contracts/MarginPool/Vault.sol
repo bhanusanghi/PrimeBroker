@@ -67,7 +67,7 @@ contract Vault is IVault, ERC4626 {
     using SafeERC20 for IERC20;
 
     uint256 totalBorrowed;
-    uint256 public maxExpectedLiquidity;
+    // uint256 public maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
 
@@ -88,9 +88,12 @@ contract Vault is IVault, ERC4626 {
         address _asset,
         string memory _lpTokenName,
         string memory _lpTokenSymbol,
-        address _interestRateModelAddress,
-        uint256 _maxExpectedLiquidity
-    ) ERC4626(IERC20Metadata(_asset)) ERC20(_lpTokenName, _lpTokenSymbol) {
+        address _interestRateModelAddress
+    )
+        // uint256 _maxExpectedLiquidity
+        ERC4626(IERC20Metadata(_asset))
+        ERC20(_lpTokenName, _lpTokenSymbol)
+    {
         require(
             _asset != address(0) && _interestRateModelAddress != address(0),
             Errors.ZERO_ADDRESS_IS_NOT_ALLOWED
@@ -98,7 +101,7 @@ contract Vault is IVault, ERC4626 {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
-        maxExpectedLiquidity = _maxExpectedLiquidity;
+        // maxExpectedLiquidity = _maxExpectedLiquidity;
     }
 
     // function asset() public view override(ERC4626) returns (address) {
@@ -116,10 +119,10 @@ contract Vault is IVault, ERC4626 {
             assets <= maxDeposit(receiver),
             "ERC4626: deposit more than max"
         );
-        require(
-            expectedLiquidity() + assets <= maxExpectedLiquidity,
-            Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
-        );
+        // require(
+        //     expectedLiquidity() + assets <= maxExpectedLiquidity,
+        //     Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
+        // );
         uint256 shares = previewDeposit(assets);
         _deposit(_msgSender(), receiver, assets, shares);
         // update borrow Interest Rate.
@@ -136,10 +139,10 @@ contract Vault is IVault, ERC4626 {
     {
         require(shares <= maxMint(receiver), "ERC4626: mint more than max");
         uint256 assets = previewMint(shares);
-        require(
-            expectedLiquidity() + assets <= maxExpectedLiquidity,
-            Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
-        );
+        // require(
+        //     expectedLiquidity() + assets <= maxExpectedLiquidity,
+        //     Errors.POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT
+        // );
         _deposit(_msgSender(), receiver, assets, shares);
         // update borrow Interest Rate.
         expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.add(assets);

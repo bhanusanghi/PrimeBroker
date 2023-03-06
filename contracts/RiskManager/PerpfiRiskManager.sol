@@ -106,28 +106,28 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         uint256 pendingFee;
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(account);
-        console.log(
-            "MM:",
-            owedRealizedPnl.abs(),
-            unrealizedPnl.abs(),
-            pendingFee
-        );
+        // console.log(
+        //     "MM:",
+        //     owedRealizedPnl.abs(),
+        //     unrealizedPnl.abs(),
+        //     pendingFee
+        // );
         // clearingHouse.settleAllFunding(account);
         bytes memory data = abi.encodeWithSelector(settleFeeSelector, account);
-        console.log(
-            "return hua perp me se",
-            address(clearingHouse),
-            data.length
-        );
+        // console.log(
+        //     "return hua perp me se",
+        //     address(clearingHouse),
+        //     data.length
+        // );
         // @note basetoken is confusing w/ market base tokens
         // there can be multiple like basetoken for protocol fee and like eth/btc mkt
         IMarginAccount(account).approveToProtocol(
             baseToken,
             address(clearingHouse)
         );
-        console.log("approve done:");
+        // console.log("approve done:");
         data = IMarginAccount(account).executeTx(address(clearingHouse), data);
-        console.log(data.length);
+        // console.log(data.length);
         // MA call ic, data
         return 0;
     }

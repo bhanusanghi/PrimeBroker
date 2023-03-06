@@ -40,9 +40,10 @@ contract Utils is Test {
     }
 
     // move block.number forward by a given number of blocks
-    function mineBlocks(uint256 numBlocks) external {
+    function mineBlocks(uint256 numBlocks, uint256 timestamp) external {
         uint256 targetBlock = block.number + numBlocks;
         vm.roll(targetBlock);
+        vm.warp(timestamp);
     }
 
     function setAssetPrice(

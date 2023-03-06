@@ -13,7 +13,7 @@
   },
   "files": {
     "contracts/CollateralManager.sol": {
-      "lastModificationDate": 1677854170396,
+      "lastModificationDate": 1678080265989,
       "contentHash": "3bf1e86e4885e14e6d38deae6493467a",
       "sourceName": "contracts/CollateralManager.sol",
       "solcConfig": {
@@ -1919,8 +1919,8 @@
       }
     },
     "contracts/MarginManager.sol": {
-      "lastModificationDate": 1677911593895,
-      "contentHash": "37b00181acfb21bf2a646fcbc339df49",
+      "lastModificationDate": 1678100791423,
+      "contentHash": "ce8f2069f1dc6f693d197f1aa8c09653",
       "sourceName": "contracts/MarginManager.sol",
       "solcConfig": {
         "settings": {
@@ -2139,8 +2139,8 @@
       }
     },
     "contracts/MarginPool/Vault.sol": {
-      "lastModificationDate": 1676374527092,
-      "contentHash": "c1a91442cf5cd97021f9f703ef2086d1",
+      "lastModificationDate": 1678103356016,
+      "contentHash": "3b2e8b59367c4e3abaad2276bd9ffeee",
       "sourceName": "contracts/MarginPool/Vault.sol",
       "solcConfig": {
         "settings": {
@@ -2314,7 +2314,7 @@
       }
     },
     "contracts/RiskManager/RiskManager.sol": {
-      "lastModificationDate": 1677860236010,
+      "lastModificationDate": 1678080265993,
       "contentHash": "f655b4e4426d81bf137761274c4b86cd",
       "sourceName": "contracts/RiskManager/RiskManager.sol",
       "solcConfig": {
@@ -2403,8 +2403,8 @@
       }
     },
     "contracts/RiskManager/SNXRiskManager.sol": {
-      "lastModificationDate": 1677860278898,
-      "contentHash": "f2626308b6a75e6181e1361757466736",
+      "lastModificationDate": 1678082416123,
+      "contentHash": "663c9f095aea4d3ad1bba06ef1e7aed8",
       "sourceName": "contracts/RiskManager/SNXRiskManager.sol",
       "solcConfig": {
         "settings": {
@@ -4538,8 +4538,8 @@
       }
     },
     "test/foundry/BaseSetup.sol": {
-      "lastModificationDate": 1677860022240,
-      "contentHash": "2df007baa4a03263529f2b2f0aee9664",
+      "lastModificationDate": 1678103366855,
+      "contentHash": "f5d2a2d6626e931bd484541742e8396c",
       "sourceName": "test/foundry/BaseSetup.sol",
       "solcConfig": {
         "settings": {
@@ -4659,7 +4659,7 @@
       }
     },
     "test/foundry/CollateralManager.t.sol": {
-      "lastModificationDate": 1677854969073,
+      "lastModificationDate": 1678080266188,
       "contentHash": "57cf1b62583b7142086888ce439ef21c",
       "sourceName": "test/foundry/CollateralManager.t.sol",
       "solcConfig": {
@@ -4782,7 +4782,7 @@
       }
     },
     "test/foundry/OpenPosition.t.sol": {
-      "lastModificationDate": 1677857887544,
+      "lastModificationDate": 1678080266188,
       "contentHash": "21315417b6d852555349ae4f2010f7bb",
       "sourceName": "test/foundry/OpenPosition.t.sol",
       "solcConfig": {
@@ -4906,8 +4906,8 @@
       }
     },
     "test/foundry/TransferMargin.t.sol": {
-      "lastModificationDate": 1677854955219,
-      "contentHash": "3e8bd5e22351f4c351b9871a594a6c58",
+      "lastModificationDate": 1678103538846,
+      "contentHash": "a741ecbdac4842dad363b8554a31622e",
       "sourceName": "test/foundry/TransferMargin.t.sol",
       "solcConfig": {
         "settings": {
@@ -5028,8 +5028,8 @@
       }
     },
     "test/foundry/UpdatePosition.t.sol": {
-      "lastModificationDate": 1677911788616,
-      "contentHash": "f3aac93fd7b18db40ceb472fc507b245",
+      "lastModificationDate": 1678133267147,
+      "contentHash": "b4176343ec4c0b4e60d6f37124338ee2",
       "sourceName": "test/foundry/UpdatePosition.t.sol",
       "solcConfig": {
         "settings": {
@@ -5152,8 +5152,8 @@
       }
     },
     "test/foundry/Vault.t.sol": {
-      "lastModificationDate": 1676374527222,
-      "contentHash": "efabc65d6af69dbe25d78d8eae7460f8",
+      "lastModificationDate": 1678103569080,
+      "contentHash": "720851bb2c1466aefc59e265390d6c3a",
       "sourceName": "test/foundry/Vault.t.sol",
       "solcConfig": {
         "settings": {
@@ -5235,8 +5235,8 @@
       }
     },
     "test/foundry/utils/Utils.sol": {
-      "lastModificationDate": 1677776824977,
-      "contentHash": "3e82b66047ee5e1e105aa3d15e1157a4",
+      "lastModificationDate": 1678097879857,
+      "contentHash": "24ef7f35539105d4a72c4006aad11c62",
       "sourceName": "test/foundry/utils/Utils.sol",
       "solcConfig": {
         "settings": {

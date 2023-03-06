@@ -151,15 +151,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
             .getTotalOpeningNotional(_whitelistedMarketNames);
-        // console.log("totalNotional", totalNotional.abs());
-        // console.log("buyingPower", buyingPower);
-        // console.log(
-        //     "buyingPower - marginDelta",
-        //     buyingPower.convertTokenDecimals(
-        //         ERC20(vault.asset()).decimals(),
-        //         18
-        //     ) - (totalNotional.add(positionOpenNotional)).abs()
-        // );
         require(
             buyingPower.convertTokenDecimals(
                 ERC20(vault.asset()).decimals(),
@@ -167,7 +158,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             ) >= (totalNotional.add(positionOpenNotional)).abs(),
             "Extra leverage not allowed"
         );
-        // console.log("reached here brah");
     }
 
     // Bp is in dollars vault asset decimals
@@ -208,11 +198,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             destinations,
             data
         );
-        // console.log.marginDelta, "close pos, tm");
-        // int256 _currentPositionSize = marginAccount.getPosition(marketKey);
-        // basically checks for if its closing opposite position
-        // require(positionSize + _currentPositionSize == 0);
-
         // if (transferAmout < 0) {
         //     vault.repay(borrowedAmount, loss, profit);
         //     update totalDebt
@@ -283,12 +268,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             _whitelistedMarketNames
         );
         (PnL) = _getUnrealizedPnL(marginAccount);
-        // console.log(
-        //     "TN PnL",
-        //     totalNotional,
-        //     PnL.abs(),
-        //     collateralManager.getFreeCollateralValue(marginAccount)
-        // );
+      
         uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         if (PnL < 0) {
             require(temp <= PnL.abs(), "Liq:");
@@ -319,16 +299,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
             .toUint256()
             .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
-
-        // console.log("GetCurrentBP", buyingPower);
-        // console.log(
-        //     "totalCollateralValue",
-        //     collateralManager.totalCollateralValue(marginAccount)
-        // );
-        // console.log("IMarginAccount(marginAccount).unsettledRealizedPnL()");
-        // console.logInt(IMarginAccount(marginAccount).unsettledRealizedPnL());
-        // console.log("_getUnrealizedPnL(marginAccount)");
-        // console.logInt(_getUnrealizedPnL(marginAccount));
     }
 
     // // @note Should return the total PnL trader has across all markets in dollar value ( usdc value )

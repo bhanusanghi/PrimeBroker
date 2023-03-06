@@ -211,13 +211,13 @@ contract BaseSetup is Test {
             rSlope1,
             rSlope2
         );
-        uint256 maxExpectedLiquidity = 1_000_000 * (10**6);
+        // uint256 maxExpectedLiquidity = 1_000_000 * ERC20(token).decimals();
         vault = new Vault(
             token,
             "GigaLP",
             "GLP",
-            address(interestModel),
-            maxExpectedLiquidity
+            address(interestModel)
+            // maxExpectedLiquidity
         );
         vault.addLendingAddress(address(marginManager));
         vault.addRepayingAddress(address(marginManager));

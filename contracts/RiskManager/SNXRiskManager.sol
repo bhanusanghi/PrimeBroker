@@ -77,17 +77,10 @@ contract SNXRiskManager is IProtocolRiskManager {
             int256 _funding;
             (_funding, ) = market.accruedFunding(account);
             (_pnl, ) = market.profitLoss(account);
-            if (funding < 0) {
-                console.log("negative pnl");
-            }
-            if (_funding < 0) {
-                console.log("negative _funding");
-            }
+        
             pnl = pnl.add(_pnl);
-            console.log("funding", funding.abs());
             funding = funding.add(_funding);
         }
-        console.log("funding and pnl settle fee", funding.abs(), pnl.abs());
         return funding;
     }
 
@@ -141,7 +134,6 @@ contract SNXRiskManager is IProtocolRiskManager {
         public
         returns (int256 pnl)
     {
-        int256 funding;
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -149,8 +141,6 @@ contract SNXRiskManager is IProtocolRiskManager {
         for (uint256 i = 0; i < len; i++) {
             IFuturesMarket market = IFuturesMarket(allMarkets[i]);
             int256 _pnl;
-            int256 _funding;
-            // (_funding, ) = market.accruedFunding(account);
             (_pnl, ) = market.profitLoss(account);
             pnl = pnl.add(_pnl);
         }
@@ -191,10 +181,10 @@ contract SNXRiskManager is IProtocolRiskManager {
                 // asset price is recvd with 18 decimals.
                 (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
                     .assetPrice();
-                // require(
-                //     !isInvalid,
-                //     "Error fetching asset price from third party protocol"
-                // );
+                require(
+                    !isInvalid,
+                    "Error fetching asset price from third party protocol"
+                );
                 position.openNotional = position.openNotional.add(
                     (positionDelta * int256(assetPrice)) / 1 ether
                 );

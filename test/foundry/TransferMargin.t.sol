@@ -41,6 +41,7 @@ contract TransferMargin is BaseSetup {
     address uniFuturesMarket;
 
     address ethFuturesMarket;
+    uint256 maxExpectedLiquidity = 1_000_000 * ONE_USDC;
 
     function setUp() public {
         uint256 forkId = vm.createFork(
@@ -175,7 +176,7 @@ contract TransferMargin is BaseSetup {
         public
     {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+        //
         vm.assume(liquiMargin > ONE_USDC && liquiMargin < maxExpectedLiquidity);
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
@@ -207,7 +208,7 @@ contract TransferMargin is BaseSetup {
         uint256 liquiMargin
     ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+
         vm.assume(
             liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
         );
@@ -302,7 +303,7 @@ contract TransferMargin is BaseSetup {
         public
     {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+
         vm.assume(
             liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
         );
@@ -421,7 +422,7 @@ contract TransferMargin is BaseSetup {
 
     function testBobTransfersMaxAmountMargin(uint256 liquiMargin) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+
         vm.assume(liquiMargin > ONE_USDC && liquiMargin < 25_000 * ONE_USDC);
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
@@ -557,7 +558,6 @@ contract TransferMargin is BaseSetup {
     //         -int256(marginSNX2)
     //     );
 
-    //     console2.log("marginSNX", marginSNX);
     //     data[1] = transferMarginData2;
 
     //     vm.expectEmit(true, true, true, false, address(marginManager));

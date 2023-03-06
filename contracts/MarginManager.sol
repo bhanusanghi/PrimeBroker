@@ -207,8 +207,6 @@ contract MarginManager is ReentrancyGuard {
         address tokenIn = vault.asset();
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            // console.log("positionSize");
-            // console.logInt(verificationResult.position.size);
             marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
@@ -266,19 +264,6 @@ contract MarginManager is ReentrancyGuard {
                         )
                     );
                 }
-                // console.log(
-                //     "amountIn ",
-                //     dollarValueOfTokenDifference.add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
-                //         uint256(500).convertTokenDecimals(
-                //             0,
-                //             ERC20(tokenIn).decimals()
-                //         )
-                //     )
-                // );
-                // console.log(
-                //     "token In balance",
-                //     tokenInBalance
-                // );
                 // Note - change this to get exact token out and remove extra token in of 100 given above
                 if (tokenIn != verificationResult.tokenOut) {
                     IExchange.SwapParams memory params = IExchange.SwapParams({
@@ -313,10 +298,7 @@ contract MarginManager is ReentrancyGuard {
         IMarginAccount marginAcc = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-        require(
-            marginAcc.existingPosition(marketKey),
-            "Position doesn't exist"
-        );
+
         _updateUnsettledRealizedPnL(address(marginAcc));
         address tokenIn = vault.asset();
         // settleFee();
@@ -329,6 +311,7 @@ contract MarginManager is ReentrancyGuard {
             data,
             _getInterestAccrued(address(marginAcc))
         );
+
         // int256 _oldPositionSize = marginAcc.getPositionOpenNotional(marketKey);
         // uint256 interestAccrued = _getInterestAccrued(address(marginAcc));
 
@@ -337,10 +320,13 @@ contract MarginManager is ReentrancyGuard {
         (protocolAddress, protocolRiskManager) = marketManager
             .getProtocolAddressByMarketName(marketKey);
 
+        require(
+            marginAcc.existingPosition(marketKey) ||
+                marginAcc.marginInMarket(protocolAddress) > 0,
+            "Position doesn't exist"
+        );
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            // console.log("positionSize");
-            // console.logInt(verificationResult.position.size);
             Position memory updatedPosition;
             updatedPosition.protocol = verificationResult.position.protocol;
             updatedPosition.size =
@@ -424,6 +410,7 @@ contract MarginManager is ReentrancyGuard {
                 }
             }
         }
+        marginAcc.execMultiTx(destinations, data);
     }
 
     function closePosition(

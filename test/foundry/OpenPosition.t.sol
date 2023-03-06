@@ -207,13 +207,6 @@ contract OpenLongSnx is BaseSetup {
         // values[0] = etherRoundData.answer.toUint256();
         // vm.prank(snxOwner);
         // ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
-        // console2.log("isCircuitBrokenAlready");
-        // console2.log(
-        //     ICircuitBreaker(circuitBreaker).probeCircuitBreaker(
-        //         etherPriceFeed,
-        //         etherRoundData.answer.toUint256()
-        //     )
-        // );
 
         uint256 margin = 50000 * ONE_USDC;
         uint256 marginInEther = 50000 ether;
@@ -282,16 +275,13 @@ contract OpenLongSnx is BaseSetup {
     function testBobOpensPositionWithExcessLeverageSingleAttempt(
         uint128 positionSize
     ) public {
-        // console2.log("maxBuyingPower", maxBuyingPower);
         (uint256 assetPrice, bool isExpired) = IFuturesMarket(ethFuturesMarket)
             .assetPrice();
-        console2.log("assetPrice", assetPrice);
-        console2.log("maxBuyingPower", maxBuyingPower);
+
         uint256 maxPossiblePositionSize = maxBuyingPower
             .convertTokenDecimals(6, 18)
             .div(assetPrice / 1 ether);
         // /assetPrice.convertTokenDecimals(18, 0)).add(1 ether);
-        console2.log("maxPossiblePositionSize", maxPossiblePositionSize);
         vm.assume(
             positionSize > maxPossiblePositionSize &&
                 positionSize < maxPossiblePositionSize.mul(2)
@@ -420,10 +410,6 @@ contract OpenLongSnx is BaseSetup {
         //     .lastPositionId()
         //     .add(1);
 
-        // console2.log(
-        //     "latest funding seq",
-        //     IFuturesMarket(ethFuturesMarket).fundingSequenceLength()
-        // );
         // tradeData.latestFundingIndex = IFuturesMarket(ethFuturesMarket)
         //     .fundingSequenceLength()
         //     .sub(1);
@@ -481,22 +467,10 @@ contract OpenLongSnx is BaseSetup {
         // check if margin in snx is reduced by a value of orderFee
         assertEq(marginDiff.abs(), tradeData.orderFee);
 
-        console2.log("snxEth_marketKey");
-        console2.logBytes32(snxEth_marketKey);
-
         uint256 maxLeverage = IFuturesMarketSettings(futuresMarketSettings)
             .maxLeverage(snxEth_marketKey);
-        console2.log(
-            "tradeData.marginRemainingAfterTrade",
-            tradeData.marginRemainingAfterTrade
-        );
-        console2.log(
-            "tradeData.accessibleMarginAfterTrade",
-            tradeData.accessibleMarginAfterTrade
-        );
         int256 inacessibleMargin = int256(tradeData.marginRemainingAfterTrade) -
             int256(tradeData.accessibleMarginAfterTrade);
-        console2.log("inacessibleMargin", inacessibleMargin);
         // TODO - check why this assertion fails.
         // assertEq(
         //     (openNotional.abs() * maxLeverage) / 1 ether,
@@ -548,11 +522,7 @@ contract OpenLongSnx is BaseSetup {
             ethFuturesMarket
         ).accessibleMargin(bobMarginAccount);
 
-        console2.log("reached here brah");
         uint256 positionSizeUint = positionSize.abs();
-        console2.log("positionSizeUint", positionSizeUint);
-        console2.log("positionSize");
-        console2.logInt(positionSize);
         int256 openNotional = int256(
             positionSize.abs().mulDiv(tradeData.assetPriceBeforeTrade, 1 ether)
         );
@@ -587,10 +557,7 @@ contract OpenLongSnx is BaseSetup {
         //     .lastPositionId()
         //     .add(1);
 
-        // console2.log(
-        //     "latest funding seq",
-        //     IFuturesMarket(ethFuturesMarket).fundingSequenceLength()
-        // );
+        
         // tradeData.latestFundingIndex = IFuturesMarket(ethFuturesMarket)
         //     .fundingSequenceLength()
         //     .sub(1);
@@ -651,7 +618,6 @@ contract OpenLongSnx is BaseSetup {
         // TODO - check why this call is not working
         // uint256 maxLeverage = IFuturesMarketSettings(futuresMarketSettings)
         //     .maxLeverage(snxEth_marketKey);
-        // console2.log("maxLeverage", maxLeverage);
         // int256 inacessibleMargin = int256(tradeData.marginRemainingAfterTrade) -
         //     int256(tradeData.accessibleMarginAfterTrade);
         // // check if margin in snx is reduced by a value of orderFee
@@ -662,6 +628,4 @@ contract OpenLongSnx is BaseSetup {
 
         // check fee etc.
     }
-
-   
 }

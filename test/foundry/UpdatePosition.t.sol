@@ -5,6 +5,7 @@ import "forge-std/console2.sol";
 import {BaseSetup} from "./BaseSetup.sol";
 import {Utils} from "./utils/Utils.sol";
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
+import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {IPerpsV2Market} from "../../contracts/Interfaces/SNX/IPerpsV2Market.sol";
 import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
@@ -85,6 +86,7 @@ contract UpdatePosition is BaseSetup {
     address ethFuturesMarket;
     uint256 maxBuyingPower;
     uint256 marginSNX;
+    uint256 constant DAY = 24 * 60 * 60 * 1000;
 
     function setUp() public {
         uint256 forkId = vm.createFork(
@@ -154,8 +156,8 @@ contract UpdatePosition is BaseSetup {
         // fund vault.
         vm.startPrank(admin);
         // IERC20(usdc).approve(address(vault), largeAmount);
-        IERC20(susd).approve(address(vault), largeAmount);
-        vault.deposit(largeAmount, admin);
+        IERC20(susd).approve(address(vault), largeEtherAmount);
+        vault.deposit(largeEtherAmount, admin);
         vm.stopPrank();
 
         // setup and fund margin accounts.
@@ -188,11 +190,191 @@ contract UpdatePosition is BaseSetup {
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
         maxBuyingPower = riskManager.GetCurrentBuyingPower(bobMarginAccount, 0);
-        console2.log("Max B.P. - ", maxBuyingPower);
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
         vm.stopPrank();
+    }
+
+    /* scenario ->
+        initial margin - 50k
+        initial BP - 250k
+        next transfer -> >250k - should fail
+    */
+    function testAddExcessMarginShouldFail(int256 extraMargin) public {
+        SNXTradingData memory tradeData;
+        MarginAccountData memory marginAccountData;
+        int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
+            ethFuturesMarket
+        );
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            1500 * 10**8,
+            block.timestamp,
+            circuitBreaker
+        );
+        // roll time
+        // check interest accrued.
+        // check excess margin transfer.
+        utils.mineBlocks(10, block.timestamp + DAY); // 1000 seconds
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            1500 * 10**8,
+            block.timestamp,
+            circuitBreaker
+        );
+        uint256 interestAccrued = marginManager.getInterestAccrued(
+            bobMarginAccount
+        );
+        uint256 remainingBuyingPower = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            interestAccrued
+        );
+        vm.assume(
+            extraMargin > int256(remainingBuyingPower) &&
+                extraMargin < int256(remainingBuyingPower * 100)
+        );
+        bytes memory transferMarginData = abi.encodeWithSignature(
+            "transferMargin(int256)",
+            extraMargin
+        );
+        vm.expectRevert("Extra Transfer not allowed");
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = transferMarginData;
+
+        vm.prank(bob);
+        marginManager.updatePosition(snxEthKey, destinations, data);
+    }
+
+    /* scenario ->
+        initial margin - 50k
+        initial BP - 250k
+        first transfer SNX - 50k
+        next transfer -> 50k
+    */
+    function testIncreaseMargin(int256 extraMargin) public {
+        SNXTradingData memory tradeData;
+        MarginAccountData memory marginAccountData;
+        int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
+            ethFuturesMarket
+        );
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            1500 * 10**8,
+            block.timestamp,
+            circuitBreaker
+        );
+        // roll time
+        // check interest accrued.
+        // check excess margin transfer.
+        utils.mineBlocks(10, block.timestamp + DAY); // 1000 seconds
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            1500 * 10**8,
+            block.timestamp,
+            circuitBreaker
+        );
+        uint256 interestAccrued = marginManager.getInterestAccrued(
+            bobMarginAccount
+        );
+        uint256 remainingBuyingPower = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            interestAccrued
+        );
+      
+        vm.assume(
+            extraMargin > int256(1 ether) &&
+                extraMargin < int256(remainingBuyingPower)
+        );
+        bytes memory transferMarginData = abi.encodeWithSignature(
+            "transferMargin(int256)",
+            extraMargin
+        );
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit MarginTransferred(
+            bobMarginAccount,
+            ethFuturesMarket,
+            susd,
+            extraMargin,
+            extraMargin
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = transferMarginData;
+
+        vm.prank(bob);
+        marginManager.updatePosition(snxEthKey, destinations, data);
+        assertEq(
+            MarginAccount(bobMarginAccount).marginInMarket(ethFuturesMarket),
+            initialMargin + extraMargin
+        );
+    }
+
+    /* scenario ->
+        initial margin - 50k
+        initial BP - 250k
+        first transfer SNX - 50k
+        next transfer -> 50k
+    */
+    function testReduceMargin(int256 extraMargin) public {
+        SNXTradingData memory tradeData;
+        MarginAccountData memory marginAccountData;
+        int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
+            ethFuturesMarket
+        );
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            1500 * 10**8,
+            block.timestamp,
+            circuitBreaker
+        );
+        // roll time
+        // check interest accrued.
+        // check excess margin transfer.
+        utils.mineBlocks(10, block.timestamp + DAY); // 1000 seconds
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            1500 * 10**8,
+            block.timestamp,
+            circuitBreaker
+        );
+        uint256 interestAccrued = marginManager.getInterestAccrued(
+            bobMarginAccount
+        );
+        uint256 remainingBuyingPower = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            interestAccrued
+        );
+       
+        vm.assume(
+            extraMargin < int256(0) && extraMargin > int256(-initialMargin)
+        );
+        bytes memory transferMarginData = abi.encodeWithSignature(
+            "transferMargin(int256)",
+            extraMargin
+        );
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit MarginTransferred(
+            bobMarginAccount,
+            ethFuturesMarket,
+            susd,
+            extraMargin,
+            extraMargin
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = transferMarginData;
+
+        vm.prank(bob);
+        marginManager.updatePosition(snxEthKey, destinations, data);
+        assertEq(
+            MarginAccount(bobMarginAccount).marginInMarket(ethFuturesMarket),
+            initialMargin + extraMargin
+        );
     }
 
     /* scenario ->
@@ -249,20 +431,18 @@ contract UpdatePosition is BaseSetup {
         // increase blocks
         // get interest -> TODO write tests for interest calculations for vault separately. Currently its wrong always returns 0;
         //
-
-        // increare 1000 blocks
+        // increare 10 blocks
         vm.roll(block.number + 10);
         vm.warp(block.timestamp + 100);
 
         utils.setAssetPriceSnx(
-            usdcPriceFeed,
+            etherPriceFeed,
             tradeData.assetPriceBeforeTrade.convertTokenDecimals(18, 8).add(
                 100 * 10**8
             ),
             block.timestamp,
             circuitBreaker
         );
-
         marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
             bobMarginAccount
         );
@@ -288,19 +468,19 @@ contract UpdatePosition is BaseSetup {
         );
         marginAccountData.bpAfterPnL = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
-            0
+            0 // interest accrued is 0 currently.
         );
-        console2.log("I am here");
-        console2.logInt(marginAccountData.unrealizedPnL);
-        console2.logInt(marginAccountData.pnlTPP);
+        marginManager.updateUnsettledRealizedPnL(bob);
+        int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)
+            .unsettledRealizedPnL();
 
         assertApproxEqAbs(
             marginAccountData.bpAfterPnL,
             marginAccountData.bpBeforePnL +
-                marginAccountData.unrealizedPnL.toUint256(),
-            0.001 ether
+                ((marginAccountData.unrealizedPnL + unsettledRealizedPnL)
+                    .toUint256() * 4),
+            50 ether
         );
-        console2.log("I am here 2");
         bytes memory updatePositionData = abi.encodeWithSignature(
             "modifyPositionWithTracking(int256,bytes32)",
             tradeData.positionSize,
@@ -337,7 +517,177 @@ contract UpdatePosition is BaseSetup {
         );
 
         // assert new position size to be equal to TPP in margin account.
-
+        (, , , , tradeData.positionSizeAfterTrade) = IFuturesMarket(
+            ethFuturesMarket
+        ).positions(bobMarginAccount);
+        assertEq(
+            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            tradeData.positionSizeAfterTrade
+        );
+        assertEq(tradeData.positionSizeAfterTrade, tradeData.positionSize * 2);
         // check change in margin value.
+
+        // CHECK is order fee is right.
+    }
+
+    /* scenario ->
+        initial margin - 50k
+        initial BP - 250k
+        first transfer SNX - 50k
+
+        open 1 eth long at price - x - from setup
+        change price by +100$ 
+        check bp changes.
+        try to transfer extra margin
+    */
+    function testReductPositionAccounting(int256 secondPositionSize) public {
+        vm.assume(
+            secondPositionSize > -3 ether && secondPositionSize <= -1 ether
+        );
+        SNXTradingData memory tradeData;
+        MarginAccountData memory marginAccountData;
+        tradeData.positionSize = 3 ether;
+        (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
+            .assetPrice();
+        bytes memory openPositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            tradeData.positionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = openPositionData;
+        // check event for position opened on our side.
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            ethFuturesMarket,
+            susd,
+            tradeData.positionSize,
+            int256( // openNotional
+                uint256(tradeData.positionSize).mulDiv(
+                    tradeData.assetPriceBeforeTrade,
+                    1 ether
+                )
+            )
+        );
+        vm.prank(bob);
+        marginManager.openPosition(snxEthKey, destinations, data);
+        assertEq(
+            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            tradeData.positionSize
+        );
+
+        marginAccountData.bpBeforePnL = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            0
+        );
+        // Update market price by Delta +100
+        // increase blocks
+        // get interest -> TODO write tests for interest calculations for vault separately. Currently its wrong always returns 0;
+        //
+        // increare 10 blocks
+        vm.roll(block.number + 10);
+        vm.warp(block.timestamp + 100);
+
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            tradeData.assetPriceBeforeTrade.convertTokenDecimals(18, 8).add(
+                100 * 10**8
+            ),
+            block.timestamp,
+            circuitBreaker
+        );
+        marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
+            bobMarginAccount
+        );
+        (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)
+            .profitLoss(bobMarginAccount);
+        (marginAccountData.fundingAccruedTPP, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).accruedFunding(bobMarginAccount);
+
+        (tradeData.assetPriceAfterManipulation, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).assetPrice();
+        assertEq(
+            marginAccountData.unrealizedPnL,
+            marginAccountData.fundingAccruedTPP.convertTokenDecimals(
+                18,
+                ERC20(vault.asset()).decimals()
+            ) +
+                marginAccountData.pnlTPP.convertTokenDecimals(
+                    18,
+                    ERC20(vault.asset()).decimals()
+                )
+        );
+        marginAccountData.bpAfterPnL = riskManager.GetCurrentBuyingPower(
+            bobMarginAccount,
+            0 // interest accrued is 0 currently.
+        );
+        marginManager.updateUnsettledRealizedPnL(bob);
+        int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)
+            .unsettledRealizedPnL();
+
+        // assertApproxEqAbs(
+        //     marginAccountData.bpAfterPnL,
+        //     marginAccountData.bpBeforePnL +
+        //         ((marginAccountData.unrealizedPnL + unsettledRealizedPnL)
+        //             .toUint256() * 4),
+        //     50 ether
+        // );
+        bytes memory updatePositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            secondPositionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        // send update position call
+        vm.prank(bob);
+        destinations[0] = ethFuturesMarket;
+        data[0] = updatePositionData;
+
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionUpdated(
+            bobMarginAccount,
+            ethFuturesMarket,
+            susd,
+            tradeData.positionSize + secondPositionSize,
+            (tradeData.positionSize * int256(tradeData.assetPriceBeforeTrade)) /
+                int256(1 ether) +
+                (secondPositionSize *
+                    int256(tradeData.assetPriceAfterManipulation)) /
+                int256(1 ether)
+        );
+        marginManager.updatePosition(snxEthKey, destinations, data);
+        assertEq(
+            marginAccountData.unrealizedPnL,
+            marginAccountData.fundingAccruedTPP.convertTokenDecimals(
+                18,
+                ERC20(vault.asset()).decimals()
+            ) +
+                marginAccountData.pnlTPP.convertTokenDecimals(
+                    18,
+                    ERC20(vault.asset()).decimals()
+                )
+        );
+        marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
+            bobMarginAccount
+        );
+        (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)
+            .profitLoss(bobMarginAccount);
+        (marginAccountData.fundingAccruedTPP, ) = IFuturesMarket(
+            ethFuturesMarket
+        ).accruedFunding(bobMarginAccount);
+        assertEq(
+            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            tradeData.positionSize + secondPositionSize
+        );
+        (, , , , int128 finalPositionSizeTPP) = IFuturesMarket(ethFuturesMarket)
+            .positions(bobMarginAccount);
+        assertEq(
+            finalPositionSizeTPP,
+            tradeData.positionSize + secondPositionSize
+        );
     }
 }
