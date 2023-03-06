@@ -18,19 +18,6 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-/**
- * setup
- * Open position
- * margin and leverage min max fuzzy
- * fee
- * update
- * multiple markets
- * liquidate perpfi
- * liquidate on GB
- * close positions
- * pnl
- * pnl with ranges and multiple positions
- */
 contract CollateralManagerTest is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
