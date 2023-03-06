@@ -10,7 +10,7 @@
     "typechain-openzeppelin": "typechain --target ethers-v5 --out-dir ./typechain/openzeppelin './node_modules/@openzeppelin/contracts/build/contracts/**/*.json'",
     "typechain-perp-oracle": "typechain --target ethers-v5 --out-dir ./typechain/perp-oracle './node_modules/@perp/perp-oracle-contract/artifacts/contracts/**/*.json'",
     "clean": "forge clean && rm -rf typechain && rm -rf artifacts && rm -rf cache",
-    "test": "forge test --match-contract Perpfitest -vvvv",
+    "test": "forge test",
     "coverage": "hardhat coverage",
     "compile": "hardhat compile --show-stack-traces",
     "build": "npm run typechain && hardhat compile",

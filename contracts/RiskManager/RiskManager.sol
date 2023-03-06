@@ -129,34 +129,18 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // Bp is in dollars vault asset decimals
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
-        console.log("yolo");
-        console.log(buyingPower,totalNotional.abs(),result.position.openNotional.abs());
-        // require(_checkPositionHealth(
-        //     buyingPower,
-        //     totalNotional,
-        //     result.position.openNotional
-        // ),"Extra leverage not allowed");
-        // // Bp is in dollars vault asset decimals
-        // marginDeltaDollarValue is in dollars vault asset decimals
-        if(_checkPositionHealth(
+        _checkPositionHealth(
             buyingPower,
             totalNotional,
             result.position.openNotional
-        )&&_checkMarginTransferHealth(
+        );
+        // Bp is in dollars vault asset decimals
+        // marginDeltaDollarValue is in dollars vault asset decimals
+        _checkMarginTransferHealth(
             buyingPower,
             IMarginAccount(marginAcc),
             result.marginDeltaDollarValue
-        )){
-            console.log("yoloxx");
-        }else{
-            console.log("yoloyy");
-        }
-        console.log(buyingPower,result.marginDeltaDollarValue.abs());
-        require(_checkMarginTransferHealth(
-            buyingPower,
-            IMarginAccount(marginAcc),
-            result.marginDeltaDollarValue
-        ),"Extra Transfer not allowed");
+        );
         // require(
         //     buyingPower >= totalNotional.add(positionSize.abs()),
         //     "Extra leverage not allowed"
@@ -183,13 +167,13 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 buyingPower,
         int256 totalNotional,
         int256 positionOpenNotional
-    ) internal returns(bool) {
-        return(
+    ) internal {
+        require(
             buyingPower.convertTokenDecimals(
                 ERC20(vault.asset()).decimals(),
                 18
-            ) >= (totalNotional.add(positionOpenNotional)).abs()
-            
+            ) >= (totalNotional.add(positionOpenNotional)).abs(),
+            "Extra leverage not allowed"
         );
     }
 
@@ -199,8 +183,14 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 buyingPower,
         IMarginAccount marginAcc,
         int256 marginDeltaDollarValue
-    ) internal returns(bool) {
-        return ((buyingPower >=(marginAcc.totalMarginInMarkets().add(marginDeltaDollarValue)).abs()));
+    ) internal view {
+        require(
+            buyingPower >=
+                (
+                    marginAcc.totalMarginInMarkets().add(marginDeltaDollarValue) // this is also in vault asset decimals
+                ).abs(),
+            "Extra Transfer not allowed"
+        );
     }
 
     function closeTrade(
@@ -284,8 +274,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         public
         returns (uint256 buyPow)
     {
-        console.log("getBuyingPower", PnL.abs(),collateralManager
-                .getFreeCollateralValue(_marginAcc));
         return
             collateralManager
                 .getFreeCollateralValue(_marginAcc)
@@ -320,10 +308,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         int256 PnL,
         uint256 interestAccrued
     ) public returns (uint256 buyPow) {
-        console.log("GetCurrentBuyingPower2", PnL.abs(),interestAccrued,collateralManager
-                .totalCollateralValue(marginAccount));
-        int256 temp = collateralManager.totalCollateralValue(marginAccount).toInt256()-interestAccrued.toInt256()+PnL;
-        console.log("GetCurrentBuyingPower", temp.abs(),initialMarginFactor);
         return
             collateralManager
                 .totalCollateralValue(marginAccount)
