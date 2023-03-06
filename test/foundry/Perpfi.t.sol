@@ -168,7 +168,7 @@ contract Perpfitest is BaseSetup {
         // assume usdc and susd value to be 1
     }
     // Internal 
-    function testMarginTransforPerp() public {
+    function testMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
         uint256 _depositAmt = 500 * ONE_USDC;
         vm.assume(
