@@ -49,7 +49,6 @@ contract OpenLongSnx is BaseSetup {
     uint256 constant ONE_USDC = 10**6;
     int256 constant ONE_USDC_INT = 10**6;
     uint256 largeAmount = 1_000_000 * ONE_USDC;
-    uint256 largeEtherAmount = 1_000_000 ether;
     bytes32 snxUni_marketKey = bytes32("sUNI");
     bytes32 snxEth_marketKey = bytes32("sETH");
 
@@ -69,7 +68,7 @@ contract OpenLongSnx is BaseSetup {
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
-            77772792
+            71255016
         );
         vm.selectFork(forkId);
         utils = new Utils();
@@ -128,12 +127,6 @@ contract OpenLongSnx is BaseSetup {
         IERC20(usdc).transfer(bob, largeAmount);
         vm.stopPrank();
 
-        vm.startPrank(susdWhaleContract);
-        IERC20(susd).transfer(admin, largeEtherAmount * 2);
-        IERC20(susd).transfer(bob, largeEtherAmount);
-        vm.stopPrank();
-
-        uint256 adminBal = IERC20(usdc).balanceOf(admin);
         // fund usdc vault.
         vm.startPrank(admin);
         IERC20(usdc).approve(address(vault), largeAmount);
@@ -209,14 +202,10 @@ contract OpenLongSnx is BaseSetup {
         // ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
 
         uint256 margin = 50000 * ONE_USDC;
-        uint256 marginInEther = 50000 ether;
-        marginSNX = marginInEther;
-        // marginSNX = marginInEther.mul(2);
+        marginSNX = margin.mul(2).convertTokenDecimals(6, 18);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, margin);
-        IERC20(susd).approve(bobMarginAccount, marginInEther);
-        // collateralManager.addCollateral(usdc, margin);
-        collateralManager.addCollateral(susd, marginInEther);
+        collateralManager.addCollateral(usdc, margin);
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
             marginSNX
@@ -238,7 +227,7 @@ contract OpenLongSnx is BaseSetup {
     function testBobAddsPositionOnInvalidMarket() public {
         int256 positionSize = 50 ether;
         bytes32 trackingCode = keccak256("GigabrainMarginAccount");
-        console2.log("bobMarginAccount:", bob,bobMarginAccount);
+        console2.log("bobMarginAccount:", bob, bobMarginAccount);
         vm.expectRevert(bytes("MM: Invalid Market"));
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
@@ -248,6 +237,7 @@ contract OpenLongSnx is BaseSetup {
             positionSize,
             trackingCode
         );
+        vm.prank(bob);
         marginManager.openPosition(invalidKey, destinations, data);
     }
 
@@ -558,7 +548,6 @@ contract OpenLongSnx is BaseSetup {
         //     .lastPositionId()
         //     .add(1);
 
-        
         // tradeData.latestFundingIndex = IFuturesMarket(ethFuturesMarket)
         //     .fundingSequenceLength()
         //     .sub(1);
