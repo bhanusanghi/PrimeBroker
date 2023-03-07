@@ -170,6 +170,11 @@ contract Perpfitest is BaseSetup {
     // Internal 
     function testMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
+        uint256 _depositAmt = 500 * ONE_USDC;
+        vm.assume(
+            _depositAmt < liquiMargin &&
+                _depositAmt > 0
+        );
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -205,6 +210,10 @@ contract Perpfitest is BaseSetup {
         // IVault pvault = IVault(perpVault);
         // assertEq(pvault.getFreeCollateral(bobMarginAccount),depositAmt);
         // console.log("getFreeCollateral:",pvault.getFreeCollateral(bobMarginAccount));
+        //@0xAshish @note after slippage fix this should be equal to depositAmt
+        assertApproxEqAbs(MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),depositAmt,10**7);//10usdc
+        IVault pvault = IVault(perpVault);
+        assertEq(pvault.getFreeCollateral(bobMarginAccount),depositAmt);
         // address[] memory destinations1 = new address[](1);
         // bytes[] memory data1 = new bytes[](1);
         // destinations1[0] = perpVault;
@@ -221,8 +230,60 @@ contract Perpfitest is BaseSetup {
         // );
         // marginManager.openPosition(perpAaveKey, destinations1, data1);
     }
+    function testMarginTransferRevert() public {
+        uint256 liquiMargin = 100_000 * ONE_USDC;
+        uint256 newDpositAmt = 500 * ONE_USDC;
+        assertEq(vault.expectedLiquidity(), largeAmount);
+        vm.startPrank(bob);
+        IERC20(usdc).approve(bobMarginAccount, liquiMargin);
+        vm.expectEmit(true, true, true, false, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, 100*ONE_USDC, 0);
+        collateralManager.addCollateral(usdc, 100*ONE_USDC);
+        address[] memory destinations = new address[](2);
+        bytes[] memory data = new bytes[](2);
+        destinations[0] = usdc;
+        destinations[1] = perpVault;
+
+        data[0] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            perpVault,
+            newDpositAmt
+        );
+        data[1] = abi.encodeWithSignature(
+            "deposit(address,uint256)",
+            usdc,
+            newDpositAmt
+        );
+       
+        vm.expectEmit(true, true, true,false, perpVault);
+        emit Deposited(
+            usdc,
+            bobMarginAccount,
+            newDpositAmt
+        );
+        vm.expectRevert("Extra Transfer not allowed");
+        marginManager.openPosition(perpAaveKey, destinations, data);
+        newDpositAmt = 400 * ONE_USDC;
+         data[0] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            perpVault,
+            newDpositAmt
+        );
+        data[1] = abi.encodeWithSignature(
+            "deposit(address,uint256)",
+            usdc,
+            newDpositAmt
+        );
+        marginManager.openPosition(perpAaveKey, destinations, data);
+        assertApproxEqAbs(newDpositAmt,MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),10**7);
+        //@0xAshish @note after slippage fix this should be equal to newDpositAmt
+        IVault pvault = IVault(perpVault);
+        assertEq(pvault.getFreeCollateral(bobMarginAccount),newDpositAmt);
+    }
     function testOpenPositionPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
+        uint256 newDpositAmt = 1000 * ONE_USDC;
+        uint256 size = 10000 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -238,19 +299,19 @@ contract Perpfitest is BaseSetup {
         data1[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             address(perpVault),
-            10000*ONE_USDC  
+            newDpositAmt 
         );
         data1[1] = abi.encodeWithSignature(
             "deposit(address,uint256)",
             address(usdc),
-            10000*ONE_USDC  
+            newDpositAmt 
         );
         data1[2] = abi.encodeWithSelector(
             0xb6b1b6c3,
             perpAaveMarket,
             false,
             true,
-            uint256(5000*10**6),
+            size,
             0,
             type(uint256).max,
             uint160(0),
@@ -261,25 +322,9 @@ contract Perpfitest is BaseSetup {
             bobMarginAccount,
             perpAaveMarket,
             usdc,
-            int256(5000*10**6),
-            int256(5000*10**6)
+            int256(size),
+            int256(size)
         );
-        //Add asserts for position value etc from MarginAccount, cross checking it with Perp
-        // vm.expectEmit(true, true, true, true, address(marginManager));
-        // emit PositionAdded(
-        //     bobMarginAccount,
-        //     ethFuturesMarket,
-        //     susd,
-        //     positionSize,
-        //     openNotional
-        // );
-        // vm.expectEmit(true, true, false, true, address(susd));
-
-        // emit Transfer(bobMarginAccount, address(0x00), marginSNX1);
-        // vm.expectEmit(true, false, false, true, address(susd));
-        // emit Burned(bobMarginAccount, marginSNX1);
-        // vm.expectEmit(true, false, false, true, address(uniFuturesMarket));
-        // emit MarginTransferred(bobMarginAccount, int256(marginSNX1));
         marginManager.openPosition(perpAaveKey, destinations, data1);
     }
     
