@@ -238,20 +238,21 @@ contract OpenLongSnx is BaseSetup {
     function testBobAddsPositionOnInvalidMarket() public {
         int256 positionSize = 50 ether;
         bytes32 trackingCode = keccak256("GigabrainMarginAccount");
-        bytes memory openPositionData = abi.encodeWithSignature(
-            "modifyPositionWithTracking(int256,bytes32)",
-            positionSize,
-            trackingCode
-        );
+        console2.log("bobMarginAccount:", bob,bobMarginAccount);
         vm.expectRevert(bytes("MM: Invalid Market"));
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = uniFuturesMarket;
-        data[0] = openPositionData;
+        data[0] = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            positionSize,
+            trackingCode
+        );
         marginManager.openPosition(invalidKey, destinations, data);
     }
 
     function testBobAddsPositionOnInvalidContract() public {
+        vm.prank(bob);
         int256 positionSize = 50 ether;
         bytes32 trackingCode = keccak256("GigabrainMarginAccount");
         bytes memory openPositionData = abi.encodeWithSignature(
