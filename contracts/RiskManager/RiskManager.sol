@@ -198,6 +198,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             destinations,
             data
         );
+        // basically checks for if its closing opposite position
+        // require(positionSize + _currentPositionSize == 0);
+
         // if (transferAmout < 0) {
         //     vault.repay(borrowedAmount, loss, profit);
         //     update totalDebt
@@ -245,8 +248,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         // require(PnL<0 && temp<=PnL.abs(),"Liq:");
-        console.log("Liqidation!!");
-        //  uint256 newBuyPow = getBuyingPower(marginAccount,PnL);
         // require(
         //     buyingPower >= totalNotional.add(positionSize.abs()),
         //     "Extra leverage not allowed"
@@ -268,7 +269,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             _whitelistedMarketNames
         );
         (PnL) = _getUnrealizedPnL(marginAccount);
-      
+
         uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
         if (PnL < 0) {
             require(temp <= PnL.abs(), "Liq:");
