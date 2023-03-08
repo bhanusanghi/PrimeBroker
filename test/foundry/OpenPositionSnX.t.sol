@@ -19,7 +19,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
 
-contract OpenLongSnx is BaseSetup {
+contract OpenPositionSnX is BaseSetup {
     struct PositionData {
         uint64 id;
         uint64 lastFundingIndex;

@@ -24,7 +24,18 @@ import "hardhat/console.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 
 interface IUniswapV3Pool {
-    function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint32 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
+    function slot0()
+        external
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint32 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
 }
 
 contract PerpfiRiskManager is IProtocolRiskManager {
@@ -85,8 +96,14 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // }
 
     /// @notice Returns the price of th UniV3Pool.
-    function getMarkPrice(address _baseToken) public view returns (uint256 token0Price) {
-        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(_baseToken)).slot0();
+    function getMarkPrice(address _baseToken)
+        public
+        view
+        returns (uint256 token0Price)
+    {
+        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
+            marketRegistry.getPool(_baseToken)
+        ).slot0();
         token0Price = ((uint256(sqrtPriceX96)**2) / (2**192));
     }
 
@@ -128,7 +145,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     function getBaseToken() external view returns (address) {
         return baseToken;
     }
-
 
     // ** TODO - should return in 18 decimal points
     function getPositionPnL(address account)
@@ -191,7 +207,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 // refer -
                 (
                     address _baseToken,
-                    bool isShort,
+                    bool isShort, //isBaseToQuote
                     bool isExactInput,
                     int256 _amount,
                     ,
@@ -211,36 +227,33 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
+                int256 markPrice = getMarkPrice(_baseToken).toInt256();
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
-                    // get price should return in normalized values.
-                    position.size = isShort
-                        ? -int256(_amount)
-                        : int256(_amount);
+                    position.size = -_amount;
+                    position.openNotional = -(_amount * markPrice) / 1 ether;
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    position.size = isShort ? -_amount : _amount;
+                    position.openNotional = -_amount;
+                    position.size = (_amount * 1 ether) / markPrice;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    position.size = isShort ? -_amount : _amount;
-                } else if (isShort && !isExactInput) {
-                    // get price
+                    position.openNotional = _amount;
+                    position.size = (_amount * 1 ether) / markPrice;
+                } else if (!isShort && !isExactInput) {
+                    position.openNotional = (_amount * markPrice) / 1 ether;
+                    position.size = _amount;
                 } else {
                     revert("impossible shit");
                 }
-                position.openNotional = position.size.mul(getMarkPrice(_baseToken).toInt256());
                 uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
+                // Todo - Bhanu. Verify this fee calculation and decimals.
                 position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
-        
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
         }
-        // this refers to position opening fee.
-        
-        
-        // Todo - Bhanu. Verify this fee calculation and decimals.
     }
 
     function verifyClose(

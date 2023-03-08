@@ -2,6 +2,22 @@
 pragma solidity >=0.8.0;
 
 import {Test} from "forge-std/Test.sol";
+import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegistry.sol";
+
+interface IUniswapV3Pool {
+    function slot0()
+        external
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint32 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
+}
 
 contract Utils is Test {
     bytes32 internal nextUser = keccak256(abi.encodePacked("user address"));
@@ -31,5 +47,17 @@ contract Utils is Test {
     function mineBlocks(uint256 numBlocks) external {
         uint256 targetBlock = block.number + numBlocks;
         vm.roll(targetBlock);
+    }
+
+    // @notice Returns the price of th UniV3Pool.
+    function getMarkPricePerp(address perpMarketRegistry, address _baseToken)
+        public
+        view
+        returns (uint256 token0Price)
+    {
+        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
+            IMarketRegistry(perpMarketRegistry).getPool(_baseToken)
+        ).slot0();
+        token0Price = ((uint256(sqrtPriceX96)**2) / (2**192));
     }
 }
