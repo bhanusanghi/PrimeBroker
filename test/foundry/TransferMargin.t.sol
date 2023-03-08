@@ -41,6 +41,7 @@ contract TransferMargin is BaseSetup {
     address uniFuturesMarket;
 
     address ethFuturesMarket;
+    uint256 maxExpectedLiquidity = 1_000_000 * ONE_USDC;
 
     function setUp() public {
         uint256 forkId = vm.createFork(
@@ -56,7 +57,7 @@ contract TransferMargin is BaseSetup {
         setupMarginManager();
         setupRiskManager();
         setupCollateralManager();
-        setupVault();
+        setupVault(usdc);
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
@@ -175,7 +176,7 @@ contract TransferMargin is BaseSetup {
         public
     {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+        //
         vm.assume(liquiMargin > ONE_USDC && liquiMargin < maxExpectedLiquidity);
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
@@ -186,10 +187,8 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
-            currentPnL,
             interestAccrued
         );
         uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18) + 1 ether;
@@ -209,7 +208,7 @@ contract TransferMargin is BaseSetup {
         uint256 liquiMargin
     ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+
         vm.assume(
             liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
         );
@@ -224,11 +223,9 @@ contract TransferMargin is BaseSetup {
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
 
-        int256 currentPnL = 0;
         uint256 interestAccrued = 0;
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
-            currentPnL,
             interestAccrued
         );
         uint256 maxBP = buyingPower.convertTokenDecimals(6, 18);
@@ -306,7 +303,7 @@ contract TransferMargin is BaseSetup {
         public
     {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+
         vm.assume(
             liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
         );
@@ -319,10 +316,8 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
-            currentPnL,
             interestAccrued
         );
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -390,10 +385,8 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
-            0,
             0
         );
 
@@ -429,7 +422,7 @@ contract TransferMargin is BaseSetup {
 
     function testBobTransfersMaxAmountMargin(uint256 liquiMargin) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
-        uint256 maxExpectedLiquidity = vault.maxExpectedLiquidity();
+
         vm.assume(liquiMargin > ONE_USDC && liquiMargin < 25_000 * ONE_USDC);
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
@@ -440,10 +433,8 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
         collateralManager.addCollateral(usdc, liquiMargin);
-
         uint256 buyingPower = riskManager.GetCurrentBuyingPower(
             bobMarginAccount,
-            currentPnL,
             interestAccrued
         );
         int256 marginSNX = int256(buyingPower.convertTokenDecimals(6, 18));
@@ -478,11 +469,11 @@ contract TransferMargin is BaseSetup {
     //     vm.expectEmit(true, true, true, false, address(collateralManager));
     //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
     //     collateralManager.addCollateral(usdc, liquiMargin);
-
+    //     int256 unsettledRealizedPnL = 0;
     //     uint256 buyingPower = riskManager.GetCurrentBuyingPower(
     //         bobMarginAccount,
     //         0,
-    //         0
+    //         0, unsettledRealizedPnL
     //     );
     //     uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
     //     bytes memory transferMarginData = abi.encodeWithSignature(
@@ -542,11 +533,11 @@ contract TransferMargin is BaseSetup {
     //     vm.expectEmit(true, true, true, false, address(collateralManager));
     //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
     //     collateralManager.addCollateral(usdc, liquiMargin);
-
+    //     int256 unsettledRealizedPnL = 0;
     //     uint256 buyingPower = riskManager.GetCurrentBuyingPower(
     //         bobMarginAccount,
     //         0,
-    //         0
+    //         0, unsettledRealizedPnL
     //     );
     //     uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
     //     bytes memory transferMarginData = abi.encodeWithSignature(
@@ -567,7 +558,6 @@ contract TransferMargin is BaseSetup {
     //         -int256(marginSNX2)
     //     );
 
-    //     console2.log("marginSNX", marginSNX);
     //     data[1] = transferMarginData2;
 
     //     vm.expectEmit(true, true, true, false, address(marginManager));

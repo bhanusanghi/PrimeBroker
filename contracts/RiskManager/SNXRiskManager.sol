@@ -13,6 +13,7 @@ import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import "hardhat/console.sol";
 
@@ -26,15 +27,20 @@ contract SNXRiskManager is IProtocolRiskManager {
     using SignedSafeMath for int256;
     IFuturesMarketManager public futureManager;
     address public baseToken;
-    uint8 private vaultAssetDecimals = 6; // @todo take it from init/ constructor
+    uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
 
-    constructor(address _baseToken, address _contractRegistry) {
+    constructor(
+        address _baseToken,
+        address _contractRegistry,
+        uint8 _vaultAssetDecimals
+    ) {
         contractRegistry = IContractRegistry(_contractRegistry);
+        vaultAssetDecimals = _vaultAssetDecimals;
         baseToken = _baseToken;
         _decimals = ERC20(_baseToken).decimals();
     }
@@ -71,26 +77,63 @@ contract SNXRiskManager is IProtocolRiskManager {
             int256 _funding;
             (_funding, ) = market.accruedFunding(account);
             (_pnl, ) = market.profitLoss(account);
-            if (funding < 0) {
-                console.log("negative pnl");
-            }
-            if (_funding < 0) {
-                console.log("negative _funding");
-            }
+        
             pnl = pnl.add(_pnl);
-            console.log("funding", funding.abs());
             funding = funding.add(_funding);
         }
         return funding;
     }
 
+    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
+    // realized PnL,
+    // Order Fee,
+    // settled funding fee,
+    // liquidation Penalty
+    // This affect the Trader's Margin directly.
+    function settleRealizedAccounting(address marginAccount) external {
+        // margin to begin with.
+        // emit settleRealized()
+        // update in collateral manager.
+    }
+
+    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
+    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
+    // This should effect the Buying Power of account.
+    function getUnsettledAccounting(address marginAccount) external {}
+
+    function getMarginDeltaAcrossMarkets(address marginAccount)
+        internal
+        returns (
+            // override
+            int256 marginDelta
+        )
+    {
+        // uint256 currentMargin;
+        // int256 initialMargin;
+        address[] memory allMarkets = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketsForRiskManager(address(this));
+        for (uint256 i = 0; i < allMarkets.length; i++) {
+            // This is in 18 decimal digits
+            (, , uint256 remainingMargin, , ) = IFuturesMarket(allMarkets[i])
+                .positions(marginAccount);
+            remainingMargin = remainingMargin.convertTokenDecimals(
+                _decimals,
+                vaultAssetDecimals
+            );
+            // This is in 6 decimal digits.
+            int256 initialMargin = IMarginAccount(marginAccount).marginInMarket(
+                allMarkets[i]
+            );
+            marginDelta += (remainingMargin.toInt256() - initialMargin);
+        }
+    }
+
     // ** returns in vault base asset decimal points
-    function getPositionPnL(address account)
-        external
-        virtual
+    function _getPositionPnLAcrossMarkets(address account)
+        public
         returns (int256 pnl)
     {
-        int256 funding;
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -98,25 +141,12 @@ contract SNXRiskManager is IProtocolRiskManager {
         for (uint256 i = 0; i < len; i++) {
             IFuturesMarket market = IFuturesMarket(allMarkets[i]);
             int256 _pnl;
-            int256 _funding;
-            (_funding, ) = market.accruedFunding(account);
             (_pnl, ) = market.profitLoss(account);
-            // if (_pnl < 0) {
-            //     console.log("negative pnl");
-            // }
-            // if (_funding < 0) {
-            //     console.log("negative _funding");
-            // }
-            // console.log(_pnl.abs(), ":pnl", allMarkets[i]);
             pnl = pnl.add(_pnl);
-            // console.log("funding", funding.abs());
-            funding = funding.add(_funding);
         }
-        // return (pnl.add(funding).convertTokenDecimals(_decimals, 18));
-        pnl = pnl.add(funding).convertTokenDecimals(
-            _decimals,
-            vaultAssetDecimals
-        );
+
+        // @Bhanu TODO - move this funding pnl to unrealizedPnL
+        pnl = pnl.convertTokenDecimals(_decimals, vaultAssetDecimals);
     }
 
     // assumes all destinations refer to same market.
@@ -161,7 +191,7 @@ contract SNXRiskManager is IProtocolRiskManager {
 
                 position.size = position.size.add(positionDelta);
                 // this refers to position opening fee.
-                (position.fee, ) = IFuturesMarket(protocol).orderFee(
+                (position.orderFee, ) = IFuturesMarket(protocol).orderFee(
                     positionDelta
                 );
             } else {
@@ -169,6 +199,48 @@ contract SNXRiskManager is IProtocolRiskManager {
                 revert("PRM: Unsupported Function call");
             }
         }
+    }
+
+    // Delta margin is realized PnL for SnX
+    function getRealizedPnL(address marginAccount)
+        external
+        override
+        returns (int256)
+    {
+        return getMarginDeltaAcrossMarkets(marginAccount);
+    }
+
+    // returns value in vault decimals
+    function _getAccruedFundingAcrossMarkets(address marginAccount)
+        internal
+        returns (int256 totalAccruedFunding)
+    {
+        address[] memory allMarkets = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketsForRiskManager(address(this));
+        uint256 len = allMarkets.length;
+        for (uint256 i = 0; i < len; i++) {
+            IFuturesMarket market = IFuturesMarket(allMarkets[i]);
+            (int256 _funding, bool isValid) = market.accruedFunding(
+                marginAccount
+            );
+            // require(isValid, "PRM: Could not fetch accrued funding from SNX");
+            totalAccruedFunding += _funding;
+        }
+        totalAccruedFunding = totalAccruedFunding.convertTokenDecimals(
+            _decimals,
+            vaultAssetDecimals
+        );
+    }
+
+    // returns value in vault decimals
+    function getUnrealizedPnL(address marginAccount)
+        external
+        override
+        returns (int256 unrealizedPnL)
+    {
+        unrealizedPnL += _getAccruedFundingAcrossMarkets(marginAccount);
+        unrealizedPnL += _getPositionPnLAcrossMarkets(marginAccount);
     }
 
     function verifyClose(

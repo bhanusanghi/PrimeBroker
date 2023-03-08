@@ -1,17 +1,17 @@
 pragma solidity ^0.8.10;
 
+import {IExchange} from "./IExchange.sol";
+
 // position openNotional should be in 18 decimal points
 // position size should be in 18 decimal points
 struct Position {
     address protocol;
     int256 openNotional;
     int256 size;
-    uint256 fee; // this refers to position opening fee as seen from SNX and Perp PRMs
+    uint256 orderFee; // this refers to position opening fee as seen from SNX and Perp PRMs
 }
 
-interface IMarginAccount {
-    function underlyingToken() external view returns (address);
-
+interface IMarginAccount is IExchange {
     function totalBorrowed() external view returns (uint256);
 
     function cumulativeIndexAtOpen() external view returns (uint256);
@@ -21,7 +21,7 @@ interface IMarginAccount {
         uint256 _cumulativeIndexAtOpen
     ) external;
 
-    function baseToken() external returns (address);
+    // function baseToken() external returns (address);
 
     function approveToProtocol(address token, address protocol) external;
 
@@ -46,10 +46,46 @@ interface IMarginAccount {
         view
         returns (int256);
 
+    function getPosition(bytes32 marketKey) external view returns (int256);
+
+    function getPositionOrderFee(bytes32 market) external view returns (uint256);
+
     function totalMarginInMarkets() external view returns (int256);
 
     function getTotalOpeningNotional(bytes32[] memory _allowedMarkets)
         external
         view
         returns (int256 totalNotional);
+
+    function existingPosition(bytes32 marketKey) external view returns (bool);
+
+    // function updateMarginInMarket(bytes32 market, int256 transferredMargin)
+    //     external;
+
+    function updateMarginInMarket(address market, int256 transferredMargin)
+        external;
+
+    function updateUnsettledRealizedPnL(int256 _realizedPnL) external;
+
+    function execMultiTx(
+        address[] calldata destinations,
+        bytes[] memory dataArray
+    ) external returns (bytes memory returnData);
+
+    function addPosition(bytes32 market, Position memory position) external;
+
+    function updatePosition(bytes32 market, Position memory position) external;
+
+    function removePosition(bytes32 market) external;
+
+    function getTotalOpeningAbsoluteNotional(bytes32[] memory _allowedMarkets)
+        external
+        view
+        returns (uint256 totalNotional);
+
+    function updateFee(int256 fee) external;
+
+    function marginInMarket(address market) external view returns (int256);
+
+    function unsettledRealizedPnL() external view returns (int256);
 }
