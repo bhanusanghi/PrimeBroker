@@ -184,6 +184,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         IMarginAccount marginAcc,
         int256 marginDeltaDollarValue
     ) internal view {
+        console.log("bp", buyingPower);
+        console.log("marginDeltaDollarValue");
+        console.logInt(marginDeltaDollarValue);
         require(
             buyingPower >=
                 (
@@ -270,10 +273,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     // total free buying power
     //@note replace with GetCurrentBuyingPower
-    function getBuyingPower(address _marginAcc, int256 PnL)
-        public
-        returns (uint256 buyPow)
-    {
+    function getBuyingPower(
+        address _marginAcc,
+        int256 PnL
+    ) public returns (uint256 buyPow) {
         return
             collateralManager
                 .getFreeCollateralValue(_marginAcc)
@@ -321,10 +324,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // @note Should return the total PnL trader has across all markets in dollar value ( usdc value )
     // totalNotional ->  18 decimals
     // PnL ->  18 decimals
-    function getPositionsValPnL(address marginAccount)
-        public
-        returns (int256 totalNotional, int256 PnL)
-    {
+    function getPositionsValPnL(
+        address marginAccount
+    ) public returns (int256 totalNotional, int256 PnL) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();

@@ -183,8 +183,6 @@ contract Perpfitest is BaseSetup {
     // Internal
     function testMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
-        uint256 _depositAmt = 500 * ONE_USDC;
-        vm.assume(_depositAmt < liquiMargin && _depositAmt > 0);
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -237,7 +235,7 @@ contract Perpfitest is BaseSetup {
 
     function testMarginTransferRevert() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
-        uint256 newDpositAmt = 500 * ONE_USDC;
+        uint256 newDpositAmt = 400 * ONE_USDC;
         uint256 collateral = 100 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
@@ -254,7 +252,7 @@ contract Perpfitest is BaseSetup {
         bytes[] memory data = new bytes[](2);
         destinations[0] = usdc;
         destinations[1] = perpVault;
-        
+
         data[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             perpVault,
@@ -368,7 +366,12 @@ contract Perpfitest is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, newDpositAmt);
         vm.expectEmit(true, true, true, true, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, newDpositAmt, 0);
+        emit CollateralAdded(
+            bobMarginAccount,
+            usdc,
+            newDpositAmt,
+            newDpositAmt
+        );
         collateralManager.addCollateral(usdc, newDpositAmt);
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);
