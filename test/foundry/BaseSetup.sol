@@ -14,7 +14,7 @@ import {SNXRiskManager} from "../../contracts/RiskManager/SNXRiskManager.sol";
 import {PerpfiRiskManager} from "../../contracts/RiskManager/PerpfiRiskManager.sol";
 import {MarginManager} from "../../contracts/MarginManager.sol";
 import {PriceOracle} from "../../contracts/utils/PriceOracle.sol";
-
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterestRateModel.sol";
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
 import {IProtocolRiskManager} from "../../contracts/Interfaces/IProtocolRiskManager.sol";
@@ -67,6 +67,7 @@ contract BaseSetup is Test {
 
     address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
     address usdcWhaleContract = 0x625E7708f30cA75bfd92586e17077590C60eb4cD;
+    address susdWhaleContract = 0xd16232ad60188B68076a235c65d692090caba155;
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
 
     address perpAccountBalance = 0xA7f3FC32043757039d5e13d790EE43edBcBa8b7c;
@@ -78,8 +79,10 @@ contract BaseSetup is Test {
     address futuresMarketSettings = 0xaE55F163337A2A46733AA66dA9F35299f9A46e9e;
     address sUsdPriceFeed = 0x7f99817d87baD03ea21E05112Ca799d715730efe;
     address usdcPriceFeed = 0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3;
+    address etherPriceFeed = 0x13e3Ee699D1909E989722E753853AE30b17e08c5;
     address snxFuturesMarketManager;
-
+    address snxOwner = 0x6d4a64C57612841c2C6745dB2a4E4db34F002D20;
+    address circuitBreaker = 0x803FD1d99C3a6cbcbABAB79C44e108dC2fb67102;
     // ======================================= Test Events =======================================
 
     // ============= Collateral Manager Events =============
@@ -197,7 +200,7 @@ contract BaseSetup is Test {
         );
     }
 
-    function setupVault() internal {
+    function setupVault(address token) internal {
         uint256 optimalUse = 9000;
         uint256 rBase = 0;
         uint256 rSlope1 = 200;
@@ -208,13 +211,13 @@ contract BaseSetup is Test {
             rSlope1,
             rSlope2
         );
-        uint256 maxExpectedLiquidity = 1_000_000 * (10**6);
+        // uint256 maxExpectedLiquidity = 1_000_000 * ERC20(token).decimals();
         vault = new Vault(
-            usdc,
+            token,
             "GigaLP",
             "GLP",
-            address(interestModel),
-            maxExpectedLiquidity
+            address(interestModel)
+            // maxExpectedLiquidity
         );
         vault.addLendingAddress(address(marginManager));
         vault.addRepayingAddress(address(marginManager));
@@ -228,7 +231,11 @@ contract BaseSetup is Test {
             perpMarketRegistry,
             perpClearingHouse
         );
-        snxRiskManager = new SNXRiskManager(susd, address(contractRegistry));
+        snxRiskManager = new SNXRiskManager(
+            susd,
+            address(contractRegistry),
+            ERC20(vault.asset()).decimals()
+        );
     }
 
     // function setup() public {

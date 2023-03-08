@@ -96,7 +96,7 @@ contract Perpfitest is BaseSetup {
         setupMarginManager();
         setupRiskManager();
         setupCollateralManager();
-        setupVault();
+        setupVault(usdc);
         accountBalance == IAccountBalance(perpAccountBalance);
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));

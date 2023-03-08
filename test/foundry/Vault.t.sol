@@ -14,7 +14,7 @@ contract VaultTest is Test {
     Vault public vault;
     LinearInterestRateModel public interestModel;
     MockERC20 public underlyingToken;
-    uint256 public maxExpectedLiquidity;
+    // uint256 public maxExpectedLiquidity;
 
     Utils internal utils;
 
@@ -54,7 +54,6 @@ contract VaultTest is Test {
     }
 
     function setUp() public {
-        console2.log("Pos0");
         utils = new Utils();
 
         // ======= setup vault ========
@@ -69,13 +68,13 @@ contract VaultTest is Test {
             rSlope2
         );
         underlyingToken = new MockERC20("FakeDAI", "FDAI");
-        maxExpectedLiquidity = type(uint256).max;
+        // maxExpectedLiquidity = type(uint256).max;
         vault = new Vault(
             address(underlyingToken),
             "GigaLP",
             "GLP",
-            address(interestModel),
-            maxExpectedLiquidity
+            address(interestModel)
+            // maxExpectedLiquidity
         );
 
         // ======= Setup and fund Users ========
