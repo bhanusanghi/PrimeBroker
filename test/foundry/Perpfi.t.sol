@@ -227,12 +227,13 @@ contract Perpfitest is BaseSetup {
     function testMarginTransferRevert() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
         uint256 newDpositAmt = 500 * ONE_USDC;
+        uint256 collateral = 100 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, 100*ONE_USDC, 0);
-        collateralManager.addCollateral(usdc, 100*ONE_USDC);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, collateral,priceOracle.convertToUSD(int(collateral), usdc).abs());
+        collateralManager.addCollateral(usdc, collateral);
         address[] memory destinations = new address[](2);
         bytes[] memory data = new bytes[](2);
         destinations[0] = usdc;
@@ -246,13 +247,6 @@ contract Perpfitest is BaseSetup {
         data[1] = abi.encodeWithSignature(
             "deposit(address,uint256)",
             usdc,
-            newDpositAmt
-        );
-       
-        vm.expectEmit(true, true, true,false, perpVault);
-        emit Deposited(
-            usdc,
-            bobMarginAccount,
             newDpositAmt
         );
         vm.expectRevert("Extra Transfer not allowed");
@@ -319,6 +313,46 @@ contract Perpfitest is BaseSetup {
             int256(size),
             int256(size)
         );
+        marginManager.openPosition(perpAaveKey, destinations, data1);
+    }
+    function testOpenPositionPerpExtraMarginRevert() public {
+        uint256 liquiMargin = 10000 * ONE_USDC;
+        uint256 newDpositAmt = 1000 * ONE_USDC;
+        uint256 size = 10000 * ONE_USDC;
+        assertEq(vault.expectedLiquidity(), largeAmount);
+        vm.startPrank(bob);
+        IERC20(usdc).approve(bobMarginAccount, newDpositAmt);
+        vm.expectEmit(true, true, true, false, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, newDpositAmt, 0);
+        collateralManager.addCollateral(usdc, newDpositAmt);
+        address[] memory destinations = new address[](3);
+        bytes[] memory data1 = new bytes[](3);
+        destinations[0] = address(address(usdc));
+        destinations[1] = perpVault;
+        destinations[2] = address(perpClearingHouse);
+
+        data1[0] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            address(perpVault),
+            liquiMargin
+        );
+        data1[1] = abi.encodeWithSignature(
+            "deposit(address,uint256)",
+            address(usdc),
+            liquiMargin
+        );
+        data1[2] = abi.encodeWithSelector(
+            0xb6b1b6c3,
+            perpAaveMarket,
+            false,
+            true,
+            size,
+            0,
+            type(uint256).max,
+            uint160(0),
+            bytes32(0)
+        );
+        vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data1);
     }
     
