@@ -81,9 +81,10 @@ contract CollateralManager is ICollateralManager {
         }
     }
 
-    function addAllowedCollateral(address _allowed, uint256 _collateralWeight)
-        public
-    {
+    function addAllowedCollateral(
+        address _allowed,
+        uint256 _collateralWeight
+    ) public {
         require(_allowed != address(0), "CM: Zero Address");
         require(isAllowed[_allowed] == false, "CM: Collateral already added");
         allowedCollateral.push(_allowed);
@@ -93,10 +94,9 @@ contract CollateralManager is ICollateralManager {
     }
 
     // @TODO should return in usd value the amount of free collateral.
-    function getFreeCollateralValue(address _marginAccount)
-        external
-        returns (uint256)
-    {
+    function getFreeCollateralValue(
+        address _marginAccount
+    ) external returns (uint256) {
         return _getFreeCollateralValue(_marginAccount);
     }
 
@@ -152,28 +152,27 @@ contract CollateralManager is ICollateralManager {
     }
 
     // @todo - On update borrowing power changes. Handle that - not v0
-    function updateCollateralWeight(address _token, uint256 _collateralWeight)
-        external
-    {
+    function updateCollateralWeight(
+        address _token,
+        uint256 _collateralWeight
+    ) external {
         // onlyOwner
         require(isAllowed[_token], "CM: Collateral not found");
         collateralWeight[_token] = _collateralWeight;
     }
 
-    function getCollateral(address _marginAccount, address _asset)
-        external
-        view
-        returns (int256)
-    {
+    function getCollateral(
+        address _marginAccount,
+        address _asset
+    ) external view returns (int256) {
         return _balance[_marginAccount][_asset];
     }
 
     // While withdrawing collateral we have to be conservative and we cannot account unrealized PnLs
     // free collateral = TotalCollateralValue - interest accrued - marginInProtocols (totalBorrowed) / marginFactor
-    function _getFreeCollateralValue(address _marginAccount)
-        internal
-        returns (uint256 freeCollateral)
-    {
+    function _getFreeCollateralValue(
+        address _marginAccount
+    ) internal returns (uint256 freeCollateral) {
         // free collateral
         (, uint256 x) = IMarginAccount(_marginAccount).totalBorrowed().tryMul(
             riskManager.initialMarginFactor()
@@ -183,18 +182,16 @@ contract CollateralManager is ICollateralManager {
             .sub(x);
     }
 
-    function totalCollateralValue(address _marginAccount)
-        external
-        returns (uint256 totalAmount)
-    {
+    function totalCollateralValue(
+        address _marginAccount
+    ) external returns (uint256 totalAmount) {
         return _totalCollateralValue(_marginAccount);
     }
 
     // sends usdc value with 6 decimals. (Vault base decimals)
-    function _totalCollateralValue(address _marginAccount)
-        internal
-        returns (uint256 totalAmount)
-    {
+    function _totalCollateralValue(
+        address _marginAccount
+    ) internal returns (uint256 totalAmount) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
@@ -205,7 +202,12 @@ contract CollateralManager is ICollateralManager {
                     )
                     .abs()
             ).mulDiv(collateralWeight[token], 100);
-            totalAmount = totalAmount.add(tokenDollarValue);
+            totalAmount = totalAmount.add(
+                tokenDollarValue.convertTokenDecimals(
+                    _decimals[token],
+                    baseDecimals
+                )
+            );
         }
     }
 }

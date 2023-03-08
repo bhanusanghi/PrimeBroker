@@ -21,7 +21,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 
-contract OpenLongSnx is BaseSetup {
+contract OpenPositionSnX is BaseSetup {
     struct PositionData {
         uint64 id;
         uint64 lastFundingIndex;
