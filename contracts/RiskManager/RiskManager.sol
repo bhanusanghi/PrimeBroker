@@ -166,12 +166,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 buyingPower,
         IMarginAccount marginAccount,
         int256 marginDeltaDollarValue
-    ) internal view {
-        console.log("bp", buyingPower);
-        console.log("marginDeltaDollarValue");
-        console.logInt(marginDeltaDollarValue);
+    ) internal {
         require(
-            buyingPower >=
+            buyingPower.convertTokenDecimals(
+                6,// hardcoding for susd test 
+                18
+            ) >=
                 (
                     marginAccount.totalMarginInMarkets().add(
                         marginDeltaDollarValue

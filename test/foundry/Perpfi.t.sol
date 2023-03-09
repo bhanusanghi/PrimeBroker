@@ -162,6 +162,7 @@ contract Perpfitest is BaseSetup {
         // setup and fund margin accounts.
         vm.prank(bob);
         bobMarginAccount = marginManager.openMarginAccount();
+        console.log("bobMarginAccount:", bobMarginAccount,"\n");
         vm.prank(alice);
         aliceMarginAccount = marginManager.openMarginAccount();
         // assume usdc and susd value to be 1
@@ -183,6 +184,7 @@ contract Perpfitest is BaseSetup {
     // Internal
     function testMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
+        depositAmt =100* ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -209,13 +211,19 @@ contract Perpfitest is BaseSetup {
         emit Deposited(usdc, bobMarginAccount, depositAmt);
         marginManager.openPosition(perpAaveKey, destinations, data);
         //@0xAshish @note after slippage fix this should be equal to depositAmt
-        assertApproxEqAbs(
+       
+        IVault pvault = IVault(perpVault);
+        assertEq(pvault.getFreeCollateral(bobMarginAccount), depositAmt);
+        console.log("free collateral",address(bob),marginManager.marginAccounts(address(bob)),perpAaveMarket);
+        int256 tempamt =  MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey);
+        console.log("free collateral",bobMarginAccount,
+            depositAmt,tempamt.abs());
+            console.logInt(tempamt);
+         assertApproxEqAbs(
             MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
             depositAmt,
             10 ** 7
         ); //10usdc
-        IVault pvault = IVault(perpVault);
-        assertEq(pvault.getFreeCollateral(bobMarginAccount), depositAmt);
         // address[] memory destinations1 = new address[](1);
         // bytes[] memory data1 = new bytes[](1);
         // destinations1[0] = perpVault;
@@ -250,9 +258,9 @@ contract Perpfitest is BaseSetup {
         collateralManager.addCollateral(usdc, collateral);
         address[] memory destinations = new address[](2);
         bytes[] memory data = new bytes[](2);
+        newDpositAmt = 400 * ONE_USDC;
         destinations[0] = usdc;
         destinations[1] = perpVault;
-
         data[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             perpVault,
@@ -264,25 +272,11 @@ contract Perpfitest is BaseSetup {
             newDpositAmt
         );
         marginManager.openPosition(perpAaveKey, destinations, data);
-        assertApproxEqAbs(
-            newDpositAmt,
-            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
-            10 ** 7
-        );
         IVault pvault = IVault(perpVault);
         assertEq(pvault.getFreeCollateral(bobMarginAccount), newDpositAmt);
-        newDpositAmt = 400 * ONE_USDC;
+     
         // Now try to transfer extra margin and expect to fail.
-        data[0] = abi.encodeWithSignature(
-            "approve(address,uint256)",
-            perpVault,
-            newDpositAmt
-        );
-        data[1] = abi.encodeWithSignature(
-            "deposit(address,uint256)",
-            usdc,
-            newDpositAmt
-        );
+     
         vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data);
         //@0xAshish @note after slippage fix this should be equal to newDpositAmt

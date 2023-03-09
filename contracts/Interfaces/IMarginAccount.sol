@@ -59,11 +59,11 @@ interface IMarginAccount is IExchange {
 
     function existingPosition(bytes32 marketKey) external view returns (bool);
 
-    // function updateMarginInMarket(bytes32 market, int256 transferredMargin)
-    //     external;
-
-    function updateMarginInMarket(address market, int256 transferredMargin)
+    function updateMarginInMarket(bytes32 market, int256 transferredMargin)
         external;
+
+    // function updateMarginInMarket(address market, int256 transferredMargin)
+    //     external;
 
     function updateUnsettledRealizedPnL(int256 _realizedPnL) external;
 
@@ -85,7 +85,7 @@ interface IMarginAccount is IExchange {
 
     function updateFee(int256 fee) external;
 
-    function marginInMarket(address market) external view returns (int256);
+    function marginInMarket(bytes32 market) external view returns (int256);
 
     function unsettledRealizedPnL() external view returns (int256);
 }

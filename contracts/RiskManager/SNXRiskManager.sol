@@ -110,6 +110,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     {
         // uint256 currentMargin;
         // int256 initialMargin;
+        bytes32[] memory allMarketnames = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketNamesForRiskManager(address(this));
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -123,7 +126,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             );
             // This is in 6 decimal digits.
             int256 initialMargin = IMarginAccount(marginAccount).marginInMarket(
-                allMarkets[i]
+                allMarketnames[i]
             );
             marginDelta += (remainingMargin.toInt256() - initialMargin);
         }
