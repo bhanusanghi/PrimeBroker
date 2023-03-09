@@ -179,12 +179,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function closeTrade(
-        address marginAccount,
+        address _marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) external returns (int256 marginDelta, int256 positionSize) {
-        IMarginAccount marginAccount = IMarginAccount(marginAccount);
+        IMarginAccount marginAccount = IMarginAccount(_marginAccount);
         address _protocolAddress;
         address _protocolRiskManager;
         (_protocolAddress, _protocolRiskManager) = marketManager
