@@ -210,7 +210,7 @@ contract Perpfitest is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data);
         //@0xAshish @note after slippage fix this should be equal to depositAmt
         assertApproxEqAbs(
-            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
+            MarginAccount(bobMarginAccount).marginInMarket(perpAaveMarket).abs(),
             depositAmt,
             10 ** 7
         ); //10usdc
@@ -266,7 +266,7 @@ contract Perpfitest is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data);
         assertApproxEqAbs(
             newDpositAmt,
-            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
+            MarginAccount(bobMarginAccount).marginInMarket(perpAaveMarket).abs(),
             10 ** 7
         );
         IVault pvault = IVault(perpVault);
@@ -285,9 +285,8 @@ contract Perpfitest is BaseSetup {
         );
         vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data);
-        // assertApproxEqAbs(newDpositAmt,MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),10**7);
+        // assertApproxEqAbs(newDpositAmt,MarginAccount(bobMarginAccount).marginInMarket(perpAaveMarket).abs(),10**7);
         //@0xAshish @note after slippage fix this should be equal to newDpositAmt
-        IVault pvault = IVault(perpVault);
         // assertApproxEqAbs(MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),depositAmt,10**7);//10usdc
         // assertEq(pvault.getFreeCollateral(address(bobMarginAccount)),depositAmt);
         // assertEq(pvault.getFreeCollateral(bobMarginAccount),newDpositAmt);

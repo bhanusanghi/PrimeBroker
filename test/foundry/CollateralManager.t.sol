@@ -66,15 +66,6 @@ contract CollateralManagerTest is BaseSetup {
 
     uint256 depositAmt = 10000 * ONE_USDC;
 
-    uint256 constant ONE_USDC = 10 ** 6;
-    int256 constant ONE_USDC_INT = 10 ** 6;
-    uint256 constant CENT = 100;
-    uint256 largeAmount = 1_000_000 * ONE_USDC;
-
-    address bobMarginAccount;
-    address aliceMarginAccount;
-    uint256 depositAmt = 10000 * ONE_USDC;
-
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
