@@ -24,7 +24,18 @@ import "hardhat/console.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 
 interface IUniswapV3Pool {
-    function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint32 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
+    function slot0()
+        external
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint32 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
 }
 
 contract PerpfiRiskManager is IProtocolRiskManager {
@@ -69,9 +80,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     }
 
     //@note: use _init :pointup
-    function toggleAddressWhitelisting(address contractAddress, bool isAllowed)
-        external
-    {
+    function toggleAddressWhitelisting(
+        address contractAddress,
+        bool isAllowed
+    ) external {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
     }
@@ -85,9 +97,13 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // }
 
     /// @notice Returns the price of th UniV3Pool.
-    function getMarkPrice(address _baseToken) public view returns (uint256 token0Price) {
-        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(marketRegistry.getPool(_baseToken)).slot0();
-        token0Price = ((uint256(sqrtPriceX96)**2) / (2**192));
+    function getMarkPrice(
+        address _baseToken
+    ) public view returns (uint256 token0Price) {
+        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
+            marketRegistry.getPool(_baseToken)
+        ).slot0();
+        token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
     function previewPosition(bytes memory data) public {
@@ -128,7 +144,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     function getBaseToken() external view returns (address) {
         return baseToken;
     }
-
 
     // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
     //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
@@ -197,7 +212,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 // refer -
                 (
                     address _baseToken,
-                    bool isShort,
+                    bool isShort, //isBaseToQuote
                     bool isExactInput,
                     int256 _amount,
                     ,
@@ -217,56 +232,44 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
+                int256 markPrice = getMarkPrice(_baseToken).toInt256();
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
-                    // get price should return in normalized values.
-                    position.size = isShort
-                        ? -int256(_amount)
-                        : int256(_amount);
+                    position.size = -_amount;
+                    position.openNotional = -(_amount * markPrice) / 1 ether;
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    position.size = isShort ? -_amount : _amount;
+                    position.openNotional = -_amount;
+                    position.size = (_amount * 1 ether) / markPrice;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    position.size = isShort ? -_amount : _amount;
-                } else if (isShort && !isExactInput) {
-                    // get price
+                    position.openNotional = _amount;
+                    position.size = (_amount * 1 ether) / markPrice;
+                } else if (!isShort && !isExactInput) {
+                    position.openNotional = (_amount * markPrice) / 1 ether;
+                    position.size = _amount;
                 } else {
                     revert("impossible shit");
                 }
-                position.openNotional = position.size.mul(getMarkPrice(_baseToken).toInt256());
                 uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
                 // position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
                 // this refers to position opening fee.
-                 position.orderFee = position.openNotional.abs().mulDiv(
+                position.orderFee = position.openNotional.abs().mulDiv(
                     fee,
-                    10**5 // todo - Ask ashish about this
+                    10 ** 5 // todo - Ask ashish about this
                 );
-        
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
         }
-        // this refers to position opening fee.
-        
-        
-        // Todo - Bhanu. Verify this fee calculation and decimals.
     }
 
     function verifyClose(
         address protocol,
         address[] memory destinations,
         bytes[] calldata data
-    )
-        public
-        view
-        returns (
-            int256 amount,
-            int256 totalPosition,
-            uint256 fee
-        )
-    {
+    ) public view returns (int256 amount, int256 totalPosition, uint256 fee) {
         uint8 len = data.length.toUint8(); // limit to 2
         fee = 1;
         require(destinations.length.toUint8() == len, "should match");
@@ -308,18 +311,13 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     }
 
     // Delta margin is realized PnL for SnX
-    function getRealizedPnL(address marginAccount)
-        external
-        view
-        returns (int256)
-    {
+    function getRealizedPnL(
+        address marginAccount
+    ) external view returns (int256) {
         return 0;
     }
 
-    function getUnrealizedPnL(address marginAccount)
-        external
-        view
-        override
-        returns (int256 unrealizedPnL)
-    {}
+    function getUnrealizedPnL(
+        address marginAccount
+    ) external view override returns (int256 unrealizedPnL) {}
 }

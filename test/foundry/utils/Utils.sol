@@ -1,9 +1,26 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity >=0.8.0;
 import {Test} from "forge-std/Test.sol";
+import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegistry.sol";
+
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ICircuitBreaker} from "../../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
+
+interface IUniswapV3Pool {
+    function slot0()
+        external
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint32 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
+}
 
 contract Utils is Test {
     using SettlementTokenMath for uint256;
@@ -25,10 +42,9 @@ contract Utils is Test {
     }
 
     // create users with 100 ETH balance each
-    function createUsers(uint256 userNum)
-        external
-        returns (address payable[] memory)
-    {
+    function createUsers(
+        uint256 userNum
+    ) external returns (address payable[] memory) {
         address payable[] memory users = new address payable[](userNum);
         for (uint256 i = 0; i < userNum; i++) {
             address payable user = this.getNextUserAddress();
@@ -81,5 +97,16 @@ contract Utils is Test {
         address snxOwner = 0x6d4a64C57612841c2C6745dB2a4E4db34F002D20;
         vm.prank(snxOwner);
         ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
+    }
+
+    // @notice Returns the price of th UniV3Pool.
+    function getMarkPricePerp(
+        address perpMarketRegistry,
+        address _baseToken
+    ) public view returns (uint256 token0Price) {
+        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
+            IMarketRegistry(perpMarketRegistry).getPool(_baseToken)
+        ).slot0();
+        token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 }
