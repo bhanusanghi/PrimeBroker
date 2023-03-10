@@ -225,7 +225,7 @@ contract MarginManager is ReentrancyGuard {
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(
@@ -322,7 +322,7 @@ contract MarginManager is ReentrancyGuard {
 
         require(
             marginAcc.existingPosition(marketKey) ||
-                marginAcc.marginInMarket(protocolAddress) > 0,
+                marginAcc.marginInMarket(marketKey) > 0,
             "Position doesn't exist"
         );
         if (verificationResult.position.size.abs() > 0) {
@@ -350,7 +350,7 @@ contract MarginManager is ReentrancyGuard {
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(

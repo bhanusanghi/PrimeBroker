@@ -205,7 +205,7 @@ contract UpdatePosition is BaseSetup {
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
         int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
-            ethFuturesMarket
+            snxEthKey
         );
         utils.setAssetPriceSnx(
             etherPriceFeed,
@@ -258,7 +258,7 @@ contract UpdatePosition is BaseSetup {
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
         int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
-            ethFuturesMarket
+            snxEthKey
         );
         utils.setAssetPriceSnx(
             etherPriceFeed,
@@ -308,7 +308,7 @@ contract UpdatePosition is BaseSetup {
         vm.prank(bob);
         marginManager.updatePosition(snxEthKey, destinations, data);
         assertEq(
-            MarginAccount(bobMarginAccount).marginInMarket(ethFuturesMarket),
+            MarginAccount(bobMarginAccount).marginInMarket(snxEthKey),
             initialMargin + extraMargin
         );
     }
@@ -323,7 +323,7 @@ contract UpdatePosition is BaseSetup {
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
         int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
-            ethFuturesMarket
+            snxEthKey
         );
         utils.setAssetPriceSnx(
             etherPriceFeed,
@@ -372,7 +372,7 @@ contract UpdatePosition is BaseSetup {
         vm.prank(bob);
         marginManager.updatePosition(snxEthKey, destinations, data);
         assertEq(
-            MarginAccount(bobMarginAccount).marginInMarket(ethFuturesMarket),
+            MarginAccount(bobMarginAccount).marginInMarket(snxEthKey),
             initialMargin + extraMargin
         );
     }

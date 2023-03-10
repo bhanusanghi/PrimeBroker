@@ -147,12 +147,12 @@ contract TransferMargin is BaseSetup {
 
     function testBobAddsPositionOnInvalidMarket() public {
         assertEq(vault.expectedLiquidity(), largeAmount);
-        uint256 margin = 5000 * ONE_USDC;
+        uint256 margin = 500 * ONE_USDC;
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, margin);
         collateralManager.addCollateral(usdc, margin);
 
-        int256 positionSize = 50 ether;
+        int256 positionSize = 1 ether;
         bytes32 trackingCode = keccak256("GigabrainMarginAccount");
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
@@ -209,9 +209,9 @@ contract TransferMargin is BaseSetup {
     ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
 
-        vm.assume(
-            liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
-        );
+        // vm.assume(
+        //     liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
+        // );
 
         // deposit nearly maximum margin on TPP (Third Party Protocol)
 
@@ -304,9 +304,9 @@ contract TransferMargin is BaseSetup {
     {
         uint256 marginFactor = riskManager.initialMarginFactor();
 
-        vm.assume(
-            liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
-        );
+        // vm.assume(
+        //     liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
+        // );
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
 
@@ -376,9 +376,9 @@ contract TransferMargin is BaseSetup {
     function testBobTransfersExcessMarginMultipleDataInSingleAttempt(
         uint256 liquiMargin
     ) public {
-        vm.assume(
-            liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
-        );
+        // vm.assume(
+        //     liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
+        // );
 
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
