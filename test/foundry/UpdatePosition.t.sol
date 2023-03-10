@@ -91,7 +91,7 @@ contract UpdatePosition is BaseSetup {
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
-            71255016
+            77772792
         );
         vm.selectFork(forkId);
         utils = new Utils();
@@ -144,8 +144,8 @@ contract UpdatePosition is BaseSetup {
         snxRiskManager.toggleAddressWhitelisting(ethFuturesMarket, true);
 
         vm.startPrank(usdcWhaleContract);
-        IERC20(usdc).transfer(admin, largeAmount * 2);
-        IERC20(usdc).transfer(bob, largeAmount);
+        // IERC20(usdc).transfer(admin, largeAmount * 2);
+        // IERC20(usdc).transfer(bob, largeAmount);
         vm.stopPrank();
 
         vm.startPrank(susdWhaleContract);
@@ -176,11 +176,8 @@ contract UpdatePosition is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, margin);
         IERC20(susd).approve(bobMarginAccount, marginInEther);
-        console2.log("approval done:");
-        collateralManager.addCollateral(usdc, margin);
+        // collateralManager.addCollateral(usdc, margin);
         collateralManager.addCollateral(susd, marginInEther);
-        console2.log("collateral manager balance", collateralManager.totalCollateralValue(bobMarginAccount));
-        console2.log("collateral manager balance", IERC20(usdc).balanceOf(address(bobMarginAccount)));
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
             marginSNX
@@ -189,10 +186,9 @@ contract UpdatePosition is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = transferMarginData;
-        // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
-        // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
+        vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
+        emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        console2.log("open done:");
         maxBuyingPower = riskManager.GetCurrentBuyingPower(bobMarginAccount, 0);
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket

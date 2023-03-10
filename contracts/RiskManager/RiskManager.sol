@@ -168,10 +168,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         int256 marginDeltaDollarValue
     ) internal {
         require(
-            buyingPower.convertTokenDecimals(
-                6,// hardcoding for susd test 
-                18
-            ) >=
+            buyingPower >=
                 (
                     marginAccount.totalMarginInMarkets().add(
                         marginDeltaDollarValue
