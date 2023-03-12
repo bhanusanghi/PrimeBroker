@@ -29,7 +29,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     address public baseToken;
     uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
+    //88a3c848
     bytes4 public OP = 0xa28a2bc0;
+    bytes4 public MP = 0xa28a2bc0;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
@@ -164,8 +166,15 @@ contract SNXRiskManager is IProtocolRiskManager {
         returns (int256 marginDelta, Position memory position)
     // uint256 fee
     {
-        // use marketKey
         uint256 len = data.length; // limit to 2
+        for (uint256 i = 0; i < len; i++) {
+            console.log('destinations:');
+            console.log(destinations[i]);
+            console.logBytes(data[i]);
+        }
+        
+        // use marketKey
+        
         // TODO - bhanu - Change Position Size decimal change
         require(destinations.length == len, "should match");
         for (uint256 i = 0; i < len; i++) {
@@ -174,11 +183,15 @@ contract SNXRiskManager is IProtocolRiskManager {
                 "PRM: Calling non whitelisted contract"
             );
             bytes4 funSig = bytes4(data[i]);
+            console.log('funSig');
+            console.logBytes4(funSig);
             if (funSig == TM) {
                 marginDelta = abi.decode(data[i][4:], (int256));
-            } else if (funSig == OP) {
+            } else if (funSig == OP||funSig==MP) {
                 //TODO - check Is this a standard of 18 decimals
                 int256 positionDelta = abi.decode(data[i][4:], (int256));
+                console.log("uweeee");
+                console.logInt(positionDelta);
                 // asset price is recvd with 18 decimals.
                 (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
                     .assetPrice();

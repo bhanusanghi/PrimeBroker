@@ -295,9 +295,11 @@ contract MarginManager is ReentrancyGuard {
         bytes[] memory data
     ) external {
         // TODO - Use Interface rather than class.
+        console.log("updatePosition",msg.sender);
         IMarginAccount marginAcc = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
+    
 
         _updateUnsettledRealizedPnL(address(marginAcc));
         address tokenIn = vault.asset();
@@ -450,32 +452,33 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function liquidate(
-        bytes32[] memory marketKeys,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         settleFee(address(marginAcc));
-        int256 tokensToTransfer;
-        int256 positionSize;
-        (tokensToTransfer, positionSize) = riskManager.isliquidatable(
+
+        VerifyTradeResult memory verificationResult = riskManager.isliquidatable(
             address(marginAcc),
-            marketKeys,
+            marketKey,
             destinations,
-            data
+            data,
+            0
         );
+        console.log("liquidate",verificationResult.position.size.abs(),verificationResult.marginDeltaDollarValue.abs());
         // require(positionSize.abs() == marginAcc.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
-        require(
-            tokensToTransfer <= 0 && positionSize < 0,
-            "add margin is not allowed in close position"
-        );
-        marginAcc.execMultiTx(destinations, data);
-        if (tokensToTransfer < 0) {
-            decreaseDebt(address(marginAcc), tokensToTransfer.abs());
-        }
-        for (uint256 i = 0; i < marketKeys.length; i++) {
-            marginAcc.removePosition(marketKeys[i]); // @todo remove all positiions
-        }
+        // require(
+        //     tokensToTransfer <= 0 && positionSize < 0,
+        //     "add margin is not allowed in close position"
+        // );
+        // marginAcc.execMultiTx(destinations, data);
+        // if (tokensToTransfer < 0) {
+        //     decreaseDebt(address(marginAcc), tokensToTransfer.abs());
+        // }
+        // for (uint256 i = 0; i < marketKeys.length; i++) {
+        //     marginAcc.removePosition(marketKeys[i]); // @todo remove all positiions
+        // }
         // add penaulty
     }
 
