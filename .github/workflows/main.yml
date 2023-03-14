@@ -2,6 +2,11 @@ on: [push]
 
 name: foundry tests
 
+env:
+  ARCHIVE_NODE_URL_L2:  https://opt-mainnet.g.alchemy.com/v2/paOkdAxB8BafnoXQW4WAYHOjxPyabKl9
+  FOUNDRY_FUZZ_RUNS: 10
+  DAPP_BUILD_OPTIMIZE: 0
+
 jobs:
   check:
     name: Foundry project
