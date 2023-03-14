@@ -332,7 +332,7 @@ contract Perpfitest is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
-            perpClearingHouse,
+            perpAaveKey,
             usdc,
             int256(positionSize),
             -int256(openNotional) // negative because we are shorting it.

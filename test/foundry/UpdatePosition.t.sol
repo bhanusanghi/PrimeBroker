@@ -295,7 +295,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             extraMargin,
             extraMargin
@@ -359,7 +359,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             extraMargin,
             extraMargin
@@ -406,7 +406,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             tradeData.positionSize,
             int256( // openNotional
@@ -494,7 +494,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionUpdated(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             tradeData.positionSize * 2,
             int256( // openNotional
@@ -562,7 +562,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             tradeData.positionSize,
             int256( // openNotional
@@ -650,7 +650,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionUpdated(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             tradeData.positionSize + secondPositionSize,
             (tradeData.positionSize * int256(tradeData.assetPriceBeforeTrade)) /

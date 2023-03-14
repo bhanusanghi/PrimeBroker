@@ -15,7 +15,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract TransferMargin is BaseSetup {
+contract TransferMarginTest is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
@@ -284,7 +284,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             int256(marginSNX1),
             int256(marginSNX1).convertTokenDecimals(18, 6)
@@ -344,7 +344,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             int256(marginSNX1),
             int256(marginSNX1).convertTokenDecimals(18, 6)
@@ -358,7 +358,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             int256(marginSNX2),
             int256(marginSNX2).convertTokenDecimals(18, 6)
@@ -445,7 +445,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             marginSNX,
             marginSNX.convertTokenDecimals(18, 6)
