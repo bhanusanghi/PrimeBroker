@@ -167,7 +167,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
         override
     {
         // only riskmanagger
-        require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
+        // require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
         positions[marketKey].protocol = positions[marketKey].protocol;//@note @0xAshish rewriting it as of now will remove it later
         positions[marketKey].openNotional = positions[marketKey].openNotional.add(position.openNotional);
         positions[marketKey].size = positions[marketKey].size.add(position.size);

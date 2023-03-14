@@ -95,7 +95,7 @@ contract BaseSetup is Test {
     // ============= Margin Manager Events =============
     event MarginTransferred(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
@@ -103,21 +103,21 @@ contract BaseSetup is Test {
 
     event PositionAdded(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
     );
     event PositionUpdated(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
     );
     event PositionRemoved(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256

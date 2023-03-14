@@ -296,7 +296,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             extraMargin,
             extraMargin
@@ -360,7 +360,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             extraMargin,
             extraMargin
@@ -407,7 +407,7 @@ contract UpdatePosition is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             tradeData.positionSize,
             int256( // openNotional

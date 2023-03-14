@@ -15,7 +15,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract TransferMargin is BaseSetup {
+contract TransferMarginTest is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
@@ -147,7 +147,7 @@ contract TransferMargin is BaseSetup {
 
     function testBobAddsPositionOnInvalidMarket() public {
         assertEq(vault.expectedLiquidity(), largeAmount);
-        uint256 margin = 500 * ONE_USDC;
+        uint256 margin = 5000 * ONE_USDC;
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, margin);
         collateralManager.addCollateral(usdc, margin);
@@ -209,9 +209,9 @@ contract TransferMargin is BaseSetup {
     ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
 
-        // vm.assume(
-        //     liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
-        // );
+        vm.assume(
+            liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
+        );
 
         // deposit nearly maximum margin on TPP (Third Party Protocol)
 
@@ -284,7 +284,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             int256(marginSNX1),
             int256(marginSNX1).convertTokenDecimals(18, 6)
@@ -304,9 +304,9 @@ contract TransferMargin is BaseSetup {
     {
         uint256 marginFactor = riskManager.initialMarginFactor();
 
-        // vm.assume(
-        //     liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
-        // );
+        vm.assume(
+            liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
+        );
         int256 currentPnL = 0;
         uint256 interestAccrued = 0;
 
@@ -344,7 +344,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             int256(marginSNX1),
             int256(marginSNX1).convertTokenDecimals(18, 6)
@@ -358,7 +358,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             int256(marginSNX2),
             int256(marginSNX2).convertTokenDecimals(18, 6)
@@ -376,9 +376,9 @@ contract TransferMargin is BaseSetup {
     function testBobTransfersExcessMarginMultipleDataInSingleAttempt(
         uint256 liquiMargin
     ) public {
-        // vm.assume(
-        //     liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
-        // );
+        vm.assume(
+            liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
+        );
 
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -445,7 +445,7 @@ contract TransferMargin is BaseSetup {
         vm.expectEmit(true, true, true, false, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
-            uniFuturesMarket,
+            snxUniKey,
             susd,
             marginSNX,
             marginSNX.convertTokenDecimals(18, 6)

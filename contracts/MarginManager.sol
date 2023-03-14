@@ -169,8 +169,6 @@ contract MarginManager is ReentrancyGuard {
         IMarginAccount marginAcc = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-
-        _updateUnsettledRealizedPnL(address(marginAcc));
         // _getInterestAccrued(address(marginAcc))
         // @note fee is assumed to be in usdc value
         /**struct VerifyTradeResult {
@@ -187,37 +185,6 @@ contract MarginManager is ReentrancyGuard {
             data
         );
         // address tokenIn = vault.asset();
-        if (verificationResult.position.size.abs() > 0) {
-            // check if enough margin to open this position ??
-            marginAcc.addPosition(marketKey, verificationResult.position);
-            emit PositionAdded(
-                address(marginAcc),
-                marketKey,
-                verificationResult.tokenOut,
-                verificationResult.position.size,
-                verificationResult.position.openNotional
-            );
-        }
-        if (verificationResult.marginDeltaDollarValue < 0) {
-            revert(
-                "MM: Invalid Operation. Cannot use open position to reduce margin from a Market."
-            );
-            // return as this is not opening of new position but modifying existing position.
-        }
-        if (verificationResult.marginDeltaDollarValue.abs() > 0) {
-            // TODO - check if this is correct. Should this be done on response adapter??
-            marginAcc.updateMarginInMarket(
-                marketKey,
-                verificationResult.marginDeltaDollarValue
-            );
-            emit MarginTransferred(
-                address(marginAcc),
-                marketKey,
-                verificationResult.tokenOut,
-                verificationResult.marginDelta,
-                verificationResult.marginDeltaDollarValue
-            );
-        }
         marginAcc.execMultiTx(destinations, data);
     }
 
@@ -238,34 +205,6 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        //,
-            // _getInterestAccrued(address(marginAcc))
-        // address tokenIn = vault.asset();
-        if (verificationResult.position.size.abs() > 0) {
-            // check if enough margin to open this position ??
-            marginAcc.updatePosition(marketKey, verificationResult.position);
-            emit PositionUpdated(
-                address(marginAcc),
-                marketKey,
-                verificationResult.tokenOut,
-                verificationResult.position.size,
-                verificationResult.position.openNotional
-            );
-        }
-        if (verificationResult.marginDeltaDollarValue.abs() > 0) {
-            // TODO - check if this is correct. Should this be done on response adapter??
-            marginAcc.updateMarginInMarket(
-                marketKey,
-                verificationResult.marginDeltaDollarValue
-            );
-            emit MarginTransferred(
-                address(marginAcc),
-                marketKey,
-                verificationResult.tokenOut,
-                verificationResult.marginDelta,
-                verificationResult.marginDeltaDollarValue
-            ); 
-        }
         marginAcc.execMultiTx(destinations, data);
     }
 
@@ -497,7 +436,7 @@ contract MarginManager is ReentrancyGuard {
             _getInterestAccrued(address(marginAcc))
         );
         address tokenIn = vault.asset();
-            uint256 tokenOutBalance = IERC20(verificationResult.tokenOut)
+         uint256 tokenOutBalance = IERC20(verificationResult.tokenOut)
                 .balanceOf(address(marginAcc));
             uint256 tokenInBalance = IERC20(tokenIn).balanceOf(
                 address(marginAcc)
@@ -545,6 +484,39 @@ contract MarginManager is ReentrancyGuard {
                     require(amountOut >= diff, "RM: Bad Swap");
                 }
             }
+        if (verificationResult.position.size.abs() > 0) {
+            // check if enough margin to open this position ??
+            marginAcc.updatePosition(marketKey, verificationResult.position);
+            emit PositionAdded(
+                address(marginAcc),
+                marketKey,
+                verificationResult.tokenOut,
+                verificationResult.position.size,
+                verificationResult.position.openNotional
+            );
+        }
+        if (verificationResult.marginDeltaDollarValue < 0) {
+            console.log("TM baackkk MM: Invalid Operation. Cannot use open position to reduce margin from a Market.");
+            revert(
+                "MM: Invalid Operation. Cannot use open position to reduce margin from a Market."
+            );
+            
+            // return as this is not opening of new position but modifying existing position.
+        }
+        if (verificationResult.marginDeltaDollarValue.abs() > 0) {
+            // TODO - check if this is correct. Should this be done on response adapter??
+            marginAcc.updateMarginInMarket(
+                marketKey,
+                verificationResult.marginDeltaDollarValue
+            );
+            emit MarginTransferred(
+                address(marginAcc),
+                marketKey,
+                verificationResult.tokenOut,
+                verificationResult.marginDelta,
+                verificationResult.marginDeltaDollarValue
+            );
+        }
     }
     
 }

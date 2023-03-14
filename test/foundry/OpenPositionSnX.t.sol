@@ -390,7 +390,7 @@ contract OpenPositionSnX is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             positionSize,
             openNotional
@@ -539,7 +539,7 @@ contract OpenPositionSnX is BaseSetup {
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
-            ethFuturesMarket,
+            snxEthKey,
             susd,
             positionSize,
             openNotional
