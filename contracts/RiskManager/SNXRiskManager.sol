@@ -110,6 +110,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     {
         // uint256 currentMargin;
         // int256 initialMargin;
+        bytes32[] memory allMarketnames = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketNamesForRiskManager(address(this));
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -123,7 +126,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             );
             // This is in 6 decimal digits.
             int256 initialMargin = IMarginAccount(marginAccount).marginInMarket(
-                allMarkets[i]
+                allMarketnames[i]
             );
             marginDelta += (remainingMargin.toInt256() - initialMargin);
         }
@@ -172,9 +175,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             );
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                marginDelta = marginDelta.add(
-                    abi.decode(data[i][4:], (int256))
-                );
+                marginDelta = marginDelta.add(abi.decode(data[i][4:], (int256)));
             } else if (funSig == OP) {
                 //TODO - check Is this a standard of 18 decimals
                 int256 positionDelta = abi.decode(data[i][4:], (int256));
@@ -185,9 +186,7 @@ contract SNXRiskManager is IProtocolRiskManager {
                     !isInvalid,
                     "Error fetching asset price from third party protocol"
                 );
-                position.openNotional = position.openNotional.add(
-                    (positionDelta * int256(assetPrice)) / 1 ether
-                );
+                position.openNotional = position.openNotional.add((positionDelta * int256(assetPrice)) / 1 ether);
 
                 position.size = position.size.add(positionDelta);
                 // this refers to position opening fee.

@@ -33,4 +33,8 @@ interface IMarketManager {
         external
         view
         returns (address[] memory);
+    function getMarketNamesForRiskManager(address _riskManager)
+        external
+        view
+        returns (bytes32[] memory);
 }

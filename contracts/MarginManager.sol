@@ -56,7 +56,7 @@ contract MarginManager is ReentrancyGuard {
     event MarginAccountClosed(address indexed, address indexed);
     event MarginTransferred(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
@@ -65,21 +65,21 @@ contract MarginManager is ReentrancyGuard {
     // marginAccount, protocol, assetOut, size, openNotional
     event PositionAdded(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
     );
     event PositionUpdated(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
     );
     event PositionRemoved(
         address indexed,
-        address indexed,
+        bytes32 indexed,
         address indexed,
         int256,
         int256
@@ -210,7 +210,7 @@ contract MarginManager is ReentrancyGuard {
             marginAcc.addPosition(marketKey, verificationResult.position);
             emit PositionAdded(
                 address(marginAcc),
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.tokenOut,
                 verificationResult.position.size,
                 verificationResult.position.openNotional
@@ -225,12 +225,12 @@ contract MarginManager is ReentrancyGuard {
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(
                 address(marginAcc),
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.tokenOut,
                 verificationResult.marginDelta,
                 verificationResult.marginDeltaDollarValue
@@ -322,7 +322,7 @@ contract MarginManager is ReentrancyGuard {
 
         require(
             marginAcc.existingPosition(marketKey) ||
-                marginAcc.marginInMarket(protocolAddress) > 0,
+                marginAcc.marginInMarket(marketKey) > 0,
             "Position doesn't exist"
         );
         if (verificationResult.position.size.abs() > 0) {
@@ -341,7 +341,7 @@ contract MarginManager is ReentrancyGuard {
             marginAcc.updatePosition(marketKey, updatedPosition);
             emit PositionUpdated(
                 address(marginAcc),
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.tokenOut,
                 updatedPosition.size,
                 updatedPosition.openNotional
@@ -350,12 +350,12 @@ contract MarginManager is ReentrancyGuard {
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateMarginInMarket(
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(
                 address(marginAcc),
-                verificationResult.protocolAddress,
+                marketKey,
                 verificationResult.tokenOut,
                 verificationResult.marginDelta,
                 verificationResult.marginDeltaDollarValue

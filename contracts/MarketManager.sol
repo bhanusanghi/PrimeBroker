@@ -13,7 +13,7 @@ contract MarketManager is IMarketManager, AccessControl {
     mapping(address => bool) public registeredRiskManagers;
     mapping(address => bool) public registeredMarketAddresses;
 
-    mapping(address => address[]) marketsForRiskManager;
+    mapping(address => bytes32[]) marketsForRiskManager;
 
     bytes32[] public whitelistedMarketNames;
     address[] public uniqueRiskManagers;
@@ -43,7 +43,7 @@ contract MarketManager is IMarketManager, AccessControl {
         marketRiskManagerRegistry[_marketName] = _riskManager;
         whitelistedMarketNames.push(_marketName);
         if (!registeredMarketAddresses[_market]) {
-            marketsForRiskManager[_riskManager].push(_market);
+            marketsForRiskManager[_riskManager].push(_marketName);
             registeredMarketAddresses[_market] = true;
             uniqueMarketAddresses.push(_market);
         }
@@ -53,15 +53,24 @@ contract MarketManager is IMarketManager, AccessControl {
         }
     }
 
-    function getMarketsForRiskManager(address _riskManager)
+    function getMarketsForRiskManager(address _riskManager)public view returns (address[] memory) {
+        bytes32[] memory marketNames = marketsForRiskManager[_riskManager];
+        address[] memory markets = new address[](marketNames.length);
+        for(uint256 i=0; i<marketNames.length; i++) {
+            markets[i] = marketRegistry[marketNames[i]];
+        }
+        return markets;
+    }
+      
+    function getMarketNamesForRiskManager(address _riskManager)
         public
         view
-        returns (address[] memory)
+        override
+        returns (bytes32[] memory)
     {
         require(registeredRiskManagers[_riskManager], "Invalid Risk Manager");
         return marketsForRiskManager[_riskManager];
     }
-
     function getUniqueMarketAddresses()
         external
         view

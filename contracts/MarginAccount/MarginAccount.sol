@@ -39,10 +39,10 @@ contract MarginAccount is IMarginAccount, UniExchange {
     uint256 public cumulativeIndexAtOpen;
     // address public underlyingToken;
     int256 public pendingFee; // keeping it int for -ve update(pay fee) Is this order fee or is this fundingRate Fee.
-    // mapping(bytes32 => int256) public marginInMarket;
+    mapping(bytes32 => int256) public marginInMarket;
 
     // dollar value in 6 decimal digits.
-    mapping(address => int256) public marginInMarket;
+    // mapping(address => int256) public marginInMarket;
     int256 public totalMarginInMarkets;
 
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
@@ -233,7 +233,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     // }
 
     // @note updates margin in perticular market and increases totalMarginInMarket.
-    function updateMarginInMarket(address market, int256 transferredMargin)
+    function updateMarginInMarket(bytes32 market, int256 transferredMargin)
         public
         override
     {
