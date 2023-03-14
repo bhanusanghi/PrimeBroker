@@ -1,0 +1,25 @@
+on: [push]
+
+name: foundry tests
+
+env:
+  ARCHIVE_NODE_URL_L2:  https://opt-mainnet.g.alchemy.com/v2/paOkdAxB8BafnoXQW4WAYHOjxPyabKl9
+  FOUNDRY_FUZZ_RUNS: 10
+  DAPP_BUILD_OPTIMIZE: 0
+
+jobs:
+  check:
+    name: Foundry project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run tests
+        run: forge test -vvv
