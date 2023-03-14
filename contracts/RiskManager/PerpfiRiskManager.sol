@@ -106,15 +106,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
-    function previewPosition(bytes memory data) public {
-        /**
-        (marketKey, sizeDelta) = txDataDecoder(data)
-        if long check with snx for available margin
-
-
-       */
-    }
-
     function settleFeeForMarket(address account) external returns (int256) {
         //getFees
         // aproval or something
@@ -155,24 +146,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
-    // ** TODO - should return in 18 decimal points
-    function getPositionPnL(address account) external returns (int256 pnl) {
-        int256 owedRealizedPnl;
-        int256 unrealizedPnl;
-        uint256 pendingFee;
-        // from this description - owedRealizedPnL also needs to be taken in account.
-        // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
 
-        // todo - realized PnL affects the deposited Margin. We need to also take that into account.
-        // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
-        //or periodically update the margin in tpp and before executing any new transactions from the same account
-        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
-            .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
-    }
 
     function verifyTrade(
-        address protocol,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
     )
@@ -266,7 +243,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     }
 
     function verifyClose(
-        address protocol,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
     ) public view returns (int256 amount, int256 totalPosition, uint256 fee) {
@@ -317,7 +294,18 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return 0;
     }
 
-    function getUnrealizedPnL(
-        address marginAccount
-    ) external view override returns (int256 unrealizedPnL) {}
+    function getUnrealizedPnL(address marginAccount) external returns (int256 pnl) {
+        int256 owedRealizedPnl;
+        int256 unrealizedPnl;
+        uint256 pendingFee;
+        // from this description - owedRealizedPnL also needs to be taken in account.
+        // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
+
+        // todo - realized PnL affects the deposited Margin. We need to also take that into account.
+        // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
+        //or periodically update the margin in tpp and before executing any new transactions from the same account
+        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
+            .getPnlAndPendingFee(marginAccount);
+        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
+    }
 }

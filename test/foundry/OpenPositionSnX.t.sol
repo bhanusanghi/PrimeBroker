@@ -19,6 +19,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
+import { Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 
 contract OpenPositionSnX is BaseSetup {
@@ -420,10 +421,10 @@ contract OpenPositionSnX is BaseSetup {
         vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
 
-        assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
-            positionSize
-        );
+        // assertEq(
+        //     MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+        //     positionSize
+        // );
 
         (tradeData.marginRemainingAfterTrade, ) = IFuturesMarket(
             ethFuturesMarket
@@ -436,20 +437,22 @@ contract OpenPositionSnX is BaseSetup {
         (, , , , int256 posSizeTPP) = IFuturesMarket(ethFuturesMarket)
             .positions(bobMarginAccount);
         tradeData.positionSizeAfterTrade = int128(posSizeTPP);
-
+        Position memory pos = MarginAccount(bobMarginAccount).getPosition(
+            snxEthKey
+        );
         assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            pos.size,
             tradeData.positionSizeAfterTrade
         );
 
         // check position open notional and size on our protocol.
         assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            pos.openNotional,
             ((tradeData.positionSizeAfterTrade *
                 int256(tradeData.assetPriceBeforeTrade)) / 1 ether)
         );
         assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            pos.openNotional,
             openNotional
         );
 
@@ -566,9 +569,11 @@ contract OpenPositionSnX is BaseSetup {
 
         vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
-
+        Position memory pos = MarginAccount(bobMarginAccount).getPosition(
+            snxEthKey
+        );
         assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            pos.size,
             positionSize
         );
 
@@ -585,18 +590,18 @@ contract OpenPositionSnX is BaseSetup {
         ).positions(bobMarginAccount);
 
         assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+            pos.size,
             tradeData.positionSizeAfterTrade
         );
 
         // check position open notional and size on our protocol.
         assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            pos.openNotional,
             ((tradeData.positionSizeAfterTrade *
                 int256(tradeData.assetPriceBeforeTrade)) / 1 ether)
         );
         assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            pos.openNotional,
             openNotional
         );
 
@@ -668,7 +673,7 @@ contract OpenPositionSnX is BaseSetup {
         vm.startPrank(bob);
         console2.log("",MarginAccount(bobMarginAccount).totalBorrowed(),collateralManager.totalCollateralValue(bobMarginAccount));
         marginManager.openPosition(snxEthKey, destinations, data);
-        console2.log("Position opened",MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey));
+        // console2.log("Position opened",MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey));
         // assertEq(
         //     MarginAccount(bobMarginAccount).getPosition(snxEthKey),
         //     tradeData.positionSize

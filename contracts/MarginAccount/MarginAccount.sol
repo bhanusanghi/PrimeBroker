@@ -25,24 +25,21 @@ contract MarginAccount is IMarginAccount, UniExchange {
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-    // IMarketManager public marketManager;
-
-    mapping(bytes32 => bool) public existingPosition;
+ 
     // address public baseToken; //usdt/c
-    // perp.eth, snx.eth, snx.btc
-    mapping(bytes32 => Position) public positions;
-    // address.MKT
     address public marginManager;
     uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     // address public underlyingToken;
-    int256 public pendingFee; // keeping it int for -ve update(pay fee) Is this order fee or is this fundingRate Fee.
-    mapping(bytes32 => int256) public marginInMarket;
-
+    // perp.eth, Position
+    mapping(bytes32 => Position) public positions;
+    mapping(bytes32 => bool) public existingPosition;
     // dollar value in 6 decimal digits.
-    // mapping(address => int256) public marginInMarket;
+    mapping(bytes32 => int256) public marginInMarket;
+   
+    int256 public pendingFee; // keeping it int for -ve update(pay fee) Is this order fee or is this fundingRate Fee.
     int256 public totalMarginInMarkets;
 
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
@@ -67,85 +64,8 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // TODO- Market manager is not related to accounts.
         // marketManager = IMarketManager(_marketManager);
     }
-
-    // function getLeverage() public view returns (uint256, uint256) {
-    //     return (totalInternalLev, (totalLev - totalInternalLev));
-    // }
-
-    function addCollateral(
-        address from,
-        address token,
-        uint256 amount
-    ) external override {
-        // acl - only collateral manager.
-        // convert
-        IERC20(token).safeTransferFrom(from, address(this), amount);
-        // update in collatral manager
-    }
-
-    // TODO - ASHISH - which position's fee is this ??
-    function updateFee(int256 fee) public override {
-        //only marginManager
-        pendingFee = pendingFee.add(fee);
-    }
-
-    function approveToProtocol(address token, address protocol)
-        external
-        override
-    {
-        // onlyMarginmanager
-        IERC20(token).approve(protocol, type(uint256).max);
-    }
-
-    function addPosition(bytes32 market, Position memory position)
-        public
-        override
-    {
-        // only riskmanagger
-        positions[market] = position;
-        existingPosition[market] = true;
-        // pendingFee += int256(position.orderFee);
-    }
-
-    function updatePosition(bytes32 market, Position memory position)
-        public
-        override
-    {
-        // only riskmanagger
-        require(existingPosition[market], "Not an existing Position");
-        positions[market] = position;
-        // pendingFee += int256(position.orderFee);
-    }
-
-    function removePosition(bytes32 market) public override {
-        // only riskmanagger
-        existingPosition[market] = false;
-        delete positions[market];
-    }
-
-    // TODO return value with unrealized PnL
-    function getPositionOpenNotional(bytes32 market)
-        public
-        view
-        override
-        returns (int256)
-    {
-        return positions[market].openNotional;
-        // and pnl
-        // protocol rm . getPnl(address(this), _protocol)
-    }
-
-    function getPosition(bytes32 market) public view override returns (int256) {
-        return positions[market].size;
-    }
-
-    function getPositionOrderFee(bytes32 market)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return positions[market].orderFee;
+    function getPosition(bytes32 market) public view override returns (Position memory) {
+        return positions[market];
     }
 
     function getTotalOpeningAbsoluteNotional(bytes32[] memory _allowedMarkets)
@@ -175,7 +95,24 @@ contract MarginAccount is IMarginAccount, UniExchange {
             );
         }
     }
+    function addCollateral(
+        address from,
+        address token,
+        uint256 amount
+    ) external override {
+        // acl - only collateral manager.
+        // convert
+        IERC20(token).safeTransferFrom(from, address(this), amount);
+        // update in collatral manager
+    }
 
+    function approveToProtocol(address token, address protocol)
+        external
+        override
+    {
+        // onlyMarginmanager
+        IERC20(token).approve(protocol, type(uint256).max);
+    }
     function transferTokens(
         address token,
         address to,
@@ -207,6 +144,41 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // add new position in array, update leverage int, ext
         return returnData;
     }
+    // TODO - ASHISH - which position's fee is this ??
+    function updateFee(int256 fee) public override {
+        //only marginManager
+        pendingFee = pendingFee.add(fee);
+    }
+
+    function addPosition(bytes32 market, Position memory position)
+        public
+        override
+    {
+        // only riskmanagger
+
+        require(!existingPosition[market], "Existing position");
+        positions[market] = position;
+        existingPosition[market] = true;
+        // pendingFee += int256(position.orderFee);
+    }
+
+    function updatePosition(bytes32 marketKey, Position memory position)
+        public
+        override
+    {
+        // only riskmanagger
+        require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
+        positions[marketKey].protocol = positions[marketKey].protocol;//@note @0xAshish rewriting it as of now will remove it later
+        positions[marketKey].openNotional = positions[marketKey].openNotional.add(position.openNotional);
+        positions[marketKey].size = positions[marketKey].size.add(position.size);
+        positions[marketKey].orderFee = positions[marketKey].orderFee.add(position.orderFee);
+    }
+
+    function removePosition(bytes32 market) public override {
+        // only riskmanagger
+        existingPosition[market] = false;
+        delete positions[market];
+    }
 
     /// @dev Updates borrowed amount. Restricted for current credit manager only
     /// @param totalBorrowedAmount Amount which pool lent to credit account
@@ -218,19 +190,6 @@ contract MarginAccount is IMarginAccount, UniExchange {
         totalBorrowed = totalBorrowedAmount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
-
-    // @note updates margin in perticular market and increases totalMarginInMarket.
-    // function updateMarginInMarket(bytes32 market, int256 transferredMargin)
-    //     public
-    //     override
-    // {
-    //     require(
-    //         marginInMarket[market].add(transferredMargin) > 0,
-    //         "MA: Cannot have negative margin In protocol"
-    //     );
-    //     totalMarginInMarkets = totalMarginInMarkets.add(transferredMargin);
-    //     marginInMarket[market] = marginInMarket[market].add(transferredMargin);
-    // }
 
     // @note updates margin in perticular market and increases totalMarginInMarket.
     function updateMarginInMarket(bytes32 market, int256 transferredMargin)
@@ -248,8 +207,4 @@ contract MarginAccount is IMarginAccount, UniExchange {
     function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
         unsettledRealizedPnL = _realizedPnL;
     }
-
-    // function gettotalMarginInMarkets() public view returns (int256) {
-    //     return totalMarginInMarkets;
-    // }
 }

@@ -29,9 +29,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     address public baseToken;
     uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
-    //88a3c848
     bytes4 public OP = 0xa28a2bc0;
-    bytes4 public MP = 0xa28a2bc0;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
@@ -112,12 +110,11 @@ contract SNXRiskManager is IProtocolRiskManager {
     {
         // uint256 currentMargin;
         // int256 initialMargin;
-        bytes32[] memory allMarketnames = IMarketManager(
+        IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
-        ).getMarketNamesForRiskManager(address(this));
-        address[] memory allMarkets = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
-        ).getMarketsForRiskManager(address(this));
+        );
+        bytes32[] memory allMarketnames = marketManager.getMarketNamesForRiskManager(address(this));
+        address[] memory allMarkets = marketManager.getMarketsForRiskManager(address(this));
         for (uint256 i = 0; i < allMarkets.length; i++) {
             // This is in 18 decimal digits
             (, , uint256 remainingMargin, , ) = IFuturesMarket(allMarkets[i])
@@ -157,7 +154,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     // assumes all destinations refer to same market.
     // Can have same destination
     function verifyTrade(
-        address protocol,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
     )
@@ -167,14 +164,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     // uint256 fee
     {
         uint256 len = data.length; // limit to 2
-        for (uint256 i = 0; i < len; i++) {
-            console.log('destinations:');
-            console.log(destinations[i]);
-            console.logBytes(data[i]);
-        }
-        
         // use marketKey
-        
         // TODO - bhanu - Change Position Size decimal change
         require(destinations.length == len, "should match");
         for (uint256 i = 0; i < len; i++) {
@@ -183,17 +173,13 @@ contract SNXRiskManager is IProtocolRiskManager {
                 "PRM: Calling non whitelisted contract"
             );
             bytes4 funSig = bytes4(data[i]);
-            console.log('funSig');
-            console.logBytes4(funSig);
             if (funSig == TM) {
                 marginDelta = abi.decode(data[i][4:], (int256));
-            } else if (funSig == OP||funSig==MP) {
+            } else if (funSig == OP) {
                 //TODO - check Is this a standard of 18 decimals
                 int256 positionDelta = abi.decode(data[i][4:], (int256));
-                console.log("uweeee");
-                console.logInt(positionDelta);
                 // asset price is recvd with 18 decimals.
-                (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
+                (uint256 assetPrice, bool isInvalid) = IFuturesMarket(destinations[i])
                     .assetPrice();
                 require(
                     !isInvalid,
@@ -203,7 +189,7 @@ contract SNXRiskManager is IProtocolRiskManager {
 
                 position.size = position.size.add(positionDelta);
                 // this refers to position opening fee.
-                (position.orderFee, ) = IFuturesMarket(protocol).orderFee(
+                (position.orderFee, ) = IFuturesMarket(destinations[i]).orderFee(
                     positionDelta
                 );
             } else {
@@ -251,12 +237,11 @@ contract SNXRiskManager is IProtocolRiskManager {
         override
         returns (int256 unrealizedPnL)
     {
-        unrealizedPnL += _getAccruedFundingAcrossMarkets(marginAccount);
-        unrealizedPnL += _getPositionPnLAcrossMarkets(marginAccount);
+        return _getPositionPnLAcrossMarkets(marginAccount);
     }
 
     function verifyClose(
-        address protocol,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
     )

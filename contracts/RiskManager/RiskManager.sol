@@ -47,19 +47,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
     uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
 
-    // 1000-> 2800$
-    // protocol to riskManager mapping
-    // perpfi address=> perpfiRisk manager
-    // enum MKT {
-    //     ETH,
-    //     BTC,
-    //     UNI,
-    //     MATIC
-    // }
-    // mapping(address => MKT) public ProtocolMarket;
-
-    // bytes32[] public `;
-
     constructor(
         IContractRegistry _contractRegistery,
         IMarketManager _marketManager
@@ -96,7 +83,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) public returns (VerifyTradeResult memory result) {
         uint256 buyingPower;
         address _protocolRiskManager;
-        (result.protocolAddress, _protocolRiskManager) = marketManager
+        (, _protocolRiskManager) = marketManager
             .getProtocolAddressByMarketName(marketKey);
 
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
@@ -111,7 +98,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         buyingPower = GetCurrentBuyingPower(marginAccount, interestAccrued);
 
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
-            result.protocolAddress,
+            marketKey,
             destinations,
             data
         );
@@ -130,7 +117,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             buyingPower,
             result.position.openNotional
         );
-        console.log('verifyTrade 8');
 
         // Bp is in dollars vault asset decimals
         // marginDeltaDollarValue is in dollars vault asset decimals
@@ -197,7 +183,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
         Position memory position;
         (marginDelta, position) = protocolRiskManager.verifyTrade(
-            _protocolAddress,
+            marketKey,
             destinations,
             data
         );
@@ -219,7 +205,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) external returns (VerifyTradeResult memory result) {
            uint256 buyingPower;
         address _protocolRiskManager;
-        (result.protocolAddress, _protocolRiskManager) = marketManager
+        (, _protocolRiskManager) = marketManager
             .getProtocolAddressByMarketName(marketKey);
 
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
@@ -234,7 +220,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         buyingPower = GetCurrentBuyingPower(marginAccount, interestAccrued);
 
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
-            result.protocolAddress,
+            marketKey,
             destinations,
             data
         );
@@ -258,27 +244,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         console.logInt(result.position.openNotional);
         console.log(buyingPower, "-----------------------------");
     }
-    function liquidatable(address marginAccount) public returns (int256 diff) {
-        int256 totalNotional;
-        int256 PnL;
-        // totalNotional is in 18 decimals
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        totalNotional = IMarginAccount(marginAccount).getTotalOpeningNotional(
-            _whitelistedMarketNames
-        );
-        (PnL) = _getUnrealizedPnL(marginAccount);
-
-        uint256 temp = totalNotional.abs().mulDiv(maintanaceMarginFactor, 100);
-        if (PnL < 0) {
-            require(temp <= PnL.abs(), "Liq:");
-            return PnL.add(temp.toInt256());
-        } else {
-            return 0;
-        }
-        // return collateralManager.getFreeCollateralValue(marginAccount).toInt256().add(PnL).toUint256().mulDiv(100,maintanaceMarginFactor);
-    }
 
     // @TODO - should be able to get buying power from account directly.
     // total free buying power
@@ -301,34 +266,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .toUint256()
             .mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
     }
-
-    // // @note Should return the total PnL trader has across all markets in dollar value ( usdc value )
-    // // totalNotional ->  18 decimals
-    // // PnL ->  18 decimals
-    // function getPositionsValPnL(address marginAccount)
-    //     public
-    //     returns (int256 PnL)
-    // {
-    //     address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-
-    //     IMarginAccount marginAccount = IMarginAccount(marginAccount);
-    //     // totalNotional = marginAccount.getTotalOpeningNotional(
-    //     //     _whitelistedMarketNames
-    //     // );
-    //     uint256 len = _riskManagers.length;
-    //     for (uint256 i = 0; i < len; i++) {
-    //         // margin acc get bitmask
-    //         int256 _pnl;
-    //         _pnl = IProtocolRiskManager(_riskManagers[i]).getPositionPnL(
-    //             marginAccount
-    //         );
-    //         PnL = PnL.add(_pnl);
-    //     }
-    // }
-
-    function TotalPositionValue() external {}
-
-    function TotalLeverage() external {}
 
     // @note This finds and returns delta margin across all markets.
     // This does not take profit or stop loss

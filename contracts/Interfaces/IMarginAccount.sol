@@ -41,14 +41,8 @@ interface IMarginAccount is IExchange {
         external
         returns (bytes memory);
 
-    function getPositionOpenNotional(bytes32 marketKey)
-        external
-        view
-        returns (int256);
 
-    function getPosition(bytes32 marketKey) external view returns (int256);
-
-    function getPositionOrderFee(bytes32 market) external view returns (uint256);
+    function getPosition(bytes32 marketKey) external view returns (Position memory);
 
     function totalMarginInMarkets() external view returns (int256);
 
