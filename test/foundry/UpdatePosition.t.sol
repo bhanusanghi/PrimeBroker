@@ -88,6 +88,7 @@ contract UpdatePosition is BaseSetup {
     uint256 marginSNX;
     uint256 constant DAY = 24 * 60 * 60 * 1000;
 
+    // test ci/cd setup
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
