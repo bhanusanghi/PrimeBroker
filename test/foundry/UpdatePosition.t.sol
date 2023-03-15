@@ -19,7 +19,7 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {IFuturesMarketSettings} from "../../contracts/Interfaces/SNX/IFuturesMarketSettings.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 

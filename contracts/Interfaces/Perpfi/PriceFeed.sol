@@ -187,7 +187,7 @@ library Address {
 }
 
 
-// File @chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol@v0.1.7
+// File chainlink-contracts/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol@v0.1.7
 
 
 interface AggregatorV3Interface {

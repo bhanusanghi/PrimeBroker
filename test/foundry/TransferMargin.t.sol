@@ -13,7 +13,7 @@ import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract TransferMarginTest is BaseSetup {
     using SafeMath for uint256;
