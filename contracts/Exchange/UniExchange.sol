@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
