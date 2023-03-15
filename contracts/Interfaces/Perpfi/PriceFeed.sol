@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-import "hardhat/console.sol";
+
 /**
  * @dev Collection of functions related to the address type
  */

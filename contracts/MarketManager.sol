@@ -1,7 +1,7 @@
 pragma solidity ^0.8.10;
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
-import "hardhat/console.sol";
+
 
 contract MarketManager is IMarketManager, AccessControl {
     // TODO - move to single acl point.

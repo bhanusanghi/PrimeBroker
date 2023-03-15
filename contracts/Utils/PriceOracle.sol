@@ -8,7 +8,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "hardhat/console.sol";
+
 
 contract PriceOracle is IPriceOracle {
     using Math for uint256;

@@ -14,7 +14,7 @@ import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {UniExchange} from "../Exchange/UniExchange.sol";
-import "hardhat/console.sol";
+
 
 contract MarginAccount is IMarginAccount, UniExchange {
     using SafeERC20 for IERC20;

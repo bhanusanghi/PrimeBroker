@@ -13,7 +13,7 @@ import {SignedSafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/uti
 import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import "hardhat/console.sol";
+
 
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {

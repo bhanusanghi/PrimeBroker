@@ -23,7 +23,7 @@ import {IExchange} from "../Interfaces/IExchange.sol";
 import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 
-import "hardhat/console.sol";
+
 
 contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeERC20 for IERC20;

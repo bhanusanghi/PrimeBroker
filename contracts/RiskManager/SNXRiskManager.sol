@@ -15,7 +15,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
-import "hardhat/console.sol";
+
 
 contract SNXRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;

@@ -21,7 +21,7 @@ import {IExchange} from "./Interfaces/IExchange.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {IProtocolRiskManager} from "./Interfaces/IProtocolRiskManager.sol";
-import "hardhat/console.sol";
+
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;

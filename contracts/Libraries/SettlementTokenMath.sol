@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import {SafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import {SignedSafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
-import "hardhat/console.sol";
+
 
 /// @dev decimals of settlementToken token MUST be less than 18
 /// copy from perp math

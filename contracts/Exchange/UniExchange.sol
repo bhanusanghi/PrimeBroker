@@ -8,7 +8,7 @@ import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
-import "hardhat/console.sol";
+
 
 contract UniExchange is IExchange {
     // Keep a list of supported input and output assets here.
