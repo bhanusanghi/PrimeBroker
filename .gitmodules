@@ -9,7 +9,3 @@
 	path = lib/chainlink-contracts
 	url = https://github.com/smartcontractkit/chainlink
 	branch = develop
-[submodule "lib/chainlink"]
-	path = lib/chainlink
-	url = https://github.com/smartcontractkit/chainlink
-	branch = v1.12.0

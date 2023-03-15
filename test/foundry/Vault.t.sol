@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "ds-test/test.sol";
 import "forge-std/console2.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
-import {MockERC20} from "../../contracts/utils/MockERC20.sol";
+import {MockERC20} from "../../contracts/Utils/MockERC20.sol";
 
 import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterestRateModel.sol";
 import {Utils} from "./utils/Utils.sol";
