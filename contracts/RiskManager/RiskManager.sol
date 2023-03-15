@@ -231,7 +231,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 ERC20(result.tokenOut).decimals(),
                 ERC20(vault.asset()).decimals()
             );
-         console.log("uweeee");
+        console.log("uweeee");
         console.logInt(result.marginDeltaDollarValue);
         console.logInt(result.marginDelta);
 

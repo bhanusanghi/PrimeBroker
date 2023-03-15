@@ -65,7 +65,6 @@ contract OpenPositionSnX is BaseSetup {
     address ethFuturesMarket;
     uint256 maxBuyingPower;
     uint256 marginSNX;
-
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),

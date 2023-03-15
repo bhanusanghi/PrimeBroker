@@ -122,6 +122,13 @@ contract BaseSetup is Test {
         int256,
         int256
     );
+     event PositionClosed(
+        address indexed marginAccount,
+        address indexed protocol,
+        int256 pnl
+        // int256 fundingFee,
+        // int256 orderFee
+    );
 
     // Synthetix events
 

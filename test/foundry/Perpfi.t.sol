@@ -222,14 +222,14 @@ contract Perpfitest is BaseSetup {
             depositAmt,
             10 ** 7
         ); //10usdc
-        // address[] memory destinations1 = new address[](1);
-        // bytes[] memory data1 = new bytes[](1);
-        // destinations1[0] = perpVault;
-        // data1[0]=abi.encodeWithSignature(
-        //     "withdraw(address,uint256)",
-        //     usdc,
-        //     depositAmt
-        // );
+        address[] memory destinations1 = new address[](1);
+        bytes[] memory data1 = new bytes[](1);
+        destinations1[0] = perpVault;
+        data1[0]=abi.encodeWithSignature(
+            "withdraw(address,uint256)",
+            usdc,
+            depositAmt
+        );
         // vm.expectEmit(true,true,true,false,perpVault);
         // emit Withdrawn(
         //     usdc,

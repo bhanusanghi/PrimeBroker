@@ -169,22 +169,14 @@ contract MarginManager is ReentrancyGuard {
         IMarginAccount marginAcc = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-        // _getInterestAccrued(address(marginAcc))
         // @note fee is assumed to be in usdc value
-        /**struct VerifyTradeResult {
-        address protocolAddress;
-        int256 marginDelta;
-        int256 marginDeltaDollarValue;
-        Position position;
-        address tokenOut; (int256 marginDelta,
-        } */
        VerifyTradeResult memory verificationResult= _checkPosition(
             marginAcc,
             marketKey,
             destinations,
             data
         );
-        // address tokenIn = vault.asset();
+        _updateData(marginAcc, marketKey, verificationResult);
         marginAcc.execMultiTx(destinations, data);
     }
 
@@ -193,7 +185,6 @@ contract MarginManager is ReentrancyGuard {
         address[] calldata destinations,
         bytes[] calldata data
     ) external {
-        // TODO - Use Interface rather than class.
         IMarginAccount marginAcc = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
@@ -205,60 +196,47 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
+        _updateData(marginAcc, marketKey, verificationResult);
         marginAcc.execMultiTx(destinations, data);
     }
 
     function closePosition(
         bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data
+        address[] calldata destinations,
+        bytes[] calldata data
     ) external {
-        MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
-        settleFee(address(marginAcc));
-        // address protocolAddress = marginAcc.positions(positionIndex);
-        require(
-            marginAcc.existingPosition(marketKey),
-            "Position doesn't exist"
+        IMarginAccount marginAcc = IMarginAccount(
+            _getMarginAccount(msg.sender)
         );
-
-        int256 tokensToTransfer;
-        int256 positionSize;
-        (tokensToTransfer, positionSize) = riskManager.closeTrade(
-            address(marginAcc),
+        // @note fee is assumed to be in usdc value
+        VerifyTradeResult memory verificationResult = _checkPosition(
+            marginAcc,
             marketKey,
             destinations,
             data
         );
-        Position memory oldPosition = marginAcc.getPosition(marketKey);  
-        require(
-            positionSize == oldPosition.size,
-            "Invalid close pos"
-        );
-        require(
-            tokensToTransfer <= 0,
-            "add margin is not allowed in close position"
-        );
-        if (tokensToTransfer < 0) {
-            decreaseDebt(address(marginAcc), tokensToTransfer.abs());
-        }
+        _updateData(marginAcc, marketKey, verificationResult);
+        // require(
+        //     positionSize == oldPosition.size,
+        //     "Invalid close pos"
+        // );
         marginAcc.execMultiTx(destinations, data);
         marginAcc.removePosition(marketKey);
     }
 
     function liquidate(
         bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data
+        address[] calldata destinations,
+        bytes[] calldata data
     ) external {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         settleFee(address(marginAcc));
 
-        VerifyTradeResult memory verificationResult = riskManager.isliquidatable(
-            address(marginAcc),
+        VerifyTradeResult memory verificationResult = _checkPosition(
+            marginAcc,
             marketKey,
             destinations,
-            data,
-            0
+            data
         );
         console.log("liquidate",verificationResult.position.size.abs(),verificationResult.marginDeltaDollarValue.abs());
         // require(positionSize.abs() == marginAcc.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
@@ -426,6 +404,7 @@ contract MarginManager is ReentrancyGuard {
         bytes[] calldata data
     ) private returns(VerifyTradeResult memory verificationResult ) {
         _updateUnsettledRealizedPnL(address(marginAcc));
+        // _getInterestAccrued(address(marginAcc))
 
         // @note fee is assumed to be in usdc value
         verificationResult = riskManager.verifyTrade(
@@ -484,7 +463,9 @@ contract MarginManager is ReentrancyGuard {
                     require(amountOut >= diff, "RM: Bad Swap");
                 }
             }
-        if (verificationResult.position.size.abs() > 0) {
+    }
+    function _updateData(IMarginAccount marginAcc, bytes32 marketKey,VerifyTradeResult memory verificationResult) internal {
+                if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
             marginAcc.updatePosition(marketKey, verificationResult.position);
             emit PositionAdded(
@@ -500,7 +481,6 @@ contract MarginManager is ReentrancyGuard {
             revert(
                 "MM: Invalid Operation. Cannot use open position to reduce margin from a Market."
             );
-            
             // return as this is not opening of new position but modifying existing position.
         }
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
@@ -518,35 +498,4 @@ contract MarginManager is ReentrancyGuard {
             );
         }
     }
-    
 }
-        // if (verificationResult.position.size.abs() > 0) {
-        //     marginAcc.addPosition(marketKey, verificationResult.position);
-        //     emit PositionAdded(
-        //         address(marginAcc),
-        //         marketKey,
-        //         verificationResult.tokenOut,
-        //         verificationResult.position.size,
-        //         verificationResult.position.openNotional
-        //     );
-        // }
-        // if (verificationResult.marginDeltaDollarValue < 0) {
-        //     revert(
-        //         "MM: Invalid Operation. Cannot use open position to reduce margin from a Market."
-        //     );
-        //     // return as this is not opening of new position but modifying existing position.
-        // }
-        // if (verificationResult.marginDeltaDollarValue.abs() > 0) {
-        //     // TODO - check if this is correct. Should this be done on response adapter??
-        //     marginAcc.updateMarginInMarket(
-        //         marketKey,
-        //         verificationResult.marginDelta
-        //     );
-        //     emit MarginTransferred(
-        //         address(marginAcc),
-        //         marketKey,
-        //         verificationResult.tokenOut,
-        //         verificationResult.marginDelta,
-        //         verificationResult.marginDeltaDollarValue
-        //     );
-        //     // check if we need to swap tokens for depositing margin.
