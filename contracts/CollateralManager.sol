@@ -6,13 +6,13 @@ import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {MarginManager} from "./MarginManager.sol";
 import {IRiskManager} from "./Interfaces/IRiskManager.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SignedSafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 
 // @TODO - Add ACL checks.
@@ -21,9 +21,9 @@ contract CollateralManager is ICollateralManager {
     using SafeMath for int256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
-    using SignedSafeMathUpgradeable for int256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SignedSafeMath for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SignedMath for int256;
     // TODO - Move all these to Contract Registry.
     MarginManager public marginManager;

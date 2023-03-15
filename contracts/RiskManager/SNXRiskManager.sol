@@ -1,10 +1,10 @@
 pragma solidity ^0.8.10;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {CollateralShort} from "../Interfaces/SNX/CollateralShort.sol";
 import {IFuturesMarket} from "../Interfaces/SNX/IFuturesMarket.sol";
 import {IFuturesMarketManager} from "../Interfaces/SNX/IFuturesMarketManager.sol";
@@ -19,8 +19,8 @@ import {Position} from "../Interfaces/IMarginAccount.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     using SignedMath for int256;

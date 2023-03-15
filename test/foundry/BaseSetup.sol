@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "ds-test/test.sol";
 import "forge-std/console2.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ContractRegistry} from "../../contracts/utils/ContractRegistry.sol";
 import {CollateralManager} from "../../contracts/CollateralManager.sol";
 import {MarketManager} from "../../contracts/MarketManager.sol";
@@ -14,18 +14,18 @@ import {SNXRiskManager} from "../../contracts/RiskManager/SNXRiskManager.sol";
 import {PerpfiRiskManager} from "../../contracts/RiskManager/PerpfiRiskManager.sol";
 import {MarginManager} from "../../contracts/MarginManager.sol";
 import {PriceOracle} from "../../contracts/utils/PriceOracle.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterestRateModel.sol";
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
 import {IProtocolRiskManager} from "../../contracts/Interfaces/IProtocolRiskManager.sol";
 import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {Utils} from "./utils/Utils.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 contract BaseSetup is Test {
     // ============= Libraries =============
@@ -33,8 +33,8 @@ contract BaseSetup is Test {
     using SafeMath for uint256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SignedMath for int256;
 
     // ============= Utils =============
@@ -115,7 +115,7 @@ contract BaseSetup is Test {
         int256,
         int256
     );
-    event PositionRemoved(
+    event PositionClosed(
         address indexed,
         bytes32 indexed,
         address indexed,

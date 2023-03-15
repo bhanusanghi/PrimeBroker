@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
 contract ContractRegistry is IContractRegistry, AccessControl {

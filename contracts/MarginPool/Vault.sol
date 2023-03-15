@@ -1,17 +1,17 @@
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol";
 import "../Interfaces/IInterestRateModel.sol";
 import "./LPToken.sol";
 import "../Libraries/Errors.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {SECONDS_PER_YEAR} from "../Libraries/Constants.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 interface IVault {
     // events
