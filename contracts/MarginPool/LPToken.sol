@@ -1,8 +1,8 @@
 // TODO - SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 contract LPToken is ERC20, Ownable {
     uint8 private immutable _decimals;

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.10;
 
-import {SafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import {SignedSafeMathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
-import "hardhat/console.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+
 
 /// @dev decimals of settlementToken token MUST be less than 18
 /// copy from perp math
 library SettlementTokenMath {
-    using SafeMathUpgradeable for uint256;
-    using SignedSafeMathUpgradeable for int256;
+    using SafeMath for uint256;
+    using SignedSafeMath for int256;
 
     function lte(
         uint256 settlementToken,

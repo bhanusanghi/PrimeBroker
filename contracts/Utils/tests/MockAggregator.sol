@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 pragma abicoder v2;
 
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 // Use smock while testing.
 // Price feed addresses - https://docs.chain.link/docs/data-feeds/price-feeds/addresses/

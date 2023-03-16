@@ -1,15 +1,15 @@
 pragma solidity ^0.8.10;
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
+import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import {RiskManager} from "./RiskManager/RiskManager.sol";
 import {MarginAccount} from "./MarginAccount/MarginAccount.sol";
 import {Vault} from "./MarginPool/Vault.sol";
@@ -21,14 +21,14 @@ import {IExchange} from "./Interfaces/IExchange.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {IProtocolRiskManager} from "./Interfaces/IProtocolRiskManager.sol";
-import "hardhat/console.sol";
+
 
 contract MarginManager is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using Math for uint256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     using SignedMath for int256;
@@ -77,7 +77,7 @@ contract MarginManager is ReentrancyGuard {
         int256,
         int256
     );
-    event PositionRemoved(
+    event PositionClosed(
         address indexed,
         bytes32 indexed,
         address indexed,

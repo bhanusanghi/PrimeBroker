@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegistry.sol";
 
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ICircuitBreaker} from "../../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
 
