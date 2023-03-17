@@ -5,7 +5,6 @@ import "forge-std/console2.sol";
 import {BaseSetup} from "./BaseSetup.sol";
 import {Utils} from "./utils/Utils.sol";
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
-import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {IPerpsV2Market} from "../../contracts/Interfaces/SNX/IPerpsV2Market.sol";
 import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
@@ -21,7 +20,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
-import { Position} from "../../contracts/Interfaces/IMarginAccount.sol";
+import { IMarginAccount, Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 
 contract UpdatePosition is BaseSetup {

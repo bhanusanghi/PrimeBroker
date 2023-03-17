@@ -408,7 +408,7 @@ contract MarginManager is ReentrancyGuard {
 
         // @note fee is assumed to be in usdc value
         verificationResult = riskManager.verifyTrade(
-            address(marginAcc),
+            marginAcc,
             marketKey,
             destinations,
             data,

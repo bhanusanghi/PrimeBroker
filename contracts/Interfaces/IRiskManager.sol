@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-import {Position} from "./IMarginAccount.sol";
+import {Position, IMarginAccount} from "./IMarginAccount.sol";
 
 struct VerifyTradeResult {
     int256 marginDelta;
@@ -10,7 +10,7 @@ struct VerifyTradeResult {
 
 interface IRiskManager {
     function verifyTrade(
-        address marginAcc,
+        IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data,

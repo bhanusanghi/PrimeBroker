@@ -75,7 +75,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
 
     function verifyTrade(
-        address marginAccount,
+        IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data,
@@ -95,7 +95,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
-        buyingPower = GetCurrentBuyingPower(marginAccount, interestAccrued);
+        buyingPower = GetCurrentBuyingPower(address(marginAccount), interestAccrued);
 
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
             marketKey,
@@ -109,53 +109,37 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 ERC20(result.tokenOut).decimals(),
                 ERC20(vault.asset()).decimals()
             );
-        // Bp is in dollars vault asset decimals
-        // Position Size is in 18 decimals -> need to convert
-        // totalNotional is in 18 decimals
-        _checkPositionHealth(
-            marginAccount,
-            buyingPower,
-            result.position.openNotional
-        );
-
-        // Bp is in dollars vault asset decimals
-        // marginDeltaDollarValue is in dollars vault asset decimals
-        _checkMarginTransferHealth(
-            buyingPower,
-            IMarginAccount(marginAccount),
-            result.marginDeltaDollarValue
-        );
-    }
-
-    // send B.P in vault decimals
-    // position openNotional should be in 18 decimal points
-    function _checkPositionHealth(
-        address marginAccount,
-        uint256 buyingPower,
-        int256 positionOpenNotional
-    ) internal {
-        // totalNotional is in 18 decimals
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        bytes32[] memory _whitelistedMarketNames = marketManager
+         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
             .getTotalOpeningNotional(_whitelistedMarketNames);
-        require(
-            buyingPower.convertTokenDecimals(
-                ERC20(vault.asset()).decimals(),
-                18
-            ) >= (totalNotional.add(positionOpenNotional)).abs(),
-            "Extra leverage not allowed"
+                console.log("uweeee");
+        console.logInt(result.marginDeltaDollarValue);
+        console.logInt(result.marginDelta);
+
+        require(result.marginDelta<=0, "Extra Transfer not allowed");
+        console.logInt(totalNotional);
+        console.logInt(result.position.openNotional);
+        console.log(buyingPower, "-----------------------------");
+        // Bp is in dollars vault asset decimals
+        // Position Size is in 18 decimals -> need to convert
+        // totalNotional is in 18 decimals
+        _checkModifyPosition(
+            marginAccount,
+            buyingPower,
+            result.position.openNotional,
+            result.marginDeltaDollarValue,
+            totalNotional
         );
     }
 
-    // Bp is in dollars vault asset decimals
-    // marginDeltaDollarValue is in dollars vault asset decimals
-    function _checkMarginTransferHealth(
-        uint256 buyingPower,
+    function _checkModifyPosition(
         IMarginAccount marginAccount,
-        int256 marginDeltaDollarValue
-    ) internal {
+        uint256 buyingPower,
+        int256 positionOpenNotional,
+        int256 marginDeltaDollarValue,
+        int256 totalNotional) internal {
+        // check if open
         require(
             buyingPower >=
                 (
@@ -165,84 +149,37 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 ).abs(),
             "Extra Transfer not allowed"
         );
+        require(
+            buyingPower.convertTokenDecimals(
+                ERC20(vault.asset()).decimals(),
+                18
+            ) >= (totalNotional.add(positionOpenNotional)).abs(),
+            "Extra leverage not allowed"
+        );
     }
-
-    function closeTrade(
-        address _marginAccount,
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data
-    ) external returns (int256 marginDelta, int256 positionSize) {
-        IMarginAccount marginAccount = IMarginAccount(_marginAccount);
-        address _protocolAddress;
-        address _protocolRiskManager;
-        (_protocolAddress, _protocolRiskManager) = marketManager
-            .getProtocolAddressByMarketName(marketKey);
-        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
+    function _checkLiquidable(
+        IMarginAccount marginAccount,
+        uint256 buyingPower,
+        int256 positionOpenNotional,
+        int256 marginDeltaDollarValue,
+        int256 totalNotional) internal {
+        // check if open
+        require(
+            buyingPower >=
+                (
+                    marginAccount.totalMarginInMarkets().add(
+                        marginDeltaDollarValue
+                    ) // this is also in vault asset decimals
+                ).abs(),
+            "Extra Transfer not allowed"
         );
-        Position memory position;
-        (marginDelta, position) = protocolRiskManager.verifyTrade(
-            marketKey,
-            destinations,
-            data
+        require(
+            buyingPower.convertTokenDecimals(
+                ERC20(vault.asset()).decimals(),
+                18
+            ) >= (totalNotional.add(positionOpenNotional)).abs(),
+            "Extra leverage not allowed"
         );
-        // basically checks for if its closing opposite position
-        // require(positionSize + _currentPositionSize == 0);
-
-        // if (transferAmout < 0) {
-        //     vault.repay(borrowedAmount, loss, profit);
-        //     update totalDebt
-        // }
-    }
-
-    function isliquidatable(
-        address marginAccount,
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
-    ) external returns (VerifyTradeResult memory result) {
-           uint256 buyingPower;
-        address _protocolRiskManager;
-        (, _protocolRiskManager) = marketManager
-            .getProtocolAddressByMarketName(marketKey);
-
-        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
-        );
-
-        result.tokenOut = protocolRiskManager.getBaseToken();
-
-        // interest accrued is in vault decimals
-        // pnl is in vault decimals
-        // BP is in vault decimals
-        buyingPower = GetCurrentBuyingPower(marginAccount, interestAccrued);
-
-        (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
-            marketKey,
-            destinations,
-            data
-        );
-
-        result.marginDeltaDollarValue = priceOracle
-            .convertToUSD(result.marginDelta, result.tokenOut)
-            .convertTokenDecimals(
-                ERC20(result.tokenOut).decimals(),
-                ERC20(vault.asset()).decimals()
-            );
-        console.log("uweeee");
-        console.logInt(result.marginDeltaDollarValue);
-        console.logInt(result.marginDelta);
-
-        require(result.marginDelta<=0, "Extra Transfer not allowed");
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        int256 totalNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
-        console.logInt(totalNotional);
-        console.logInt(result.position.openNotional);
-        console.log(buyingPower, "-----------------------------");
     }
 
     // @TODO - should be able to get buying power from account directly.
