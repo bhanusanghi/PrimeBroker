@@ -170,12 +170,13 @@ contract MarginManager is ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
-       VerifyTradeResult memory verificationResult= _checkPosition(
+       VerifyTradeResult memory verificationResult= _checkModifyPosition(
             marginAcc,
             marketKey,
             destinations,
             data
         );
+        
         _updateData(marginAcc, marketKey, verificationResult);
         marginAcc.execMultiTx(destinations, data);
     }
@@ -190,7 +191,7 @@ contract MarginManager is ReentrancyGuard {
         );
     
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _checkPosition(
+        VerifyTradeResult memory verificationResult = _checkModifyPosition(
             marginAcc,
             marketKey,
             destinations,
@@ -209,7 +210,7 @@ contract MarginManager is ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _checkPosition(
+        VerifyTradeResult memory verificationResult = _checkModifyPosition(
             marginAcc,
             marketKey,
             destinations,
@@ -232,7 +233,7 @@ contract MarginManager is ReentrancyGuard {
         MarginAccount marginAcc = MarginAccount(marginAccounts[msg.sender]);
         settleFee(address(marginAcc));
 
-        VerifyTradeResult memory verificationResult = _checkPosition(
+        VerifyTradeResult memory verificationResult = _checkLiquidatePosition(
             marginAcc,
             marketKey,
             destinations,
@@ -397,23 +398,46 @@ contract MarginManager is ReentrancyGuard {
         address marginAccount = _getMarginAccount(trader);
         IRiskManager(riskManager).settleRealizedAccounting(marginAccount);
     }
-    function _checkPosition(
+    function _checkModifyPosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] calldata destinations,
         bytes[] calldata data
     ) private returns(VerifyTradeResult memory verificationResult ) {
-        _updateUnsettledRealizedPnL(address(marginAcc));
-        // _getInterestAccrued(address(marginAcc))
-
-        // @note fee is assumed to be in usdc value
-        verificationResult = riskManager.verifyTrade(
+         verificationResult = riskManager.verifyTrade(
             marginAcc,
             marketKey,
             destinations,
             data,
             _getInterestAccrued(address(marginAcc))
         );
+        _checkPosition(
+            marginAcc,verificationResult
+        );
+    }
+    function _checkLiquidatePosition(
+        IMarginAccount marginAcc,
+        bytes32 marketKey,
+        address[] calldata destinations,
+        bytes[] calldata data
+    ) private returns(VerifyTradeResult memory verificationResult ) {
+          verificationResult = riskManager.verifyLiquidation(
+            marginAcc,
+            marketKey,
+            destinations,
+            data,
+            _getInterestAccrued(address(marginAcc))
+        );
+        _checkPosition(
+            marginAcc,verificationResult
+        );
+    }
+    function _checkPosition(
+        IMarginAccount marginAcc,
+        VerifyTradeResult memory verificationResult
+    ) private  {
+        _updateUnsettledRealizedPnL(address(marginAcc));
+        // _getInterestAccrued(address(marginAcc))
         address tokenIn = vault.asset();
          uint256 tokenOutBalance = IERC20(verificationResult.tokenOut)
                 .balanceOf(address(marginAcc));

@@ -641,7 +641,7 @@ contract OpenPositionSnX is BaseSetup {
         console2.log("iska",address(this),bob,bobMarginAccount);
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
-        tradeData.positionSize = 93 ether;
+        tradeData.positionSize = 3 ether;
         (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
             .assetPrice();
         bytes memory openPositionData = abi.encodeWithSignature(
@@ -705,8 +705,8 @@ contract OpenPositionSnX is BaseSetup {
         );
 
         console2.log("Unrealized PnL",marginAccountData.unrealizedPnL);
-        secondPositionSize = -93 ether;
-        int256 tmBack = 100000*10**18;
+        secondPositionSize = -3 ether;
+        int256 tmBack = 1000*10**18;
         address[] memory destinations1 = new address[](2);
         bytes[] memory data1 = new bytes[](2);
         destinations1[0]=ethFuturesMarket;
