@@ -540,13 +540,13 @@ contract OpenPositionSnX is BaseSetup {
 
         // TODO - use in PerpsV2 market not in FuturesMarket,
 
-        tradeData.positionId = IPerpsV2Market(ethFuturesMarket)
-            .lastPositionId()
-            .add(1);
+        // tradeData.positionId = IPerpsV2Market(ethFuturesMarket)
+        //     .lastPositionId()
+        //     .add(1);
 
-        tradeData.latestFundingIndex = IFuturesMarket(ethFuturesMarket)
-            .fundingSequenceLength()
-            .sub(1);
+        // tradeData.latestFundingIndex = IFuturesMarket(ethFuturesMarket)
+        //     .fundingSequenceLength()
+        //     .sub(1);
         // check position opened event on tpp
         // vm.expectEmit(true, true, false, true, ethFuturesMarket);
         // emit PositionModified(
