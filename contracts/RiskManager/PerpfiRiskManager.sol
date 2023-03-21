@@ -147,8 +147,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
-
-
     function verifyTrade(
         bytes32 marketKey,
         address[] memory destinations,
@@ -243,7 +241,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     fee,
                     10 ** 5 // todo - Ask ashish about this
                 );
-            }else if (funSig == ClosePosition) {
+            } else if (funSig == ClosePosition) {
                 // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
                 // refer -
                 (address _baseToken, , , , ) = abi.decode(
@@ -260,7 +258,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 uint256 marketFeeRatio = uint256(
                     marketRegistry.getFeeRatio(_baseToken)
                 );
-                console.log(marketFeeRatio, "market fee ratio", markPrice.abs(), "mark price");
+                console.log(
+                    marketFeeRatio,
+                    "market fee ratio",
+                    markPrice.abs(),
+                    "mark price"
+                );
                 // position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
                 // this refers to position opening fee.
                 // position.orderFee = position.openNotional.abs().mulDiv(
@@ -327,7 +330,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         return 0;
     }
 
-    function getUnrealizedPnL(address marginAccount) external returns (int256 pnl) {
+    function getUnrealizedPnL(
+        address marginAccount
+    ) external returns (int256 pnl) {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;

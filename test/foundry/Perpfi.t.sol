@@ -78,8 +78,6 @@ contract Perpfitest is BaseSetup {
     address uniFuturesMarket;
 
     address ethFuturesMarket;
-    address perpAaveMarket = 0x34235C8489b06482A99bb7fcaB6d7c467b92d248;
-    address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
     IAccountBalance public accountBalance;
 
     function setUp() public {
@@ -95,8 +93,9 @@ contract Perpfitest is BaseSetup {
         setupMarketManager();
         setupMarginManager();
         setupRiskManager();
-        setupCollateralManager();
         setupVault(usdc);
+        setupCollateralManager();
+
         accountBalance == IAccountBalance(perpAccountBalance);
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
@@ -162,7 +161,7 @@ contract Perpfitest is BaseSetup {
         // setup and fund margin accounts.
         vm.prank(bob);
         bobMarginAccount = marginManager.openMarginAccount();
-        console.log("bobMarginAccount:", bobMarginAccount,"\n");
+        console.log("bobMarginAccount:", bobMarginAccount, "\n");
         vm.prank(alice);
         aliceMarginAccount = marginManager.openMarginAccount();
         // assume usdc and susd value to be 1
@@ -184,7 +183,7 @@ contract Perpfitest is BaseSetup {
     // Internal
     function testMarginTransferPerp() public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
-        depositAmt =100* ONE_USDC;
+        depositAmt = 100 * ONE_USDC;
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -212,12 +211,23 @@ contract Perpfitest is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data);
         IVault pvault = IVault(perpVault);
         assertEq(pvault.getFreeCollateral(bobMarginAccount), depositAmt);
-        console.log("free collateral",address(bob),marginManager.marginAccounts(address(bob)),perpAaveMarket);
-        int256 tempamt =  MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey);
-        console.log("free collateral",bobMarginAccount,
-            depositAmt,tempamt.abs());
-            console.logInt(tempamt);
-         assertApproxEqAbs(
+        console.log(
+            "free collateral",
+            address(bob),
+            marginManager.marginAccounts(address(bob)),
+            perpAaveMarket
+        );
+        int256 tempamt = MarginAccount(bobMarginAccount).marginInMarket(
+            perpAaveKey
+        );
+        console.log(
+            "free collateral",
+            bobMarginAccount,
+            depositAmt,
+            tempamt.abs()
+        );
+        console.logInt(tempamt);
+        assertApproxEqAbs(
             MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
             depositAmt,
             10 ** 7
@@ -225,7 +235,7 @@ contract Perpfitest is BaseSetup {
         address[] memory destinations1 = new address[](1);
         bytes[] memory data1 = new bytes[](1);
         destinations1[0] = perpVault;
-        data1[0]=abi.encodeWithSignature(
+        data1[0] = abi.encodeWithSignature(
             "withdraw(address,uint256)",
             usdc,
             depositAmt
@@ -277,9 +287,9 @@ contract Perpfitest is BaseSetup {
         );
         IVault pvault = IVault(perpVault);
         assertEq(pvault.getFreeCollateral(bobMarginAccount), newDpositAmt);
-     
+
         // Now try to transfer extra margin and expect to fail.
-     
+
         vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data);
         // assertApproxEqAbs(newDpositAmt,MarginAccount(bobMarginAccount).marginInMarket(perpAaveMarket).abs(),10**7);
@@ -406,9 +416,9 @@ contract Perpfitest is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data1);
     }
 
-    function testOpenPositionPerpExtraLeverageRevert(uint256 positionSize)
-        public
-    {
+    function testOpenPositionPerpExtraLeverageRevert(
+        uint256 positionSize
+    ) public {
         uint256 liquiMargin = 10000 * ONE_USDC;
         uint256 newDpositAmt = 1000 * ONE_USDC;
         uint256 size = 10000 * ONE_USDC;

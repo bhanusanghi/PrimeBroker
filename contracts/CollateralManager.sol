@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
+import {IVault} from "./Interfaces/IVault.sol";
 import {MarginManager} from "./MarginManager.sol";
 import {IRiskManager} from "./Interfaces/IRiskManager.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -29,6 +30,7 @@ contract CollateralManager is ICollateralManager {
     MarginManager public marginManager;
     IRiskManager public riskManager;
     IPriceOracle public priceOracle;
+    IVault public vault;
     address[] public allowedCollateral; // allowed tokens
     mapping(address => uint256) public collateralWeight;
     uint8 private constant baseDecimals = 6; // @todo get from vault in initialize func
@@ -47,11 +49,13 @@ contract CollateralManager is ICollateralManager {
     constructor(
         address _marginManager,
         address _riskManager,
-        address _priceOracle
+        address _priceOracle,
+        address _vault
     ) {
         marginManager = MarginManager(_marginManager);
         riskManager = IRiskManager(_riskManager);
         priceOracle = IPriceOracle(_priceOracle);
+        vault = IVault(_vault);
     }
 
     function updateCollateralAmount(uint256 amount) external {
@@ -205,7 +209,7 @@ contract CollateralManager is ICollateralManager {
             totalAmount = totalAmount.add(
                 tokenDollarValue.convertTokenDecimals(
                     _decimals[token],
-                    baseDecimals
+                    ERC20(address(vault.asset())).decimals()
                 )
             );
         }

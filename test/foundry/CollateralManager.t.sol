@@ -13,7 +13,6 @@ import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/mat
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-
 contract CollateralManagerTest is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
@@ -23,8 +22,8 @@ contract CollateralManagerTest is BaseSetup {
     using SafeCastUpgradeable for int256;
     using SignedMath for int256;
 
-    uint256 constant ONE_USDC = 10**6;
-    int256 constant ONE_USDC_INT = 10**6;
+    uint256 constant ONE_USDC = 10 ** 6;
+    int256 constant ONE_USDC_INT = 10 ** 6;
     bytes32 snxUni_marketKey = bytes32("sUNI");
     bytes32 snxEth_marketKey = bytes32("sETH");
 
@@ -58,8 +57,6 @@ contract CollateralManagerTest is BaseSetup {
     address uniFuturesMarket;
 
     address ethFuturesMarket;
-    address perpAaveMarket = 0x34235C8489b06482A99bb7fcaB6d7c467b92d248;
-    address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
 
     uint256 constant CENT = 100;
     uint256 largeAmount = 1_000_000 * ONE_USDC;
@@ -79,8 +76,8 @@ contract CollateralManagerTest is BaseSetup {
         setupMarketManager();
         setupMarginManager();
         setupRiskManager();
-        setupCollateralManager();
         setupVault(usdc);
+        setupCollateralManager();
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
@@ -188,5 +185,5 @@ contract CollateralManagerTest is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, _amount);
         collateralManager.addCollateral(usdc, _amount);
-     }
+    }
 }

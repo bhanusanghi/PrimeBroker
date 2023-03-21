@@ -30,6 +30,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
+    bytes4 public CL = 0xa8c92cf6;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
@@ -49,9 +50,10 @@ contract SNXRiskManager is IProtocolRiskManager {
         return baseToken;
     }
 
-    function toggleAddressWhitelisting(address contractAddress, bool isAllowed)
-        external
-    {
+    function toggleAddressWhitelisting(
+        address contractAddress,
+        bool isAllowed
+    ) external {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
     }
@@ -77,7 +79,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             int256 _funding;
             (_funding, ) = market.accruedFunding(account);
             (_pnl, ) = market.profitLoss(account);
-        
+
             pnl = pnl.add(_pnl);
             funding = funding.add(_funding);
         }
@@ -101,7 +103,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
-    function getMarginDeltaAcrossMarkets(address marginAccount)
+    function getMarginDeltaAcrossMarkets(
+        address marginAccount
+    )
         internal
         returns (
             // override
@@ -113,8 +117,11 @@ contract SNXRiskManager is IProtocolRiskManager {
         IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
-        bytes32[] memory allMarketnames = marketManager.getMarketNamesForRiskManager(address(this));
-        address[] memory allMarkets = marketManager.getMarketsForRiskManager(address(this));
+        bytes32[] memory allMarketnames = marketManager
+            .getMarketNamesForRiskManager(address(this));
+        address[] memory allMarkets = marketManager.getMarketsForRiskManager(
+            address(this)
+        );
         for (uint256 i = 0; i < allMarkets.length; i++) {
             // This is in 18 decimal digits
             (, , uint256 remainingMargin, , ) = IFuturesMarket(allMarkets[i])
@@ -132,10 +139,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     }
 
     // ** returns in vault base asset decimal points
-    function _getPositionPnLAcrossMarkets(address account)
-        public
-        returns (int256 pnl)
-    {
+    function _getPositionPnLAcrossMarkets(
+        address account
+    ) public returns (int256 pnl) {
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -179,19 +185,41 @@ contract SNXRiskManager is IProtocolRiskManager {
                 //TODO - check Is this a standard of 18 decimals
                 int256 positionDelta = abi.decode(data[i][4:], (int256));
                 // asset price is recvd with 18 decimals.
-                (uint256 assetPrice, bool isInvalid) = IFuturesMarket(destinations[i])
-                    .assetPrice();
+                (uint256 assetPrice, bool isInvalid) = IFuturesMarket(
+                    destinations[i]
+                ).assetPrice();
                 require(
                     !isInvalid,
                     "Error fetching asset price from third party protocol"
                 );
-                position.openNotional = position.openNotional+(positionDelta * int256(assetPrice)) / 1 ether;
+                position.openNotional =
+                    position.openNotional +
+                    (positionDelta * int256(assetPrice)) /
+                    1 ether;
 
                 position.size = position.size.add(positionDelta);
                 // this refers to position opening fee.
-                (position.orderFee, ) = IFuturesMarket(destinations[i]).orderFee(
-                    positionDelta
-                );
+                (position.orderFee, ) = IFuturesMarket(destinations[i])
+                    .orderFee(positionDelta);
+            } else if (funSig == CL) {
+                // get current position and use negative of those values to create pos struct.
+                // ensures we definitely close the position.
+                // (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
+                //     .assetPrice();
+                // require(
+                //     !isInvalid,
+                //     "Error fetching asset price from third party protocol"
+                // );
+                // (, , , , int128 currentPositionSize) = IFuturesMarket(protocol)
+                //     .positions(marginAccount);
+                // position.size = -int256(currentPositionSize);
+                // position.openNotional = position.openNotional.add(
+                //     (position.size * int256(assetPrice)) / 1 ether
+                // );
+                // // this refers to position opening fee.
+                // (position.orderFee, ) = IFuturesMarket(protocol).orderFee(
+                //     position.size
+                // );
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
@@ -200,19 +228,16 @@ contract SNXRiskManager is IProtocolRiskManager {
     }
 
     // Delta margin is realized PnL for SnX
-    function getRealizedPnL(address marginAccount)
-        external
-        override
-        returns (int256)
-    {
+    function getRealizedPnL(
+        address marginAccount
+    ) external override returns (int256) {
         return getMarginDeltaAcrossMarkets(marginAccount);
     }
 
     // returns value in vault decimals
-    function _getAccruedFundingAcrossMarkets(address marginAccount)
-        internal
-        returns (int256 totalAccruedFunding)
-    {
+    function _getAccruedFundingAcrossMarkets(
+        address marginAccount
+    ) internal returns (int256 totalAccruedFunding) {
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -232,11 +257,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     }
 
     // returns value in vault decimals
-    function getUnrealizedPnL(address marginAccount)
-        external
-        override
-        returns (int256 unrealizedPnL)
-    {
+    function getUnrealizedPnL(
+        address marginAccount
+    ) external override returns (int256 unrealizedPnL) {
         return _getPositionPnLAcrossMarkets(marginAccount);
     }
 
@@ -244,14 +267,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    )
-        public
-        returns (
-            int256 amount,
-            int256 totalPosition,
-            uint256 fee
-        )
-    {
+    ) public returns (int256 amount, int256 totalPosition, uint256 fee) {
         // (amount, totalPosition, fee) = verifyTrade(
         //     protocol,
         //     destinations,

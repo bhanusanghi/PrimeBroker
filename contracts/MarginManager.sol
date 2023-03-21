@@ -102,10 +102,9 @@ contract MarginManager is ReentrancyGuard {
         liquidationPenalty = value;
     }
 
-    function SetRiskManager(address _riskmgr)
-        external
-        nonZeroAddress(_riskmgr)
-    {
+    function SetRiskManager(
+        address _riskmgr
+    ) external nonZeroAddress(_riskmgr) {
         // onlyOwner
         riskManager = RiskManager(_riskmgr);
     }
@@ -170,13 +169,13 @@ contract MarginManager is ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
-       VerifyTradeResult memory verificationResult= _checkModifyPosition(
+        VerifyTradeResult memory verificationResult = _checkModifyPosition(
             marginAcc,
             marketKey,
             destinations,
             data
         );
-        
+
         _updateData(marginAcc, marketKey, verificationResult);
         marginAcc.execMultiTx(destinations, data);
     }
@@ -189,7 +188,7 @@ contract MarginManager is ReentrancyGuard {
         IMarginAccount marginAcc = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-    
+
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = _checkModifyPosition(
             marginAcc,
@@ -239,7 +238,11 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        console.log("liquidate",verificationResult.position.size.abs(),verificationResult.marginDeltaDollarValue.abs());
+        console.log(
+            "liquidate",
+            verificationResult.position.size.abs(),
+            verificationResult.marginDeltaDollarValue.abs()
+        );
         // require(positionSize.abs() == marginAcc.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
         // require(
         //     tokensToTransfer <= 0 && positionSize < 0,
@@ -263,12 +266,13 @@ contract MarginManager is ReentrancyGuard {
          */
     }
 
-   
     /// @dev Gets margin account generic parameters
     /// @param _marginAccount Credit account address
     /// @return borrowedAmount Amount which pool lent to credit account
     /// @return cumulativeIndexAtOpen Cumulative index at open. Used for interest calculation
-    function _getMarginAccountDetails(address _marginAccount)
+    function _getMarginAccountDetails(
+        address _marginAccount
+    )
         internal
         view
         returns (
@@ -288,10 +292,10 @@ contract MarginManager is ReentrancyGuard {
 
     // handles accounting and transfers requestedCredit
     // amount with vault base decimals (6 in usdc)
-    function increaseDebt(address marginAcc, uint256 amount)
-        internal
-        returns (uint256 newBorrowedAmount)
-    {
+    function increaseDebt(
+        address marginAcc,
+        uint256 amount
+    ) internal returns (uint256 newBorrowedAmount) {
         // @TODO Add acl check
         // @TODO add a check for max borrow power exceeding.
         MarginAccount marginAccount = MarginAccount(marginAcc);
@@ -326,10 +330,10 @@ contract MarginManager is ReentrancyGuard {
         marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
     }
 
-    function decreaseDebt(address marginAcc, uint256 amount)
-        public
-        returns (uint256 newBorrowedAmount)
-    {
+    function decreaseDebt(
+        address marginAcc,
+        uint256 amount
+    ) public returns (uint256 newBorrowedAmount) {
         // add acl check
         MarginAccount marginAccount = MarginAccount(marginAcc);
         (uint256 borrowedAmount, , ) = _getMarginAccountDetails(marginAcc);
@@ -356,19 +360,15 @@ contract MarginManager is ReentrancyGuard {
         marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
     }
 
-    function getInterestAccrued(address marginAccount)
-        public
-        view
-        returns (uint256)
-    {
+    function getInterestAccrued(
+        address marginAccount
+    ) public view returns (uint256) {
         return _getInterestAccrued(marginAccount);
     }
 
-    function _getInterestAccrued(address marginAccount)
-        internal
-        view
-        returns (uint256 interest)
-    {
+    function _getInterestAccrued(
+        address marginAccount
+    ) internal view returns (uint256 interest) {
         (
             uint256 borrowedAmount,
             uint256 cumulativeIndexAtOpen,
@@ -398,98 +398,101 @@ contract MarginManager is ReentrancyGuard {
         address marginAccount = _getMarginAccount(trader);
         IRiskManager(riskManager).settleRealizedAccounting(marginAccount);
     }
+
     function _checkModifyPosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] calldata destinations,
         bytes[] calldata data
-    ) private returns(VerifyTradeResult memory verificationResult ) {
-         verificationResult = riskManager.verifyTrade(
+    ) private returns (VerifyTradeResult memory verificationResult) {
+        verificationResult = riskManager.verifyTrade(
             marginAcc,
             marketKey,
             destinations,
             data,
             _getInterestAccrued(address(marginAcc))
         );
-        _checkPosition(
-            marginAcc,verificationResult
-        );
+        _checkPosition(marginAcc, verificationResult);
     }
+
     function _checkLiquidatePosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] calldata destinations,
         bytes[] calldata data
-    ) private returns(VerifyTradeResult memory verificationResult ) {
-          verificationResult = riskManager.verifyLiquidation(
+    ) private returns (VerifyTradeResult memory verificationResult) {
+        verificationResult = riskManager.verifyLiquidation(
             marginAcc,
             marketKey,
             destinations,
             data,
             _getInterestAccrued(address(marginAcc))
         );
-        _checkPosition(
-            marginAcc,verificationResult
-        );
+        _checkPosition(marginAcc, verificationResult);
     }
+
     function _checkPosition(
         IMarginAccount marginAcc,
         VerifyTradeResult memory verificationResult
-    ) private  {
+    ) private {
         _updateUnsettledRealizedPnL(address(marginAcc));
         // _getInterestAccrued(address(marginAcc))
         address tokenIn = vault.asset();
-         uint256 tokenOutBalance = IERC20(verificationResult.tokenOut)
-                .balanceOf(address(marginAcc));
-            uint256 tokenInBalance = IERC20(tokenIn).balanceOf(
-                address(marginAcc)
+        uint256 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
+            address(marginAcc)
+        );
+        uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(marginAcc));
+        if (tokenOutBalance < verificationResult.marginDelta.abs()) {
+            // TODO add oracle to get asset value.
+            uint256 diff = verificationResult.marginDelta.abs().sub(
+                tokenOutBalance
             );
-            if (tokenOutBalance < verificationResult.marginDelta.abs()) {
-                // TODO add oracle to get asset value.
-                uint256 diff = verificationResult.marginDelta.abs().sub(
-                    tokenOutBalance
+            uint256 dollarValueOfTokenDifference = priceOracle
+                .convertToUSD(diff.toInt256(), verificationResult.tokenOut)
+                .abs()
+                .convertTokenDecimals(
+                    ERC20(verificationResult.tokenOut).decimals(),
+                    ERC20(tokenIn).decimals()
                 );
-                uint256 dollarValueOfTokenDifference = priceOracle
-                    .convertToUSD(diff.toInt256(), verificationResult.tokenOut)
-                    .abs()
-                    .convertTokenDecimals(
-                        ERC20(verificationResult.tokenOut).decimals(),
-                        ERC20(tokenIn).decimals()
-                    );
-                if (dollarValueOfTokenDifference > tokenInBalance) {
-                    increaseDebt(
-                        address(marginAcc),
-                        dollarValueOfTokenDifference.sub(tokenInBalance).add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
-                            uint256(1000).convertTokenDecimals(
-                                0,
-                                ERC20(tokenIn).decimals()
-                            )
+            if (dollarValueOfTokenDifference > tokenInBalance) {
+                increaseDebt(
+                    address(marginAcc),
+                    dollarValueOfTokenDifference.sub(tokenInBalance).add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
+                        uint256(1000).convertTokenDecimals(
+                            0,
+                            ERC20(tokenIn).decimals()
                         )
-                    );
-                }
-                // Note - change this to get exact token out and remove extra token in of 100 given above
-                if (tokenIn != verificationResult.tokenOut) {
-                    IExchange.SwapParams memory params = IExchange.SwapParams({
-                        tokenIn: tokenIn,
-                        tokenOut: verificationResult.tokenOut,
-                        amountIn: dollarValueOfTokenDifference.add( // TODO - Account for slippage and remmove the excess 500 sent
-                            uint256(1000).convertTokenDecimals(
-                                0,
-                                ERC20(tokenIn).decimals()
-                            )
-                        ),
-                        amountOut: 0,
-                        isExactInput: true,
-                        sqrtPriceLimitX96: 0,
-                        amountOutMinimum: diff
-                    });
-                    uint256 amountOut = marginAcc.swap(params);
-                    require(amountOut >= diff, "RM: Bad Swap");
-                }
+                    )
+                );
             }
+            // Note - change this to get exact token out and remove extra token in of 100 given above
+            if (tokenIn != verificationResult.tokenOut) {
+                IExchange.SwapParams memory params = IExchange.SwapParams({
+                    tokenIn: tokenIn,
+                    tokenOut: verificationResult.tokenOut,
+                    amountIn: dollarValueOfTokenDifference.add( // TODO - Account for slippage and remmove the excess 500 sent
+                        uint256(1000).convertTokenDecimals(
+                            0,
+                            ERC20(tokenIn).decimals()
+                        )
+                    ),
+                    amountOut: 0,
+                    isExactInput: true,
+                    sqrtPriceLimitX96: 0,
+                    amountOutMinimum: diff
+                });
+                uint256 amountOut = marginAcc.swap(params);
+                require(amountOut >= diff, "RM: Bad Swap");
+            }
+        }
     }
-    function _updateData(IMarginAccount marginAcc, bytes32 marketKey,VerifyTradeResult memory verificationResult) internal {
-                if (verificationResult.position.size.abs() > 0) {
+
+    function _updateData(
+        IMarginAccount marginAcc,
+        bytes32 marketKey,
+        VerifyTradeResult memory verificationResult
+    ) internal {
+        if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
             marginAcc.updatePosition(marketKey, verificationResult.position);
             emit PositionAdded(
@@ -499,13 +502,6 @@ contract MarginManager is ReentrancyGuard {
                 verificationResult.position.size,
                 verificationResult.position.openNotional
             );
-        }
-        if (verificationResult.marginDeltaDollarValue < 0) {
-            console.log("TM baackkk MM: Invalid Operation. Cannot use open position to reduce margin from a Market.");
-            revert(
-                "MM: Invalid Operation. Cannot use open position to reduce margin from a Market."
-            );
-            // return as this is not opening of new position but modifying existing position.
         }
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??

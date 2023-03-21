@@ -82,8 +82,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 interestAccrued
     ) internal returns (VerifyTradeResult memory result) {
         address _protocolRiskManager;
-        (, _protocolRiskManager) = marketManager
-            .getProtocolAddressByMarketName(marketKey);
+        (, _protocolRiskManager) = marketManager.getProtocolAddressByMarketName(
+            marketKey
+        );
 
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
@@ -91,22 +92,22 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         result.tokenOut = protocolRiskManager.getBaseToken();
 
-
-
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
             marketKey,
             destinations,
             data
         );
-
-        result.marginDeltaDollarValue = priceOracle
-            .convertToUSD(result.marginDelta, result.tokenOut)
-            .convertTokenDecimals(
-                ERC20(result.tokenOut).decimals(),
-                ERC20(vault.asset()).decimals()
-            );
-
+        if (result.marginDelta != 0) {
+            //idk unnecessary?
+            result.marginDeltaDollarValue = priceOracle
+                .convertToUSD(result.marginDelta, result.tokenOut)
+                .convertTokenDecimals(
+                    ERC20(result.tokenOut).decimals(),
+                    ERC20(vault.asset()).decimals()
+                );
+        }
     }
+
     function verifyTrade(
         IMarginAccount marginAccount,
         bytes32 marketKey,
@@ -124,8 +125,11 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
-        uint256 buyingPower = GetCurrentBuyingPower(address(marginAccount), interestAccrued);
-         bytes32[] memory _whitelistedMarketNames = marketManager
+        uint256 buyingPower = getCurrentBuyingPower(
+            address(marginAccount),
+            interestAccrued
+        );
+        bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
             .getTotalOpeningNotional(_whitelistedMarketNames);
@@ -140,6 +144,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             totalNotional
         );
     }
+
     function verifyLiquidation(
         IMarginAccount marginAccount,
         bytes32 marketKey,
@@ -154,7 +159,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             data,
             interestAccrued
         );
-        uint256 buyingPower = GetCurrentBuyingPower(address(marginAccount), interestAccrued);
+        uint256 buyingPower = _getAbsTotalCollateralValue(
+            address(marginAccount),
+            interestAccrued
+        );
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
@@ -167,13 +175,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             totalNotional
         );
     }
+
     function _checkModifyPosition(
         IMarginAccount marginAccount,
         uint256 buyingPower,
         int256 positionOpenNotional,
         int256 marginDeltaDollarValue,
-        int256 totalNotional) internal {
-            // buyingPower = buyingPower.mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
+        int256 totalNotional
+    ) internal {
+        // buyingPower = buyingPower.mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
         // check if open
         require(
             buyingPower >=
@@ -192,13 +202,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             "Extra leverage not allowed"
         );
     }
+
     function _checkLiquidable(
         IMarginAccount marginAccount,
         uint256 buyingPower,
         int256 positionOpenNotional,
         int256 marginDeltaDollarValue,
-        int256 totalNotional) internal {
+        int256 totalNotional
+    ) internal {
         buyingPower = buyingPower.mulDiv(100, maintanaceMarginFactor);
+
         // check if open
         // require(marginDeltaDollarValue>=0, "Extra Transfer not allowed");
         require(
@@ -237,21 +250,24 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .toInt256()
             .add(_getUnrealizedPnL(marginAccount))
             .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
-            .toUint256();
+            .abs();
     }
-    function GetCurrentBuyingPower(
-            address marginAccount,
-            uint256 interestAccrued
-        ) public returns (uint256 buyingPower) {
-            buyingPower = _getAbsTotalCollateralValue(marginAccount,interestAccrued).mulDiv(100, initialMarginFactor);
+
+    function getCurrentBuyingPower(
+        address marginAccount,
+        uint256 interestAccrued
+    ) public returns (uint256 buyingPower) {
+        buyingPower = _getAbsTotalCollateralValue(
+            marginAccount,
+            interestAccrued
+        ).mulDiv(100, initialMarginFactor);
     }
+
     // @note This finds and returns delta margin across all markets.
     // This does not take profit or stop loss
-    function getRealizedPnL(address marginAccount)
-        external
-        override
-        returns (int256 totalRealizedPnL)
-    {
+    function getRealizedPnL(
+        address marginAccount
+    ) external override returns (int256 totalRealizedPnL) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
@@ -266,19 +282,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     // returns in vault base decimals
-    function getUnrealizedPnL(address marginAccount)
-        external
-        override
-        returns (int256 totalUnrealizedPnL)
-    {
+    function getUnrealizedPnL(
+        address marginAccount
+    ) external override returns (int256 totalUnrealizedPnL) {
         return _getUnrealizedPnL(marginAccount);
     }
 
     // returns in vault base decimals
-    function _getUnrealizedPnL(address marginAccount)
-        internal
-        returns (int256 totalUnrealizedPnL)
-    {
+    function _getUnrealizedPnL(
+        address marginAccount
+    ) internal returns (int256 totalUnrealizedPnL) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
