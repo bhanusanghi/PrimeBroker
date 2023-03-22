@@ -1,0 +1,39 @@
+on: [push, pull_request]
+
+name: Forge Tests
+
+env:
+  ARCHIVE_NODE_URL_L2:  https://opt-mainnet.g.alchemy.com/v2/paOkdAxB8BafnoXQW4WAYHOjxPyabKl9
+  FOUNDRY_FUZZ_RUNS: 10
+  DAPP_BUILD_OPTIMIZE: 0
+
+jobs:
+  check:
+    name: Forge Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org
+      
+      - id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Install dependencies
+        run: yarn install
+      - name: Run tests
+        run: forge test -vvv

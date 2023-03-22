@@ -8,18 +8,20 @@ import "forge-std/console2.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 
 contract CollateralManagerTest is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SignedMath for int256;
 
     uint256 constant ONE_USDC = 10 ** 6;

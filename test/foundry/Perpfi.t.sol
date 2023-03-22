@@ -10,14 +10,14 @@ import {IVault} from "../../contracts/Interfaces/Perpfi/IVault.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
 import {IAccountBalance} from "../../contracts/Interfaces/Perpfi/IAccountBalance.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 /**
  * setup
@@ -37,8 +37,8 @@ contract Perpfitest is BaseSetup {
     using Math for uint256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SignedMath for int256;
 
     uint256 constant ONE_USDC = 10 ** 6;

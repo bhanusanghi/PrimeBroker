@@ -1,10 +1,10 @@
 pragma solidity ^0.8.10;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import {SignedSafeMath} from "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
-import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {CollateralShort} from "../Interfaces/SNX/CollateralShort.sol";
 import {IFuturesMarket} from "../Interfaces/SNX/IFuturesMarket.sol";
 import {IFuturesMarketManager} from "../Interfaces/SNX/IFuturesMarketManager.sol";
@@ -15,12 +15,11 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
-import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
-    using SafeCastUpgradeable for uint256;
-    using SafeCastUpgradeable for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     using SignedMath for int256;
@@ -180,7 +179,9 @@ contract SNXRiskManager is IProtocolRiskManager {
             );
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TM) {
-                marginDelta = marginDelta + abi.decode(data[i][4:], (int256));
+                marginDelta = marginDelta.add(
+                    abi.decode(data[i][4:], (int256))
+                );
             } else if (funSig == OP) {
                 //TODO - check Is this a standard of 18 decimals
                 int256 positionDelta = abi.decode(data[i][4:], (int256));
@@ -192,10 +193,9 @@ contract SNXRiskManager is IProtocolRiskManager {
                     !isInvalid,
                     "Error fetching asset price from third party protocol"
                 );
-                position.openNotional =
-                    position.openNotional +
-                    (positionDelta * int256(assetPrice)) /
-                    1 ether;
+                position.openNotional = position.openNotional.add(
+                    (positionDelta * int256(assetPrice)) / 1 ether
+                );
 
                 position.size = position.size.add(positionDelta);
                 // this refers to position opening fee.

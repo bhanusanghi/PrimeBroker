@@ -1,5 +1,5 @@
 pragma solidity ^0.8.10;
-import "hardhat/console.sol";
+
 /**
  * @dev Collection of functions related to the address type
  */
@@ -187,7 +187,7 @@ library Address {
 }
 
 
-// File @chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol@v0.1.7
+// File chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol@v0.1.7
 
 
 interface AggregatorV3Interface {
@@ -273,7 +273,7 @@ abstract contract BlockContext {
 }
 
 
-// File @openzeppelin/contracts/math/SafeMath.sol@v3.4.0
+// File openzeppelin-contracts/contracts/math/SafeMath.sol@v3.4.0
 
 
 
