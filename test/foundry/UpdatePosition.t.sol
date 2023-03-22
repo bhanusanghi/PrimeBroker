@@ -190,7 +190,10 @@ contract UpdatePositionSnx is BaseSetup {
         // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, 0);
+        maxBuyingPower = riskManager.getCurrentBuyingPower(
+            bobMarginAccount,
+            address(marginManager)
+        );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
@@ -229,7 +232,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         uint256 remainingBuyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
         vm.assume(
             extraMargin > int256(remainingBuyingPower) &&
@@ -282,7 +285,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         uint256 remainingBuyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
 
         vm.assume(
@@ -347,7 +350,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         uint256 remainingBuyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
 
         vm.assume(
@@ -426,7 +429,7 @@ contract UpdatePositionSnx is BaseSetup {
 
         marginAccountData.bpBeforePnL = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0
+            address(marginManager)
         );
         // Update market price by Delta +100
         // increase blocks
@@ -470,7 +473,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         marginAccountData.bpAfterPnL = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0 // interest accrued is 0 currently.
+            address(marginManager) // interest accrued is 0 currently.
         );
         marginManager.updateUnsettledRealizedPnL(bob);
         int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)
@@ -579,7 +582,7 @@ contract UpdatePositionSnx is BaseSetup {
 
         marginAccountData.bpBeforePnL = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0
+            address(marginManager)
         );
         // Update market price by Delta +100
         // increase blocks
@@ -623,7 +626,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         marginAccountData.bpAfterPnL = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0 // interest accrued is 0 currently.
+            address(marginManager) // interest accrued is 0 currently.
         );
         marginManager.updateUnsettledRealizedPnL(bob);
         int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)
@@ -646,7 +649,7 @@ contract UpdatePositionSnx is BaseSetup {
         data[0] = updatePositionData;
         // @note should emit update position event.
         vm.expectEmit(false, false, false, false, address(marginManager));
-        emit PositionAdded(
+        emit PositionUpdated(
             bobMarginAccount,
             snxEthKey,
             susd,

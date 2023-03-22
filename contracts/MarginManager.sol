@@ -177,6 +177,13 @@ contract MarginManager is ReentrancyGuard {
         );
 
         _updateData(marginAcc, marketKey, verificationResult);
+        emit PositionAdded(
+            address(marginAcc),
+            marketKey,
+            verificationResult.tokenOut,
+            verificationResult.position.size,
+            verificationResult.position.openNotional
+        );
         marginAcc.execMultiTx(destinations, data);
     }
 
@@ -197,6 +204,13 @@ contract MarginManager is ReentrancyGuard {
             data
         );
         _updateData(marginAcc, marketKey, verificationResult);
+        emit PositionUpdated(
+            address(marginAcc),
+            marketKey,
+            verificationResult.tokenOut,
+            verificationResult.position.size,
+            verificationResult.position.openNotional
+        );
         marginAcc.execMultiTx(destinations, data);
     }
 
@@ -220,6 +234,13 @@ contract MarginManager is ReentrancyGuard {
         //     positionSize == oldPosition.size,
         //     "Invalid close pos"
         // );
+        emit PositionRemoved(
+            address(marginAcc),
+            marketKey,
+            verificationResult.tokenOut,
+            verificationResult.position.size,
+            verificationResult.position.openNotional
+        );
         marginAcc.execMultiTx(destinations, data);
         marginAcc.removePosition(marketKey);
     }
@@ -495,13 +516,6 @@ contract MarginManager is ReentrancyGuard {
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
             marginAcc.updatePosition(marketKey, verificationResult.position);
-            emit PositionAdded(
-                address(marginAcc),
-                marketKey,
-                verificationResult.tokenOut,
-                verificationResult.position.size,
-                verificationResult.position.openNotional
-            );
         }
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??

@@ -175,7 +175,7 @@ contract UpdatePositionPerp is BaseSetup {
         // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginPerp));
         // marginManager.openPosition(snxEthKey, destinations, data);
-        // maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, 0);
+        // maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, address(marginManager));
         // (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
         //     ethFuturesMarket
         // ).assetPrice();
@@ -480,7 +480,7 @@ contract UpdatePositionPerp is BaseSetup {
         // check third party events and value by using static call.
         uint256 currentBP = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0
+            address(marginManager)
         );
         vm.assume(
             deltaMargin > int256(1 * ONE_USDC) &&

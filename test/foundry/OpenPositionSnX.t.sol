@@ -218,7 +218,10 @@ contract OpenPositionSnX is BaseSetup {
         // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, 0);
+        maxBuyingPower = riskManager.getCurrentBuyingPower(
+            bobMarginAccount,
+            address(marginManager)
+        );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
@@ -529,14 +532,14 @@ contract OpenPositionSnX is BaseSetup {
         data[0] = openPositionData;
 
         // check event for position opened on our side.
-        // vm.expectEmit(true, true, true, false, address(marginManager));
-        // emit PositionAdded(
-        //     bobMarginAccount,
-        //     snxEthKey,
-        //     susd,
-        //     positionSize,
-        //     openNotional
-        // );
+        vm.expectEmit(true, true, true, false, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            snxEthKey,
+            susd,
+            positionSize,
+            openNotional
+        );
 
         // TODO - use in PerpsV2 market not in FuturesMarket,
 
@@ -642,19 +645,19 @@ contract OpenPositionSnX is BaseSetup {
         (uint256 ethPrice, ) = IFuturesMarket(ethFuturesMarket).assetPrice();
         console2.log(ethPrice, "ETH ka price");
         // check event for position opened on our side.
-        // vm.expectEmit(true, true, true, true, address(marginManager));
-        // emit PositionAdded(
-        //     bobMarginAccount,
-        //     ethFuturesMarket,
-        //     susd,
-        //     tradeData.positionSize,
-        //     int256( // openNotional
-        //         uint256(tradeData.positionSize).mulDiv(
-        //             tradeData.assetPriceBeforeTrade,
-        //             1 ether
-        //         )
-        //     )
-        // );
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            snxEthKey,
+            susd,
+            tradeData.positionSize,
+            int256( // openNotional
+                uint256(tradeData.positionSize).mulDiv(
+                    tradeData.assetPriceBeforeTrade,
+                    1 ether
+                )
+            )
+        );
         vm.startPrank(bob);
         console2.log(
             "",
@@ -670,7 +673,7 @@ contract OpenPositionSnX is BaseSetup {
         vm.stopPrank();
         // marginAccountData.bpBeforePnL = riskManager.GetCurrentBuyingPower(
         //     bobMarginAccount,
-        //     0
+        //     address(marginManager)
         // );
         // // Update market price by Delta +100
         // // increase blocks
@@ -733,7 +736,7 @@ contract OpenPositionSnX is BaseSetup {
         // );
         // marginAccountData.bpAfterPnL = riskManager.GetCurrentBuyingPower(
         //     bobMarginAccount,
-        //     0 // interest accrued is 0 currently.
+        //     address(marginManager) // interest accrued is 0 currently.
         // );
         // marginManager.updateUnsettledRealizedPnL(bob);
         // int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)

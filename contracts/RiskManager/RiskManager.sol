@@ -19,6 +19,7 @@ import {IRiskManager, VerifyTradeResult} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IMarginManager} from "../Interfaces/IMarginManager.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
@@ -125,10 +126,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
-        uint256 buyingPower = getCurrentBuyingPower(
+        uint256 buyingPower = _getAbsTotalCollateralValue(
             address(marginAccount),
             interestAccrued
-        );
+        ).mulDiv(100, initialMarginFactor);
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
@@ -255,8 +256,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function getCurrentBuyingPower(
         address marginAccount,
-        uint256 interestAccrued
-    ) public returns (uint256 buyingPower) {
+        address marginManager
+    ) external returns (uint256 buyingPower) {
+        uint256 interestAccrued = IMarginManager(marginManager)
+            .getInterestAccrued(marginAccount);
         buyingPower = _getAbsTotalCollateralValue(
             marginAccount,
             interestAccrued

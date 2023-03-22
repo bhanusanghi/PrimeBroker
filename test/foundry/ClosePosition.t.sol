@@ -268,7 +268,10 @@ contract ClosePosition is BaseSetup {
         // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, 0);
+        maxBuyingPower = riskManager.getCurrentBuyingPower(
+            bobMarginAccount,
+            address(marginManager)
+        );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
@@ -327,7 +330,7 @@ contract ClosePosition is BaseSetup {
 
         marginAccountData.bpBeforePnL = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0
+            address(marginManager)
         );
         // Update market price by Delta +100
         // increase blocks
@@ -404,13 +407,18 @@ contract ClosePosition is BaseSetup {
             perpAaveMarket
         );
         int256 positionSize = int256((openNotional) / markPrice);
+        // console2.log("expectedLiquidity", vault.expectedLiquidity(), largeAmount);
         // assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        // vm.expectEmit(true, true, true, true, address(collateralManager));
-        // emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
+        vm.expectEmit(true, true, true, false, address(collateralManager));
+        emit CollateralAdded(
+            bobMarginAccount,
+            usdc,
+            liquiMargin,
+            uint256(priceOracle.convertToUSD(int256(liquiMargin), usdc)) //ignoring this as price oracle shiz
+        );
         collateralManager.addCollateral(usdc, liquiMargin);
-
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);
         destinations[0] = usdc;
@@ -438,14 +446,14 @@ contract ClosePosition is BaseSetup {
             bytes32(0)
         );
         console2.log("position preopen");
-        // vm.expectEmit(true, true, true, true, address(marginManager));
-        // emit PositionAdded(
-        //     bobMarginAccount,
-        //     perpAaveKey,
-        //     usdc,
-        //     -int256(positionSize),
-        //     -int256(openNotional) // negative because we are shorting it.
-        // );
+        vm.expectEmit(true, true, true, false, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            perpAaveKey,
+            usdc,
+            -int256(positionSize),
+            -int256(openNotional) // negative because we are shorting it.
+        );
         // vm.expectEmit(true, true, false, true, perpClearingHouse);
         // emit PositionChanged(
         //     bobMarginAccount,
@@ -460,13 +468,13 @@ contract ClosePosition is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data1);
         // check third party events and value by using static call.
         console2.log("position popen");
-        // assertEq(
-        //     IAccountBalance(perpAccountBalance).getTotalOpenNotional(
-        //         bobMarginAccount,
-        //         perpAaveMarket
-        //     ),
-        //     int256(openNotional)
-        // );
+        assertEq(
+            IAccountBalance(perpAccountBalance).getTotalOpenNotional(
+                bobMarginAccount,
+                perpAaveMarket
+            ),
+            int256(openNotional)
+        );
 
         destinations = new address[](1);
         data1 = new bytes[](1);
@@ -497,154 +505,19 @@ contract ClosePosition is BaseSetup {
         // TODO - remove this pnl and give out correct pnl.
         // emit PositionClosed(bobMarginAccount, perpClearingHouse, 0);
         marginManager.closePosition(perpAaveKey, destinations, data1);
+        Position memory p = IMarginAccount(bobMarginAccount).getPosition(
+            perpAaveKey
+        );
         // 0 at our end because we are closing the position.
-        // (IMarginAccount(bobMarginAccount).existingPosition(perpAaveKey), false);
-        // (
-        //     IMarginAccount(bobMarginAccount).getPositionOpenNotional(
-        //         perpAaveMarket
-        //     ),
-        //     0
-        // );
-        // // 0 at tpp's end because we are closing the position.
-        // assertEq(
-        //     IAccountBalance(perpAccountBalance).getTotalOpenNotional(
-        //         bobMarginAccount,
-        //         perpAaveMarket
-        //     ),
-        //     0
-        // );
+        (IMarginAccount(bobMarginAccount).existingPosition(perpAaveKey), false);
+        (p.openNotional, 0);
+        // 0 at tpp's end because we are closing the position.
+        assertEq(
+            IAccountBalance(perpAccountBalance).getTotalOpenNotional(
+                bobMarginAccount,
+                perpAaveMarket
+            ),
+            0
+        );
     }
 }
-
-// contract ClosePositionPerp is BaseSetup {
-//     using SafeMath for uint256;
-//     using SafeMath for uint128;
-//     using Math for uint256;
-//     using SettlementTokenMath for uint256;
-//     using SettlementTokenMath for int256;
-//     using SafeCastUpgradeable for uint256;
-//     using SafeCastUpgradeable for int256;
-//     using SignedMath for int256;
-
-//     uint256 constant ONE_USDC = 10 ** 6;
-//     int256 constant ONE_USDC_INT = 10 ** 6;
-//     uint256 largeAmount = 1_000_000 * ONE_USDC;
-//     uint256 largeEtherAmount = 1_000_000 ether;
-//     bytes32 snxUni_marketKey = bytes32("sUNI");
-//     bytes32 snxEth_marketKey = bytes32("sETH");
-
-//     bytes32 invalidKey = keccak256("BKL.MKC");
-//     bytes32 snxUniKey = keccak256("SNX.UNI");
-//     bytes32 snxEthKey = keccak256("SNX.ETH");
-//     bytes32 perpAaveKey = keccak256("PERP.AAVE");
-
-//     address bobMarginAccount;
-//     address aliceMarginAccount;
-
-//     address uniFuturesMarket;
-
-//     address ethFuturesMarket;
-//     uint256 maxBuyingPower;
-//     uint256 marginPerp;
-//     uint256 constant DAY = 24 * 60 * 60 * 1000;
-
-//     // function setUp() public {
-//     //     uint256 forkId = vm.createFork(
-//     //         vm.envString("ARCHIVE_NODE_URL_L2"),
-//     //         77772792
-//     //     );
-//     //     vm.selectFork(forkId);
-//     //     utils = new Utils();
-//     //     setupUsers();
-//     //     setupContractRegistry();
-//     //     setupPriceOracle();
-//     //     setupMarketManager();
-//     //     setupMarginManager();
-//     //     setupRiskManager();
-//     //     setupVault(usdc);
-//     //     setupCollateralManager();
-
-//     //     riskManager.setCollateralManager(address(collateralManager));
-//     //     riskManager.setVault(address(vault));
-
-//     //     marginManager.setVault(address(vault));
-//     //     marginManager.SetRiskManager(address(riskManager));
-
-//     //     setupProtocolRiskManagers();
-
-//     //     collateralManager.addAllowedCollateral(usdc, 100);
-
-//     //     vm.label(ethFuturesMarket, "ETH futures Market");
-//     //     marketManager.addMarket(
-//     //         perpAaveKey,
-//     //         perpClearingHouse,
-//     //         address(perpfiRiskManager)
-//     //     );
-//     //     perpfiRiskManager.toggleAddressWhitelisting(perpClearingHouse, true);
-//     //     perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
-//     //     perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
-//     //     PerpfiRiskManager(address(perpfiRiskManager)).setMarketToVToken(
-//     //         perpAaveKey,
-//     //         perpAaveMarket
-//     //     );
-
-//     //     vm.startPrank(usdcWhaleContract);
-//     //     IERC20(usdc).transfer(admin, largeAmount * 2);
-//     //     IERC20(usdc).transfer(bob, largeAmount);
-//     //     vm.stopPrank();
-
-//     //     // fund vault.
-//     //     vm.startPrank(admin);
-//     //     IERC20(usdc).approve(address(vault), largeAmount);
-//     //     vault.deposit(largeAmount, admin);
-//     //     vm.stopPrank();
-
-//     //     // setup and fund margin accounts.
-//     //     vm.prank(bob);
-//     //     bobMarginAccount = marginManager.openMarginAccount();
-//     //     vm.prank(alice);
-//     //     aliceMarginAccount = marginManager.openMarginAccount();
-
-//     //     utils.setAssetPrice(usdcPriceFeed, 100000000, block.timestamp);
-
-//     //     // uint256 margin = 50000 * ONE_USDC;
-//     //     // marginPerp = margin;
-//     //     // vm.startPrank(bob);
-//     //     // IERC20(usdc).approve(bobMarginAccount, margin);
-//     //     // collateralManager.addCollateral(usdc, margin);
-
-//     //     // address[] memory destinations = new address[](2);
-//     //     // bytes[] memory data = new bytes[](2);
-//     //     // destinations[0] = usdc;
-//     //     // destinations[1] = perpVault;
-
-//     //     // data[0] = abi.encodeWithSignature(
-//     //     //     "approve(address,uint256)",
-//     //     //     perpVault,
-//     //     //     marginPerp
-//     //     // );
-//     //     // data[1] = abi.encodeWithSignature(
-//     //     //     "deposit(address,uint256)",
-//     //     //     usdc,
-//     //     //     marginPerp
-//     //     // );
-
-//     //     // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
-//     //     // emit MarginTransferred(bobMarginAccount, int256(marginPerp));
-//     //     // marginManager.openPosition(snxEthKey, destinations, data);
-//     //     // maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, 0);
-//     //     // (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
-//     //     //     ethFuturesMarket
-//     //     // ).assetPrice();
-//     //     // vm.stopPrank();
-//     // }
-
-//     // Scenario ->
-//     //    Collateral - 100k usdc
-//     //    PerpMargin - 10k usdc
-//     //    AAVE PositionShort open Notional = -10k usdc
-//     //    close position
-//     //    check third party position notional = 0
-//     //    check Chronux position size = close
-//     //    check order fee equality.
-// }
