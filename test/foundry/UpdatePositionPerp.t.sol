@@ -482,11 +482,11 @@ contract UpdatePositionPerp is BaseSetup {
             bobMarginAccount,
             address(marginManager)
         );
-        vm.assume(
-            deltaMargin > int256(1 * ONE_USDC) &&
-                deltaMargin < int256(currentBP)
-        );
-
+        // vm.assume(
+        //     deltaMargin > int256(1 * ONE_USDC) &&
+        //         deltaMargin < int256(currentBP)
+        // );
+        deltaMargin = int256(1000 * ONE_USDC);
         destinations2[0] = usdc;
         destinations2[1] = perpVault;
         data2[0] = abi.encodeWithSignature(

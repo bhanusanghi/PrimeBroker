@@ -422,11 +422,10 @@ contract OpenPositionSnX is BaseSetup {
 
         vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
-
-        // assertEq(
-        //     MarginAccount(bobMarginAccount).getPosition(snxEthKey),
-        //     positionSize
-        // );
+        Position memory pos = MarginAccount(bobMarginAccount).getPosition(
+            snxEthKey
+        );
+        assertEq(pos.size, positionSize);
 
         (tradeData.marginRemainingAfterTrade, ) = IFuturesMarket(
             ethFuturesMarket
@@ -439,9 +438,7 @@ contract OpenPositionSnX is BaseSetup {
         (, , , , int256 posSizeTPP) = IFuturesMarket(ethFuturesMarket)
             .positions(bobMarginAccount);
         tradeData.positionSizeAfterTrade = int128(posSizeTPP);
-        Position memory pos = MarginAccount(bobMarginAccount).getPosition(
-            snxEthKey
-        );
+        pos = MarginAccount(bobMarginAccount).getPosition(snxEthKey);
         assertEq(pos.size, tradeData.positionSizeAfterTrade);
 
         // check position open notional and size on our protocol.
