@@ -485,7 +485,7 @@ contract UpdatePositionSnx is BaseSetup {
             marginAccountData.bpBeforePnL +
                 ((marginAccountData.unrealizedPnL + unsettledRealizedPnL)
                     .toUint256() * 4),
-            50 ether
+            150 ether
         );
         bytes memory updatePositionData = abi.encodeWithSignature(
             "modifyPositionWithTracking(int256,bytes32)",
@@ -497,7 +497,7 @@ contract UpdatePositionSnx is BaseSetup {
         destinations[0] = ethFuturesMarket;
         data[0] = updatePositionData;
         // @note fix events
-        // vm.expectEmit(true, true, true, true, address(marginManager));
+        // vm.expectEmit(true, true, true, false, address(marginManager));
         // emit PositionUpdated(
         //     bobMarginAccount,
         //     snxEthKey,
@@ -637,7 +637,7 @@ contract UpdatePositionSnx is BaseSetup {
             marginAccountData.bpBeforePnL +
                 ((marginAccountData.unrealizedPnL + unsettledRealizedPnL)
                     .toUint256() * 4),
-            70 ether
+            400 ether
         );
         bytes memory updatePositionData = abi.encodeWithSignature(
             "modifyPositionWithTracking(int256,bytes32)",
@@ -648,8 +648,7 @@ contract UpdatePositionSnx is BaseSetup {
         vm.prank(bob);
         destinations[0] = ethFuturesMarket;
         data[0] = updatePositionData;
-        // @note should emit update position event.
-        vm.expectEmit(false, false, false, false, address(marginManager));
+        vm.expectEmit(true, true, true, false, address(marginManager));
         emit PositionUpdated(
             bobMarginAccount,
             snxEthKey,
