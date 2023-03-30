@@ -204,12 +204,13 @@ contract MarginManager is ReentrancyGuard {
             data
         );
         _updateData(marginAcc, marketKey, verificationResult);
+        Position memory position = marginAcc.getPosition(marketKey);
         emit PositionUpdated(
             address(marginAcc),
             marketKey,
             verificationResult.tokenOut,
-            verificationResult.position.size,
-            verificationResult.position.openNotional
+            position.size,
+            position.openNotional
         );
         marginAcc.execMultiTx(destinations, data);
     }
@@ -234,12 +235,13 @@ contract MarginManager is ReentrancyGuard {
         //     positionSize == oldPosition.size,
         //     "Invalid close pos"
         // );
+        Position memory position = marginAcc.getPosition(marketKey);
         emit PositionClosed(
             address(marginAcc),
             marketKey,
             verificationResult.tokenOut,
-            verificationResult.position.size,
-            verificationResult.position.openNotional
+            position.size,
+            position.openNotional
         );
         marginAcc.execMultiTx(destinations, data);
         marginAcc.removePosition(marketKey);

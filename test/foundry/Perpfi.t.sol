@@ -280,24 +280,15 @@ contract Perpfitest is BaseSetup {
             newDpositAmt
         );
         marginManager.openPosition(perpAaveKey, destinations, data);
-        assertApproxEqAbs(
-            newDpositAmt,
-            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
-            10 ** 7
-        );
         IVault pvault = IVault(perpVault);
         assertEq(pvault.getFreeCollateral(bobMarginAccount), newDpositAmt);
-
+        assertEq(
+            newDpositAmt,
+            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs()
+        );
         // Now try to transfer extra margin and expect to fail.
-
         vm.expectRevert("Extra Transfer not allowed");
         marginManager.openPosition(perpAaveKey, destinations, data);
-        // assertApproxEqAbs(newDpositAmt,MarginAccount(bobMarginAccount).marginInMarket(perpAaveMarket).abs(),10**7);
-        //@0xAshish @note after slippage fix this should be equal to newDpositAmt
-        // assertApproxEqAbs(MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),depositAmt,10**7);//10usdc
-        // assertEq(pvault.getFreeCollateral(address(bobMarginAccount)),depositAmt);
-        // assertEq(pvault.getFreeCollateral(bobMarginAccount),newDpositAmt);
-        //@0xAshish @note after slippage fix this should be equal to newDpositAmt
     }
 
     // liqui margin 100k.

@@ -215,8 +215,8 @@ contract OpenPositionSnX is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = transferMarginData;
-        // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
-        // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
+        vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
+        emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
         maxBuyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
@@ -527,9 +527,8 @@ contract OpenPositionSnX is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
-
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, false, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
             snxEthKey,
@@ -562,6 +561,7 @@ contract OpenPositionSnX is BaseSetup {
 
         vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
+
         Position memory pos = MarginAccount(bobMarginAccount).getPosition(
             snxEthKey
         );

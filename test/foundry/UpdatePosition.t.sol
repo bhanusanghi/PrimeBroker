@@ -188,8 +188,8 @@ contract UpdatePositionSnx is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = transferMarginData;
-        // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
-        // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
+        vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
+        emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
         maxBuyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
@@ -496,24 +496,24 @@ contract UpdatePositionSnx is BaseSetup {
         vm.prank(bob);
         destinations[0] = ethFuturesMarket;
         data[0] = updatePositionData;
-        // @note fix events
-        // vm.expectEmit(true, true, true, false, address(marginManager));
-        // emit PositionUpdated(
-        //     bobMarginAccount,
-        //     snxEthKey,
-        //     susd,
-        //     tradeData.positionSize * 2,
-        //     int256( // openNotional
-        //         uint256(tradeData.positionSize).mulDiv(
-        //             tradeData.assetPriceBeforeTrade,
-        //             1 ether
-        //         ) +
-        //             uint256(tradeData.positionSize).mulDiv(
-        //                 tradeData.assetPriceAfterManipulation,
-        //                 1 ether
-        //             )
-        //     )
-        // );
+        int256 on = int256( // openNotional
+            uint256(tradeData.positionSize).mulDiv(
+                tradeData.assetPriceBeforeTrade,
+                1 ether
+            ) +
+                uint256(tradeData.positionSize).mulDiv(
+                    tradeData.assetPriceAfterManipulation,
+                    1 ether
+                )
+        );
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionUpdated(
+            bobMarginAccount,
+            snxEthKey,
+            susd,
+            tradeData.positionSize * 2,
+            on
+        );
         marginManager.updatePosition(snxEthKey, destinations, data);
 
         // assert new position size to be equal to TPP
