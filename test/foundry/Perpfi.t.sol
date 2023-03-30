@@ -161,7 +161,6 @@ contract Perpfitest is BaseSetup {
         // setup and fund margin accounts.
         vm.prank(bob);
         bobMarginAccount = marginManager.openMarginAccount();
-        console.log("bobMarginAccount:", bobMarginAccount, "\n");
         vm.prank(alice);
         aliceMarginAccount = marginManager.openMarginAccount();
         // assume usdc and susd value to be 1

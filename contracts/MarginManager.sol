@@ -177,12 +177,13 @@ contract MarginManager is ReentrancyGuard {
         );
 
         _updateData(marginAcc, marketKey, verificationResult);
+        Position memory position = marginAcc.getPosition(marketKey);
         emit PositionAdded(
             address(marginAcc),
             marketKey,
             verificationResult.tokenOut,
-            verificationResult.position.size,
-            verificationResult.position.openNotional
+            position.size,
+            position.openNotional
         );
         marginAcc.execMultiTx(destinations, data);
     }
