@@ -415,7 +415,7 @@ contract Perpfitest is BaseSetup {
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, newDpositAmt);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
+        vm.expectEmit(true, true, true, true, address(collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, newDpositAmt, 0);
         collateralManager.addCollateral(usdc, newDpositAmt);
         address[] memory destinations = new address[](3);
