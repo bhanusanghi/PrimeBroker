@@ -648,7 +648,7 @@ contract UpdatePositionSnx is BaseSetup {
         vm.prank(bob);
         destinations[0] = ethFuturesMarket;
         data[0] = updatePositionData;
-        vm.expectEmit(true, true, true, false, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionUpdated(
             bobMarginAccount,
             snxEthKey,

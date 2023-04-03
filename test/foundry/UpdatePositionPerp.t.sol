@@ -234,7 +234,7 @@ contract UpdatePositionPerp is BaseSetup {
             bytes32(0)
         );
 
-        vm.expectEmit(true, true, true, false, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
             perpAaveKey,
@@ -357,7 +357,7 @@ contract UpdatePositionPerp is BaseSetup {
             bytes32(0)
         );
 
-        vm.expectEmit(true, true, true, false, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
             bobMarginAccount,
             perpAaveKey,

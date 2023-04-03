@@ -121,8 +121,8 @@ contract CollateralManagerTest is BaseSetup {
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, _depositAmt);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, _depositAmt, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, _depositAmt, _depositAmt);
         collateralManager.addCollateral(usdc, _depositAmt);
         MarginAccount marginAccount = MarginAccount(bobMarginAccount);
         assertEq(
