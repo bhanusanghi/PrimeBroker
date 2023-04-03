@@ -27,6 +27,14 @@ import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+struct RoundData {
+    uint80 roundId;
+    int256 answer;
+    uint256 startedAt;
+    uint256 updatedAt;
+    uint80 answeredInRound;
+}
 
 contract BaseSetup is Test {
     // ============= Libraries =============
@@ -239,6 +247,42 @@ contract BaseSetup is Test {
             susd,
             address(contractRegistry),
             ERC20(vault.asset()).decimals()
+        );
+    }
+
+    function makeSusdAndUsdcEqualToOne() internal {
+        RoundData memory stablesRoundData = RoundData(
+            18446744073709552872,
+            100000000,
+            block.timestamp - 0,
+            block.timestamp - 0,
+            18446744073709552872
+        );
+        vm.mockCall(
+            sUsdPriceFeed,
+            abi.encodeWithSelector(
+                AggregatorV3Interface.latestRoundData.selector
+            ),
+            abi.encode(
+                stablesRoundData.roundId,
+                stablesRoundData.answer,
+                stablesRoundData.startedAt,
+                stablesRoundData.updatedAt,
+                stablesRoundData.answeredInRound
+            )
+        );
+        vm.mockCall(
+            usdcPriceFeed,
+            abi.encodeWithSelector(
+                AggregatorV3Interface.latestRoundData.selector
+            ),
+            abi.encode(
+                stablesRoundData.roundId,
+                stablesRoundData.answer,
+                stablesRoundData.startedAt,
+                stablesRoundData.updatedAt,
+                stablesRoundData.answeredInRound
+            )
         );
     }
 

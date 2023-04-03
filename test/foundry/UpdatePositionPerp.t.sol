@@ -149,7 +149,7 @@ contract UpdatePositionPerp is BaseSetup {
         aliceMarginAccount = marginManager.openMarginAccount();
 
         utils.setAssetPrice(usdcPriceFeed, 100000000, block.timestamp);
-
+        makeSusdAndUsdcEqualToOne();
         // uint256 margin = 50000 * ONE_USDC;
         // marginPerp = margin;
         // vm.startPrank(bob);
@@ -199,7 +199,7 @@ contract UpdatePositionPerp is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        int256 positionSize = int256((openNotional) / markPrice);
+        int256 positionSize = int256(((openNotional) * 1 ether) / markPrice);
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
@@ -322,7 +322,7 @@ contract UpdatePositionPerp is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        int256 positionSize = int256((openNotional) / markPrice);
+        int256 positionSize = int256(((openNotional) * 1 ether) / markPrice);
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);

@@ -342,7 +342,7 @@ contract Perpfitest is BaseSetup {
             bobMarginAccount,
             perpAaveKey,
             usdc,
-            int256(positionSize),
+            -int256(positionSize),
             -int256(openNotional) // negative because we are shorting it.
         );
         // vm.expectEmit(true, true, false, true, perpClearingHouse);
@@ -416,7 +416,12 @@ contract Perpfitest is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, newDpositAmt);
         vm.expectEmit(true, true, true, true, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, newDpositAmt, 0);
+        emit CollateralAdded(
+            bobMarginAccount,
+            usdc,
+            newDpositAmt,
+            newDpositAmt
+        );
         collateralManager.addCollateral(usdc, newDpositAmt);
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);

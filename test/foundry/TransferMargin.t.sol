@@ -382,7 +382,7 @@ contract TransferMarginTest is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
         vm.expectEmit(true, true, true, true, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
@@ -466,7 +466,7 @@ contract TransferMarginTest is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
         vm.expectEmit(true, true, true, true, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
