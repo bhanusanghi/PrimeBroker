@@ -276,6 +276,7 @@ contract ClosePosition is BaseSetup {
             ethFuturesMarket
         ).assetPrice();
         vm.stopPrank();
+        makeSusdAndUsdcEqualToOne();
     }
 
     /* scenario ->
@@ -406,18 +407,11 @@ contract ClosePosition is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        int256 positionSize = int256((openNotional) / markPrice);
+        int256 positionSize = int256(((openNotional) * 1 ether) / markPrice);
         // console2.log("expectedLiquidity", vault.expectedLiquidity(), largeAmount);
         // assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, true, address(collateralManager));
-        emit CollateralAdded(
-            bobMarginAccount,
-            usdc,
-            liquiMargin,
-            uint256(priceOracle.convertToUSD(int256(liquiMargin), usdc)) //ignoring this as price oracle shiz
-        );
         collateralManager.addCollateral(usdc, liquiMargin);
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);

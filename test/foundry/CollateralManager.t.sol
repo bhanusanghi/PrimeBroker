@@ -113,6 +113,7 @@ contract CollateralManagerTest is BaseSetup {
         bobMarginAccount = marginManager.openMarginAccount();
         vm.prank(alice);
         aliceMarginAccount = marginManager.openMarginAccount();
+        makeSusdAndUsdcEqualToOne();
         // assume usdc and susd value to be 1
     }
 

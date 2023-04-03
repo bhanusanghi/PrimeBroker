@@ -223,7 +223,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
                     position.openNotional = -_amount;
-                    position.size = (_amount * 1 ether) / markPrice;
+                    position.size = -(_amount * 1 ether) / markPrice;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
                     position.openNotional = _amount;
