@@ -52,6 +52,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public OpenPosition = 0xb6b1b6c3;
     bytes4 public CP = 0x2f86e2dd;
     bytes4 public WA = 0xf3fef3a3;
+    bytes4 public ClosePosition = 0x00aa9a89;
     address public baseToken;
     bytes4 public settleFeeSelector = 0xeb9b912e;
     uint8 private _decimals;
@@ -106,15 +107,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
-    function previewPosition(bytes memory data) public {
-        /**
-        (marketKey, sizeDelta) = txDataDecoder(data)
-        if long check with snx for available margin
-
-
-       */
-    }
-
     function settleFeeForMarket(address account) external returns (int256) {
         //getFees
         // aproval or something
@@ -155,24 +147,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
-    // ** TODO - should return in 18 decimal points
-    function getPositionPnL(address account) external returns (int256 pnl) {
-        int256 owedRealizedPnl;
-        int256 unrealizedPnl;
-        uint256 pendingFee;
-        // from this description - owedRealizedPnL also needs to be taken in account.
-        // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
-
-        // todo - realized PnL affects the deposited Margin. We need to also take that into account.
-        // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
-        //or periodically update the margin in tpp and before executing any new transactions from the same account
-        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
-            .getPnlAndPendingFee(account);
-        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
-    }
-
     function verifyTrade(
-        address protocol,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
     )
@@ -210,6 +186,13 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             } else if (funSig == OpenPosition) {
                 // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
                 // refer -
+                /**    struct ClosePositionParams {
+        address baseToken;
+        uint160 sqrtPriceLimitX96;
+        uint256 oppositeAmountBound;
+        uint256 deadline;
+        bytes32 referralCode;
+    } */
                 (
                     address _baseToken,
                     bool isShort, //isBaseToQuote
@@ -240,7 +223,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
                     position.openNotional = -_amount;
-                    position.size = (_amount * 1 ether) / markPrice;
+                    position.size = -(_amount * 1 ether) / markPrice;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
                     position.openNotional = _amount;
@@ -258,6 +241,31 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     fee,
                     10 ** 5 // todo - Ask ashish about this
                 );
+            } else if (funSig == ClosePosition) {
+                // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
+                // refer -
+                (address _baseToken, , , , ) = abi.decode(
+                    data[i][4:],
+                    (address, uint160, uint256, uint256, bytes32)
+                );
+                // _verifyIsBaseTokenAndMarketNameMatching(_baseToken, marketKey);
+                int256 markPrice = getMarkPrice(_baseToken).toInt256();
+                // position.size = -IAccountBalance(accountBalance)
+                //     .getTakerPositionSize(marginAccount, _baseToken);
+                // position.openNotional = IAccountBalance(accountBalance) // not adding a minus sign here as perp already has opposite sign compared to Chronux
+                //     .getTotalOpenNotional(marginAccount, _baseToken);
+
+                uint256 marketFeeRatio = uint256(
+                    marketRegistry.getFeeRatio(_baseToken)
+                );
+
+                // position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
+                // this refers to position opening fee.
+                // position.orderFee = position.openNotional.abs().mulDiv(
+                //     marketFeeRatio,
+                //     10 ** 5 // todo - Ask ashish about this
+                // );
+                // console.log(position.orderFee, "calculated order fee");
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
@@ -266,7 +274,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     }
 
     function verifyClose(
-        address protocol,
+        bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
     ) public view returns (int256 amount, int256 totalPosition, uint256 fee) {
@@ -319,5 +327,18 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     function getUnrealizedPnL(
         address marginAccount
-    ) external view override returns (int256 unrealizedPnL) {}
+    ) external returns (int256 pnl) {
+        int256 owedRealizedPnl;
+        int256 unrealizedPnl;
+        uint256 pendingFee;
+        // from this description - owedRealizedPnL also needs to be taken in account.
+        // https://docs.perp.com/docs/interfaces/IAccountBalance#getpnlandpendingfee
+
+        // todo - realized PnL affects the deposited Margin. We need to also take that into account.
+        // TODO - maybe check difference in Margin we sent vs current margin to add in PnL,
+        //or periodically update the margin in tpp and before executing any new transactions from the same account
+        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
+            .getPnlAndPendingFee(marginAccount);
+        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
+    }
 }

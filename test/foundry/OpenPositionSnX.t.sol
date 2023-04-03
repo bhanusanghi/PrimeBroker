@@ -19,6 +19,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
+import {Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 
 contract OpenPositionSnX is BaseSetup {
@@ -46,8 +47,8 @@ contract OpenPositionSnX is BaseSetup {
     using SafeCast for int256;
     using SignedMath for int256;
 
-    uint256 constant ONE_USDC = 10**6;
-    int256 constant ONE_USDC_INT = 10**6;
+    uint256 constant ONE_USDC = 10 ** 6;
+    int256 constant ONE_USDC_INT = 10 ** 6;
     uint256 largeAmount = 1_000_000 * ONE_USDC;
     bytes32 snxUni_marketKey = bytes32("sUNI");
     bytes32 snxEth_marketKey = bytes32("sETH");
@@ -78,8 +79,8 @@ contract OpenPositionSnX is BaseSetup {
         setupMarketManager();
         setupMarginManager();
         setupRiskManager();
-        setupCollateralManager();
         setupVault(usdc);
+        setupCollateralManager();
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
@@ -217,7 +218,10 @@ contract OpenPositionSnX is BaseSetup {
         vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.GetCurrentBuyingPower(bobMarginAccount, 0);
+        maxBuyingPower = riskManager.getCurrentBuyingPower(
+            bobMarginAccount,
+            address(marginManager)
+        );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
@@ -227,7 +231,6 @@ contract OpenPositionSnX is BaseSetup {
     function testBobAddsPositionOnInvalidMarket() public {
         int256 positionSize = 50 ether;
         bytes32 trackingCode = keccak256("GigabrainMarginAccount");
-        console2.log("bobMarginAccount:", bob, bobMarginAccount);
         vm.expectRevert(bytes("MM: Invalid Market"));
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
@@ -419,11 +422,10 @@ contract OpenPositionSnX is BaseSetup {
 
         vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
-
-        assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
-            positionSize
+        Position memory pos = MarginAccount(bobMarginAccount).getPosition(
+            snxEthKey
         );
+        assertEq(pos.size, positionSize);
 
         (tradeData.marginRemainingAfterTrade, ) = IFuturesMarket(
             ethFuturesMarket
@@ -436,22 +438,16 @@ contract OpenPositionSnX is BaseSetup {
         (, , , , int256 posSizeTPP) = IFuturesMarket(ethFuturesMarket)
             .positions(bobMarginAccount);
         tradeData.positionSizeAfterTrade = int128(posSizeTPP);
-
-        assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
-            tradeData.positionSizeAfterTrade
-        );
+        pos = MarginAccount(bobMarginAccount).getPosition(snxEthKey);
+        assertEq(pos.size, tradeData.positionSizeAfterTrade);
 
         // check position open notional and size on our protocol.
         assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            pos.openNotional,
             ((tradeData.positionSizeAfterTrade *
                 int256(tradeData.assetPriceBeforeTrade)) / 1 ether)
         );
-        assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
-            openNotional
-        );
+        assertEq(pos.openNotional, openNotional);
 
         int256 marginDiff = int256(tradeData.marginRemainingBeforeTrade) -
             int256(tradeData.marginRemainingAfterTrade);
@@ -475,13 +471,13 @@ contract OpenPositionSnX is BaseSetup {
         SNXTradingData memory tradeData;
         (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
             .assetPrice();
-        // int256 positionSize = -10 ether;
+        int256 positionSize = -10 ether;
         uint256 maxPossiblePositionSize = maxBuyingPower
             .convertTokenDecimals(6, 18)
             .div(tradeData.assetPriceBeforeTrade / 10 ether);
-        vm.assume(
-            positionSize > -int256(maxPossiblePositionSize) && positionSize < 0
-        );
+        // vm.assume(
+        //     positionSize > -int256(maxPossiblePositionSize) && positionSize < 0
+        // );
         int256 positionSizeAfterTrade256;
         // postTradeDetails
         // returns (
@@ -531,7 +527,6 @@ contract OpenPositionSnX is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
-
         // check event for position opened on our side.
         vm.expectEmit(true, true, true, true, address(marginManager));
         emit PositionAdded(
@@ -567,10 +562,10 @@ contract OpenPositionSnX is BaseSetup {
         vm.prank(bob);
         marginManager.openPosition(snxEthKey, destinations, data);
 
-        assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
-            positionSize
+        Position memory pos = MarginAccount(bobMarginAccount).getPosition(
+            snxEthKey
         );
+        assertEq(pos.size, positionSize);
 
         (tradeData.marginRemainingAfterTrade, ) = IFuturesMarket(
             ethFuturesMarket
@@ -584,21 +579,15 @@ contract OpenPositionSnX is BaseSetup {
             ethFuturesMarket
         ).positions(bobMarginAccount);
 
-        assertEq(
-            MarginAccount(bobMarginAccount).getPosition(snxEthKey),
-            tradeData.positionSizeAfterTrade
-        );
+        assertEq(pos.size, tradeData.positionSizeAfterTrade);
 
         // check position open notional and size on our protocol.
         assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
+            pos.openNotional,
             ((tradeData.positionSizeAfterTrade *
                 int256(tradeData.assetPriceBeforeTrade)) / 1 ether)
         );
-        assertEq(
-            MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey),
-            openNotional
-        );
+        assertEq(pos.openNotional, openNotional);
 
         int256 marginDiff = int256(tradeData.marginRemainingBeforeTrade) -
             int256(tradeData.marginRemainingAfterTrade);
@@ -617,5 +606,198 @@ contract OpenPositionSnX is BaseSetup {
         // );
 
         // check fee etc.
+    }
+
+    /* scenario ->
+        initial margin - 50k
+        initial BP - 250k
+        first transfer SNX - 50k
+
+        open 1 eth long at price - x - from setup
+        eth price 1634
+        size 152
+        change price by +100$ 
+        check bp changes.
+        try to transfer extra margin
+    */
+    function testLiquidation(int256 secondPositionSize) public {
+        // vm.assume(
+        //     secondPositionSize > -3 ether && secondPositionSize <= -1 ether
+        // );
+        console2.log("iska", address(this), bob, bobMarginAccount);
+        SNXTradingData memory tradeData;
+        MarginAccountData memory marginAccountData;
+        tradeData.positionSize = 3 ether;
+        (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
+            .assetPrice();
+        bytes memory openPositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            tradeData.positionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = ethFuturesMarket;
+        data[0] = openPositionData;
+        (uint256 ethPrice, ) = IFuturesMarket(ethFuturesMarket).assetPrice();
+        console2.log(ethPrice, "ETH ka price");
+        // check event for position opened on our side.
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit PositionAdded(
+            bobMarginAccount,
+            snxEthKey,
+            susd,
+            tradeData.positionSize,
+            int256( // openNotional
+                uint256(tradeData.positionSize).mulDiv(
+                    tradeData.assetPriceBeforeTrade,
+                    1 ether
+                )
+            )
+        );
+        vm.startPrank(bob);
+        console2.log(
+            "",
+            MarginAccount(bobMarginAccount).totalBorrowed(),
+            collateralManager.totalCollateralValue(bobMarginAccount)
+        );
+        marginManager.openPosition(snxEthKey, destinations, data);
+        // console2.log("Position opened",MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey));
+        // assertEq(
+        //     MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+        //     tradeData.positionSize
+        // );
+        vm.stopPrank();
+        // marginAccountData.bpBeforePnL = riskManager.GetCurrentBuyingPower(
+        //     bobMarginAccount,
+        //     address(marginManager)
+        // );
+        // // Update market price by Delta +100
+        // // increase blocks
+        // // get interest -> TODO write tests for interest calculations for vault separately. Currently its wrong always returns 0;
+        // //
+        // // increare 10 blocks
+        vm.roll(block.number + 10);
+        vm.warp(block.timestamp + 100);
+
+        utils.setAssetPriceSnx(
+            etherPriceFeed,
+            tradeData.assetPriceBeforeTrade.convertTokenDecimals(18, 8).sub(
+                500 * 10 ** 8
+            ),
+            block.timestamp,
+            circuitBreaker
+        );
+        vm.stopPrank();
+        vm.startPrank(bob);
+        marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
+            bobMarginAccount
+        );
+
+        console2.log("Unrealized PnL", marginAccountData.unrealizedPnL);
+        secondPositionSize = -3 ether;
+        int256 tmBack = 1000 * 10 ** 18;
+        address[] memory destinations1 = new address[](2);
+        bytes[] memory data1 = new bytes[](2);
+        destinations1[0] = ethFuturesMarket;
+        destinations1[1] = ethFuturesMarket;
+
+        data1[0] = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            secondPositionSize,
+            keccak256("GigabrainMarginAccount")
+        );
+        data1[1] = abi.encodeWithSignature("transferMargin(int256)", -tmBack);
+        marginManager.liquidate(snxEthKey, destinations1, data1);
+        console2.log("Liquidated");
+        // isliquidatable
+        // (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)
+        //     .profitLoss(bobMarginAccount);
+        // (marginAccountData.fundingAccruedTPP, ) = IFuturesMarket(
+        //     ethFuturesMarket
+        // ).accruedFunding(bobMarginAccount);
+
+        // (tradeData.assetPriceAfterManipulation, ) = IFuturesMarket(
+        //     ethFuturesMarket
+        // ).assetPrice();
+        // assertEq(
+        //     marginAccountData.unrealizedPnL,
+        //     marginAccountData.fundingAccruedTPP.convertTokenDecimals(
+        //         18,
+        //         ERC20(vault.asset()).decimals()
+        //     ) +
+        //         marginAccountData.pnlTPP.convertTokenDecimals(
+        //             18,
+        //             ERC20(vault.asset()).decimals()
+        //         )
+        // );
+        // marginAccountData.bpAfterPnL = riskManager.GetCurrentBuyingPower(
+        //     bobMarginAccount,
+        //     address(marginManager) // interest accrued is 0 currently.
+        // );
+        // marginManager.updateUnsettledRealizedPnL(bob);
+        // int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)
+        //     .unsettledRealizedPnL();
+
+        // // assertApproxEqAbs(
+        // //     marginAccountData.bpAfterPnL,
+        // //     marginAccountData.bpBeforePnL +
+        // //         ((marginAccountData.unrealizedPnL + unsettledRealizedPnL)
+        // //             .toUint256() * 4),
+        // //     50 ether
+        // // );
+        // bytes memory updatePositionData = abi.encodeWithSignature(
+        //     "modifyPositionWithTracking(int256,bytes32)",
+        //     secondPositionSize,
+        //     keccak256("GigabrainMarginAccount")
+        // );
+        // // send update position call
+        // vm.prank(bob);
+        // destinations[0] = ethFuturesMarket;
+        // data[0] = updatePositionData;
+
+        // vm.expectEmit(true, true, true, true, address(marginManager));
+        // emit PositionUpdated(
+        //     bobMarginAccount,
+        //     ethFuturesMarket,
+        //     susd,
+        //     tradeData.positionSize + secondPositionSize,
+        //     (tradeData.positionSize * int256(tradeData.assetPriceBeforeTrade)) /
+        //         int256(1 ether) +
+        //         (secondPositionSize *
+        //             int256(tradeData.assetPriceAfterManipulation)) /
+        //         int256(1 ether)
+        // );
+        // marginManager.updatePosition(snxEthKey, destinations, data);
+        // assertEq(
+        //     marginAccountData.unrealizedPnL,
+        //     marginAccountData.fundingAccruedTPP.convertTokenDecimals(
+        //         18,
+        //         ERC20(vault.asset()).decimals()
+        //     ) +
+        //         marginAccountData.pnlTPP.convertTokenDecimals(
+        //             18,
+        //             ERC20(vault.asset()).decimals()
+        //         )
+        // );
+        // marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
+        //     bobMarginAccount
+        // );
+        // (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)
+        //     .profitLoss(bobMarginAccount);
+        // (marginAccountData.fundingAccruedTPP, ) = IFuturesMarket(
+        //     ethFuturesMarket
+        // ).accruedFunding(bobMarginAccount);
+        // assertEq(
+        //     MarginAccount(bobMarginAccount).getPosition(snxEthKey),
+        //     tradeData.positionSize + secondPositionSize
+        // );
+        // (, , , , int128 finalPositionSizeTPP) = IFuturesMarket(ethFuturesMarket)
+        //     .positions(bobMarginAccount);
+        // assertEq(
+        //     finalPositionSizeTPP,
+        //     tradeData.positionSize + secondPositionSize
+        // );
+        // assertEq(ethPrice, ethPrice + 1, "Hehe");
     }
 }

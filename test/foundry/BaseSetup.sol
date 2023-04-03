@@ -27,6 +27,14 @@ import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+struct RoundData {
+    uint80 roundId;
+    int256 answer;
+    uint256 startedAt;
+    uint256 updatedAt;
+    uint80 answeredInRound;
+}
 
 contract BaseSetup is Test {
     // ============= Libraries =============
@@ -40,8 +48,8 @@ contract BaseSetup is Test {
 
     // ============= Utils =============
     Utils internal utils;
-    uint256 RAY = 10**27;
-    uint256 WAD = 10**18;
+    uint256 RAY = 10 ** 27;
+    uint256 WAD = 10 ** 18;
 
     // ============= Users =============
     address payable[] internal users;
@@ -74,6 +82,8 @@ contract BaseSetup is Test {
     address perpAccountBalance = 0xA7f3FC32043757039d5e13d790EE43edBcBa8b7c;
     address perpMarketRegistry = 0xd5820eE0F55205f6cdE8BB0647072143b3060067;
     address perpClearingHouse = 0x82ac2CE43e33683c58BE4cDc40975E73aA50f459;
+    address perpAaveMarket = 0x34235C8489b06482A99bb7fcaB6d7c467b92d248;
+    address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
     // synthetix (ReadProxyAddressResolver)
     address SNX_ADDRESS_RESOLVER = 0x1Cb059b7e74fD21665968C908806143E744D5F30;
     // address futuresMarketSettings = 0x0dde87714C3bdACB93bB1d38605aFff209a85998;
@@ -197,7 +207,8 @@ contract BaseSetup is Test {
         collateralManager = new CollateralManager(
             address(marginManager),
             address(riskManager),
-            address(priceOracle)
+            address(priceOracle),
+            address(vault)
         );
     }
 
@@ -236,6 +247,42 @@ contract BaseSetup is Test {
             susd,
             address(contractRegistry),
             ERC20(vault.asset()).decimals()
+        );
+    }
+
+    function makeSusdAndUsdcEqualToOne() internal {
+        RoundData memory stablesRoundData = RoundData(
+            18446744073709552872,
+            100000000,
+            block.timestamp - 0,
+            block.timestamp - 0,
+            18446744073709552872
+        );
+        vm.mockCall(
+            sUsdPriceFeed,
+            abi.encodeWithSelector(
+                AggregatorV3Interface.latestRoundData.selector
+            ),
+            abi.encode(
+                stablesRoundData.roundId,
+                stablesRoundData.answer,
+                stablesRoundData.startedAt,
+                stablesRoundData.updatedAt,
+                stablesRoundData.answeredInRound
+            )
+        );
+        vm.mockCall(
+            usdcPriceFeed,
+            abi.encodeWithSelector(
+                AggregatorV3Interface.latestRoundData.selector
+            ),
+            abi.encode(
+                stablesRoundData.roundId,
+                stablesRoundData.answer,
+                stablesRoundData.startedAt,
+                stablesRoundData.updatedAt,
+                stablesRoundData.answeredInRound
+            )
         );
     }
 

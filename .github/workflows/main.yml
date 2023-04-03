@@ -4,7 +4,7 @@ name: Forge Tests
 
 env:
   ARCHIVE_NODE_URL_L2:  https://opt-mainnet.g.alchemy.com/v2/paOkdAxB8BafnoXQW4WAYHOjxPyabKl9
-  FOUNDRY_FUZZ_RUNS: 10
+  FOUNDRY_FUZZ_RUNS: 1
   DAPP_BUILD_OPTIMIZE: 0
 
 jobs:

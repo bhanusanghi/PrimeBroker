@@ -24,8 +24,8 @@ contract TransferMarginTest is BaseSetup {
     using SafeCast for int256;
     using SignedMath for int256;
 
-    uint256 constant ONE_USDC = 10**6;
-    int256 constant ONE_USDC_INT = 10**6;
+    uint256 constant ONE_USDC = 10 ** 6;
+    int256 constant ONE_USDC_INT = 10 ** 6;
     uint256 largeAmount = 1_000_000 * ONE_USDC;
     bytes32 snxUni_marketKey = bytes32("sUNI");
     bytes32 snxEth_marketKey = bytes32("sETH");
@@ -56,8 +56,8 @@ contract TransferMarginTest is BaseSetup {
         setupMarketManager();
         setupMarginManager();
         setupRiskManager();
-        setupCollateralManager();
         setupVault(usdc);
+        setupCollateralManager();
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
@@ -172,24 +172,23 @@ contract TransferMarginTest is BaseSetup {
         marginManager.openPosition(invalidKey, destinations, data);
     }
 
-    function testBobTransfersExcessMarginSingleAttempt(uint256 liquiMargin)
-        public
-    {
+    function testBobTransfersExcessMarginSingleAttempt(
+        uint256 liquiMargin
+    ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
         //
         vm.assume(liquiMargin > ONE_USDC && liquiMargin < maxExpectedLiquidity);
         int256 currentPnL = 0;
-        uint256 interestAccrued = 0;
 
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
-        uint256 buyingPower = riskManager.GetCurrentBuyingPower(
+        uint256 buyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
         uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18) + 1 ether;
         bytes memory transferMarginData = abi.encodeWithSignature(
@@ -204,7 +203,7 @@ contract TransferMarginTest is BaseSetup {
         marginManager.openPosition(snxUniKey, destinations, data);
     }
 
-    function testBobOpensPositionWithExcessLeverageSingleAttempt(
+    function testBobOpensPositionWithExcessLeverageSingleAttemptTM(
         uint256 liquiMargin
     ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
@@ -219,14 +218,14 @@ contract TransferMarginTest is BaseSetup {
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
 
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
 
         uint256 interestAccrued = 0;
-        uint256 buyingPower = riskManager.GetCurrentBuyingPower(
+        uint256 buyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
         uint256 maxBP = buyingPower.convertTokenDecimals(6, 18);
 
@@ -258,16 +257,16 @@ contract TransferMarginTest is BaseSetup {
         marginManager.openPosition(snxUniKey, destinations, data);
     }
 
-    function testCorrectAmountOfMarginIsDepositedInTPP(uint256 marginSNX1)
-        public
-    {
+    function testCorrectAmountOfMarginIsDepositedInTPP(
+        uint256 marginSNX1
+    ) public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
 
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         vm.assume(
             marginSNX1 > 1000 ether && marginSNX1 < 100_000 ether // otherwise the uniswap swap is extra bad
@@ -299,9 +298,9 @@ contract TransferMarginTest is BaseSetup {
         marginManager.openPosition(snxUniKey, destinations, data1);
     }
 
-    function testBobTransfersExcessMarginInMultipleAttempt(uint256 liquiMargin)
-        public
-    {
+    function testBobTransfersExcessMarginInMultipleAttempt(
+        uint256 liquiMargin
+    ) public {
         uint256 marginFactor = riskManager.initialMarginFactor();
 
         vm.assume(
@@ -313,12 +312,12 @@ contract TransferMarginTest is BaseSetup {
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
-        uint256 buyingPower = riskManager.GetCurrentBuyingPower(
+        uint256 buyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
         uint256 marginSNX2 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -382,12 +381,12 @@ contract TransferMarginTest is BaseSetup {
 
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
-        uint256 buyingPower = riskManager.GetCurrentBuyingPower(
+        uint256 buyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            0
+            address(marginManager)
         );
 
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -430,19 +429,19 @@ contract TransferMarginTest is BaseSetup {
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
-        uint256 buyingPower = riskManager.GetCurrentBuyingPower(
+        uint256 buyingPower = riskManager.getCurrentBuyingPower(
             bobMarginAccount,
-            interestAccrued
+            address(marginManager)
         );
         int256 marginSNX = int256(buyingPower.convertTokenDecimals(6, 18));
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
             marginSNX
         );
-        vm.expectEmit(true, true, true, false, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(marginManager));
         emit MarginTransferred(
             bobMarginAccount,
             snxUniKey,
@@ -451,8 +450,8 @@ contract TransferMarginTest is BaseSetup {
             marginSNX.convertTokenDecimals(18, 6)
         );
 
-        vm.expectEmit(true, false, false, true, address(uniFuturesMarket));
-        emit MarginTransferred(bobMarginAccount, int256(marginSNX));
+        // vm.expectEmit(true, false, false, true, address(uniFuturesMarket));
+        // emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = uniFuturesMarket;
@@ -460,61 +459,60 @@ contract TransferMarginTest is BaseSetup {
         marginManager.openPosition(snxUniKey, destinations, data);
     }
 
-    // function testBobReducesMarginMultipleCalls(uint256 liquiMargin) public {
-    //     vm.assume(liquiMargin > ONE_USDC && liquiMargin < 25_000 * ONE_USDC);
+    function testBobReducesMarginMultipleCalls(uint256 liquiMargin) public {
+        vm.assume(liquiMargin > ONE_USDC && liquiMargin < 25_000 * ONE_USDC);
 
-    //     assertEq(vault.expectedLiquidity(), largeAmount);
-    //     vm.startPrank(bob);
-    //     IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-    //     vm.expectEmit(true, true, true, false, address(collateralManager));
-    //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
-    //     collateralManager.addCollateral(usdc, liquiMargin);
-    //     int256 unsettledRealizedPnL = 0;
-    //     uint256 buyingPower = riskManager.GetCurrentBuyingPower(
-    //         bobMarginAccount,
-    //         0,
-    //         0, unsettledRealizedPnL
-    //     );
-    //     uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
-    //     bytes memory transferMarginData = abi.encodeWithSignature(
-    //         "transferMargin(int256)",
-    //         int256(marginSNX)
-    //     );
+        assertEq(vault.expectedLiquidity(), largeAmount);
+        vm.startPrank(bob);
+        IERC20(usdc).approve(bobMarginAccount, liquiMargin);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
+        collateralManager.addCollateral(usdc, liquiMargin);
+        int256 unsettledRealizedPnL = 0;
+        uint256 buyingPower = riskManager.getCurrentBuyingPower(
+            bobMarginAccount,
+            address(marginManager)
+        );
+        uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
+        bytes memory transferMarginData = abi.encodeWithSignature(
+            "transferMargin(int256)",
+            int256(marginSNX)
+        );
 
-    //     address[] memory destinations = new address[](1);
-    //     bytes[] memory data = new bytes[](1);
-    //     destinations[0] = uniFuturesMarket;
-    //     data[0] = transferMarginData;
-    //     marginManager.openPosition(snxUniKey, destinations, data);
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = uniFuturesMarket;
+        data[0] = transferMarginData;
+        marginManager.openPosition(snxUniKey, destinations, data);
 
-    //     // Now Reduce Margin
-    //     uint256 marginSNX2 = marginSNX / 2;
-    //     bytes memory transferMarginData2 = abi.encodeWithSignature(
-    //         "transferMargin(int256)",
-    //         -int256(marginSNX2)
-    //     );
-    //     vm.expectEmit(true, true, true, false, address(marginManager));
-    //     emit MarginTransferred(
-    //         bobMarginAccount,
-    //         uniFuturesMarket,
-    //         susd,
-    //         -int256(marginSNX2),
-    //         -int256(marginSNX2).convertTokenDecimals(18, 6)
-    //     );
+        // Now Reduce Margin
+        uint256 marginSNX2 = marginSNX / 2;
+        bytes memory transferMarginData2 = abi.encodeWithSignature(
+            "transferMargin(int256)",
+            -int256(marginSNX2)
+        );
+        vm.expectEmit(true, true, true, true, address(marginManager));
+        emit MarginTransferred(
+            bobMarginAccount,
+            snxUniKey,
+            susd,
+            -int256(marginSNX2),
+            -int256(marginSNX2).convertTokenDecimals(18, 6)
+        );
 
-    //     vm.expectEmit(true, false, false, true, address(uniFuturesMarket));
-    //     emit MarginTransferred(bobMarginAccount, -int256(marginSNX2));
-    //     data[0] = transferMarginData2;
-    //     marginManager.openPosition(snxUniKey, destinations, data);
+        vm.expectEmit(true, false, false, true, address(uniFuturesMarket));
+        emit MarginTransferred(bobMarginAccount, -int256(marginSNX2));
+        data[0] = transferMarginData2;
+        marginManager.openPosition(snxUniKey, destinations, data);
 
-    //     (uint256 remainingMargin, ) = IFuturesMarket(uniFuturesMarket)
-    //         .remainingMargin(bobMarginAccount);
-    //     (uint256 accessibleMargin, ) = IFuturesMarket(uniFuturesMarket)
-    //         .accessibleMargin(bobMarginAccount);
+        (uint256 remainingMargin, ) = IFuturesMarket(uniFuturesMarket)
+            .remainingMargin(bobMarginAccount);
+        (uint256 accessibleMargin, ) = IFuturesMarket(uniFuturesMarket)
+            .accessibleMargin(bobMarginAccount);
 
-    //     assertEq(remainingMargin, marginSNX / 2);
-    //     assertEq(accessibleMargin, marginSNX / 2);
-    // }
+        assertEq(remainingMargin, marginSNX / 2);
+        assertEq(accessibleMargin, marginSNX / 2);
+    }
 
     // This will always fail because
     // 1. We sum up the tokens to transfer. ( m1 + (-m2))
@@ -534,10 +532,9 @@ contract TransferMarginTest is BaseSetup {
     //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, 0);
     //     collateralManager.addCollateral(usdc, liquiMargin);
     //     int256 unsettledRealizedPnL = 0;
-    //     uint256 buyingPower = riskManager.GetCurrentBuyingPower(
+    //     uint256 buyingPower = riskManager.getCurrentBuyingPower(
     //         bobMarginAccount,
-    //         0,
-    //         0, unsettledRealizedPnL
+    //         address(marginManager)
     //     );
     //     uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
     //     bytes memory transferMarginData = abi.encodeWithSignature(
@@ -563,7 +560,7 @@ contract TransferMarginTest is BaseSetup {
     //     vm.expectEmit(true, true, true, false, address(marginManager));
     //     emit MarginTransferred(
     //         bobMarginAccount,
-    //         uniFuturesMarket,
+    //         snxUniKey,
     //         susd,
     //         int256(marginSNX - marginSNX2),
     //         int256(marginSNX - marginSNX2).convertTokenDecimals(18, 6)

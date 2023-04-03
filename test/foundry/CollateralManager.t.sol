@@ -5,18 +5,15 @@ import {Utils} from "./utils/Utils.sol";
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 
-import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
-import {IVault} from "../../contracts/Interfaces/Perpfi/IVault.sol";
-import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
-import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
-import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
-import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 
 contract CollateralManagerTest is BaseSetup {
     using SafeMath for uint256;
@@ -29,11 +26,43 @@ contract CollateralManagerTest is BaseSetup {
 
     uint256 constant ONE_USDC = 10 ** 6;
     int256 constant ONE_USDC_INT = 10 ** 6;
+    bytes32 snxUni_marketKey = bytes32("sUNI");
+    bytes32 snxEth_marketKey = bytes32("sETH");
+
+    bytes32 perpAaveKey = keccak256("PERP.AAVE");
+    bytes32 invalidKey = keccak256("BKL.MKC");
+    bytes32 snxUniKey = keccak256("SNX.UNI");
+    bytes32 snxEthKey = keccak256("SNX.ETH");
+    struct OpenPositionParams {
+        address baseToken;
+        bool isBaseToQuote;
+        bool isExactInput;
+        uint256 amount;
+        uint256 oppositeAmountBound;
+        uint256 deadline;
+        uint160 sqrtPriceLimitX96;
+        bytes32 referralCode;
+    }
+    event Deposited(
+        address indexed collateralToken,
+        address indexed trader,
+        uint256 amount
+    );
+    event Withdrawn(
+        address indexed collateralToken,
+        address indexed trader,
+        uint256 amount
+    );
+    address bobMarginAccount;
+    address aliceMarginAccount;
+
+    address uniFuturesMarket;
+
+    address ethFuturesMarket;
+
     uint256 constant CENT = 100;
     uint256 largeAmount = 1_000_000 * ONE_USDC;
 
-    address bobMarginAccount;
-    address aliceMarginAccount;
     uint256 depositAmt = 10000 * ONE_USDC;
 
     function setUp() public {
@@ -49,8 +78,8 @@ contract CollateralManagerTest is BaseSetup {
         setupMarketManager();
         setupMarginManager();
         setupRiskManager();
-        setupCollateralManager();
         setupVault(usdc);
+        setupCollateralManager();
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
@@ -84,6 +113,7 @@ contract CollateralManagerTest is BaseSetup {
         bobMarginAccount = marginManager.openMarginAccount();
         vm.prank(alice);
         aliceMarginAccount = marginManager.openMarginAccount();
+        makeSusdAndUsdcEqualToOne();
         // assume usdc and susd value to be 1
     }
 
@@ -92,8 +122,8 @@ contract CollateralManagerTest is BaseSetup {
         assertEq(vault.expectedLiquidity(), largeAmount);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, _depositAmt);
-        vm.expectEmit(true, true, true, false, address(collateralManager));
-        emit CollateralAdded(bobMarginAccount, usdc, _depositAmt, 0);
+        vm.expectEmit(true, true, true, true, address(collateralManager));
+        emit CollateralAdded(bobMarginAccount, usdc, _depositAmt, _depositAmt);
         collateralManager.addCollateral(usdc, _depositAmt);
         MarginAccount marginAccount = MarginAccount(bobMarginAccount);
         assertEq(
