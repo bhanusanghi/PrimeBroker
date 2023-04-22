@@ -209,9 +209,8 @@ contract UpdatePositionSnx is BaseSetup {
     function testAddExcessMarginShouldFail(int256 extraMargin) public {
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
-        int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
-            snxEthKey
-        );
+        int256 initialMargin = IMarginAccount(bobMarginAccount)
+            .totalDollarMarginInMarkets();
         utils.setAssetPriceSnx(
             etherPriceFeed,
             1500 * 10 ** 8,
@@ -262,9 +261,8 @@ contract UpdatePositionSnx is BaseSetup {
     function testIncreaseMargin(int256 extraMargin) public {
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
-        int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
-            snxEthKey
-        );
+        int256 initialMargin = IMarginAccount(bobMarginAccount)
+            .totalDollarMarginInMarkets();
         utils.setAssetPriceSnx(
             etherPriceFeed,
             1500 * 10 ** 8,
@@ -313,7 +311,7 @@ contract UpdatePositionSnx is BaseSetup {
         vm.prank(bob);
         marginManager.updatePosition(snxEthKey, destinations, data);
         assertEq(
-            MarginAccount(bobMarginAccount).marginInMarket(snxEthKey),
+            IMarginAccount(bobMarginAccount).totalDollarMarginInMarkets(),
             initialMargin + extraMargin
         );
     }
@@ -327,9 +325,8 @@ contract UpdatePositionSnx is BaseSetup {
     function testReduceMargin(int256 extraMargin) public {
         SNXTradingData memory tradeData;
         MarginAccountData memory marginAccountData;
-        int256 initialMargin = IMarginAccount(bobMarginAccount).marginInMarket(
-            snxEthKey
-        );
+        int256 initialMargin = IMarginAccount(bobMarginAccount)
+            .totalDollarMarginInMarkets();
         utils.setAssetPriceSnx(
             etherPriceFeed,
             1500 * 10 ** 8,
@@ -377,7 +374,7 @@ contract UpdatePositionSnx is BaseSetup {
         vm.prank(bob);
         marginManager.updatePosition(snxEthKey, destinations, data);
         assertEq(
-            MarginAccount(bobMarginAccount).marginInMarket(snxEthKey),
+            IMarginAccount(bobMarginAccount).totalDollarMarginInMarkets(),
             initialMargin + extraMargin
         );
     }

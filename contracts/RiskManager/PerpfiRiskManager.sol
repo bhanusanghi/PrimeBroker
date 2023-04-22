@@ -20,7 +20,7 @@ import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
-
+import {IVault} from "../Interfaces/perpfi/IVault.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 
 interface IUniswapV3Pool {
@@ -53,7 +53,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public CP = 0x2f86e2dd;
     bytes4 public WA = 0xf3fef3a3;
     bytes4 public ClosePosition = 0x00aa9a89;
-    address public baseToken;
+    address public marginToken;
     bytes4 public settleFeeSelector = 0xeb9b912e;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
@@ -62,22 +62,25 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
+    IVault public perpVaultUsdc;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
-        address _baseToken,
+        address _marginToken,
         address _contractRegistry,
         address _accountBalance,
         address _marketRegistry,
-        address _clearingHouse
+        address _clearingHouse,
+        address _perpVaultUsdc
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
-        baseToken = _baseToken;
+        marginToken = _marginToken;
         accountBalance = IAccountBalance(_accountBalance);
         // perpExchange = IExchange(_perpExchange);
         //clearingHouseConfig  IClearingHouseConfig(clearingHouseConfig)
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
+        perpVaultUsdc = IVault(_perpVaultUsdc);
     }
 
     //@note: use _init :pointup
@@ -107,34 +110,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
-    function settleFeeForMarket(address account) external returns (int256) {
-        //getFees
-        // aproval or something
-        //send/settle Fee
-        int256 owedRealizedPnl;
-        int256 unrealizedPnl;
-        uint256 pendingFee;
-        (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
-            .getPnlAndPendingFee(account);
-        // clearingHouse.settleAllFunding(account);
-        bytes memory data = abi.encodeWithSelector(settleFeeSelector, account);
-        // @note basetoken is confusing w/ market base tokens
-        // there can be multiple like basetoken for protocol fee and like eth/btc mkt
-        IMarginAccount(account).approveToProtocol(
-            baseToken,
-            address(clearingHouse)
-        );
-        data = IMarginAccount(account).executeTx(address(clearingHouse), data);
-        // MA call ic, data
-        return 0;
-    }
-
     function getFees(address _baseToken) public view returns (uint256) {
         return marketRegistry.getFeeRatio(_baseToken);
-    }
-
-    function getBaseToken() external view returns (address) {
-        return baseToken;
     }
 
     // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
@@ -184,15 +161,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             } else if (funSig == WA) {
                 marginDelta = -abi.decode(data[i][36:], (int256));
             } else if (funSig == OpenPosition) {
-                // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
-                // refer -
-                /**    struct ClosePositionParams {
-        address baseToken;
-        uint160 sqrtPriceLimitX96;
-        uint256 oppositeAmountBound;
-        uint256 deadline;
-        bytes32 referralCode;
-    } */
                 (
                     address _baseToken,
                     bool isShort, //isBaseToQuote
@@ -318,13 +286,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         }
     }
 
-    // Delta margin is realized PnL for SnX
-    function getRealizedPnL(
-        address marginAccount
-    ) external view returns (int256) {
-        return 0;
-    }
-
     function getUnrealizedPnL(
         address marginAccount
     ) external returns (int256 pnl) {
@@ -340,5 +301,16 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
         pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
+    }
+
+    function getDollarMarginInMarkets(
+        address marginAccount
+    ) external view returns (int256 marginInMarkets) {
+        return perpVaultUsdc.getBalance(marginAccount);
+        // is in usdc so no need to convert decimals.
+    }
+
+    function getMarginToken() external view returns (address) {
+        return marginToken;
     }
 }

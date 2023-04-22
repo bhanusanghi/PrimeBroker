@@ -36,9 +36,7 @@ contract MarginAccount is IMarginAccount, UniExchange {
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
     // dollar value in 6 decimal digits.
-    mapping(bytes32 => int256) public marginInMarket;
-
-    int256 public totalMarginInMarkets;
+    int256 public totalDollarMarginInMarkets;
 
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
      serves multiple purposes
@@ -190,17 +188,12 @@ contract MarginAccount is IMarginAccount, UniExchange {
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
-    // @note updates margin in perticular market and increases totalMarginInMarket.
-    function updateMarginInMarket(
-        bytes32 market,
-        int256 transferredMargin
-    ) public override {
-        require(
-            marginInMarket[market].add(transferredMargin) > 0,
-            "MA: Cannot have negative margin In protocol"
-        );
-        totalMarginInMarkets = totalMarginInMarkets.add(transferredMargin);
-        marginInMarket[market] = marginInMarket[market].add(transferredMargin);
+    function updateDollarMarginInMarkets(int256 transferredMargin) public override {
+        // require(
+        //     marginInMarket[market].add(transferredMargin) > 0,
+        //     "MA: Cannot have negative margin In protocol"
+        // );
+        totalDollarMarginInMarkets = totalDollarMarginInMarkets.add(transferredMargin);
     }
 
     function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {

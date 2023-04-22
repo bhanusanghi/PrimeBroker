@@ -216,18 +216,8 @@ contract Perpfitest is BaseSetup {
             marginManager.marginAccounts(address(bob)),
             perpAaveMarket
         );
-        int256 tempamt = MarginAccount(bobMarginAccount).marginInMarket(
-            perpAaveKey
-        );
-        console.log(
-            "free collateral",
-            bobMarginAccount,
-            depositAmt,
-            tempamt.abs()
-        );
-        console.logInt(tempamt);
         assertApproxEqAbs(
-            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs(),
+            MarginAccount(bobMarginAccount).totalDollarMarginInMarkets().abs(),
             depositAmt,
             10 ** 7
         ); //10usdc
@@ -283,7 +273,7 @@ contract Perpfitest is BaseSetup {
         assertEq(pvault.getFreeCollateral(bobMarginAccount), newDpositAmt);
         assertEq(
             newDpositAmt,
-            MarginAccount(bobMarginAccount).marginInMarket(perpAaveKey).abs()
+            MarginAccount(bobMarginAccount).totalDollarMarginInMarkets().abs()
         );
         // Now try to transfer extra margin and expect to fail.
         vm.expectRevert("Extra Transfer not allowed");

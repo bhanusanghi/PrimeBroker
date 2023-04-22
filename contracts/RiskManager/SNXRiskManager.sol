@@ -25,7 +25,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     using SignedMath for int256;
     using SignedSafeMath for int256;
     IFuturesMarketManager public futureManager;
-    address public baseToken;
+    address public marginToken;
     uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
@@ -35,18 +35,18 @@ contract SNXRiskManager is IProtocolRiskManager {
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
-        address _baseToken,
+        address _marginToken,
         address _contractRegistry,
         uint8 _vaultAssetDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
         vaultAssetDecimals = _vaultAssetDecimals;
-        baseToken = _baseToken;
-        _decimals = ERC20(_baseToken).decimals();
+        marginToken = _marginToken;
+        _decimals = ERC20(_marginToken).decimals();
     }
 
-    function getBaseToken() external view returns (address) {
-        return baseToken;
+    function getMarginToken() external view returns (address) {
+        return marginToken;
     }
 
     function toggleAddressWhitelisting(
@@ -102,13 +102,13 @@ contract SNXRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
-    function getMarginDeltaAcrossMarkets(
+    function _getMarginAcrossMarkets(
         address marginAccount
     )
         internal
         returns (
             // override
-            int256 marginDelta
+            int256 margin
         )
     {
         // uint256 currentMargin;
@@ -125,15 +125,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             // This is in 18 decimal digits
             (, , uint256 remainingMargin, , ) = IFuturesMarket(allMarkets[i])
                 .positions(marginAccount);
-            remainingMargin = remainingMargin.convertTokenDecimals(
-                _decimals,
-                vaultAssetDecimals
-            );
-            // This is in 6 decimal digits.
-            int256 initialMargin = IMarginAccount(marginAccount).marginInMarket(
-                allMarketnames[i]
-            );
-            marginDelta += (remainingMargin.toInt256() - initialMargin);
+            margin = margin.add(remainingMargin.toInt256());
         }
     }
 
@@ -227,11 +219,14 @@ contract SNXRiskManager is IProtocolRiskManager {
         }
     }
 
-    // Delta margin is realized PnL for SnX
-    function getRealizedPnL(
+    function getDollarMarginInMarkets(
         address marginAccount
-    ) external override returns (int256) {
-        return getMarginDeltaAcrossMarkets(marginAccount);
+    ) external returns (int256) {
+        return
+            _getMarginAcrossMarkets(marginAccount).convertTokenDecimals(
+                _decimals,
+                vaultAssetDecimals
+            );
     }
 
     // returns value in vault decimals

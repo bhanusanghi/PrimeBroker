@@ -46,7 +46,7 @@ interface IMarginAccount is IExchange {
         bytes32 marketKey
     ) external view returns (Position memory);
 
-    function totalMarginInMarkets() external view returns (int256);
+    function totalDollarMarginInMarkets() external view returns (int256);
 
     function getTotalOpeningNotional(
         bytes32[] memory _allowedMarkets
@@ -54,10 +54,7 @@ interface IMarginAccount is IExchange {
 
     function existingPosition(bytes32 marketKey) external view returns (bool);
 
-    function updateMarginInMarket(
-        bytes32 market,
-        int256 transferredMargin
-    ) external;
+    function updateDollarMarginInMarkets(int256 transferredMargin) external;
 
     // function updateMarginInMarket(address market, int256 transferredMargin)
     //     external;
@@ -78,8 +75,6 @@ interface IMarginAccount is IExchange {
     function getTotalOpeningAbsoluteNotional(
         bytes32[] memory _allowedMarkets
     ) external view returns (uint256 totalNotional);
-
-    function marginInMarket(bytes32 market) external view returns (int256);
 
     function unsettledRealizedPnL() external view returns (int256);
 }
