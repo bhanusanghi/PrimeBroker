@@ -20,7 +20,7 @@ import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
-import {IVault} from "../Interfaces/perpfi/IVault.sol";
+import {IVault} from "../Interfaces/Perpfi/IVault.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 
 interface IUniswapV3Pool {
