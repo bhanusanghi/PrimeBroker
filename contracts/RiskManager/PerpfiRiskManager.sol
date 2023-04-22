@@ -54,7 +54,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public WA = 0xf3fef3a3;
     bytes4 public ClosePosition = 0x00aa9a89;
     address public marginToken;
-    bytes4 public settleFeeSelector = 0xeb9b912e;
     uint8 private _decimals;
     IContractRegistry contractRegistry;
 
