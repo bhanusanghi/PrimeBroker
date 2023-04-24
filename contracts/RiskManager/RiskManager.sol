@@ -275,7 +275,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
                 .getDollarMarginInMarkets(marginAccount);
-            totalCurrentDollarMargin += totalCurrentDollarMargin.add(
+            totalCurrentDollarMargin = totalCurrentDollarMargin.add(
                 dollarMargin
             );
         }
