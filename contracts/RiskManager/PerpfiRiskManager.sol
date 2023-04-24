@@ -22,6 +22,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
+import "hardhat/console.sol";
 
 interface IUniswapV3Pool {
     function slot0()
@@ -300,6 +301,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
         pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
+        console.log("pnl");
+        console.logInt(pnl);
     }
 
     function getDollarMarginInMarkets(

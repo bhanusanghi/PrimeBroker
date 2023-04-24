@@ -109,7 +109,6 @@ contract UpdatePositionPerp is BaseSetup {
 
         riskManager.setCollateralManager(address(collateralManager));
         riskManager.setVault(address(vault));
-
         marginManager.setVault(address(vault));
         marginManager.SetRiskManager(address(riskManager));
 
@@ -175,7 +174,7 @@ contract UpdatePositionPerp is BaseSetup {
         // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginPerp));
         // marginManager.openPosition(snxEthKey, destinations, data);
-        // maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount, address(marginManager));
+        // maxBuyingPower = riskManager.getTotalBuyingPower(bobMarginAccount, address(marginManager));
         // (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
         //     ethFuturesMarket
         // ).assetPrice();
@@ -191,7 +190,7 @@ contract UpdatePositionPerp is BaseSetup {
     //    check Chronux position size = -20k usdc
     //    check order fee equality.
 
-    function testUpdateShortAndShortPositionPerp(int256 deltaNotional) public {
+    function testUpdateShortAndShortPositionPerp(uint256 deltaNotional) public {
         uint256 liquiMargin = 100_000 * ONE_USDC;
         uint256 perpMargin = 10000 * ONE_USDC;
         uint256 openNotional = 10000 ether;
@@ -254,6 +253,17 @@ contract UpdatePositionPerp is BaseSetup {
         //     sqrtPriceAfterX96
         // );
         marginManager.openPosition(perpAaveKey, destinations, data1);
+        uint256 totalBuyingPower = riskManager.getTotalBuyingPower(
+            bobMarginAccount
+        );
+        assertEq(
+            riskManager.getRemainingMarginTransfer(bobMarginAccount),
+            totalBuyingPower - perpMargin
+        );
+        assertEq(
+            riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
+            totalBuyingPower.convertTokenDecimals(6, 18) - openNotional
+        );
         // check third party events and value by using static call.
 
         assertEq(
@@ -274,7 +284,7 @@ contract UpdatePositionPerp is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        int256 deltaSize = (deltaNotional) / int256(newMarkPrice);
+        // int256 deltaSize = (deltaNotional) / int256(newMarkPrice);
         data1[0] = abi.encodeWithSelector(
             0xb6b1b6c3,
             perpAaveMarket,
@@ -301,7 +311,20 @@ contract UpdatePositionPerp is BaseSetup {
                 bobMarginAccount,
                 perpAaveMarket
             ),
-            int256(openNotional) + deltaNotional
+            int256(openNotional) + int256(deltaNotional)
+        );
+        assertEq(
+            riskManager.getRemainingMarginTransfer(bobMarginAccount),
+            totalBuyingPower - perpMargin
+        );
+        console2.log("totalBuyingPower", totalBuyingPower);
+        console2.log("openNotional", openNotional);
+        console2.log("deltaNotional", deltaNotional);
+        assertEq(
+            riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
+            totalBuyingPower.convertTokenDecimals(6, 18) -
+                openNotional -
+                deltaNotional
         );
     }
 
@@ -478,9 +501,7 @@ contract UpdatePositionPerp is BaseSetup {
         );
         marginManager.openPosition(perpAaveKey, destinations2, data2);
         // check third party events and value by using static call.
-        uint256 currentBP = riskManager.getCurrentBuyingPower(
-            bobMarginAccount
-        );
+        uint256 currentBP = riskManager.getTotalBuyingPower(bobMarginAccount);
         // vm.assume(
         //     deltaMargin > int256(1 * ONE_USDC) &&
         //         deltaMargin < int256(currentBP)

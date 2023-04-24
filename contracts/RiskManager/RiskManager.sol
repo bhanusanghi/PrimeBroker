@@ -23,6 +23,7 @@ import {IMarginManager} from "../Interfaces/IMarginManager.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
+import "hardhat/console.sol";
 
 contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -194,7 +195,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         require(
             buyingPower.convertTokenDecimals(
                 ERC20(vault.asset()).decimals(),
-                18
+                18 // needs to remove this hardcoded value and get from market config dynamically
             ) >= (totalNotional.add(positionOpenNotional)).abs(),
             "Extra leverage not allowed"
         );
@@ -255,14 +256,14 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 .abs();
     }
 
-    function getCurrentBuyingPower(
+    function getTotalBuyingPower(
         address marginAccount
-    ) external returns (uint256) {
-        return
-            _getAbsTotalCollateralValue(marginAccount).mulDiv(
-                100,
-                initialMarginFactor
-            );
+    ) external returns (uint256 buyingPower) {
+        buyingPower = _getAbsTotalCollateralValue(marginAccount).mulDiv(
+            100,
+            initialMarginFactor
+        );
+        console.log("buying power", buyingPower);
     }
 
     // @note This finds and returns delta margin across all markets.
@@ -352,8 +353,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         int256 totalOpenNotional = IMarginAccount(marginAccount)
             .getTotalOpeningNotional(_whitelistedMarketNames);
         return
-            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
-                totalOpenNotional.abs()
-            );
+            (_totalCollateralValue.mul(100).div(initialMarginFactor))
+                .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
+                .sub(totalOpenNotional.abs()); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
     }
 }

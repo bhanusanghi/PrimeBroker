@@ -218,7 +218,7 @@ contract OpenPositionSnX is BaseSetup {
         vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.getCurrentBuyingPower(
+        maxBuyingPower = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
@@ -667,7 +667,7 @@ contract OpenPositionSnX is BaseSetup {
         //     tradeData.positionSize
         // );
         vm.stopPrank();
-        // marginAccountData.bpBeforePnL = riskManager.GetCurrentBuyingPower(
+        // marginAccountData.bpBeforePnL = riskManager.getTotalBuyingPower(
         //     bobMarginAccount,
         //     address(marginManager)
         // );
@@ -730,7 +730,7 @@ contract OpenPositionSnX is BaseSetup {
         //             ERC20(vault.asset()).decimals()
         //         )
         // );
-        // marginAccountData.bpAfterPnL = riskManager.GetCurrentBuyingPower(
+        // marginAccountData.bpAfterPnL = riskManager.getTotalBuyingPower(
         //     bobMarginAccount,
         //     address(marginManager) // interest accrued is 0 currently.
         // );

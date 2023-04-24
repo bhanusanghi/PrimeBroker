@@ -15,6 +15,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
+import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -255,7 +256,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     function getUnrealizedPnL(
         address marginAccount
     ) external override returns (int256 unrealizedPnL) {
-        return _getPositionPnLAcrossMarkets(marginAccount);
+        unrealizedPnL = _getPositionPnLAcrossMarkets(marginAccount);
+        console.log("unrealizedPnL");
+        console.logInt(unrealizedPnL);
     }
 
     function verifyClose(

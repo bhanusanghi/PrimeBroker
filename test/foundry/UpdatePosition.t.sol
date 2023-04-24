@@ -191,7 +191,7 @@ contract UpdatePositionSnx is BaseSetup {
         vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.getCurrentBuyingPower(bobMarginAccount);
+        maxBuyingPower = riskManager.getTotalBuyingPower(bobMarginAccount);
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
         ).assetPrice();
@@ -227,7 +227,7 @@ contract UpdatePositionSnx is BaseSetup {
         uint256 interestAccrued = marginManager.getInterestAccrued(
             bobMarginAccount
         );
-        uint256 remainingBuyingPower = riskManager.getCurrentBuyingPower(
+        uint256 remainingBuyingPower = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         vm.assume(
@@ -278,7 +278,7 @@ contract UpdatePositionSnx is BaseSetup {
         uint256 interestAccrued = marginManager.getInterestAccrued(
             bobMarginAccount
         );
-        uint256 remainingBuyingPower = riskManager.getCurrentBuyingPower(
+        uint256 remainingBuyingPower = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
 
@@ -341,7 +341,7 @@ contract UpdatePositionSnx is BaseSetup {
         uint256 interestAccrued = marginManager.getInterestAccrued(
             bobMarginAccount
         );
-        uint256 remainingBuyingPower = riskManager.getCurrentBuyingPower(
+        uint256 remainingBuyingPower = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
 
@@ -419,7 +419,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         assertEq(p.size, tradeData.positionSize);
 
-        marginAccountData.bpBeforePnL = riskManager.getCurrentBuyingPower(
+        marginAccountData.bpBeforePnL = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         // Update market price by Delta +100
@@ -462,7 +462,7 @@ contract UpdatePositionSnx is BaseSetup {
                 ),
             1 ether
         );
-        marginAccountData.bpAfterPnL = riskManager.getCurrentBuyingPower(
+        marginAccountData.bpAfterPnL = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         marginManager.updateUnsettledRealizedPnL(bob);
@@ -570,7 +570,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         assertEq(p.size, tradeData.positionSize);
 
-        marginAccountData.bpBeforePnL = riskManager.getCurrentBuyingPower(
+        marginAccountData.bpBeforePnL = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         // Update market price by Delta +100
@@ -613,7 +613,7 @@ contract UpdatePositionSnx is BaseSetup {
                 ),
             10 ** 18
         );
-        marginAccountData.bpAfterPnL = riskManager.getCurrentBuyingPower(
+        marginAccountData.bpAfterPnL = riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         marginManager.updateUnsettledRealizedPnL(bob);
