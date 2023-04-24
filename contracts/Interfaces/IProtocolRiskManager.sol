@@ -23,22 +23,12 @@ interface IProtocolRiskManager {
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    )
-        external
-        returns (
-            int256 amount,
-            int256 totalPosition,
-            uint256 fee
-        );
+    ) external returns (int256 amount, int256 totalPosition, uint256 fee);
 
-    function getBaseToken() external view returns (address);
-
-    function settleFeeForMarket(address account) external returns (int256);
-
-    function toggleAddressWhitelisting(address contractAddress, bool isAllowed)
-        external;
-
-    function getRealizedPnL(address marginAccount) external returns (int256);
+    function toggleAddressWhitelisting(
+        address contractAddress,
+        bool isAllowed
+    ) external;
 
     function getUnrealizedPnL(address marginAccount) external returns (int256);
 
@@ -51,4 +41,10 @@ interface IProtocolRiskManager {
     // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external;
+
+    function getDollarMarginInMarkets(
+        address marginAccount
+    ) external returns (int256);
+
+    function getMarginToken() external view returns (address);
 }

@@ -241,7 +241,8 @@ contract BaseSetup is Test {
             address(contractRegistry),
             perpAccountBalance,
             perpMarketRegistry,
-            perpClearingHouse
+            perpClearingHouse,
+            perpVault
         );
         snxRiskManager = new SNXRiskManager(
             susd,

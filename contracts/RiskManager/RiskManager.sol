@@ -24,8 +24,6 @@ import {IExchange} from "../Interfaces/IExchange.sol";
 import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 
-
-
 contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
@@ -91,7 +89,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             _protocolRiskManager
         );
 
-        result.tokenOut = protocolRiskManager.getBaseToken();
+        result.tokenOut = protocolRiskManager.getMarginToken();
 
         (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
             marketKey,
@@ -189,7 +187,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         require(
             buyingPower >=
                 (
-                    marginAccount.totalMarginInMarkets().add(
+                    marginAccount.totalDollarMarginInMarkets().add(
                         marginDeltaDollarValue
                     ) // this is also in vault asset decimals
                 ).abs(),
@@ -218,9 +216,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         require(
             buyingPower >=
                 (
-                    marginAccount.totalMarginInMarkets().add(
+                    marginAccount.totalDollarMarginInMarkets().add(
                         marginDeltaDollarValue
-                    ) // this is also in vault asset decimals
+                    )
                 ).abs(),
             "Extra Transfer not allowed"
         );
@@ -268,19 +266,18 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     // @note This finds and returns delta margin across all markets.
     // This does not take profit or stop loss
-    function getRealizedPnL(
+    function getCurrentDollarMarginInMarkets(
         address marginAccount
-    ) external override returns (int256 totalRealizedPnL) {
+    ) external override returns (int256 totalCurrentDollarMargin) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
         for (uint256 i = 0; i < _riskManagers.length; i++) {
-            // margin acc get bitmask
-            int256 realizedPnL = IProtocolRiskManager(_riskManagers[i])
-                .getRealizedPnL(marginAccount);
-            totalRealizedPnL += realizedPnL;
+            int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
+                .getDollarMarginInMarkets(marginAccount);
+            totalCurrentDollarMargin = totalCurrentDollarMargin.add(
+                dollarMargin
+            );
         }
     }
 

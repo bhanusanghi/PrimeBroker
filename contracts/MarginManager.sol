@@ -411,10 +411,13 @@ contract MarginManager is ReentrancyGuard {
     }
 
     function _updateUnsettledRealizedPnL(address marginAccount) internal {
-        int256 realizedPnL = IRiskManager(riskManager).getRealizedPnL(
-            marginAccount
+        int256 currentDollarMarginInMarket = IRiskManager(riskManager)
+            .getCurrentDollarMarginInMarkets(marginAccount);
+        int256 unsettledRealizedPnL = IMarginAccount(marginAccount)
+            .totalDollarMarginInMarkets() - currentDollarMarginInMarket;
+        IMarginAccount(marginAccount).updateUnsettledRealizedPnL(
+            unsettledRealizedPnL
         );
-        IMarginAccount(marginAccount).updateUnsettledRealizedPnL(realizedPnL);
     }
 
     // this will actually take profit or stop loss by closing the respective positions.
@@ -522,8 +525,7 @@ contract MarginManager is ReentrancyGuard {
         }
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
-            marginAcc.updateMarginInMarket(
-                marketKey,
+            marginAcc.updateDollarMarginInMarkets(
                 verificationResult.marginDeltaDollarValue
             );
             emit MarginTransferred(
