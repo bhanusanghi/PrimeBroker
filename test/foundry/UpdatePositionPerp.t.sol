@@ -306,6 +306,7 @@ contract UpdatePositionPerp is BaseSetup {
         // );
         marginManager.updatePosition(perpAaveKey, destinations, data1);
         // check third party events and value by using static call.
+        totalBuyingPower = riskManager.getTotalBuyingPower(bobMarginAccount);
         assertEq(
             IAccountBalance(perpAccountBalance).getTotalOpenNotional(
                 bobMarginAccount,

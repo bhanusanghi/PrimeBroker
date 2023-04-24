@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
@@ -22,6 +23,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "hardhat/console.sol";
 
 interface IUniswapV3Pool {
@@ -45,6 +47,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+    using SettlementTokenMath for int256;
     using SignedSafeMath for int256;
     // address public perp
     // function getPositionOpenNotional(address marginAcc) public override {}
@@ -55,9 +58,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public WA = 0xf3fef3a3;
     bytes4 public ClosePosition = 0x00aa9a89;
     address public marginToken;
-    uint8 private _decimals;
+    uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
+    uint8 public marginTokenDecimals;
+    uint8 public positionDecimals;
     IContractRegistry contractRegistry;
-
     // IExchange public perpExchange;
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
@@ -71,16 +75,19 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address _accountBalance,
         address _marketRegistry,
         address _clearingHouse,
-        address _perpVaultUsdc
+        address _perpVaultUsdc,
+        uint8 _vaultAssetDecimals,
+        uint8 _positionDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
-        marginToken = _marginToken;
         accountBalance = IAccountBalance(_accountBalance);
-        // perpExchange = IExchange(_perpExchange);
-        //clearingHouseConfig  IClearingHouseConfig(clearingHouseConfig)
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
         perpVaultUsdc = IVault(_perpVaultUsdc);
+        vaultAssetDecimals = _vaultAssetDecimals;
+        positionDecimals = _positionDecimals;
+        marginTokenDecimals = ERC20(_marginToken).decimals();
+        marginToken = _marginToken;
     }
 
     //@note: use _init :pointup
@@ -300,9 +307,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
-        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
-        console.log("pnl");
-        console.logInt(pnl);
+        pnl = (unrealizedPnl.add(owedRealizedPnl).add(pendingFee.toInt256()))
+            .convertTokenDecimals(positionDecimals, vaultAssetDecimals);
     }
 
     function getDollarMarginInMarkets(

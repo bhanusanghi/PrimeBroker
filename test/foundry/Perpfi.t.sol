@@ -210,12 +210,7 @@ contract Perpfitest is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations, data);
         IVault pvault = IVault(perpVault);
         assertEq(pvault.getFreeCollateral(bobMarginAccount), depositAmt);
-        console.log(
-            "free collateral",
-            address(bob),
-            marginManager.marginAccounts(address(bob)),
-            perpAaveMarket
-        );
+
         assertApproxEqAbs(
             MarginAccount(bobMarginAccount).totalDollarMarginInMarkets().abs(),
             depositAmt,

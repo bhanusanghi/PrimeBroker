@@ -14,7 +14,6 @@ import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/Signed
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import "hardhat/console.sol";
 
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
@@ -213,6 +212,5 @@ contract CollateralManager is ICollateralManager {
                 )
             );
         }
-        console.log("Total Collateral Value:", totalAmount);
     }
 }

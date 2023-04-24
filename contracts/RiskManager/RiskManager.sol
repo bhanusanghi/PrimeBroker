@@ -263,7 +263,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             100,
             initialMarginFactor
         );
-        console.log("buying power", buyingPower);
     }
 
     // @note This finds and returns delta margin across all markets.
@@ -329,7 +328,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             address(marginAccount)
         );
         int256 marginInMarkets = IMarginAccount(marginAccount)
-            .totalMarginInMarkets();
+            .totalDollarMarginInMarkets();
         return
             (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
                 uint256(marginInMarkets)

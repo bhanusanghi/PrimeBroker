@@ -262,11 +262,11 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        console.log(
-            "liquidate",
-            verificationResult.position.size.abs(),
-            verificationResult.marginDeltaDollarValue.abs()
-        );
+        // console.log(
+        //     "liquidate",
+        //     verificationResult.position.size.abs(),
+        //     verificationResult.marginDeltaDollarValue.abs()
+        // );
         // require(positionSize.abs() == marginAcc.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
         // require(
         //     tokensToTransfer <= 0 && positionSize < 0,

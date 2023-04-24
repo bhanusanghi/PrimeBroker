@@ -246,12 +246,15 @@ contract BaseSetup is Test {
             perpAccountBalance,
             perpMarketRegistry,
             perpClearingHouse,
-            perpVault
+            perpVault,
+            ERC20(vault.asset()).decimals(),
+            18
         );
         snxRiskManager = new SNXRiskManager(
             susd,
             address(contractRegistry),
-            ERC20(vault.asset()).decimals()
+            ERC20(vault.asset()).decimals(),
+            18
         );
     }
 
