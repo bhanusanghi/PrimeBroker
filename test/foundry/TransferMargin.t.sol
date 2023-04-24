@@ -14,6 +14,7 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 contract TransferMarginTest is BaseSetup {
     using SafeMath for uint256;
@@ -445,7 +446,10 @@ contract TransferMarginTest is BaseSetup {
         assertEq(riskManager.getRemainingMarginTransfer(bobMarginAccount), 0);
         assertEq(
             riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
-            buyingPower
+            buyingPower.convertTokenDecimals(
+                ERC20(vault.asset()).decimals(),
+                18
+            )
         );
     }
 
