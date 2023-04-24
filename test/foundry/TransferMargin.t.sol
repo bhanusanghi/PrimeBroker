@@ -187,8 +187,7 @@ contract TransferMarginTest is BaseSetup {
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18) + 1 ether;
         bytes memory transferMarginData = abi.encodeWithSignature(
@@ -224,8 +223,7 @@ contract TransferMarginTest is BaseSetup {
 
         uint256 interestAccrued = 0;
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         uint256 maxBP = buyingPower.convertTokenDecimals(6, 18);
 
@@ -316,8 +314,7 @@ contract TransferMarginTest is BaseSetup {
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
         uint256 marginSNX2 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -385,8 +382,7 @@ contract TransferMarginTest is BaseSetup {
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
 
         uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
@@ -433,8 +429,7 @@ contract TransferMarginTest is BaseSetup {
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
         collateralManager.addCollateral(usdc, liquiMargin);
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         int256 marginSNX = int256(buyingPower.convertTokenDecimals(6, 18));
         bytes memory transferMarginData = abi.encodeWithSignature(
@@ -470,8 +465,7 @@ contract TransferMarginTest is BaseSetup {
         collateralManager.addCollateral(usdc, liquiMargin);
         int256 unsettledRealizedPnL = 0;
         uint256 buyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         uint256 marginSNX = buyingPower.convertTokenDecimals(6, 18);
         bytes memory transferMarginData = abi.encodeWithSignature(

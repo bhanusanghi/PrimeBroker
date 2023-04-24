@@ -219,8 +219,7 @@ contract OpenPositionSnX is BaseSetup {
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
         maxBuyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket

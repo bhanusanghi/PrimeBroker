@@ -269,8 +269,7 @@ contract ClosePosition is BaseSetup {
         emit MarginTransferred(bobMarginAccount, int256(marginSNX));
         marginManager.openPosition(snxEthKey, destinations, data);
         maxBuyingPower = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
             ethFuturesMarket
@@ -330,8 +329,7 @@ contract ClosePosition is BaseSetup {
         assertEq(p.size, tradeData.positionSize);
 
         marginAccountData.bpBeforePnL = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         // Update market price by Delta +100
         // increase blocks

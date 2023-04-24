@@ -479,8 +479,7 @@ contract UpdatePositionPerp is BaseSetup {
         marginManager.openPosition(perpAaveKey, destinations2, data2);
         // check third party events and value by using static call.
         uint256 currentBP = riskManager.getCurrentBuyingPower(
-            bobMarginAccount,
-            address(marginManager)
+            bobMarginAccount
         );
         // vm.assume(
         //     deltaMargin > int256(1 * ONE_USDC) &&

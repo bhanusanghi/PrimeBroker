@@ -125,8 +125,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // pnl is in vault decimals
         // BP is in vault decimals
         uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount),
-            interestAccrued
+            address(marginAccount)
         ).mulDiv(100, initialMarginFactor);
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
@@ -159,8 +158,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             interestAccrued
         );
         uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount),
-            interestAccrued
+            address(marginAccount)
         );
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
@@ -238,30 +236,33 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // remainingBuyingPower = (TotalCollateralValue - interest accrue + unsettledRealizedPnL + unrealized PnL) / marginFactor
     // note @dev - returns buying power in vault.asset.decimals
     function _getAbsTotalCollateralValue(
-        address marginAccount,
-        uint256 interestAccrued
-    ) internal returns (uint256 buyingPower) {
+        address marginAccount
+    ) internal returns (uint256) {
+        address marginManager = contractRegistery.getContractByName(
+            keccak256("MarginManager")
+        );
+        uint256 interestAccrued = IMarginManager(marginManager)
+            .getInterestAccrued(marginAccount);
         // unsettledRealizedPnL is in vault decimals
         // unrealizedPnL is in vault decimals
-        buyingPower = collateralManager
-            .totalCollateralValue(marginAccount)
-            .sub(interestAccrued)
-            .toInt256()
-            .add(_getUnrealizedPnL(marginAccount))
-            .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
-            .abs();
+        return
+            collateralManager
+                .totalCollateralValue(marginAccount)
+                .sub(interestAccrued)
+                .toInt256()
+                .add(_getUnrealizedPnL(marginAccount))
+                .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
+                .abs();
     }
 
     function getCurrentBuyingPower(
-        address marginAccount,
-        address marginManager
-    ) external returns (uint256 buyingPower) {
-        uint256 interestAccrued = IMarginManager(marginManager)
-            .getInterestAccrued(marginAccount);
-        buyingPower = _getAbsTotalCollateralValue(
-            marginAccount,
-            interestAccrued
-        ).mulDiv(100, initialMarginFactor);
+        address marginAccount
+    ) external returns (uint256) {
+        return
+            _getAbsTotalCollateralValue(marginAccount).mulDiv(
+                100,
+                initialMarginFactor
+            );
     }
 
     // @note This finds and returns delta margin across all markets.
@@ -313,4 +314,46 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
+
+    function getRemainingMarginTransfer(
+        address _marginAccount
+    ) public returns (uint256) {
+        return _getRemainingMarginTransfer(_marginAccount);
+    }
+
+    function _getRemainingMarginTransfer(
+        address marginAccount
+    ) private returns (uint256) {
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            address(marginAccount)
+        );
+        int256 marginInMarkets = IMarginAccount(marginAccount)
+            .totalMarginInMarkets();
+        return
+            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
+                uint256(marginInMarkets)
+            );
+    }
+
+    function getRemainingPositionOpenNotional(
+        address _marginAccount
+    ) public returns (uint256) {
+        return _getRemainingPositionOpenNotional(_marginAccount);
+    }
+
+    function _getRemainingPositionOpenNotional(
+        address marginAccount
+    ) private returns (uint256) {
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            address(marginAccount)
+        );
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketNames();
+        int256 totalOpenNotional = IMarginAccount(marginAccount)
+            .getTotalOpeningNotional(_whitelistedMarketNames);
+        return
+            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
+                totalOpenNotional.abs()
+            );
+    }
 }

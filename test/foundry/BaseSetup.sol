@@ -196,6 +196,10 @@ contract BaseSetup is Test {
             marketManager,
             priceOracle
         );
+        contractRegistry.addContractToRegistry(
+            keccak256("MarginManager"),
+            address(marginManager)
+        );
     }
 
     function setupRiskManager() internal {
