@@ -61,13 +61,6 @@ contract SNXRiskManager is IProtocolRiskManager {
         whitelistedAddresses[contractAddress] = isAllowed;
     }
 
-    function previewPosition(bytes memory data) public {
-        /**
-        (marketKey, sizeDelta) = txDataDecoder(data)
-        if long check with snx for available margin
-       */
-    }
-
     function settleFeeForMarket(address account) external returns (int256) {
         int256 funding;
         int256 pnl;
@@ -273,5 +266,22 @@ contract SNXRiskManager is IProtocolRiskManager {
         //     data
         // );
         //    require(totalPosition<0&&amount<=0,"Invalid close data:SNX");
+    }
+
+    function getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) external view returns (Position memory position) {
+        // TODO - need to fetch futures market address from market config.
+        address market = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketAddress(marketKey);
+        (, , , uint128 lastPrice, int128 size) = IFuturesMarket(market)
+            .positions(marginAccount);
+        position.size = size;
+        position.openNotional = int256(size).mul(int128(lastPrice)).div(
+            1 ether // check if needed.
+        );
+        // TODO - check how to get order fee
     }
 }

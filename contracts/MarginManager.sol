@@ -158,6 +158,20 @@ contract MarginManager is ReentrancyGuard {
         return marginAccounts[trader];
     }
 
+    function _executePostMarketOrderUpdates(
+        IMarginAccount marginAcc,
+        bytes32 marketKey,
+        VerifyTradeResult memory verificationResult,
+        Position memory position
+    ) internal {
+        // update position size and notional.
+        Position memory marketPosition = riskManager.getMarketPosition(
+            marketKey
+        );
+        // check slippage
+        // updateUnsettledRealizedPnL
+    }
+
     function openPosition(
         bytes32 marketKey,
         address[] calldata destinations,
@@ -186,6 +200,12 @@ contract MarginManager is ReentrancyGuard {
             position.openNotional
         );
         marginAcc.execMultiTx(destinations, data);
+        _executePostMarketOrderUpdates(
+            marginAcc,
+            marketKey,
+            verificationResult,
+            position
+        );
     }
 
     function updatePosition(

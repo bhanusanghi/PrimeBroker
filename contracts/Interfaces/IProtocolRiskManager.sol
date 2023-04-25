@@ -47,4 +47,9 @@ interface IProtocolRiskManager {
     ) external returns (int256);
 
     function getMarginToken() external view returns (address);
+
+    function getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) external view returns (Position memory position);
 }

@@ -321,4 +321,20 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     function getMarginToken() external view returns (address) {
         return marginToken;
     }
+
+    function getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) external view returns (int256 positionSize, int256 openNotional) {
+        address baseToken = marketRegistry.getMarketBaseTokenAddress(marketKey);
+        positionSize = accountBalance.getTakerPositionSize(
+            marginAccount,
+            baseToken
+        );
+        positionNotional = accountBalance.getTotalOpenNotional(
+            marginAccount,
+            baseToken
+        );
+        // TODO - check if order fee is already accounted for in this.
+    }
 }

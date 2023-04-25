@@ -205,6 +205,10 @@ contract BaseSetup is Test {
     function setupRiskManager() internal {
         riskManager = new RiskManager(contractRegistry, marketManager);
         riskManager.setPriceOracle(address(priceOracle));
+        contractRegistry.addContractToRegistry(
+            keccak256("MarginManager"),
+            address(marginManager)
+        );
     }
 
     function setupCollateralManager() internal {

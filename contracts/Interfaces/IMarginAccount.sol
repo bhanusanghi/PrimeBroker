@@ -9,6 +9,7 @@ struct Position {
     int256 openNotional;
     int256 size;
     uint256 orderFee; // this refers to position opening fee as seen from SNX and Perp PRMs
+    uint256 lastPrice;
 }
 
 interface IMarginAccount is IExchange {
