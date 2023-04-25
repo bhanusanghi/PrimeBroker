@@ -206,8 +206,8 @@ contract BaseSetup is Test {
         riskManager = new RiskManager(contractRegistry, marketManager);
         riskManager.setPriceOracle(address(priceOracle));
         contractRegistry.addContractToRegistry(
-            keccak256("MarginManager"),
-            address(marginManager)
+            keccak256("RiskManager"),
+            address(riskManager)
         );
     }
 
