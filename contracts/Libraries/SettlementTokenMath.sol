@@ -4,7 +4,6 @@ pragma solidity ^0.8.10;
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 
-
 /// @dev decimals of settlementToken token MUST be less than 18
 /// copy from perp math
 library SettlementTokenMath {
@@ -84,40 +83,36 @@ library SettlementTokenMath {
     }
 
     // returns number with 18 decimals
-    function parseSettlementToken(uint256 amount, uint8 decimals)
-        internal
-        pure
-        returns (uint256)
-    {
-        return amount.mul(10**(18 - decimals));
+    function parseSettlementToken(
+        uint256 amount,
+        uint8 decimals
+    ) internal pure returns (uint256) {
+        return amount.mul(10 ** (18 - decimals));
     }
 
     // returns number with 18 decimals
-    function parseSettlementToken(int256 amount, uint8 decimals)
-        internal
-        pure
-        returns (int256)
-    {
-        return amount.mul(int256(10**(18 - decimals)));
+    function parseSettlementToken(
+        int256 amount,
+        uint8 decimals
+    ) internal pure returns (int256) {
+        return amount.mul(int256(10 ** (18 - decimals)));
     }
 
     // returns number converted from 18 decimals to settlementToken's decimals
-    function formatSettlementToken(uint256 amount, uint8 decimals)
-        internal
-        pure
-        returns (uint256)
-    {
-        return amount.div(10**(18 - decimals));
+    function formatSettlementToken(
+        uint256 amount,
+        uint8 decimals
+    ) internal pure returns (uint256) {
+        return amount.div(10 ** (18 - decimals));
     }
 
     // returns number converted from 18 decimals to settlementToken's decimals
     // will always round down no matter positive value or negative value
-    function formatSettlementToken(int256 amount, uint8 decimals)
-        internal
-        pure
-        returns (int256)
-    {
-        uint256 denominator = 10**(18 - decimals);
+    function formatSettlementToken(
+        int256 amount,
+        uint8 decimals
+    ) internal pure returns (int256) {
+        uint256 denominator = 10 ** (18 - decimals);
         int256 rounding = 0;
         if (amount < 0 && uint256(-amount) % denominator != 0) {
             rounding = -1;
@@ -131,14 +126,14 @@ library SettlementTokenMath {
         uint256 amount,
         uint8 fromDecimals,
         uint8 toDecimals
-    ) internal returns (uint256) {
+    ) internal pure returns (uint256) {
         if (fromDecimals == toDecimals) {
             return amount;
         }
         return
             fromDecimals > toDecimals
-                ? amount.div(10**(fromDecimals - toDecimals))
-                : amount.mul(10**(toDecimals - fromDecimals));
+                ? amount.div(10 ** (fromDecimals - toDecimals))
+                : amount.mul(10 ** (toDecimals - fromDecimals));
     }
 
     // returns number converted between specified decimals
@@ -147,16 +142,16 @@ library SettlementTokenMath {
         int256 amount,
         uint8 fromDecimals,
         uint8 toDecimals
-    ) internal returns (int256) {
+    ) internal pure returns (int256) {
         if (fromDecimals == toDecimals) {
             return amount;
         }
 
         if (fromDecimals < toDecimals) {
-            return amount.mul(int256(10**(toDecimals - fromDecimals)));
+            return amount.mul(int256(10 ** (toDecimals - fromDecimals)));
         }
 
-        uint256 denominator = 10**(fromDecimals - toDecimals);
+        uint256 denominator = 10 ** (fromDecimals - toDecimals);
         int256 rounding = 0;
         if (amount < 0 && uint256(-amount) % denominator != 0) {
             rounding = -1;

@@ -187,14 +187,14 @@ contract CollateralManager is ICollateralManager {
 
     function totalCollateralValue(
         address _marginAccount
-    ) external returns (uint256 totalAmount) {
+    ) external view returns (uint256 totalAmount) {
         return _totalCollateralValue(_marginAccount);
     }
 
     // sends usdc value with 6 decimals. (Vault base decimals)
     function _totalCollateralValue(
         address _marginAccount
-    ) internal returns (uint256 totalAmount) {
+    ) internal view returns (uint256 totalAmount) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (

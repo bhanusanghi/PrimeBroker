@@ -21,25 +21,12 @@ import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IUniswapV3Pool} from "../Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "hardhat/console.sol";
-
-interface IUniswapV3Pool {
-    function slot0()
-        external
-        view
-        returns (
-            uint160 sqrtPriceX96,
-            int24 tick,
-            uint16 observationIndex,
-            uint16 observationCardinality,
-            uint32 observationCardinalityNext,
-            uint8 feeProtocol,
-            bool unlocked
-        );
-}
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -194,17 +181,17 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     position.size = -_amount;
-                    position.openNotional = -(_amount * markPrice) / 1 ether;
+                    position.openNotional = -(_amount * markPrice);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
                     position.openNotional = -_amount;
-                    position.size = -(_amount * 1 ether) / markPrice;
+                    position.size = -(_amount) / markPrice;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
                     position.openNotional = _amount;
-                    position.size = (_amount * 1 ether) / markPrice;
+                    position.size = (_amount) / markPrice;
                 } else if (!isShort && !isExactInput) {
-                    position.openNotional = (_amount * markPrice) / 1 ether;
+                    position.openNotional = (_amount * markPrice);
                     position.size = _amount;
                 } else {
                     revert("impossible shit");
@@ -295,7 +282,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     function getUnrealizedPnL(
         address marginAccount
-    ) external returns (int256 pnl) {
+    ) external view returns (int256 pnl) {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
@@ -325,16 +312,25 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     function getMarketPosition(
         address marginAccount,
         bytes32 marketKey
-    ) external view returns (int256 positionSize, int256 openNotional) {
-        address baseToken = marketRegistry.getMarketBaseTokenAddress(marketKey);
-        positionSize = accountBalance.getTakerPositionSize(
+    ) external view returns (Position memory position) {
+        address baseToken = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketBaseToken(marketKey);
+        int256 marketSize = accountBalance.getTakerPositionSize(
             marginAccount,
             baseToken
         );
-        positionNotional = accountBalance.getTotalOpenNotional(
+        int256 marketOpenNotional = accountBalance.getTotalOpenNotional(
             marginAccount,
             baseToken
         );
+        // means short position
+        position.size = marketSize;
+        position.openNotional = -marketOpenNotional;
+        console.log("positionSize");
+        console.logInt(marketSize);
+        console.log("openNotional");
+        console.logInt(marketOpenNotional);
         // TODO - check if order fee is already accounted for in this.
     }
 }

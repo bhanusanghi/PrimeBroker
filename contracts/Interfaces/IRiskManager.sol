@@ -44,9 +44,14 @@ interface IRiskManager {
 
     function getRemainingMarginTransfer(
         address _marginAccount
-    ) external returns (uint256);
+    ) external view returns (uint256);
 
     function getRemainingPositionOpenNotional(
         address _marginAccount
-    ) external returns (uint256);
+    ) external view returns (uint256);
+
+    function getMarketPosition(
+        address _marginAccount,
+        bytes32 _marketKey
+    ) external view returns (Position memory marketPosition);
 }

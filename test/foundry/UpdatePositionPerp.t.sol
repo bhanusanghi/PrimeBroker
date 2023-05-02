@@ -71,7 +71,7 @@ contract UpdatePositionPerp is BaseSetup {
 
     uint256 constant ONE_USDC = 10 ** 6;
     int256 constant ONE_USDC_INT = 10 ** 6;
-    uint256 largeAmount = 1_000_000 * ONE_USDC;
+    uint256 ONE_MILLION_USDC = 1_000_000 * ONE_USDC;
     uint256 largeEtherAmount = 1_000_000 ether;
     bytes32 snxUni_marketKey = bytes32("sUNI");
     bytes32 snxEth_marketKey = bytes32("sETH");
@@ -107,45 +107,47 @@ contract UpdatePositionPerp is BaseSetup {
         setupVault(usdc);
         setupCollateralManager();
 
-        riskManager.setCollateralManager(address(collateralManager));
-        riskManager.setVault(address(vault));
-        marginManager.setVault(address(vault));
-        marginManager.SetRiskManager(address(riskManager));
+        contracts.riskManager.setCollateralManager(address(contracts.collateralManager));
+        contracts.riskManager.setVault(address(contracts.vault));
+        contracts.marginManager.setVault(address(contracts.vault));
+        contracts.marginManager.SetRiskManager(address(contracts.riskManager));
 
         setupProtocolRiskManagers();
 
-        collateralManager.addAllowedCollateral(usdc, 100);
+        contracts.collateralManager.addAllowedCollateral(usdc, 100);
 
         vm.label(ethFuturesMarket, "ETH futures Market");
-        marketManager.addMarket(
+        contracts.marketManager.addMarket(
             perpAaveKey,
             perpClearingHouse,
-            address(perpfiRiskManager)
+            address(contracts.perpfiRiskManager),
+            perpAaveMarket,
+            usdc
         );
-        perpfiRiskManager.toggleAddressWhitelisting(perpClearingHouse, true);
-        perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
-        perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
-        // PerpfiRiskManager(address(perpfiRiskManager)).setMarketToVToken(
+        contracts.perpfiRiskManager.toggleAddressWhitelisting(perpClearingHouse, true);
+        contracts.perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
+        contracts.perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
+        // PerpfiRiskManager(address(contracts.perpfiRiskManager)).setMarketToVToken(
         //     perpAaveKey,
         //     perpAaveMarket
         // );
 
         vm.startPrank(usdcWhaleContract);
-        IERC20(usdc).transfer(admin, largeAmount * 2);
-        IERC20(usdc).transfer(bob, largeAmount);
+        IERC20(usdc).transfer(admin, ONE_MILLION_USDC * 2);
+        IERC20(usdc).transfer(bob, ONE_MILLION_USDC);
         vm.stopPrank();
 
-        // fund vault.
+        // fund contracts.vault.
         vm.startPrank(admin);
-        IERC20(usdc).approve(address(vault), largeAmount);
-        vault.deposit(largeAmount, admin);
+        IERC20(usdc).approve(address(contracts.vault), ONE_MILLION_USDC);
+        contracts.vault.deposit(ONE_MILLION_USDC, admin);
         vm.stopPrank();
 
         // setup and fund margin accounts.
         vm.prank(bob);
-        bobMarginAccount = marginManager.openMarginAccount();
+        bobMarginAccount = contracts.marginManager.openMarginAccount();
         vm.prank(alice);
-        aliceMarginAccount = marginManager.openMarginAccount();
+        aliceMarginAccount = contracts.marginManager.openMarginAccount();
 
         utils.setAssetPrice(usdcPriceFeed, 100000000, block.timestamp);
         makeSusdAndUsdcEqualToOne();
@@ -153,7 +155,7 @@ contract UpdatePositionPerp is BaseSetup {
         // marginPerp = margin;
         // vm.startPrank(bob);
         // IERC20(usdc).approve(bobMarginAccount, margin);
-        // collateralManager.addCollateral(usdc, margin);
+        // contracts.collateralManager.addCollateral(usdc, margin);
 
         // address[] memory destinations = new address[](2);
         // bytes[] memory data = new bytes[](2);
@@ -173,8 +175,8 @@ contract UpdatePositionPerp is BaseSetup {
 
         // vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
         // emit MarginTransferred(bobMarginAccount, int256(marginPerp));
-        // marginManager.openPosition(snxEthKey, destinations, data);
-        // maxBuyingPower = riskManager.getTotalBuyingPower(bobMarginAccount, address(marginManager));
+        // contracts.marginManager.openPosition(snxEthKey, destinations, data);
+        // maxBuyingPower = contracts.riskManager.getTotalBuyingPower(bobMarginAccount, address(marginManager));
         // (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
         //     ethFuturesMarket
         // ).assetPrice();
@@ -198,13 +200,13 @@ contract UpdatePositionPerp is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        int256 positionSize = int256(((openNotional) * 1 ether) / markPrice);
-        assertEq(vault.expectedLiquidity(), largeAmount);
+        int256 positionSize = int256(openNotional / markPrice);
+        assertEq(contracts.vault.expectedLiquidity(), ONE_MILLION_USDC);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, true, address(collateralManager));
+        vm.expectEmit(true, true, true, true, address(contracts.collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
-        collateralManager.addCollateral(usdc, liquiMargin);
+        contracts.collateralManager.addCollateral(usdc, liquiMargin);
 
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);
@@ -252,16 +254,16 @@ contract UpdatePositionPerp is BaseSetup {
         //     0,
         //     sqrtPriceAfterX96
         // );
-        marginManager.openPosition(perpAaveKey, destinations, data1);
-        uint256 totalBuyingPower = riskManager.getTotalBuyingPower(
+        contracts.marginManager.openPosition(perpAaveKey, destinations, data1);
+        uint256 totalBuyingPower = contracts.riskManager.getTotalBuyingPower(
             bobMarginAccount
         );
         assertEq(
-            riskManager.getRemainingMarginTransfer(bobMarginAccount),
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount),
             totalBuyingPower - perpMargin
         );
         assertEq(
-            riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
+            contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
             totalBuyingPower.convertTokenDecimals(6, 18) - openNotional
         );
         // check third party events and value by using static call.
@@ -304,9 +306,9 @@ contract UpdatePositionPerp is BaseSetup {
         //     -int256(positionSize) - deltaSize,
         //     -int256(openNotional) - deltaNotional // negative because we are shorting it.
         // );
-        marginManager.updatePosition(perpAaveKey, destinations, data1);
+        contracts.marginManager.updatePosition(perpAaveKey, destinations, data1);
         // check third party events and value by using static call.
-        totalBuyingPower = riskManager.getTotalBuyingPower(bobMarginAccount);
+        totalBuyingPower = contracts.riskManager.getTotalBuyingPower(bobMarginAccount);
         assertEq(
             IAccountBalance(perpAccountBalance).getTotalOpenNotional(
                 bobMarginAccount,
@@ -315,14 +317,14 @@ contract UpdatePositionPerp is BaseSetup {
             int256(openNotional) + int256(deltaNotional)
         );
         assertEq(
-            riskManager.getRemainingMarginTransfer(bobMarginAccount),
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount),
             totalBuyingPower - perpMargin
         );
         console2.log("totalBuyingPower", totalBuyingPower);
         console2.log("openNotional", openNotional);
         console2.log("deltaNotional", deltaNotional);
         assertEq(
-            riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
+            contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount),
             totalBuyingPower.convertTokenDecimals(6, 18) -
                 openNotional -
                 deltaNotional
@@ -346,13 +348,13 @@ contract UpdatePositionPerp is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        int256 positionSize = int256(((openNotional) * 1 ether) / markPrice);
-        assertEq(vault.expectedLiquidity(), largeAmount);
+        int256 positionSize = int256(openNotional / markPrice);
+        assertEq(contracts.vault.expectedLiquidity(), ONE_MILLION_USDC);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, true, address(collateralManager));
+        vm.expectEmit(true, true, true, true, address(contracts.collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
-        collateralManager.addCollateral(usdc, liquiMargin);
+        contracts.collateralManager.addCollateral(usdc, liquiMargin);
 
         address[] memory destinations = new address[](3);
         bytes[] memory data1 = new bytes[](3);
@@ -400,7 +402,7 @@ contract UpdatePositionPerp is BaseSetup {
         //     0,
         //     sqrtPriceAfterX96
         // );
-        marginManager.openPosition(perpAaveKey, destinations, data1);
+        contracts.marginManager.openPosition(perpAaveKey, destinations, data1);
         // check third party events and value by using static call.
 
         assertEq(
@@ -420,7 +422,7 @@ contract UpdatePositionPerp is BaseSetup {
         //         deltaNotional < 25000 ether &&
         //         deltaNotional != int256(openNotional) // this would close the position.
         // );
-        int256 deltaNotional = 10000 ether;
+        int256 deltaNotional = 20000 ether;
         uint256 newMarkPrice = utils.getMarkPricePerp(
             perpMarketRegistry,
             perpAaveMarket
@@ -445,7 +447,7 @@ contract UpdatePositionPerp is BaseSetup {
         //     -int256(positionSize) + deltaSize,
         //     -int256(openNotional) + deltaNotional // negative because we are shorting it.
         // );
-        marginManager.updatePosition(perpAaveKey, destinations, data1);
+        contracts.marginManager.updatePosition(perpAaveKey, destinations, data1);
         // check third party events and value by using static call.
         assertApproxEqAbs(
             IAccountBalance(perpAccountBalance).getTotalOpenNotional(
@@ -470,12 +472,12 @@ contract UpdatePositionPerp is BaseSetup {
         uint256 liquiMargin = 100_000 * ONE_USDC;
         uint256 perpMargin = 10_000 * ONE_USDC;
 
-        assertEq(vault.expectedLiquidity(), largeAmount);
+        assertEq(contracts.vault.expectedLiquidity(), ONE_MILLION_USDC);
         vm.startPrank(bob);
         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(true, true, true, true, address(collateralManager));
+        vm.expectEmit(true, true, true, true, address(contracts.collateralManager));
         emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
-        collateralManager.addCollateral(usdc, liquiMargin);
+        contracts.collateralManager.addCollateral(usdc, liquiMargin);
 
         address[] memory destinations2 = new address[](2);
         bytes[] memory data2 = new bytes[](2);
@@ -500,9 +502,9 @@ contract UpdatePositionPerp is BaseSetup {
             int256(perpMargin),
             int256(perpMargin) // negative because we are shorting it.
         );
-        marginManager.openPosition(perpAaveKey, destinations2, data2);
+        contracts.marginManager.openPosition(perpAaveKey, destinations2, data2);
         // check third party events and value by using static call.
-        uint256 currentBP = riskManager.getTotalBuyingPower(bobMarginAccount);
+        uint256 currentBP = contracts.riskManager.getTotalBuyingPower(bobMarginAccount);
         // vm.assume(
         //     deltaMargin > int256(1 * ONE_USDC) &&
         //         deltaMargin < int256(currentBP)
@@ -529,6 +531,6 @@ contract UpdatePositionPerp is BaseSetup {
             int256(deltaMargin),
             int256(deltaMargin) // negative because we are shorting it.
         );
-        marginManager.updatePosition(perpAaveKey, destinations2, data2);
+        contracts.marginManager.updatePosition(perpAaveKey, destinations2, data2);
     }
 }

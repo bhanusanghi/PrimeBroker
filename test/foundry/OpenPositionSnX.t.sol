@@ -21,23 +21,10 @@ import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/Agg
 import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
 import {Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
+import {SnxUtils} from "./utils/SnxUtils.sol";
+import {ChronuxUtils} from "./utils/ChronuxUtils.sol";
 
 contract OpenPositionSnX is BaseSetup {
-    struct PositionData {
-        uint64 id;
-        uint64 lastFundingIndex;
-        uint128 margin;
-        uint128 lastPrice;
-        int128 size;
-    }
-    struct RoundData {
-        uint80 roundId;
-        int256 answer;
-        uint256 startedAt;
-        uint256 updatedAt;
-        uint80 answeredInRound;
-    }
-
     using SafeMath for uint256;
     using SafeMath for uint128;
     using Math for uint256;
@@ -46,25 +33,8 @@ contract OpenPositionSnX is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
-
-    uint256 constant ONE_USDC = 10 ** 6;
-    int256 constant ONE_USDC_INT = 10 ** 6;
-    uint256 largeAmount = 1_000_000 * ONE_USDC;
-    bytes32 snxUni_marketKey = bytes32("sUNI");
-    bytes32 snxEth_marketKey = bytes32("sETH");
-
-    bytes32 invalidKey = keccak256("BKL.MKC");
-    bytes32 snxUniKey = keccak256("SNX.UNI");
-    bytes32 snxEthKey = keccak256("SNX.ETH");
-
-    address bobMarginAccount;
-    address aliceMarginAccount;
-
-    address uniFuturesMarket;
-
-    address ethFuturesMarket;
-    uint256 maxBuyingPower;
-    uint256 marginSNX;
+    SnxUtils snxUtils;
+    ChronuxUtils chronuxUtils;
 
     function setUp() public {
         uint256 forkId = vm.createFork(
@@ -72,159 +42,11 @@ contract OpenPositionSnX is BaseSetup {
             71255016
         );
         vm.selectFork(forkId);
+        // need to be done in this order only.
         utils = new Utils();
-        setupUsers();
-        setupContractRegistry();
-        setupPriceOracle();
-        setupMarketManager();
-        setupMarginManager();
-        setupRiskManager();
-        setupVault(usdc);
-        setupCollateralManager();
-
-        riskManager.setCollateralManager(address(collateralManager));
-        riskManager.setVault(address(vault));
-
-        marginManager.setVault(address(vault));
-        marginManager.SetRiskManager(address(riskManager));
-
-        setupProtocolRiskManagers();
-
-        // collaterals.push(usdc);
-        // collaterals.push(susd);
-        collateralManager.addAllowedCollateral(usdc, 100);
-        collateralManager.addAllowedCollateral(susd, 100);
-        //fetch snx market addresses.
-        snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
-            .getAddress(bytes32("FuturesMarketManager"));
-        uniFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
-            .marketForKey(snxUni_marketKey);
-        vm.label(uniFuturesMarket, "UNI futures Market");
-        ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
-            .marketForKey(snxEth_marketKey);
-
-        // ethPerpsV2Market = 0x35CcAC0A67D2a1EF1FDa8898AEcf1415FE6cf94c;
-
-        vm.label(ethFuturesMarket, "ETH futures Market");
-
-        marketManager.addMarket(
-            snxUniKey,
-            uniFuturesMarket,
-            address(snxRiskManager)
-        );
-        marketManager.addMarket(
-            snxEthKey,
-            ethFuturesMarket,
-            address(snxRiskManager)
-        );
-
-        snxRiskManager.toggleAddressWhitelisting(uniFuturesMarket, true);
-        snxRiskManager.toggleAddressWhitelisting(ethFuturesMarket, true);
-        uint256 usdcWhaleContractBal = IERC20(usdc).balanceOf(
-            usdcWhaleContract
-        );
-        vm.startPrank(usdcWhaleContract);
-        IERC20(usdc).transfer(admin, largeAmount * 2);
-        IERC20(usdc).transfer(bob, largeAmount);
-        vm.stopPrank();
-
-        // fund usdc vault.
-        vm.startPrank(admin);
-        IERC20(usdc).approve(address(vault), largeAmount);
-        vault.deposit(largeAmount, admin);
-        vm.stopPrank();
-
-        // setup and fund margin accounts.
-        vm.prank(bob);
-        bobMarginAccount = marginManager.openMarginAccount();
-        vm.prank(alice);
-        aliceMarginAccount = marginManager.openMarginAccount();
-
-        RoundData memory stablesRoundData = RoundData(
-            18446744073709552872,
-            100000000,
-            block.timestamp - 0,
-            block.timestamp - 0,
-            18446744073709552872
-        );
-        RoundData memory etherRoundData = RoundData(
-            18446744073709653558,
-            150000000000, //1500
-            block.timestamp - 0,
-            block.timestamp - 0,
-            18446744073709653558
-        );
-        // assume usdc and susd value to be 1
-        vm.mockCall(
-            sUsdPriceFeed,
-            abi.encodeWithSelector(
-                AggregatorV3Interface.latestRoundData.selector
-            ),
-            abi.encode(
-                stablesRoundData.roundId,
-                stablesRoundData.answer,
-                stablesRoundData.startedAt,
-                stablesRoundData.updatedAt,
-                stablesRoundData.answeredInRound
-            )
-        );
-        vm.mockCall(
-            usdcPriceFeed,
-            abi.encodeWithSelector(
-                AggregatorV3Interface.latestRoundData.selector
-            ),
-            abi.encode(
-                stablesRoundData.roundId,
-                stablesRoundData.answer,
-                stablesRoundData.startedAt,
-                stablesRoundData.updatedAt,
-                stablesRoundData.answeredInRound
-            )
-        );
-        // vm.mockCall(
-        //     etherPriceFeed,
-        //     abi.encodeWithSelector(
-        //         AggregatorV3Interface.latestRoundData.selector
-        //     ),
-        //     abi.encode(
-        //         etherRoundData.roundId,
-        //         etherRoundData.answer,
-        //         etherRoundData.startedAt,
-        //         etherRoundData.updatedAt,
-        //         etherRoundData.answeredInRound
-        //     )
-        // );
-
-        // address[] memory addresses = new address[](1);
-        // uint256[] memory values = new uint256[](1);
-        // addresses[0] = etherPriceFeed;
-        // values[0] = etherRoundData.answer.toUint256();
-        // vm.prank(snxOwner);
-        // ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
-
-        uint256 margin = 50000 * ONE_USDC;
-        marginSNX = margin.mul(2).convertTokenDecimals(6, 18);
-        vm.startPrank(bob);
-        IERC20(usdc).approve(bobMarginAccount, margin);
-        collateralManager.addCollateral(usdc, margin);
-        bytes memory transferMarginData = abi.encodeWithSignature(
-            "transferMargin(int256)",
-            marginSNX
-        );
-        address[] memory destinations = new address[](1);
-        bytes[] memory data = new bytes[](1);
-        destinations[0] = ethFuturesMarket;
-        data[0] = transferMarginData;
-        vm.expectEmit(true, false, false, true, address(ethFuturesMarket));
-        emit MarginTransferred(bobMarginAccount, int256(marginSNX));
-        marginManager.openPosition(snxEthKey, destinations, data);
-        maxBuyingPower = riskManager.getTotalBuyingPower(
-            bobMarginAccount
-        );
-        (uint256 futuresPrice, bool isExpired) = IFuturesMarket(
-            ethFuturesMarket
-        ).assetPrice();
-        vm.stopPrank();
+        setupSNXFixture();
+        snxUtils = new SnxUtils(contracts);
+        chronuxUtils = new ChronuxUtils(contracts);
     }
 
     function testBobAddsPositionOnInvalidMarket() public {
@@ -240,7 +62,7 @@ contract OpenPositionSnX is BaseSetup {
             trackingCode
         );
         vm.prank(bob);
-        marginManager.openPosition(invalidKey, destinations, data);
+        contracts.marginManager.openPosition(invalidKey, destinations, data);
     }
 
     function testBobAddsPositionOnInvalidContract() public {
@@ -252,14 +74,17 @@ contract OpenPositionSnX is BaseSetup {
             positionSize,
             trackingCode
         );
-        snxRiskManager.toggleAddressWhitelisting(ethFuturesMarket, false);
+        contracts.snxRiskManager.toggleAddressWhitelisting(
+            ethFuturesMarket,
+            false
+        );
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
         vm.expectRevert(bytes("PRM: Calling non whitelisted contract"));
         vm.prank(bob);
-        marginManager.openPosition(snxUniKey, destinations, data);
+        contracts.marginManager.openPosition(snxUniKey, destinations, data);
     }
 
     // liquiMargin = 50k
@@ -291,7 +116,7 @@ contract OpenPositionSnX is BaseSetup {
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
         vm.prank(bob);
-        marginManager.openPosition(snxEthKey, destinations, data);
+        contracts.marginManager.openPosition(snxEthKey, destinations, data);
     }
 
     // liquiMargin = 50k
@@ -388,7 +213,7 @@ contract OpenPositionSnX is BaseSetup {
         data[0] = openPositionData;
 
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, true, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
         emit PositionAdded(
             bobMarginAccount,
             snxEthKey,
@@ -420,7 +245,7 @@ contract OpenPositionSnX is BaseSetup {
         // );
 
         vm.prank(bob);
-        marginManager.openPosition(snxEthKey, destinations, data);
+        contracts.marginManager.openPosition(snxEthKey, destinations, data);
         Position memory pos = MarginAccount(bobMarginAccount).getPosition(
             snxEthKey
         );
@@ -466,7 +291,7 @@ contract OpenPositionSnX is BaseSetup {
         // check fee etc.
     }
 
-    function testBobOpensShortPositionWithLeverage(int256 positionSize) public {
+    function testBobOpensShortPositionWithLeverage() public {
         SNXTradingData memory tradeData;
         (tradeData.assetPriceBeforeTrade, ) = IFuturesMarket(ethFuturesMarket)
             .assetPrice();
@@ -527,7 +352,7 @@ contract OpenPositionSnX is BaseSetup {
         destinations[0] = ethFuturesMarket;
         data[0] = openPositionData;
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, true, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
         emit PositionAdded(
             bobMarginAccount,
             snxEthKey,
@@ -559,7 +384,7 @@ contract OpenPositionSnX is BaseSetup {
         // );
 
         vm.prank(bob);
-        marginManager.openPosition(snxEthKey, destinations, data);
+        contracts.marginManager.openPosition(snxEthKey, destinations, data);
 
         Position memory pos = MarginAccount(bobMarginAccount).getPosition(
             snxEthKey
@@ -641,7 +466,7 @@ contract OpenPositionSnX is BaseSetup {
         (uint256 ethPrice, ) = IFuturesMarket(ethFuturesMarket).assetPrice();
         console2.log(ethPrice, "ETH ka price");
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, true, address(marginManager));
+        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
         emit PositionAdded(
             bobMarginAccount,
             snxEthKey,
@@ -658,22 +483,22 @@ contract OpenPositionSnX is BaseSetup {
         console2.log(
             "",
             MarginAccount(bobMarginAccount).totalBorrowed(),
-            collateralManager.totalCollateralValue(bobMarginAccount)
+            contracts.collateralManager.totalCollateralValue(bobMarginAccount)
         );
-        marginManager.openPosition(snxEthKey, destinations, data);
+        contracts.marginManager.openPosition(snxEthKey, destinations, data);
         // console2.log("Position opened",MarginAccount(bobMarginAccount).getPositionOpenNotional(snxEthKey));
         // assertEq(
         //     MarginAccount(bobMarginAccount).getPosition(snxEthKey),
         //     tradeData.positionSize
         // );
         vm.stopPrank();
-        // marginAccountData.bpBeforePnL = riskManager.getTotalBuyingPower(
+        // marginAccountData.bpBeforePnL = contracts.riskManager.getTotalBuyingPower(
         //     bobMarginAccount,
         //     address(marginManager)
         // );
         // // Update market price by Delta +100
         // // increase blocks
-        // // get interest -> TODO write tests for interest calculations for vault separately. Currently its wrong always returns 0;
+        // // get interest -> TODO write tests for interest calculations for contracts.vault separately. Currently its wrong always returns 0;
         // //
         // // increare 10 blocks
         vm.roll(block.number + 10);
@@ -689,9 +514,9 @@ contract OpenPositionSnX is BaseSetup {
         );
         vm.stopPrank();
         vm.startPrank(bob);
-        marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
-            bobMarginAccount
-        );
+        marginAccountData.unrealizedPnL = contracts
+            .riskManager
+            .getUnrealizedPnL(bobMarginAccount);
 
         console2.log("Unrealized PnL", marginAccountData.unrealizedPnL);
         secondPositionSize = -3 ether;
@@ -707,7 +532,7 @@ contract OpenPositionSnX is BaseSetup {
             keccak256("GigabrainMarginAccount")
         );
         data1[1] = abi.encodeWithSignature("transferMargin(int256)", -tmBack);
-        marginManager.liquidate(snxEthKey, destinations1, data1);
+        contracts.marginManager.liquidate(snxEthKey, destinations1, data1);
         console2.log("Liquidated");
         // isliquidatable
         // (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)
@@ -723,18 +548,18 @@ contract OpenPositionSnX is BaseSetup {
         //     marginAccountData.unrealizedPnL,
         //     marginAccountData.fundingAccruedTPP.convertTokenDecimals(
         //         18,
-        //         ERC20(vault.asset()).decimals()
+        //         ERC20(contracts.vault.asset()).decimals()
         //     ) +
         //         marginAccountData.pnlTPP.convertTokenDecimals(
         //             18,
-        //             ERC20(vault.asset()).decimals()
+        //             ERC20(contracts.vault.asset()).decimals()
         //         )
         // );
-        // marginAccountData.bpAfterPnL = riskManager.getTotalBuyingPower(
+        // marginAccountData.bpAfterPnL = contracts.riskManager.getTotalBuyingPower(
         //     bobMarginAccount,
         //     address(marginManager) // interest accrued is 0 currently.
         // );
-        // marginManager.updateUnsettledRealizedPnL(bob);
+        // contracts.marginManager.updateUnsettledRealizedPnL(bob);
         // int256 unsettledRealizedPnL = MarginAccount(bobMarginAccount)
         //     .unsettledRealizedPnL();
 
@@ -767,19 +592,19 @@ contract OpenPositionSnX is BaseSetup {
         //             int256(tradeData.assetPriceAfterManipulation)) /
         //         int256(1 ether)
         // );
-        // marginManager.updatePosition(snxEthKey, destinations, data);
+        // contracts.marginManager.updatePosition(snxEthKey, destinations, data);
         // assertEq(
         //     marginAccountData.unrealizedPnL,
         //     marginAccountData.fundingAccruedTPP.convertTokenDecimals(
         //         18,
-        //         ERC20(vault.asset()).decimals()
+        //         ERC20(contracts.vault.asset()).decimals()
         //     ) +
         //         marginAccountData.pnlTPP.convertTokenDecimals(
         //             18,
-        //             ERC20(vault.asset()).decimals()
+        //             ERC20(contracts.vault.asset()).decimals()
         //         )
         // );
-        // marginAccountData.unrealizedPnL = riskManager.getUnrealizedPnL(
+        // marginAccountData.unrealizedPnL = contracts.riskManager.getUnrealizedPnL(
         //     bobMarginAccount
         // );
         // (marginAccountData.pnlTPP, ) = IFuturesMarket(ethFuturesMarket)

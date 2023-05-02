@@ -11,7 +11,7 @@ interface ICollateralManager {
         uint256 collateralWeight
     ) external;
 
-    function totalCollateralValue(address marginAccount)
-        external
-        returns (uint256 amount);
+    function totalCollateralValue(
+        address marginAccount
+    ) external view returns (uint256 amount);
 }

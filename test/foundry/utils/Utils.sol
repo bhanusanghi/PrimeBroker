@@ -34,6 +34,11 @@ contract Utils is Test {
     }
 
     bytes32 internal nextUser = keccak256(abi.encodePacked("user address"));
+    Contracts contracts;
+
+    constructor(Contracts _contracts) {
+        contracts = _contracts;
+    }
 
     function getNextUserAddress() external returns (address payable) {
         address payable user = payable(address(uint160(uint256(nextUser))));

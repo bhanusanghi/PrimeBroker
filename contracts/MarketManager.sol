@@ -19,6 +19,7 @@ contract MarketManager is IMarketManager, AccessControl {
     address[] public uniqueMarketAddresses;
 
     // temporary market config. Needs to be moved to its own contract market config.
+    // There save all this stuff in a marketRegistry mapping with keccak256 keys just like in contractRegistry to make this work ez.
     mapping(bytes32 => address) public marketBaseToken;
     mapping(bytes32 => address) public marketMarginToken;
 
@@ -100,16 +101,20 @@ contract MarketManager is IMarketManager, AccessControl {
     }
 
     function updateMarket(
-        bytes32 marketName,
+        bytes32 _marketKey,
         address _market,
-        address _riskManager
+        address _riskManager,
+        address _baseToken,
+        address _marginToken
     ) external onlyRole(REGISTRAR_ROLE) {
         require(
-            marketRegistry[marketName] != address(0),
+            marketRegistry[_marketKey] != address(0),
             "MM: Market doesn't exist"
         );
-        marketRegistry[marketName] = _market;
-        marketRiskManagerRegistry[marketName] = _riskManager;
+        marketRegistry[_marketKey] = _market;
+        marketRiskManagerRegistry[_marketKey] = _riskManager;
+        marketBaseToken[_marketKey] = _baseToken;
+        marketMarginToken[_marketKey] = _marginToken;
     }
 
     // TODO - Handle closing of all remaining positions in this market etc.
@@ -129,12 +134,16 @@ contract MarketManager is IMarketManager, AccessControl {
 
     function getProtocolAddressByMarketName(
         bytes32 marketName
-    ) external view returns (address, address) {
+    ) external view returns (address) {
         require(marketRegistry[marketName] != address(0), "MM: Invalid Market");
-        return (
-            marketRegistry[marketName],
-            marketRiskManagerRegistry[marketName]
-        );
+        return (marketRegistry[marketName]);
+    }
+
+    function getRiskManagerByMarketName(
+        bytes32 marketName
+    ) external view returns (address) {
+        require(marketRegistry[marketName] != address(0), "MM: Invalid Market");
+        return marketRiskManagerRegistry[marketName];
     }
 
     function getMarketAddress(
@@ -156,5 +165,15 @@ contract MarketManager is IMarketManager, AccessControl {
     ) external view returns (address) {
         require(marketRegistry[_marketKey] != address(0), "MM: Invalid Market");
         return marketMarginToken[_marketKey];
+    }
+
+    function getMarketKey(address market) external view returns (bytes32) {
+        require(registeredMarketAddresses[market], "MM: Invalid Market");
+        for (uint256 i = 0; i < whitelistedMarketNames.length; i++) {
+            if (marketRegistry[whitelistedMarketNames[i]] == market) {
+                return whitelistedMarketNames[i];
+            }
+        }
+        revert("MM: Market not found");
     }
 }

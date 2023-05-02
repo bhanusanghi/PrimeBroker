@@ -81,7 +81,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 interestAccrued
     ) internal returns (VerifyTradeResult memory result) {
         address _protocolRiskManager;
-        (, _protocolRiskManager) = marketManager.getProtocolAddressByMarketName(
+        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
         );
 
@@ -135,7 +135,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
         _checkModifyPosition(
-            marginAccount,
+            address(marginAccount),
             buyingPower,
             result.position.openNotional,
             result.marginDeltaDollarValue,
@@ -174,7 +174,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function _checkModifyPosition(
-        IMarginAccount marginAccount,
+        address marginAccount,
         uint256 buyingPower,
         int256 positionOpenNotional,
         int256 marginDeltaDollarValue,
@@ -182,20 +182,33 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) internal {
         // buyingPower = buyingPower.mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
         // check if open
+        // require(
+        //     buyingPower >=
+        //         (
+        //             marginAccount.totalDollarMarginInMarkets().add(
+        //                 marginDeltaDollarValue
+        //             ) // this is also in vault asset decimals
+        //         ).abs(),
+        //     "Extra Transfer not allowed"
+        // );
+        // require(
+        //     buyingPower.convertTokenDecimals(
+        //         ERC20(vault.asset()).decimals(),
+        //         18 // needs to remove this hardcoded value and get from market config dynamically
+        //     ) >= (totalNotional.add(positionOpenNotional)).abs(),
+        //     "Extra leverage not allowed"
+        // );
+        if (marginDeltaDollarValue > 0) {
+            require(
+                getRemainingMarginTransfer(address(marginAccount)) >=
+                    marginDeltaDollarValue.abs(),
+                "Extra Transfer not allowed"
+            );
+        }
+
         require(
-            buyingPower >=
-                (
-                    marginAccount.totalDollarMarginInMarkets().add(
-                        marginDeltaDollarValue
-                    ) // this is also in vault asset decimals
-                ).abs(),
-            "Extra Transfer not allowed"
-        );
-        require(
-            buyingPower.convertTokenDecimals(
-                ERC20(vault.asset()).decimals(),
-                18 // needs to remove this hardcoded value and get from market config dynamically
-            ) >= (totalNotional.add(positionOpenNotional)).abs(),
+            getRemainingPositionOpenNotional(marginAccount) >=
+                positionOpenNotional.abs(),
             "Extra leverage not allowed"
         );
     }
@@ -211,22 +224,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         // check if open
         // require(marginDeltaDollarValue>=0, "Extra Transfer not allowed");
-        require(
-            buyingPower >=
-                (
-                    marginAccount.totalDollarMarginInMarkets().add(
-                        marginDeltaDollarValue
-                    )
-                ).abs(),
-            "Extra Transfer not allowed"
-        );
-        require(
-            buyingPower.convertTokenDecimals(
-                ERC20(vault.asset()).decimals(),
-                18
-            ) >= (totalNotional.add(positionOpenNotional)).abs(),
-            "Extra leverage not allowed"
-        );
+        // require(
+        //     getRemainingMarginTransfer(marginAccount) >= marginDeltaDollarValue,
+        //     "Extra Transfer not allowed"
+        // );
+        // require(
+        //     getRemainingPositionOpenNotional(marginAccount) >=
+        //         positionOpenNotional,
+        //     "Extra leverage not allowed"
+        // );
     }
 
     // @TODO - should be able to get buying power from account directly.
@@ -237,7 +243,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // note @dev - returns buying power in vault.asset.decimals
     function _getAbsTotalCollateralValue(
         address marginAccount
-    ) internal returns (uint256) {
+    ) internal view returns (uint256) {
         address marginManager = contractRegistery.getContractByName(
             keccak256("MarginManager")
         );
@@ -257,7 +263,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function getTotalBuyingPower(
         address marginAccount
-    ) external returns (uint256 buyingPower) {
+    ) external view returns (uint256 buyingPower) {
         buyingPower = _getAbsTotalCollateralValue(marginAccount).mulDiv(
             100,
             initialMarginFactor
@@ -291,7 +297,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // returns in vault base decimals
     function _getUnrealizedPnL(
         address marginAccount
-    ) internal returns (int256 totalUnrealizedPnL) {
+    ) internal view returns (int256 totalUnrealizedPnL) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
@@ -316,13 +322,13 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function getRemainingMarginTransfer(
         address _marginAccount
-    ) public returns (uint256) {
+    ) public view returns (uint256) {
         return _getRemainingMarginTransfer(_marginAccount);
     }
 
     function _getRemainingMarginTransfer(
         address marginAccount
-    ) private returns (uint256) {
+    ) private view returns (uint256) {
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
@@ -336,13 +342,13 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function getRemainingPositionOpenNotional(
         address _marginAccount
-    ) public returns (uint256) {
+    ) public view returns (uint256) {
         return _getRemainingPositionOpenNotional(_marginAccount);
     }
 
     function _getRemainingPositionOpenNotional(
         address marginAccount
-    ) private returns (uint256) {
+    ) private view returns (uint256) {
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
@@ -354,5 +360,21 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             (_totalCollateralValue.mul(100).div(initialMarginFactor))
                 .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
                 .sub(totalOpenNotional.abs()); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
+    }
+
+    function getMarketPosition(
+        address _marginAccount,
+        bytes32 _marketKey
+    ) public view returns (Position memory marketPosition) {
+        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
+            _marketKey
+        );
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            _protocolRiskManager
+        );
+        marketPosition = protocolRiskManager.getMarketPosition(
+            _marginAccount,
+            _marketKey
+        );
     }
 }

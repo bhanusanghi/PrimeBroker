@@ -129,7 +129,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     // ** returns in vault base asset decimal points
     function _getPositionPnLAcrossMarkets(
         address account
-    ) public returns (int256 pnl) {
+    ) public view returns (int256 pnl) {
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -251,7 +251,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     // returns value in vault decimals
     function getUnrealizedPnL(
         address marginAccount
-    ) external override returns (int256 unrealizedPnL) {
+    ) external view override returns (int256 unrealizedPnL) {
         unrealizedPnL = _getPositionPnLAcrossMarkets(marginAccount);
     }
 
@@ -278,10 +278,15 @@ contract SNXRiskManager is IProtocolRiskManager {
         ).getMarketAddress(marketKey);
         (, , , uint128 lastPrice, int128 size) = IFuturesMarket(market)
             .positions(marginAccount);
+        console.log("lastPrice", lastPrice);
+        console.log("size");
+        console.logInt(size);
         position.size = size;
         position.openNotional = int256(size).mul(int128(lastPrice)).div(
             1 ether // check if needed.
         );
+        console.log("openNotional");
+        console.logInt(position.openNotional);
         // TODO - check how to get order fee
     }
 }

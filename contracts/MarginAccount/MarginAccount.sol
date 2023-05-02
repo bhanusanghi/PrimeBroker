@@ -160,15 +160,9 @@ contract MarginAccount is IMarginAccount, UniExchange {
         // only riskmanagger
         // require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
         positions[marketKey].protocol = positions[marketKey].protocol; //@note @0xAshish rewriting it as of now will remove it later
-        positions[marketKey].openNotional = positions[marketKey]
-            .openNotional
-            .add(position.openNotional);
-        positions[marketKey].size = positions[marketKey].size.add(
-            position.size
-        );
-        positions[marketKey].orderFee = positions[marketKey].orderFee.add(
-            position.orderFee
-        );
+        positions[marketKey].openNotional = position.openNotional;
+        positions[marketKey].size = position.size;
+        positions[marketKey].orderFee = position.orderFee;
     }
 
     function removePosition(bytes32 market) public override {
@@ -188,12 +182,16 @@ contract MarginAccount is IMarginAccount, UniExchange {
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
-    function updateDollarMarginInMarkets(int256 transferredMargin) public override {
+    function updateDollarMarginInMarkets(
+        int256 transferredMargin
+    ) public override {
         // require(
         //     marginInMarket[market].add(transferredMargin) > 0,
         //     "MA: Cannot have negative margin In protocol"
         // );
-        totalDollarMarginInMarkets = totalDollarMarginInMarkets.add(transferredMargin);
+        totalDollarMarginInMarkets = totalDollarMarginInMarkets.add(
+            transferredMargin
+        );
     }
 
     function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {

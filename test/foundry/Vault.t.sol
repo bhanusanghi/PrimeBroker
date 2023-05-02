@@ -48,21 +48,21 @@ contract VaultTest is Test {
 
     function simulateYield(uint256 amount) public {
         vm.startPrank(admin);
-        vault.borrow(admin, 1);
-        underlyingToken.approve(address(vault), type(uint256).max);
-        vault.repay(admin, 1, amount);
+        contracts.vault.borrow(admin, 1);
+        underlyingToken.approve(address(contracts.vault), type(uint256).max);
+        contracts.vault.repay(admin, 1, amount);
         vm.stopPrank();
     }
 
     function setUp() public {
         utils = new Utils();
 
-        // ======= setup vault ========
+        // ======= setup contracts.vault ========
         uint256 optimalUse = 9000;
         uint256 rBase = 0;
         uint256 rSlope1 = 200;
         uint256 rSlope2 = 1000;
-        interestModel = new LinearInterestRateModel(
+        contracts.interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
             rSlope1,
@@ -70,11 +70,11 @@ contract VaultTest is Test {
         );
         underlyingToken = new MockERC20("FakeDAI", "FDAI");
         // maxExpectedLiquidity = type(uint256).max;
-        vault = new Vault(
+        contracts.vault = new Vault(
             address(underlyingToken),
             "GigaLP",
             "GLP",
-            address(interestModel)
+            address(contracts.interestModel)
             // maxExpectedLiquidity
         );
 
@@ -101,71 +101,74 @@ contract VaultTest is Test {
         underlyingToken.mint(david, 100000 ether);
         vm.deal(david, 1000 ether);
 
-        vault.addLendingAddress(admin);
-        vault.addRepayingAddress(admin);
+        contracts.vault.addLendingAddress(admin);
+        contracts.vault.addRepayingAddress(admin);
 
-        // Setup Alice and Bob's allowance for vault.
+        // Setup Alice and Bob's allowance for contracts.vault.
         vm.prank(alice);
-        underlyingToken.approve(address(vault), type(uint256).max);
+        underlyingToken.approve(address(contracts.vault), type(uint256).max);
         vm.prank(bob);
-        underlyingToken.approve(address(vault), type(uint256).max);
+        underlyingToken.approve(address(contracts.vault), type(uint256).max);
     }
 
     function testVaultInitialisation() public {
-        assertEq(vault.asset(), address(underlyingToken));
-        assertEq(vault.name(), "GigaLP");
-        assertEq(vault.getInterestRateModel(), address(interestModel));
-        assertEq(vault.totalSupply(), 0);
-        assertEq(vault.totalAssets(), 0);
-        assertEq(vault.expectedLiquidity(), 0);
-        assertEq(vault.calcLinearCumulative_RAY(), 1 * RAY);
+        assertEq(contracts.vault.asset(), address(underlyingToken));
+        assertEq(contracts.vault.name(), "GigaLP");
+        assertEq(
+            contracts.vault.getInterestRateModel(),
+            address(contracts.interestModel)
+        );
+        assertEq(contracts.vault.totalSupply(), 0);
+        assertEq(contracts.vault.totalAssets(), 0);
+        assertEq(contracts.vault.expectedLiquidity(), 0);
+        assertEq(contracts.vault.calcLinearCumulative_RAY(), 1 * RAY);
     }
 
     function testVaultSingleDeposit() public {
         uint256 depositAmount = 100 ether;
-        assertEq(vault.balanceOf(bob), 0);
-        assertEq(vault.previewDeposit(depositAmount), depositAmount);
+        assertEq(contracts.vault.balanceOf(bob), 0);
+        assertEq(contracts.vault.previewDeposit(depositAmount), depositAmount);
         vm.startPrank(bob);
-        underlyingToken.approve(address(vault), depositAmount);
+        underlyingToken.approve(address(contracts.vault), depositAmount);
         // We emit the event we expect to see in correct order.
         vm.expectEmit(true, true, false, true, address(underlyingToken));
-        emit Transfer(bob, address(vault), depositAmount);
-        vm.expectEmit(true, true, false, true, address(vault));
+        emit Transfer(bob, address(contracts.vault), depositAmount);
+        vm.expectEmit(true, true, false, true, address(contracts.vault));
         emit Deposit(bob, bob, depositAmount, depositAmount);
 
-        vault.deposit(depositAmount, bob);
+        contracts.vault.deposit(depositAmount, bob);
         vm.stopPrank();
 
-        assertEq(vault.balanceOf(bob), depositAmount);
-        assertEq(vault.totalAssets(), depositAmount);
-        assertEq(vault.totalSupply(), depositAmount);
-        assertEq(vault.expectedLiquidity(), depositAmount);
+        assertEq(contracts.vault.balanceOf(bob), depositAmount);
+        assertEq(contracts.vault.totalAssets(), depositAmount);
+        assertEq(contracts.vault.totalSupply(), depositAmount);
+        assertEq(contracts.vault.expectedLiquidity(), depositAmount);
     }
 
     function testVaultSingleWithdraw() public {
         uint256 depositAmount = 100 ether;
-        assertEq(vault.previewDeposit(depositAmount), depositAmount);
+        assertEq(contracts.vault.previewDeposit(depositAmount), depositAmount);
         vm.startPrank(bob);
-        underlyingToken.approve(address(vault), depositAmount);
-        vault.deposit(depositAmount, bob);
-        assertEq(vault.balanceOf(bob), depositAmount);
-        assertEq(vault.totalAssets(), depositAmount);
-        assertEq(vault.totalSupply(), depositAmount);
-        assertEq(vault.expectedLiquidity(), depositAmount);
-        uint256 bobShares = vault.balanceOf(bob);
+        underlyingToken.approve(address(contracts.vault), depositAmount);
+        contracts.vault.deposit(depositAmount, bob);
+        assertEq(contracts.vault.balanceOf(bob), depositAmount);
+        assertEq(contracts.vault.totalAssets(), depositAmount);
+        assertEq(contracts.vault.totalSupply(), depositAmount);
+        assertEq(contracts.vault.expectedLiquidity(), depositAmount);
+        uint256 bobShares = contracts.vault.balanceOf(bob);
         // withdraw
-        assertEq(vault.previewWithdraw(depositAmount), bobShares);
+        assertEq(contracts.vault.previewWithdraw(depositAmount), bobShares);
         vm.expectEmit(true, true, false, true, address(underlyingToken));
-        emit Transfer(address(vault), bob, depositAmount);
-        vm.expectEmit(true, true, true, true, address(vault));
+        emit Transfer(address(contracts.vault), bob, depositAmount);
+        vm.expectEmit(true, true, true, true, address(contracts.vault));
         emit Withdraw(bob, bob, bob, depositAmount, bobShares);
 
-        vault.withdraw(depositAmount, bob, bob);
+        contracts.vault.withdraw(depositAmount, bob, bob);
 
-        assertEq(vault.balanceOf(bob), 0);
-        assertEq(vault.totalAssets(), 0);
-        assertEq(vault.totalSupply(), 0);
-        assertEq(vault.expectedLiquidity(), 0);
+        assertEq(contracts.vault.balanceOf(bob), 0);
+        assertEq(contracts.vault.totalAssets(), 0);
+        assertEq(contracts.vault.totalSupply(), 0);
+        assertEq(contracts.vault.expectedLiquidity(), 0);
         vm.stopPrank();
     }
 
@@ -194,7 +197,7 @@ contract VaultTest is Test {
     // |--------------|---------|----------|---------|----------|
     // | 5. Bob mints 2000 shares (costs 3001 assets)           |
     // |    NOTE: Bob's assets spent got rounded up             |
-    // |    NOTE: Alice's vault assets got rounded up           |
+    // |    NOTE: Alice's contracts.vault assets got rounded up           |
     // |--------------|---------|----------|---------|----------|
     // |         9333 |    3333 |     5000 |    6000 |     9000 |
     // |--------------|---------|----------|---------|----------|
@@ -227,169 +230,193 @@ contract VaultTest is Test {
         vm.expectEmit(true, true, false, true);
         emit Deposit(alice, alice, 2000, 2000);
         vm.prank(alice);
-        uint256 shares = vault.mint(2000, alice);
+        uint256 shares = contracts.vault.mint(2000, alice);
         assertEq(shares, 2000);
     }
 
     function testOp2() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
 
         vm.expectEmit(true, true, false, true);
         emit Deposit(bob, bob, 4000, 4000);
         vm.prank(bob);
-        uint256 shares = vault.deposit(4000, bob);
+        uint256 shares = contracts.vault.deposit(4000, bob);
         assertEq(shares, 4000);
-        assertEq(vault.totalAssets(), 6000);
-        assertEq(vault.totalSupply(), 6000);
-        assertEq(vault.expectedLiquidity(), 6000);
+        assertEq(contracts.vault.totalAssets(), 6000);
+        assertEq(contracts.vault.totalSupply(), 6000);
+        assertEq(contracts.vault.expectedLiquidity(), 6000);
     }
 
     function testOp3() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
 
-        assertEq(vault.totalAssets(), 9000);
-        assertEq(vault.totalSupply(), 6000);
-        assertEq(vault.expectedLiquidity(), 9000);
+        assertEq(contracts.vault.totalAssets(), 9000);
+        assertEq(contracts.vault.totalSupply(), 6000);
+        assertEq(contracts.vault.expectedLiquidity(), 9000);
     }
 
     function testOp4() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        uint256 shares = vault.deposit(2000, alice);
+        uint256 shares = contracts.vault.deposit(2000, alice);
         assertEq(shares, 1333);
-        assertEq(vault.totalAssets(), 11000);
-        assertEq(vault.totalSupply(), 7333);
-        assertEq(vault.expectedLiquidity(), 11000);
+        assertEq(contracts.vault.totalAssets(), 11000);
+        assertEq(contracts.vault.totalSupply(), 7333);
+        assertEq(contracts.vault.expectedLiquidity(), 11000);
     }
 
     function testOp5() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.deposit(2000, alice);
+        contracts.vault.deposit(2000, alice);
         vm.prank(bob);
-        uint256 assetsNeeded = vault.mint(2000, bob);
+        uint256 assetsNeeded = contracts.vault.mint(2000, bob);
         assertEq(assetsNeeded, 3001);
-        assertEq(vault.totalAssets(), 14001);
-        assertEq(vault.totalSupply(), 9333);
+        assertEq(contracts.vault.totalAssets(), 14001);
+        assertEq(contracts.vault.totalSupply(), 9333);
     }
 
     function testOp6() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.deposit(2000, alice);
+        contracts.vault.deposit(2000, alice);
         vm.prank(bob);
-        vault.mint(2000, bob);
+        contracts.vault.mint(2000, bob);
         simulateYield(3000);
-        assertEq(vault.totalAssets(), 17001);
-        assertEq(vault.totalSupply(), 9333);
+        assertEq(contracts.vault.totalAssets(), 17001);
+        assertEq(contracts.vault.totalSupply(), 9333);
     }
 
     function testOp7() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.deposit(2000, alice);
+        contracts.vault.deposit(2000, alice);
         vm.prank(bob);
-        vault.mint(2000, bob);
+        contracts.vault.mint(2000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        uint256 assetsRecvd = vault.redeem(1333, alice, alice);
+        uint256 assetsRecvd = contracts.vault.redeem(1333, alice, alice);
         assertEq(assetsRecvd, 2428);
-        assertEq(vault.totalAssets(), 14573);
-        assertEq(vault.totalSupply(), 8000);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 10929);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
+        assertEq(contracts.vault.totalAssets(), 14573);
+        assertEq(contracts.vault.totalSupply(), 8000);
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(bob)),
+            10929
+        );
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(alice)),
+            3643
+        );
     }
 
     function testOp8() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.deposit(2000, alice);
+        contracts.vault.deposit(2000, alice);
         vm.prank(bob);
-        vault.mint(2000, bob);
+        contracts.vault.mint(2000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.redeem(1333, alice, alice);
+        contracts.vault.redeem(1333, alice, alice);
         vm.prank(bob);
-        uint256 sharesBurned = vault.withdraw(2928, bob, bob);
+        uint256 sharesBurned = contracts.vault.withdraw(2928, bob, bob);
         assertEq(sharesBurned, 1608);
-        assertEq(vault.totalAssets(), 14573 - 2928);
-        assertEq(vault.totalSupply(), 8000 - 1608);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
+        assertEq(contracts.vault.totalAssets(), 14573 - 2928);
+        assertEq(contracts.vault.totalSupply(), 8000 - 1608);
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(bob)),
+            8001
+        );
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(alice)),
+            3643
+        );
     }
 
     function testOp9() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.deposit(2000, alice);
+        contracts.vault.deposit(2000, alice);
         vm.prank(bob);
-        vault.mint(2000, bob);
+        contracts.vault.mint(2000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.redeem(1333, alice, alice);
+        contracts.vault.redeem(1333, alice, alice);
         vm.prank(bob);
-        vault.withdraw(2928, bob, bob);
+        contracts.vault.withdraw(2928, bob, bob);
         vm.prank(alice);
-        uint256 sharesBurned = vault.withdraw(3643, alice, alice);
+        uint256 sharesBurned = contracts.vault.withdraw(3643, alice, alice);
         assertEq(sharesBurned, 2000);
-        assertEq(vault.totalAssets(), 14573 - 2928 - 3643);
-        assertEq(vault.totalSupply(), 8000 - 1608 - 2000);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
+        assertEq(contracts.vault.totalAssets(), 14573 - 2928 - 3643);
+        assertEq(contracts.vault.totalSupply(), 8000 - 1608 - 2000);
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(bob)),
+            8001
+        );
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(alice)),
+            0
+        );
     }
 
     function testOp10() external {
         vm.prank(alice);
-        vault.mint(2000, alice);
+        contracts.vault.mint(2000, alice);
         vm.prank(bob);
-        vault.deposit(4000, bob);
+        contracts.vault.deposit(4000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.deposit(2000, alice);
+        contracts.vault.deposit(2000, alice);
         vm.prank(bob);
-        vault.mint(2000, bob);
+        contracts.vault.mint(2000, bob);
         simulateYield(3000);
         vm.prank(alice);
-        vault.redeem(1333, alice, alice);
+        contracts.vault.redeem(1333, alice, alice);
         vm.prank(bob);
-        vault.withdraw(2928, bob, bob);
+        contracts.vault.withdraw(2928, bob, bob);
         vm.prank(alice);
-        vault.withdraw(3643, alice, alice);
+        contracts.vault.withdraw(3643, alice, alice);
         vm.prank(bob);
-        uint256 assets = vault.redeem(4392, bob, bob);
+        uint256 assets = contracts.vault.redeem(4392, bob, bob);
         assertEq(assets, 8001);
-        assertEq(vault.totalAssets(), 1);
-        assertEq(vault.totalSupply(), 0);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 0);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
+        assertEq(contracts.vault.totalAssets(), 1);
+        assertEq(contracts.vault.totalSupply(), 0);
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(bob)),
+            0
+        );
+        assertEq(
+            contracts.vault.previewRedeem(contracts.vault.balanceOf(alice)),
+            0
+        );
     }
 }
