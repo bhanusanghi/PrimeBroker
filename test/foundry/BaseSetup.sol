@@ -183,7 +183,7 @@ contract BaseSetup is Test, IEvents {
             address(contracts.marginManager),
             address(contracts.riskManager),
             address(contracts.priceOracle),
-            address(contracts.contracts.vault)
+            address(contracts.vault)
         );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("CollateralManager"),

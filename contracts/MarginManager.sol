@@ -139,10 +139,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             address(marginAcc),
             marketKey
         );
-        console.log("before values - orderFee, size, notional");
-        console.log(verificationResult.position.orderFee);
-        console.logInt(verificationResult.position.size);
-        console.logInt(verificationResult.position.openNotional);
 
         // merge verification result and marketPosition.
         verificationResult.position.size = marketPosition.size;
@@ -463,10 +459,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     ) private {
         // _getInterestAccrued(address(marginAcc))
         address tokenIn = vault.asset();
+        uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(marginAcc));
         uint256 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
             address(marginAcc)
         );
-        uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(marginAcc));
         if (tokenOutBalance < verificationResult.marginDelta.abs()) {
             // TODO add oracle to get asset value.
             uint256 diff = verificationResult.marginDelta.abs().sub(
@@ -479,7 +475,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     ERC20(verificationResult.tokenOut).decimals(),
                     ERC20(tokenIn).decimals()
                 );
-            if (dollarValueOfTokenDifference > tokenInBalance) {
+
+            if (
+                dollarValueOfTokenDifference > tokenInBalance &&
+                tokenIn != verificationResult.tokenOut
+            ) {
                 increaseDebt(
                     address(marginAcc),
                     dollarValueOfTokenDifference.sub(tokenInBalance).add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
@@ -489,9 +489,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                         )
                     )
                 );
-            }
-            // Note - change this to get exact token out and remove extra token in of 100 given above
-            if (tokenIn != verificationResult.tokenOut) {
+                tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
+                    address(marginAcc)
+                );
+
+                // Swap assets.
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: verificationResult.tokenOut,
@@ -508,6 +510,14 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 });
                 uint256 amountOut = marginAcc.swap(params);
                 require(amountOut >= diff, "RM: Bad Swap");
+            } else if (
+                tokenIn == verificationResult.tokenOut &&
+                dollarValueOfTokenDifference > 0
+            ) {
+                increaseDebt(address(marginAcc), dollarValueOfTokenDifference);
+                tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
+                    address(marginAcc)
+                );
             }
         }
     }

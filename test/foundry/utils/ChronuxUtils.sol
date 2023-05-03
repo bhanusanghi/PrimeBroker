@@ -18,10 +18,9 @@ import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
 contract ChronuxUtils is Test, IEvents {
-    address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
     Contracts contracts;
 
-    constructor(Contracts _contracts) {
+    constructor(Contracts memory _contracts) {
         contracts = _contracts;
     }
 
@@ -42,14 +41,14 @@ contract ChronuxUtils is Test, IEvents {
             true,
             address(contracts.collateralManager)
         );
-        emit CollateralAdded(marginAccount, usdc, amount, amount);
+        emit CollateralAdded(marginAccount, token, amount, amount);
         contracts.collateralManager.addCollateral(token, amount);
         vm.stopPrank();
     }
 
     function verifyRemainingTransferableMargin(
         address trader,
-        uint256 amount
+        int256 amount
     ) external {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
@@ -58,7 +57,7 @@ contract ChronuxUtils is Test, IEvents {
             .riskManager
             .getRemainingMarginTransfer(marginAccount);
         assertEq(
-            remainingMargin,
+            int256(remainingMargin),
             amount,
             "remaining transferrable margin is not equal to amount"
         );
@@ -66,7 +65,7 @@ contract ChronuxUtils is Test, IEvents {
 
     function verifyRemainingPositionNotional(
         address trader,
-        uint256 deltaNotional
+        int256 deltaNotional
     ) external {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
@@ -75,7 +74,7 @@ contract ChronuxUtils is Test, IEvents {
             .riskManager
             .getRemainingPositionOpenNotional(marginAccount);
         assertEq(
-            remainingNotional,
+            int256(remainingNotional),
             deltaNotional,
             "remaining positionNotional is not equal to amount"
         );

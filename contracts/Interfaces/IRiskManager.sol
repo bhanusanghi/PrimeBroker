@@ -54,4 +54,8 @@ interface IRiskManager {
         address _marginAccount,
         bytes32 _marketKey
     ) external view returns (Position memory marketPosition);
+
+    function setCollateralManager(address _collateralManager) external;
+
+    function setVault(address _vault) external;
 }

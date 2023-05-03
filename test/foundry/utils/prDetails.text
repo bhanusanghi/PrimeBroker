@@ -1,0 +1,56 @@
+PR Details -> 
+
+- Pre to Post Position changes
+- Gets Position using PRM after tx and merge results ( Later move this merge resutls to PRM or create diff entry adapters to ease everything).
+- From PRM the position size and notional while being fetched are converted to standardised Chronux decimal systems and Short/Long positive negative indicators.
+- Adds Util functions for all protocol related stuff
+  Adding, verifying and fetching position etc all are abstracted away within these Util functions.
+- Refactors Base Setup to create fixtures for testing.
+- Refactors all test files to use these fixtures and the util functions for all other stuff.
+
+Next PR for tests refactor ->
+- Need to add utils for PnL calculations
+- Add them to tests
+- Add proper PnL calculation tests.
+
+Improvement scope -> 
+add market config
+Add Address registry for testing.
+
+
+
+
+
+
+
+
+
+
+
+
+Tasks for today -> 
+
+Bhanu 
+
+1. Create PR for Pre to Post and Refactor
+2. Close Position PR -> Will add checks in the code and tests for same
+3. Take tickets from below.
+4. Check UI repo
+5. Design modals 
+
+Ashish -> 
+
+KT -> Liquidation
+Document Solution and changes required.
+Begin Coding on this.
+
+
+
+Identified ITems -> Create tickets.
+Change Swap from Uniswap to Curve -> Best way suggested by their team.
+Update tests accordingly and remove SUSD vault from the tests.
+
+
+Pending Items.
+Vault Interest Settlement
+Market Config.

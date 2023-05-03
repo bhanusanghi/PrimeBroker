@@ -14,4 +14,23 @@ interface ICollateralManager {
     function totalCollateralValue(
         address marginAccount
     ) external view returns (uint256 amount);
+
+    function addAllowedCollaterals(
+        address[] calldata _allowed,
+        uint256[] calldata _collateralWeights
+    ) external;
+
+    function addAllowedCollateral(
+        address _allowed,
+        uint256 _collateralWeight
+    ) external;
+
+    function getFreeCollateralValue(
+        address _marginAccount
+    ) external returns (uint256);
+
+    function getTokenBalance(
+        address _marginAccount,
+        address _asset
+    ) external view returns (int256);
 }

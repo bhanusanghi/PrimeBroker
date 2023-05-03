@@ -76,7 +76,7 @@ contract CollateralManagerTest is BaseSetup {
         assertApproxEqAbs(
             contracts
                 .collateralManager
-                .getCollateral(bobMarginAccount, usdc)
+                .getTokenBalance(bobMarginAccount, usdc)
                 .abs(),
             amount,
             change

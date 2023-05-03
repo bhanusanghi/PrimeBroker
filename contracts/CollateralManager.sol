@@ -61,7 +61,7 @@ contract CollateralManager is ICollateralManager {
         // only marginManager
     }
 
-    function addAllowedCollateral(
+    function addAllowedCollaterals(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
     ) public {
@@ -164,7 +164,7 @@ contract CollateralManager is ICollateralManager {
         collateralWeight[_token] = _collateralWeight;
     }
 
-    function getCollateral(
+    function getTokenBalance(
         address _marginAccount,
         address _asset
     ) external view returns (int256) {
@@ -212,5 +212,9 @@ contract CollateralManager is ICollateralManager {
                 )
             );
         }
+    }
+
+    function getAllCollateralTokens() public view returns (address[] memory) {
+        return allowedCollateral;
     }
 }

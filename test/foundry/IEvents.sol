@@ -11,37 +11,94 @@ import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
 
-struct Contracts {
-    IContractRegistry contractRegistry;
-    IPriceOracle priceOracle;
-    IMarketManager marketManager;
-    ICollateralManager collateralManager;
-    IMarginManager marginManager;
-    IRiskManager riskManager;
-    IProtocolRiskManager perpfiRiskManager;
-    IProtocolRiskManager snxRiskManager;
-    IInterestRateModel interestModel;
-    Vault vault;
-}
-struct OpenPositionParams {
-    address baseToken;
-    bool isBaseToQuote;
-    bool isExactInput;
-    uint256 amount;
-    uint256 oppositeAmountBound;
-    uint256 deadline;
-    uint160 sqrtPriceLimitX96;
-    bytes32 referralCode;
-}
-struct PositionData {
-    uint64 id;
-    uint64 lastFundingIndex;
-    uint128 margin;
-    uint128 lastPrice;
-    int128 size;
-}
-
 interface IEvents {
+    struct Contracts {
+        IContractRegistry contractRegistry;
+        IPriceOracle priceOracle;
+        IMarketManager marketManager;
+        ICollateralManager collateralManager;
+        IMarginManager marginManager;
+        IRiskManager riskManager;
+        IProtocolRiskManager perpfiRiskManager;
+        IProtocolRiskManager snxRiskManager;
+        IInterestRateModel interestModel;
+        Vault vault;
+    }
+    struct OpenPositionParams {
+        address baseToken;
+        bool isBaseToQuote;
+        bool isExactInput;
+        uint256 amount;
+        uint256 oppositeAmountBound;
+        uint256 deadline;
+        uint160 sqrtPriceLimitX96;
+        bytes32 referralCode;
+    }
+    struct PositionData {
+        uint64 id;
+        uint64 lastFundingIndex;
+        uint128 margin;
+        uint128 lastPrice;
+        int128 size;
+    }
+
+    struct PerpTradingData {
+        uint256 marginRemainingBeforeTrade;
+        uint256 marginRemainingAfterTrade;
+        uint256 accessibleMarginBeforeTrade;
+        uint256 accessibleMarginAfterTrade;
+        int128 positionSizeAfterTrade;
+        uint256 assetPriceBeforeTrade;
+        uint256 assetPriceAfterManipulation;
+        uint256 orderFee;
+        uint256 assetPrice;
+        uint256 positionId;
+        uint256 latestFundingIndex;
+        int256 openNotional;
+        int256 positionSize;
+    }
+    struct MarginAccountData {
+        uint256 bpBeforeTrade;
+        uint256 bpAfterTrade;
+        uint256 bpAfterPnL;
+        uint256 bpBeforePnL;
+        int256 pnlTPP;
+        int256 fundingAccruedTPP;
+        int256 unrealizedPnL;
+        int256 interestAccruedBeforeTimeskip;
+        int256 interestAccruedAfterTimeskip;
+    }
+
+    struct SNXTradingData {
+        uint256 marginRemainingBeforeTrade;
+        uint256 marginRemainingAfterTrade;
+        uint256 accessibleMarginBeforeTrade;
+        uint256 accessibleMarginAfterTrade;
+        int128 positionSizeAfterTrade;
+        uint256 assetPriceBeforeTrade;
+        uint256 assetPriceAfterManipulation;
+        uint256 orderFee;
+        uint256 assetPrice;
+        uint256 positionId;
+        uint256 latestFundingIndex;
+        int256 openNotional;
+        int256 positionSize;
+    }
+
+    struct TradeData {
+        address trader;
+        bytes32 marketKey;
+        address marketAddress;
+        address marginAccount;
+        address baseAsset;
+        address[] txDestinations;
+        bytes[] txData;
+        int256 initialPositionSize;
+        int256 initialPositionNotional;
+        int256 finalPositionSize;
+        int256 finalPositionNotional;
+    }
+
     // ============= Collateral Manager Events =============
     event CollateralAdded(
         address indexed,

@@ -23,20 +23,22 @@ import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
+// import {Contracts, OpenPositionParams, PositionData, PerpTradingData, MarginAccountData, SNXTradingData, } from "../IEvents.sol";
+
 contract SnxUtils is Test, IEvents {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     Contracts contracts;
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
 
-    constructor(Contracts _contracts) {
+    constructor(Contracts memory _contracts) {
         contracts = _contracts;
     }
 
     function fetchPosition(
         address marginAccount,
         bytes32 marketKey
-    ) public returns (int256 positionSize, int256 openNotional) {
+    ) public view returns (int256 positionSize, int256 openNotional) {
         address market = contracts.marketManager.getMarketAddress(marketKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         (, , , , positionSize) = IFuturesMarket(market).positions(
@@ -64,7 +66,9 @@ contract SnxUtils is Test, IEvents {
     function addAndVerifyPosition(
         address trader,
         bytes32 marketKey,
-        int256 positionSize
+        int256 positionSize,
+        bool shouldFail,
+        bytes memory reason
     ) public {
         vm.startPrank(trader);
         address marketAddress = contracts.marketManager.getMarketAddress(
@@ -85,71 +89,93 @@ contract SnxUtils is Test, IEvents {
         destinations[0] = marketAddress;
         data[0] = openPositionData;
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
-        emit PositionAdded(
-            marginAccount,
-            marketKey,
-            positionSize,
-            (positionSize * int256(assetPriceBeforeOpen)) / 1 ether // openNotional
-        );
+        if (!shouldFail) {
+            vm.expectEmit(
+                true,
+                true,
+                true,
+                true,
+                address(contracts.marginManager)
+            );
+            emit PositionAdded(
+                marginAccount,
+                marketKey,
+                positionSize,
+                (positionSize * int256(assetPriceBeforeOpen)) / 1 ether // openNotional
+            );
+        } else {
+            vm.expectRevert(reason);
+        }
 
         contracts.marginManager.openPosition(marketKey, destinations, data);
         verifyPosition(marginAccount, marketKey, positionSize);
         vm.stopPrank();
     }
 
-    function updateAndVerifyPosition(
+    function updateAndVerifyPositionSize(
         address trader,
         bytes32 marketKey,
-        int256 positionSize
+        int256 positionSize,
+        bool shouldFail,
+        bytes memory reason
     ) public {
+        TradeData memory tradeData;
+        tradeData.marketKey = marketKey;
+        tradeData.trader = trader;
         vm.startPrank(trader);
         // address marginAccount = contracts.marginManager.getMarginAccount(trader);
-        address marketAddress = contracts.marketManager.getMarketAddress(
+        tradeData.marketAddress = contracts.marketManager.getMarketAddress(
             marketKey
         );
-        (uint256 assetPriceBeforeUpdate, ) = IFuturesMarket(marketAddress)
-            .assetPrice();
-        (int256 existingSize, int256 existingNotional) = fetchPosition(
-            contracts.marginManager.getMarginAccount(trader),
-            marketAddress
+        tradeData.marginAccount = contracts.marginManager.getMarginAccount(
+            trader
         );
+        (uint256 assetPriceBeforeUpdate, ) = IFuturesMarket(
+            tradeData.marketAddress
+        ).assetPrice();
+        (
+            tradeData.initialPositionSize,
+            tradeData.initialPositionNotional
+        ) = fetchPosition(tradeData.marginAccount, marketKey);
         bytes memory updatePositionData = abi.encodeWithSignature(
             "modifyPositionWithTracking(int256,bytes32)",
             positionSize,
             keccak256("GigabrainMarginAccount")
         );
-        address[] memory destinations = new address[](1);
-        bytes[] memory data = new bytes[](1);
-        destinations[0] = marketAddress;
-        data[0] = updatePositionData;
+        tradeData.txDestinations = new address[](1);
+        tradeData.txData = new bytes[](1);
+        tradeData.txDestinations[0] = tradeData.marketAddress;
+        tradeData.txData[0] = updatePositionData;
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
-        console2.log("emitting position updated");
-        console2.logInt(positionSize);
-        console2.logInt(existingSize);
-        console2.logInt(existingNotional);
-        console2.logInt(positionSize + existingSize);
-        console2.log(
-            "emitting position updated 2 - ",
-            (positionSize * int256(assetPriceBeforeUpdate)) /
-                1 ether +
-                existingNotional
-        );
-        emit PositionUpdated(
-            contracts.marginManager.getMarginAccount(trader),
-            marketKey,
-            positionSize + existingSize,
-            (positionSize * int256(assetPriceBeforeUpdate)) /
-                1 ether +
-                existingNotional
-        );
 
-        contracts.marginManager.updatePosition(marketKey, destinations, data);
+        if (!shouldFail) {
+            vm.expectEmit(
+                true,
+                true,
+                true,
+                true,
+                address(contracts.marginManager)
+            );
+            emit PositionUpdated(
+                tradeData.marginAccount,
+                tradeData.marketKey,
+                positionSize + tradeData.initialPositionSize,
+                ((positionSize * int256(assetPriceBeforeUpdate)) / 1 ether) +
+                    tradeData.initialPositionNotional
+            );
+        } else {
+            vm.expectRevert(reason);
+        }
+
+        contracts.marginManager.updatePosition(
+            tradeData.marketKey,
+            tradeData.txDestinations,
+            tradeData.txData
+        );
         verifyPosition(
-            contracts.marginManager.getMarginAccount(trader),
+            tradeData.marginAccount,
             marketKey,
-            positionSize + existingSize
+            positionSize + tradeData.initialPositionSize
         );
         console2.log("updated position");
         vm.stopPrank();
@@ -159,7 +185,7 @@ contract SnxUtils is Test, IEvents {
     function fetchMargin(
         address marginAccount,
         bytes32 marketKey
-    ) public returns (int256 margin) {
+    ) public view returns (int256 margin) {
         address market = contracts.marketManager.getMarketAddress(marketKey);
         (, , uint256 remainingMargin, , ) = IFuturesMarket(market).positions(
             marginAccount
@@ -180,7 +206,9 @@ contract SnxUtils is Test, IEvents {
     function updateAndVerifyMargin(
         address trader,
         bytes32 marketKey,
-        int256 margin
+        int256 deltaMargin,
+        bool shouldFail,
+        bytes memory reason
     ) public {
         vm.startPrank(trader);
         address marketAddress = contracts.marketManager.getMarketAddress(
@@ -189,30 +217,42 @@ contract SnxUtils is Test, IEvents {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
         );
+        int256 existingMargin = fetchMargin(marginAccount, marketKey);
+
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
-            margin
+            deltaMargin
         );
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = marketAddress;
         data[0] = transferMarginData;
         // check event for position opened on our side.
-        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
-        uint256 marginDollarValue = margin.convertTokenDecimals(
-            18,
-            ERC20(contracts.vault.asset()).decimals()
-        );
-        emit MarginTransferred(
-            marginAccount,
-            marketKey,
-            susd,
-            margin,
-            marginDollarValue
-        );
+        if (!shouldFail) {
+            vm.expectEmit(
+                true,
+                true,
+                true,
+                true,
+                address(contracts.marginManager)
+            );
+            int256 marginDollarValue = deltaMargin.convertTokenDecimals(
+                18,
+                ERC20(contracts.vault.asset()).decimals()
+            );
+            emit MarginTransferred(
+                marginAccount,
+                marketKey,
+                susd,
+                deltaMargin,
+                marginDollarValue
+            );
+        } else {
+            vm.expectRevert(reason);
+        }
 
         contracts.marginManager.openPosition(marketKey, destinations, data);
-        verifyMargin(marginAccount, marketKey, margin);
+        verifyMargin(marginAccount, marketKey, deltaMargin + existingMargin);
         vm.stopPrank();
     }
 
@@ -224,9 +264,6 @@ contract SnxUtils is Test, IEvents {
         vm.startPrank(trader);
         address marketAddress = contracts.marketManager.getMarketAddress(
             marketKey
-        );
-        address marginAccount = contracts.marginManager.getMarginAccount(
-            trader
         );
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",

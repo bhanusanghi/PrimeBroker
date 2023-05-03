@@ -17,8 +17,9 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {console2} from "forge-std/console2.sol";
 
-contract TransferMarginTest is BaseSetup {
+contract TransferMarginSNX is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
     using SettlementTokenMath for uint256;
@@ -44,7 +45,7 @@ contract TransferMarginTest is BaseSetup {
 
     function testBobAddsMarginOnInvalidMarket() public {
         uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, margin);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
             margin
@@ -54,6 +55,7 @@ contract TransferMarginTest is BaseSetup {
         bytes[] memory data = new bytes[](1);
         destinations[0] = uniFuturesMarket;
         data[0] = transferMarginData;
+        vm.prank(bob);
         contracts.marginManager.openPosition(invalidKey, destinations, data);
     }
 
@@ -61,14 +63,17 @@ contract TransferMarginTest is BaseSetup {
         uint256 liquiMargin
     ) public {
         uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, margin);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         // find max transferable margin.
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        uint256 expectedRemainingMargin = margin / marginFactor;
-        verifyRemainingTransferableMargin(bob, expectedRemainingMargin);
-        uint256 remainingMargin = contracts
-            .riskManager
-            .getRemainingMarginTransfer(marginAccount);
+        int256 expectedRemainingMargin = int256((margin * 100) / marginFactor);
+        chronuxUtils.verifyRemainingTransferableMargin(
+            bob,
+            expectedRemainingMargin
+        );
+        int256 remainingMargin = int256(
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
+        );
         snxUtils.verifyExcessMarginRevert(
             bob,
             snxUniKey,
@@ -82,14 +87,14 @@ contract TransferMarginTest is BaseSetup {
     //     uint256 marginFactor = contracts.riskManager.initialMarginFactor();
 
     //     vm.assume(
-    //         liquiMargin > 100 * ONE_USDC && liquiMargin < maxExpectedLiquidity
+    //         liquiMargin > 100 * ONE_susd && liquiMargin < maxExpectedLiquidity
     //     );
 
     //     // deposit nearly maximum margin on TPP (Third Party Protocol)
 
-    //     assertEq(contracts.vault.expectedLiquidity(), ONE_MILLION_USDC);
+    //     assertEq(contracts.vault.expectedLiquidity(), ONE_MILLION_susd);
     //     vm.startPrank(bob);
-    //     IERC20(usdc).approve(bobMarginAccount, liquiMargin);
+    //     IERC20(susd).approve(bobMarginAccount, liquiMargin);
 
     //     vm.expectEmit(
     //         true,
@@ -98,8 +103,8 @@ contract TransferMarginTest is BaseSetup {
     //         true,
     //         address(contracts.collateralManager)
     //     );
-    //     emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
-    //     contracts.collateralManager.addCollateral(usdc, liquiMargin);
+    //     emit CollateralAdded(bobMarginAccount, susd, liquiMargin, liquiMargin);
+    //     contracts.collateralManager.addCollateral(susd, liquiMargin);
 
     //     uint256 interestAccrued = 0;
     //     uint256 buyingPower = contracts.riskManager.getTotalBuyingPower(
@@ -136,90 +141,101 @@ contract TransferMarginTest is BaseSetup {
     // }
 
     function testCorrectAmountOfMarginIsDepositedInTPP(
-        uint256 snxMargin
+        int256 snxMargin
     ) public {
         uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, margin);
-        uint256 remainingTransferrableMargin = contracts
-            .riskManager
-            .getRemainingMarginTransfer(marginAccount);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
+        int256 remainingTransferrableMargin = int256(
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
+        );
         vm.assume(
             snxMargin > 1 ether && snxMargin < remainingTransferrableMargin // otherwise the uniswap swap is extra bad
         );
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin);
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
     }
 
-    function testBobTransfersExcessMarginInMultipleAttempt(
-        uint256 liquiMargin
-    ) public {
+    function testBobTransfersExcessMarginInMultipleAttempt() public {
         uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, margin);
-        uint256 remainingTransferrableMargin = contracts
-            .riskManager
-            .getRemainingMarginTransfer(marginAccount);
-        snxMargin1 = remainingTransferrableMargin / 2;
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin);
-        snxMargin2 = remainingTransferrableMargin / 2 + 1 ether;
+        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
+        int256 remainingTransferrableMargin = int256(
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
+        );
+        console2.log("remainingTransferrableMargin");
+        console2.logInt(remainingTransferrableMargin);
+        int256 snxMargin1 = remainingTransferrableMargin / 2;
+        console2.logInt(snxMargin1);
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin1, false, "");
+        console2.log("1st deposit done");
+        int256 snxMargin2 = (remainingTransferrableMargin / 2) + 1 ether;
+        console2.logInt(snxMargin2);
         snxUtils.verifyExcessMarginRevert(bob, snxUniKey, snxMargin2);
     }
 
-    function testBobTransfersExcessMarginMultipleDataInSingleAttempt(
-        uint256 liquiMargin
-    ) public {
-        vm.assume(
-            liquiMargin > 1000 * ONE_USDC && liquiMargin < 25_000 * ONE_USDC
-        );
+    // function testBobTransfersExcessMarginMultipleDataInSingleAttempt(
+    //     uint256 liquiMargin
+    // ) public {
+    //     vm.assume(
+    //         liquiMargin > 1000 * ONE_susd && liquiMargin < 25_000 * ONE_susd
+    //     );
 
-        vm.startPrank(bob);
-        IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-        vm.expectEmit(
-            true,
-            true,
-            true,
-            true,
-            address(contracts.collateralManager)
-        );
-        emit CollateralAdded(bobMarginAccount, usdc, liquiMargin, liquiMargin);
-        contracts.collateralManager.addCollateral(usdc, liquiMargin);
-        uint256 buyingPower = contracts.riskManager.getTotalBuyingPower(
-            bobMarginAccount
-        );
+    //     vm.startPrank(bob);
+    //     IERC20(susd).approve(bobMarginAccount, liquiMargin);
+    //     vm.expectEmit(
+    //         true,
+    //         true,
+    //         true,
+    //         true,
+    //         address(contracts.collateralManager)
+    //     );
+    //     emit CollateralAdded(bobMarginAccount, susd, liquiMargin, liquiMargin);
+    //     contracts.collateralManager.addCollateral(susd, liquiMargin);
+    //     uint256 buyingPower = contracts.riskManager.getTotalBuyingPower(
+    //         bobMarginAccount
+    //     );
 
-        uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
-        uint256 marginSNX2 = buyingPower.convertTokenDecimals(6, 18) / 2;
-        uint256 marginSNX3 = 5 ether;
+    //     uint256 marginSNX1 = buyingPower.convertTokenDecimals(6, 18) / 2;
+    //     uint256 marginSNX2 = buyingPower.convertTokenDecimals(6, 18) / 2;
+    //     uint256 marginSNX3 = 5 ether;
 
-        bytes memory transferMarginData1 = abi.encodeWithSignature(
-            "transferMargin(int256)",
-            int256(marginSNX1)
-        );
-        bytes memory transferMarginData2 = abi.encodeWithSignature(
-            "transferMargin(int256)",
-            int256(marginSNX2)
-        );
-        bytes memory transferMarginData3 = abi.encodeWithSignature(
-            "transferMargin(int256)",
-            int256(marginSNX3)
-        );
-        address[] memory destinations = new address[](3);
-        destinations[0] = uniFuturesMarket;
-        destinations[1] = uniFuturesMarket;
-        destinations[2] = uniFuturesMarket;
+    //     bytes memory transferMarginData1 = abi.encodeWithSignature(
+    //         "transferMargin(int256)",
+    //         int256(marginSNX1)
+    //     );
+    //     bytes memory transferMarginData2 = abi.encodeWithSignature(
+    //         "transferMargin(int256)",
+    //         int256(marginSNX2)
+    //     );
+    //     bytes memory transferMarginData3 = abi.encodeWithSignature(
+    //         "transferMargin(int256)",
+    //         int256(marginSNX3)
+    //     );
+    //     address[] memory destinations = new address[](3);
+    //     destinations[0] = uniFuturesMarket;
+    //     destinations[1] = uniFuturesMarket;
+    //     destinations[2] = uniFuturesMarket;
 
-        bytes[] memory data = new bytes[](3);
-        data[0] = transferMarginData1;
-        data[1] = transferMarginData2;
-        data[2] = transferMarginData3;
+    //     bytes[] memory data = new bytes[](3);
+    //     data[0] = transferMarginData1;
+    //     data[1] = transferMarginData2;
+    //     data[2] = transferMarginData3;
 
-        vm.expectRevert(bytes("Extra Transfer not allowed"));
-        contracts.marginManager.openPosition(snxUniKey, destinations, data);
-    }
+    //     vm.expectRevert(bytes("Extra Transfer not allowed"));
+    //     contracts.marginManager.openPosition(snxUniKey, destinations, data);
+    // }
 
     function testBobTransfersMaxAmountMargin() public {
         uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, margin);
-        uint256 expectedRemainingMargin = margin / marginFactor;
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, expectedRemainingMargin);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
+        uint256 marginFactor = contracts.riskManager.initialMarginFactor();
+        int256 expectedRemainingMargin = int256((margin * 100) / marginFactor);
+        snxUtils.updateAndVerifyMargin(
+            bob,
+            snxUniKey,
+            expectedRemainingMargin,
+            false,
+            ""
+        );
+        address market = contracts.marketManager.getMarketAddress(snxUniKey);
         chronuxUtils.verifyRemainingTransferableMargin(bob, 0);
         chronuxUtils.verifyRemainingPositionNotional(
             bob,
@@ -229,29 +245,37 @@ contract TransferMarginTest is BaseSetup {
 
     function testBobReducesMarginMultipleCalls() public {
         uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, margin);
-        uint256 totalTransferrableMargin = contracts
-            .riskManager
-            .getRemainingMarginTransfer(marginAccount);
-
+        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
+        int256 totalTransferrableMargin = int256(
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
+        );
+        console2.log("totalTransferrableMargin");
+        console2.logInt(totalTransferrableMargin);
+        address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(
             bob,
             snxUniKey,
-            totalTransferrableMargin
+            totalTransferrableMargin,
+            false,
+            ""
         );
         snxUtils.updateAndVerifyMargin(
             bob,
             snxUniKey,
-            -totalTransferrableMargin / 2
+            -totalTransferrableMargin / 2,
+            false,
+            ""
         );
-        snxUtils.updateAndVerifyMargin(
-            bob,
-            snxUniKey,
-            -totalTransferrableMargin / 2
-        );
-        chronuxUtils.verifyRemainingTransferableMargin(
-            bob,
-            totalTransferrableMargin
-        );
+        // snxUtils.updateAndVerifyMargin(
+        //     bob,
+        //     snxUniKey,
+        //     -totalTransferrableMargin / 2,
+        //     false,
+        //     ""
+        // );
+        // chronuxUtils.verifyRemainingTransferableMargin(
+        //     bob,
+        //     totalTransferrableMargin
+        // );
     }
 }
