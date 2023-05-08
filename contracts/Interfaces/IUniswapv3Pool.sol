@@ -9,6 +9,6 @@ interface IUniswapV3Pool {
             uint16 observationCardinality,
             uint32 observationCardinalityNext,
             uint8 feeProtocol,
-            bool unlocked
+            bool unlocked 
         );
 }
