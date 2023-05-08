@@ -184,15 +184,15 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     position.openNotional = -(_amount * markPrice);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
-                    position.openNotional = -_amount;
                     position.size = -(_amount) / markPrice;
+                    position.openNotional = -_amount;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
-                    position.openNotional = _amount;
                     position.size = (_amount) / markPrice;
+                    position.openNotional = _amount;
                 } else if (!isShort && !isExactInput) {
-                    position.openNotional = (_amount * markPrice);
                     position.size = _amount;
+                    position.openNotional = (_amount * markPrice);
                 } else {
                     revert("impossible shit");
                 }
@@ -327,10 +327,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         // means short position
         position.size = marketSize;
         position.openNotional = -marketOpenNotional;
-        console.log("positionSize");
-        console.logInt(marketSize);
-        console.log("openNotional");
-        console.logInt(marketOpenNotional);
         // TODO - check if order fee is already accounted for in this.
     }
 }

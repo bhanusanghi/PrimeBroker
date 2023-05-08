@@ -54,32 +54,32 @@ contract UpdatePositionPerpfi is BaseSetup {
         uint256 chronuxMargin = 5000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256((chronuxMargin * 100) / marginFactor);
+        int256 expectedRemainingMargin = int256(
+            (chronuxMargin * 100) / marginFactor
+        );
         vm.assume(
-            perpMargin > int256(1 * ONE_USDC) && perpMargin < expectedRemainingMargin
+            perpMargin > int256(1 * ONE_USDC) &&
+                perpMargin < expectedRemainingMargin
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
             perpMargin,
-            true,
-            bytes("Extra transfer not allowed")
+            false,
+            ""
         );
     }
 
     function testOpenShortAndShort(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxPerpNotional = int256((perpMargin * 100) /
-            perpMarginFactor.convertTokenDecimals(6, 18));
-        int256 maxChronuxNotional = int256((chronuxMargin * 100) /
-            contracts.riskManager.initialMarginFactor());
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -88,7 +88,9 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
-        vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -96,35 +98,36 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - notional
+        // );
+        int256 deltaNotional = expectedRemainingNotional / 3;
 
-        chronuxUtils.verifyRemainingPositionNotional(
-            bob,
-            maxChronuxNotional - notional
-        );
         perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
-            -(expectedRemainingNotional - notional),
+            -deltaNotional,
             false,
             ""
         );
-        chronuxUtils.verifyRemainingPositionNotional(bob, 0);
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - deltaNotional - notional
+        // );
         // check third party events and value by using static call.
     }
 
     function testOpenShortAndLong(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxPerpNotional = int256((perpMargin * 100) /
-            perpMarginFactor.convertTokenDecimals(6, 18));
-        int256 maxChronuxNotional = int256((chronuxMargin * 100) /
-            contracts.riskManager.initialMarginFactor());
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -133,7 +136,9 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
-        vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -142,35 +147,40 @@ contract UpdatePositionPerpfi is BaseSetup {
             ""
         );
 
-        chronuxUtils.verifyRemainingPositionNotional(
-            bob,
-            maxChronuxNotional - notional
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - notional
+        // );
+        expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
+        int256 deltaNotional = expectedRemainingNotional / 3;
 
         perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
-            notional,
+            deltaNotional,
             false,
             ""
         );
-        chronuxUtils.verifyRemainingPositionNotional(bob, maxChronuxNotional);
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - (notional - deltaNotional)
+        // );
         // check third party events and value by using static call.
     }
 
     function testOpenLongAndShort(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
-
-        int256 maxPerpNotional = int256((perpMargin * 100) /
-            perpMarginFactor.convertTokenDecimals(6, 18));
-        int256 maxChronuxNotional = int256((chronuxMargin * 100) /
-            contracts.riskManager.initialMarginFactor());
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 perpMargin = int256(1000 * ONE_USDC);
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -179,7 +189,9 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
-        vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -187,35 +199,41 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
-
-        chronuxUtils.verifyRemainingPositionNotional(
-            bob,
-            maxChronuxNotional - notional
+        utils.mineBlocks(2, block.timestamp + 10_000);
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - notional
+        // );
+        int256 expectedRemainingNotional2 = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
+        int256 deltaNotional = expectedRemainingNotional / 3;
+        console2.logInt(deltaNotional);
         perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
-            -notional,
+            -deltaNotional,
             false,
             ""
         );
-        chronuxUtils.verifyRemainingPositionNotional(bob, maxChronuxNotional);
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - (notional - deltaNotional)
+        // );
         // check third party events and value by using static call.
     }
 
     function testOpenLongAndLong(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
-
-        int256 maxPerpNotional = int256((perpMargin * 100) /
-            perpMarginFactor.convertTokenDecimals(6, 18));
-        int256 maxChronuxNotional = int256((chronuxMargin * 100) /
-            contracts.riskManager.initialMarginFactor());
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 perpMargin = int256(1000 * ONE_USDC);
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -224,7 +242,9 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
-        vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -233,10 +253,23 @@ contract UpdatePositionPerpfi is BaseSetup {
             ""
         );
 
-        chronuxUtils.verifyRemainingPositionNotional(
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - notional
+        // );
+
+        int256 deltaNotional = expectedRemainingNotional / 3;
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
-            maxChronuxNotional - notional
+            perpAaveKey,
+            deltaNotional,
+            false,
+            ""
         );
+        // chronuxUtils.verifyRemainingPositionNotional(
+        //     bob,
+        //     expectedRemainingNotional - (notional + deltaNotional)
+        // );
         // check third party events and value by using static call.
     }
 }

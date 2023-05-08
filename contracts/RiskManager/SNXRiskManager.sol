@@ -278,14 +278,11 @@ contract SNXRiskManager is IProtocolRiskManager {
         ).getMarketAddress(marketKey);
         (, , , uint128 lastPrice, int128 size) = IFuturesMarket(market)
             .positions(marginAccount);
-        console.log("lastPrice", lastPrice);
-        console.log("size");
         console.logInt(size);
         position.size = size;
         position.openNotional = int256(size).mul(int128(lastPrice)).div(
             1 ether // check if needed.
         );
-        console.log("openNotional");
         console.logInt(position.openNotional);
         // TODO - check how to get order fee
     }

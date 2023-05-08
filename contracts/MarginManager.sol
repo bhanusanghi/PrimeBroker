@@ -147,10 +147,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
             marginAcc.updatePosition(marketKey, verificationResult.position);
-            console.log("after merge details, orderFee, size, notional");
-            console.log(verificationResult.position.orderFee);
-            console.logInt(verificationResult.position.size);
-            console.logInt(verificationResult.position.openNotional);
+            // console.log("after merge details, orderFee, size, notional");
+            // console.log(verificationResult.position.orderFee);
+            // console.logInt(verificationResult.position.size);
+            // console.logInt(verificationResult.position.openNotional);
             if (isOpen) {
                 emit PositionAdded(
                     address(marginAcc),

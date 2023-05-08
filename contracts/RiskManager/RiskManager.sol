@@ -74,11 +74,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
 
     function _verifyTrade(
-        IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) internal returns (VerifyTradeResult memory result) {
         address _protocolRiskManager;
         _protocolRiskManager = marketManager.getRiskManagerByMarketName(
@@ -114,13 +112,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data,
         uint256 interestAccrued
     ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data,
-            interestAccrued
-        );
+        result = _verifyTrade(marketKey, destinations, data);
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
@@ -150,13 +142,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data,
         uint256 interestAccrued
     ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data,
-            interestAccrued
-        );
+        result = _verifyTrade(marketKey, destinations, data);
         uint256 buyingPower = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
@@ -205,7 +191,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 "Extra Transfer not allowed"
             );
         }
-
         require(
             getRemainingPositionOpenNotional(marginAccount) >=
                 positionOpenNotional.abs(),

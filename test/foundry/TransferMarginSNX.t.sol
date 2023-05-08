@@ -160,12 +160,9 @@ contract TransferMarginSNX is BaseSetup {
         int256 remainingTransferrableMargin = int256(
             contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
-        console2.log("remainingTransferrableMargin");
-        console2.logInt(remainingTransferrableMargin);
         int256 snxMargin1 = remainingTransferrableMargin / 2;
         console2.logInt(snxMargin1);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin1, false, "");
-        console2.log("1st deposit done");
         int256 snxMargin2 = (remainingTransferrableMargin / 2) + 1 ether;
         console2.logInt(snxMargin2);
         snxUtils.verifyExcessMarginRevert(bob, snxUniKey, snxMargin2);
@@ -249,8 +246,6 @@ contract TransferMarginSNX is BaseSetup {
         int256 totalTransferrableMargin = int256(
             contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
-        console2.log("totalTransferrableMargin");
-        console2.logInt(totalTransferrableMargin);
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(
             bob,

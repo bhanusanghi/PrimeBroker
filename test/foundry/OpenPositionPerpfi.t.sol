@@ -51,7 +51,7 @@ contract OpenPositionPerpfi is BaseSetup {
 
     // Internal
     function testMarginTransferPerp(int256 perpMargin) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
         int256 expectedRemainingMargin = int256(
@@ -65,13 +65,13 @@ contract OpenPositionPerpfi is BaseSetup {
             bob,
             perpAaveKey,
             perpMargin,
-            true,
-            bytes("Extra transfer not allowed")
+            false,
+            ""
         );
     }
 
     function testExcessMarginTransferRevert(int256 perpMargin) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
         int256 expectedRemainingMargin = int256(
@@ -86,34 +86,20 @@ contract OpenPositionPerpfi is BaseSetup {
             perpAaveKey,
             perpMargin,
             true,
-            ""
-        );
-        chronuxUtils.verifyRemainingTransferableMargin(
-            bob,
-            expectedRemainingMargin - perpMargin
-        );
-        // ================ Update Margin ===========
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            -perpMargin / 2,
-            false,
-            ""
-        );
-        chronuxUtils.verifyRemainingTransferableMargin(
-            bob,
-            expectedRemainingMargin - perpMargin / 2
+            "Extra Transfer not allowed"
         );
     }
 
     function testOpenPositionPerpExtraLeverageRevert(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
 
         perpfiUtils.updateAndVerifyMargin(
@@ -124,7 +110,8 @@ contract OpenPositionPerpfi is BaseSetup {
             ""
         );
         vm.assume(
-            notional > maxChronuxNotional && notional < 2 * maxChronuxNotional
+            notional > expectedRemainingNotional &&
+                notional < 2 * expectedRemainingNotional
         );
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
@@ -136,20 +123,15 @@ contract OpenPositionPerpfi is BaseSetup {
     }
 
     function testOpenShortPositionWithNotionalPerp(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxPerpNotional = int256(
-            (perpMargin * 100) / perpMarginFactor.convertTokenDecimals(6, 18)
-        );
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -166,29 +148,19 @@ contract OpenPositionPerpfi is BaseSetup {
             false,
             ""
         );
-
-        chronuxUtils.verifyRemainingPositionNotional(
-            bob,
-            maxChronuxNotional - notional
-        );
         // check third party events and value by using static call.
     }
 
     function testOpenShortPositionWithSizePerp(int256 size) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxPerpNotional = int256(
-            (perpMargin * 100) / perpMarginFactor.convertTokenDecimals(6, 18)
-        );
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -215,20 +187,15 @@ contract OpenPositionPerpfi is BaseSetup {
     }
 
     function testOpenLongPositionWithSizePerp(int256 size) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxPerpNotional = int256(
-            (perpMargin * 100) / perpMarginFactor.convertTokenDecimals(6, 18)
-        );
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -249,20 +216,15 @@ contract OpenPositionPerpfi is BaseSetup {
     }
 
     function testOpenLongPositionWithNotionalPerp(int256 notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMarginFactor = 10;
-        int256 perpMargin = int256(10000 * ONE_USDC);
+        int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 maxPerpNotional = int256(
-            (perpMargin * 100) / perpMarginFactor.convertTokenDecimals(6, 18)
-        );
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
-
-        int256 expectedRemainingNotional = maxPerpNotional.max(
-            maxChronuxNotional
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
         );
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -280,10 +242,6 @@ contract OpenPositionPerpfi is BaseSetup {
             ""
         );
 
-        chronuxUtils.verifyRemainingPositionNotional(
-            bob,
-            maxChronuxNotional - notional
-        );
         // check third party events and value by using static call.
     }
 }

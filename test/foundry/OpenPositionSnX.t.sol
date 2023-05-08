@@ -89,7 +89,7 @@ contract OpenPositionSnX is BaseSetup {
 
         chronuxUtils.verifyRemainingPositionNotional(
             bob,
-            int256(chronuxMargin / imf)
+            int256((chronuxMargin * 100) / imf)
         );
         int256 remainingNotional = int256(
             contracts.riskManager.getRemainingPositionOpenNotional(

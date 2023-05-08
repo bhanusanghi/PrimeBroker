@@ -45,7 +45,6 @@ contract SnxUtils is Test, IEvents {
             marginAccount
         );
         openNotional = (positionSize * int256(assetPrice)) / 1 ether;
-        console2.log("Reached eof for fetchSNXPos");
     }
 
     function verifyPosition(
@@ -94,7 +93,7 @@ contract SnxUtils is Test, IEvents {
                 true,
                 true,
                 true,
-                true,
+                false, // potential difference of 1 wei in value because of rounding
                 address(contracts.marginManager)
             );
             emit PositionAdded(
@@ -103,12 +102,12 @@ contract SnxUtils is Test, IEvents {
                 positionSize,
                 (positionSize * int256(assetPriceBeforeOpen)) / 1 ether // openNotional
             );
+            contracts.marginManager.openPosition(marketKey, destinations, data);
+            verifyPosition(marginAccount, marketKey, positionSize);
         } else {
             vm.expectRevert(reason);
+            contracts.marginManager.openPosition(marketKey, destinations, data);
         }
-
-        contracts.marginManager.openPosition(marketKey, destinations, data);
-        verifyPosition(marginAccount, marketKey, positionSize);
         vm.stopPrank();
     }
 
@@ -153,7 +152,7 @@ contract SnxUtils is Test, IEvents {
                 true,
                 true,
                 true,
-                true,
+                false,
                 address(contracts.marginManager)
             );
             emit PositionUpdated(
@@ -163,21 +162,24 @@ contract SnxUtils is Test, IEvents {
                 ((positionSize * int256(assetPriceBeforeUpdate)) / 1 ether) +
                     tradeData.initialPositionNotional
             );
+            contracts.marginManager.updatePosition(
+                tradeData.marketKey,
+                tradeData.txDestinations,
+                tradeData.txData
+            );
+            verifyPosition(
+                tradeData.marginAccount,
+                marketKey,
+                positionSize + tradeData.initialPositionSize
+            );
         } else {
             vm.expectRevert(reason);
+            contracts.marginManager.updatePosition(
+                tradeData.marketKey,
+                tradeData.txDestinations,
+                tradeData.txData
+            );
         }
-
-        contracts.marginManager.updatePosition(
-            tradeData.marketKey,
-            tradeData.txDestinations,
-            tradeData.txData
-        );
-        verifyPosition(
-            tradeData.marginAccount,
-            marketKey,
-            positionSize + tradeData.initialPositionSize
-        );
-        console2.log("updated position");
         vm.stopPrank();
     }
 
@@ -228,12 +230,15 @@ contract SnxUtils is Test, IEvents {
         destinations[0] = marketAddress;
         data[0] = transferMarginData;
         // check event for position opened on our side.
-        if (!shouldFail) {
+        if (shouldFail) {
+            vm.expectRevert(reason);
+            contracts.marginManager.openPosition(marketKey, destinations, data);
+        } else {
             vm.expectEmit(
                 true,
                 true,
                 true,
-                true,
+                false, // there is a diff of 1 wei in the value due to rounding.
                 address(contracts.marginManager)
             );
             int256 marginDollarValue = deltaMargin.convertTokenDecimals(
@@ -247,12 +252,13 @@ contract SnxUtils is Test, IEvents {
                 deltaMargin,
                 marginDollarValue
             );
-        } else {
-            vm.expectRevert(reason);
+            contracts.marginManager.openPosition(marketKey, destinations, data);
+            verifyMargin(
+                marginAccount,
+                marketKey,
+                deltaMargin + existingMargin
+            );
         }
-
-        contracts.marginManager.openPosition(marketKey, destinations, data);
-        verifyMargin(marginAccount, marketKey, deltaMargin + existingMargin);
         vm.stopPrank();
     }
 

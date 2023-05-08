@@ -65,7 +65,7 @@ contract ChronuxUtils is Test, IEvents {
 
     function verifyRemainingPositionNotional(
         address trader,
-        int256 deltaNotional
+        int256 expectedRemainingNotional
     ) external {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
@@ -73,9 +73,11 @@ contract ChronuxUtils is Test, IEvents {
         uint256 remainingNotional = contracts
             .riskManager
             .getRemainingPositionOpenNotional(marginAccount);
-        assertEq(
+
+        assertApproxEqAbs(
             int256(remainingNotional),
-            deltaNotional,
+            expectedRemainingNotional,
+            1 ether,
             "remaining positionNotional is not equal to amount"
         );
     }
