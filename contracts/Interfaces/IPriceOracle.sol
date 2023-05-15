@@ -1,15 +1,15 @@
 pragma solidity ^0.8.10;
 
 interface IPriceOracle {
-    function convertToUSD(int256 amount, address token)
-        external
-        view
-        returns (int256);
+    function convertToUSD(
+        int256 amount,
+        address token
+    ) external view returns (int256);
 
-    function convertFromUSD(uint256 amount, address token)
-        external
-        view
-        returns (uint256);
+    function convertFromUSD(
+        uint256 amount,
+        address token
+    ) external view returns (uint256);
 
     function convert(
         uint256 amount,
@@ -25,4 +25,9 @@ interface IPriceOracle {
     ) external view returns (uint256 collateralFrom, uint256 collateralTo);
 
     function priceFeeds(address token) external view returns (address);
+
+    function addPriceFeed(
+        address _token,
+        address _priceFeedAggregator
+    ) external;
 }

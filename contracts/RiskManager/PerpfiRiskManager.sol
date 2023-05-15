@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
@@ -20,23 +21,12 @@ import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
 import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IMarketManager} from "../Interfaces/IMarketManager.sol";
+import {IUniswapV3Pool} from "../Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
-
-interface IUniswapV3Pool {
-    function slot0()
-        external
-        view
-        returns (
-            uint160 sqrtPriceX96,
-            int24 tick,
-            uint16 observationIndex,
-            uint16 observationCardinality,
-            uint32 observationCardinalityNext,
-            uint8 feeProtocol,
-            bool unlocked
-        );
-}
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -44,6 +34,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+    using SettlementTokenMath for int256;
     using SignedSafeMath for int256;
     // address public perp
     // function getPositionOpenNotional(address marginAcc) public override {}
@@ -54,9 +45,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public WA = 0xf3fef3a3;
     bytes4 public ClosePosition = 0x00aa9a89;
     address public marginToken;
-    uint8 private _decimals;
+    uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
+    uint8 public marginTokenDecimals;
+    uint8 public positionDecimals;
     IContractRegistry contractRegistry;
-
     // IExchange public perpExchange;
     IAccountBalance accountBalance;
     IMarketRegistry public marketRegistry;
@@ -70,16 +62,19 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address _accountBalance,
         address _marketRegistry,
         address _clearingHouse,
-        address _perpVaultUsdc
+        address _perpVaultUsdc,
+        uint8 _vaultAssetDecimals,
+        uint8 _positionDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
-        marginToken = _marginToken;
         accountBalance = IAccountBalance(_accountBalance);
-        // perpExchange = IExchange(_perpExchange);
-        //clearingHouseConfig  IClearingHouseConfig(clearingHouseConfig)
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
         perpVaultUsdc = IVault(_perpVaultUsdc);
+        vaultAssetDecimals = _vaultAssetDecimals;
+        positionDecimals = _positionDecimals;
+        marginTokenDecimals = ERC20(_marginToken).decimals();
+        marginToken = _marginToken;
     }
 
     //@note: use _init :pointup
@@ -186,18 +181,18 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 //@TODO - take usd value here not amount.
                 if (isShort && isExactInput) {
                     position.size = -_amount;
-                    position.openNotional = -(_amount * markPrice) / 1 ether;
+                    position.openNotional = -(_amount * markPrice);
                 } else if (isShort && !isExactInput) {
                     // Since USDC is used in Perp.
+                    position.size = -(_amount) / markPrice;
                     position.openNotional = -_amount;
-                    position.size = -(_amount * 1 ether) / markPrice;
                 } else if (!isShort && isExactInput) {
                     // Since USDC is used in Perp.
+                    position.size = (_amount) / markPrice;
                     position.openNotional = _amount;
-                    position.size = (_amount * 1 ether) / markPrice;
                 } else if (!isShort && !isExactInput) {
-                    position.openNotional = (_amount * markPrice) / 1 ether;
                     position.size = _amount;
+                    position.openNotional = (_amount * markPrice);
                 } else {
                     revert("impossible shit");
                 }
@@ -287,7 +282,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     function getUnrealizedPnL(
         address marginAccount
-    ) external returns (int256 pnl) {
+    ) external view returns (int256 pnl) {
         int256 owedRealizedPnl;
         int256 unrealizedPnl;
         uint256 pendingFee;
@@ -299,7 +294,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
-        pnl = unrealizedPnl.add(owedRealizedPnl).sub(pendingFee.toInt256());
+        pnl = (unrealizedPnl.add(owedRealizedPnl).add(pendingFee.toInt256()))
+            .convertTokenDecimals(positionDecimals, vaultAssetDecimals);
     }
 
     function getDollarMarginInMarkets(
@@ -311,5 +307,26 @@ contract PerpfiRiskManager is IProtocolRiskManager {
 
     function getMarginToken() external view returns (address) {
         return marginToken;
+    }
+
+    function getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) external view returns (Position memory position) {
+        address baseToken = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketBaseToken(marketKey);
+        int256 marketSize = accountBalance.getTakerPositionSize(
+            marginAccount,
+            baseToken
+        );
+        int256 marketOpenNotional = accountBalance.getTotalOpenNotional(
+            marginAccount,
+            baseToken
+        );
+        // means short position
+        position.size = marketSize;
+        position.openNotional = -marketOpenNotional;
+        // TODO - check if order fee is already accounted for in this.
     }
 }

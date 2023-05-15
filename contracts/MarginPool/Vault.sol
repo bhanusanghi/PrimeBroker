@@ -12,6 +12,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import "hardhat/console.sol";
 
 interface IVault {
     // events
@@ -109,11 +110,10 @@ contract Vault is IVault, ERC4626 {
     // }
 
     /** @dev See {IERC4262-deposit}. */
-    function deposit(uint256 assets, address receiver)
-        public
-        override(ERC4626)
-        returns (uint256)
-    {
+    function deposit(
+        uint256 assets,
+        address receiver
+    ) public override(ERC4626) returns (uint256) {
         // check if we need a limit for max deposits later.
         require(
             assets <= maxDeposit(receiver),
@@ -132,11 +132,10 @@ contract Vault is IVault, ERC4626 {
     }
 
     /** @dev See {IERC4262-mint}. */
-    function mint(uint256 shares, address receiver)
-        public
-        override(ERC4626)
-        returns (uint256)
-    {
+    function mint(
+        uint256 shares,
+        address receiver
+    ) public override(ERC4626) returns (uint256) {
         require(shares <= maxMint(receiver), "ERC4626: mint more than max");
         uint256 assets = previewMint(shares);
         // require(
@@ -189,12 +188,10 @@ contract Vault is IVault, ERC4626 {
     /**
      * @dev Internal conversion function (from shares to assets) with support for rounding direction.
      */
-    function _convertToAssets(uint256 shares, Math.Rounding rounding)
-        internal
-        view
-        override(ERC4626)
-        returns (uint256 assets)
-    {
+    function _convertToAssets(
+        uint256 shares,
+        Math.Rounding rounding
+    ) internal view override(ERC4626) returns (uint256 assets) {
         // uint256 supply = totalSupply();
         // return
         //     (supply == 0)
@@ -210,12 +207,10 @@ contract Vault is IVault, ERC4626 {
      * Will revert if assets > 0, totalSupply > 0 and totalAssets = 0. That corresponds to a case where any asset
      * would represent an infinite amout of shares.
      */
-    function _convertToShares(uint256 assets, Math.Rounding rounding)
-        internal
-        view
-        override(ERC4626)
-        returns (uint256 shares)
-    {
+    function _convertToShares(
+        uint256 assets,
+        Math.Rounding rounding
+    ) internal view override(ERC4626) returns (uint256 shares) {
         // TODO - Check this inifinte error possibility. look at abstract implementation for more.
         return assets.mulDiv(RAY, getShareRate_Ray(), rounding);
     }
@@ -245,11 +240,10 @@ contract Vault is IVault, ERC4626 {
         repayingAllowed[_repayAddress] = true;
     }
 
-    function borrow(address borrower, uint256 amount)
-        external
-        override
-        onlyAllowedLendingMarginManager
-    {
+    function borrow(
+        address borrower,
+        uint256 amount
+    ) external override onlyAllowedLendingMarginManager {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount, "Vault: Not enough assets");
         // update total borrowed
@@ -345,7 +339,6 @@ contract Vault is IVault, ERC4626 {
     function calcLinearCumulative_RAY() public view override returns (uint256) {
         //solium-disable-next-line
         uint256 timeDifference = block.timestamp - timestampLastUpdated; // T:[PS-28]
-
         return
             calcLinearIndex_RAY(
                 _cumulativeIndex_RAY,

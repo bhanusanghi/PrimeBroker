@@ -15,6 +15,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
+import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -26,23 +27,26 @@ contract SNXRiskManager is IProtocolRiskManager {
     using SignedSafeMath for int256;
     IFuturesMarketManager public futureManager;
     address public marginToken;
-    uint8 private vaultAssetDecimals; // @todo take it from init/ constructor
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
     bytes4 public CL = 0xa8c92cf6;
-    uint8 private _decimals;
+    uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
+    uint8 public marginTokenDecimals;
+    uint8 public positionDecimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
         address _marginToken,
         address _contractRegistry,
-        uint8 _vaultAssetDecimals
+        uint8 _vaultAssetDecimals,
+        uint8 _positionDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
         vaultAssetDecimals = _vaultAssetDecimals;
+        positionDecimals = _positionDecimals;
         marginToken = _marginToken;
-        _decimals = ERC20(_marginToken).decimals();
+        marginTokenDecimals = ERC20(_marginToken).decimals();
     }
 
     function getMarginToken() external view returns (address) {
@@ -55,13 +59,6 @@ contract SNXRiskManager is IProtocolRiskManager {
     ) external {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
-    }
-
-    function previewPosition(bytes memory data) public {
-        /**
-        (marketKey, sizeDelta) = txDataDecoder(data)
-        if long check with snx for available margin
-       */
     }
 
     function settleFeeForMarket(address account) external returns (int256) {
@@ -132,7 +129,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     // ** returns in vault base asset decimal points
     function _getPositionPnLAcrossMarkets(
         address account
-    ) public returns (int256 pnl) {
+    ) public view returns (int256 pnl) {
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -145,7 +142,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         }
 
         // @Bhanu TODO - move this funding pnl to unrealizedPnL
-        pnl = pnl.convertTokenDecimals(_decimals, vaultAssetDecimals);
+        pnl = pnl.convertTokenDecimals(positionDecimals, vaultAssetDecimals);
     }
 
     // assumes all destinations refer to same market.
@@ -224,7 +221,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     ) external returns (int256) {
         return
             _getMarginAcrossMarkets(marginAccount).convertTokenDecimals(
-                _decimals,
+                marginTokenDecimals,
                 vaultAssetDecimals
             );
     }
@@ -246,7 +243,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             totalAccruedFunding += _funding;
         }
         totalAccruedFunding = totalAccruedFunding.convertTokenDecimals(
-            _decimals,
+            positionDecimals,
             vaultAssetDecimals
         );
     }
@@ -254,8 +251,8 @@ contract SNXRiskManager is IProtocolRiskManager {
     // returns value in vault decimals
     function getUnrealizedPnL(
         address marginAccount
-    ) external override returns (int256 unrealizedPnL) {
-        return _getPositionPnLAcrossMarkets(marginAccount);
+    ) external view override returns (int256 unrealizedPnL) {
+        unrealizedPnL = _getPositionPnLAcrossMarkets(marginAccount);
     }
 
     function verifyClose(
@@ -269,5 +266,24 @@ contract SNXRiskManager is IProtocolRiskManager {
         //     data
         // );
         //    require(totalPosition<0&&amount<=0,"Invalid close data:SNX");
+    }
+
+    function getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) external view returns (Position memory position) {
+        // TODO - need to fetch futures market address from market config.
+        address market = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketAddress(marketKey);
+        (, , , uint128 lastPrice, int128 size) = IFuturesMarket(market)
+            .positions(marginAccount);
+        console.logInt(size);
+        position.size = size;
+        position.openNotional = int256(size).mul(int128(lastPrice)).div(
+            1 ether // check if needed.
+        );
+        console.logInt(position.openNotional);
+        // TODO - check how to get order fee
     }
 }

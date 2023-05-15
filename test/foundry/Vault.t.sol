@@ -114,7 +114,10 @@ contract VaultTest is Test {
     function testVaultInitialisation() public {
         assertEq(vault.asset(), address(underlyingToken));
         assertEq(vault.name(), "GigaLP");
-        assertEq(vault.getInterestRateModel(), address(interestModel));
+        assertEq(
+            vault.getInterestRateModel(),
+            address(interestModel)
+        );
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.expectedLiquidity(), 0);
@@ -317,8 +320,14 @@ contract VaultTest is Test {
         assertEq(assetsRecvd, 2428);
         assertEq(vault.totalAssets(), 14573);
         assertEq(vault.totalSupply(), 8000);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 10929);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(bob)),
+            10929
+        );
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(alice)),
+            3643
+        );
     }
 
     function testOp8() external {
@@ -339,8 +348,14 @@ contract VaultTest is Test {
         assertEq(sharesBurned, 1608);
         assertEq(vault.totalAssets(), 14573 - 2928);
         assertEq(vault.totalSupply(), 8000 - 1608);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(bob)),
+            8001
+        );
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(alice)),
+            3643
+        );
     }
 
     function testOp9() external {
@@ -363,8 +378,14 @@ contract VaultTest is Test {
         assertEq(sharesBurned, 2000);
         assertEq(vault.totalAssets(), 14573 - 2928 - 3643);
         assertEq(vault.totalSupply(), 8000 - 1608 - 2000);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(bob)),
+            8001
+        );
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(alice)),
+            0
+        );
     }
 
     function testOp10() external {
@@ -389,7 +410,13 @@ contract VaultTest is Test {
         assertEq(assets, 8001);
         assertEq(vault.totalAssets(), 1);
         assertEq(vault.totalSupply(), 0);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 0);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(bob)),
+            0
+        );
+        assertEq(
+            vault.previewRedeem(vault.balanceOf(alice)),
+            0
+        );
     }
 }

@@ -6,6 +6,7 @@ import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegis
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ICircuitBreaker} from "../../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
+import {IEvents} from "../IEvents.sol";
 
 interface IUniswapV3Pool {
     function slot0()
@@ -22,7 +23,7 @@ interface IUniswapV3Pool {
         );
 }
 
-contract Utils is Test {
+contract Utils is Test, IEvents {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     struct RoundData {
@@ -34,6 +35,8 @@ contract Utils is Test {
     }
 
     bytes32 internal nextUser = keccak256(abi.encodePacked("user address"));
+
+    constructor() {}
 
     function getNextUserAddress() external returns (address payable) {
         address payable user = payable(address(uint160(uint256(nextUser))));

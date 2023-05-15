@@ -15,7 +15,6 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
-
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
@@ -62,7 +61,7 @@ contract CollateralManager is ICollateralManager {
         // only marginManager
     }
 
-    function addAllowedCollateral(
+    function addAllowedCollaterals(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
     ) public {
@@ -165,7 +164,7 @@ contract CollateralManager is ICollateralManager {
         collateralWeight[_token] = _collateralWeight;
     }
 
-    function getCollateral(
+    function getTokenBalance(
         address _marginAccount,
         address _asset
     ) external view returns (int256) {
@@ -188,14 +187,14 @@ contract CollateralManager is ICollateralManager {
 
     function totalCollateralValue(
         address _marginAccount
-    ) external returns (uint256 totalAmount) {
+    ) external view returns (uint256 totalAmount) {
         return _totalCollateralValue(_marginAccount);
     }
 
     // sends usdc value with 6 decimals. (Vault base decimals)
     function _totalCollateralValue(
         address _marginAccount
-    ) internal returns (uint256 totalAmount) {
+    ) internal view returns (uint256 totalAmount) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
             uint256 tokenDollarValue = (
@@ -213,5 +212,9 @@ contract CollateralManager is ICollateralManager {
                 )
             );
         }
+    }
+
+    function getAllCollateralTokens() public view returns (address[] memory) {
+        return allowedCollateral;
     }
 }

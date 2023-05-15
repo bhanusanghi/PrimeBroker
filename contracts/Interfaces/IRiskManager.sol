@@ -41,4 +41,21 @@ interface IRiskManager {
     // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external;
+
+    function getRemainingMarginTransfer(
+        address _marginAccount
+    ) external view returns (uint256);
+
+    function getRemainingPositionOpenNotional(
+        address _marginAccount
+    ) external view returns (uint256);
+
+    function getMarketPosition(
+        address _marginAccount,
+        bytes32 _marketKey
+    ) external view returns (Position memory marketPosition);
+
+    function setCollateralManager(address _collateralManager) external;
+
+    function setVault(address _vault) external;
 }

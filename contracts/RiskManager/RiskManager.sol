@@ -1,5 +1,4 @@
 pragma solidity ^0.8.10;
-
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -23,6 +22,7 @@ import {IMarginManager} from "../Interfaces/IMarginManager.sol";
 import {IExchange} from "../Interfaces/IExchange.sol";
 import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
+import "hardhat/console.sol";
 
 contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -74,14 +74,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
 
     function _verifyTrade(
-        IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) internal returns (VerifyTradeResult memory result) {
         address _protocolRiskManager;
-        (, _protocolRiskManager) = marketManager.getProtocolAddressByMarketName(
+        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
         );
 
@@ -114,19 +112,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data,
         uint256 interestAccrued
     ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data,
-            interestAccrued
-        );
+        result = _verifyTrade(marketKey, destinations, data);
         // interest accrued is in vault decimals
         // pnl is in vault decimals
         // BP is in vault decimals
         uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount),
-            interestAccrued
+            address(marginAccount)
         ).mulDiv(100, initialMarginFactor);
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
@@ -136,7 +127,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
         _checkModifyPosition(
-            marginAccount,
+            address(marginAccount),
             buyingPower,
             result.position.openNotional,
             result.marginDeltaDollarValue,
@@ -151,16 +142,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data,
         uint256 interestAccrued
     ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data,
-            interestAccrued
-        );
+        result = _verifyTrade(marketKey, destinations, data);
         uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount),
-            interestAccrued
+            address(marginAccount)
         );
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
@@ -176,7 +160,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function _checkModifyPosition(
-        IMarginAccount marginAccount,
+        address marginAccount,
         uint256 buyingPower,
         int256 positionOpenNotional,
         int256 marginDeltaDollarValue,
@@ -184,20 +168,32 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) internal {
         // buyingPower = buyingPower.mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
         // check if open
+        // require(
+        //     buyingPower >=
+        //         (
+        //             marginAccount.totalDollarMarginInMarkets().add(
+        //                 marginDeltaDollarValue
+        //             ) // this is also in vault asset decimals
+        //         ).abs(),
+        //     "Extra Transfer not allowed"
+        // );
+        // require(
+        //     buyingPower.convertTokenDecimals(
+        //         ERC20(vault.asset()).decimals(),
+        //         18 // needs to remove this hardcoded value and get from market config dynamically
+        //     ) >= (totalNotional.add(positionOpenNotional)).abs(),
+        //     "Extra leverage not allowed"
+        // );
+        if (marginDeltaDollarValue > 0) {
+            require(
+                getRemainingMarginTransfer(address(marginAccount)) >=
+                    marginDeltaDollarValue.abs(),
+                "Extra Transfer not allowed"
+            );
+        }
         require(
-            buyingPower >=
-                (
-                    marginAccount.totalDollarMarginInMarkets().add(
-                        marginDeltaDollarValue
-                    ) // this is also in vault asset decimals
-                ).abs(),
-            "Extra Transfer not allowed"
-        );
-        require(
-            buyingPower.convertTokenDecimals(
-                ERC20(vault.asset()).decimals(),
-                18
-            ) >= (totalNotional.add(positionOpenNotional)).abs(),
+            getRemainingPositionOpenNotional(marginAccount) >=
+                positionOpenNotional.abs(),
             "Extra leverage not allowed"
         );
     }
@@ -213,22 +209,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         // check if open
         // require(marginDeltaDollarValue>=0, "Extra Transfer not allowed");
-        require(
-            buyingPower >=
-                (
-                    marginAccount.totalDollarMarginInMarkets().add(
-                        marginDeltaDollarValue
-                    )
-                ).abs(),
-            "Extra Transfer not allowed"
-        );
-        require(
-            buyingPower.convertTokenDecimals(
-                ERC20(vault.asset()).decimals(),
-                18
-            ) >= (totalNotional.add(positionOpenNotional)).abs(),
-            "Extra leverage not allowed"
-        );
+        // require(
+        //     getRemainingMarginTransfer(marginAccount) >= marginDeltaDollarValue,
+        //     "Extra Transfer not allowed"
+        // );
+        // require(
+        //     getRemainingPositionOpenNotional(marginAccount) >=
+        //         positionOpenNotional,
+        //     "Extra leverage not allowed"
+        // );
     }
 
     // @TODO - should be able to get buying power from account directly.
@@ -238,30 +227,32 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // remainingBuyingPower = (TotalCollateralValue - interest accrue + unsettledRealizedPnL + unrealized PnL) / marginFactor
     // note @dev - returns buying power in vault.asset.decimals
     function _getAbsTotalCollateralValue(
-        address marginAccount,
-        uint256 interestAccrued
-    ) internal returns (uint256 buyingPower) {
-        // unsettledRealizedPnL is in vault decimals
-        // unrealizedPnL is in vault decimals
-        buyingPower = collateralManager
-            .totalCollateralValue(marginAccount)
-            .sub(interestAccrued)
-            .toInt256()
-            .add(_getUnrealizedPnL(marginAccount))
-            .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
-            .abs();
-    }
-
-    function getCurrentBuyingPower(
-        address marginAccount,
-        address marginManager
-    ) external returns (uint256 buyingPower) {
+        address marginAccount
+    ) internal view returns (uint256) {
+        address marginManager = contractRegistery.getContractByName(
+            keccak256("MarginManager")
+        );
         uint256 interestAccrued = IMarginManager(marginManager)
             .getInterestAccrued(marginAccount);
-        buyingPower = _getAbsTotalCollateralValue(
-            marginAccount,
-            interestAccrued
-        ).mulDiv(100, initialMarginFactor);
+        // unsettledRealizedPnL is in vault decimals
+        // unrealizedPnL is in vault decimals
+        return
+            collateralManager
+                .totalCollateralValue(marginAccount)
+                .sub(interestAccrued)
+                .toInt256()
+                .add(_getUnrealizedPnL(marginAccount))
+                .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
+                .abs();
+    }
+
+    function getTotalBuyingPower(
+        address marginAccount
+    ) external view returns (uint256 buyingPower) {
+        buyingPower = _getAbsTotalCollateralValue(marginAccount).mulDiv(
+            100,
+            initialMarginFactor
+        );
     }
 
     // @note This finds and returns delta margin across all markets.
@@ -291,7 +282,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // returns in vault base decimals
     function _getUnrealizedPnL(
         address marginAccount
-    ) internal returns (int256 totalUnrealizedPnL) {
+    ) internal view returns (int256 totalUnrealizedPnL) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
@@ -313,4 +304,62 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
+
+    function getRemainingMarginTransfer(
+        address _marginAccount
+    ) public view returns (uint256) {
+        return _getRemainingMarginTransfer(_marginAccount);
+    }
+
+    function _getRemainingMarginTransfer(
+        address marginAccount
+    ) private view returns (uint256) {
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            address(marginAccount)
+        );
+        int256 marginInMarkets = IMarginAccount(marginAccount)
+            .totalDollarMarginInMarkets();
+        return
+            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
+                uint256(marginInMarkets)
+            );
+    }
+
+    function getRemainingPositionOpenNotional(
+        address _marginAccount
+    ) public view returns (uint256) {
+        return _getRemainingPositionOpenNotional(_marginAccount);
+    }
+
+    function _getRemainingPositionOpenNotional(
+        address marginAccount
+    ) private view returns (uint256) {
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            address(marginAccount)
+        );
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketNames();
+        int256 totalOpenNotional = IMarginAccount(marginAccount)
+            .getTotalOpeningNotional(_whitelistedMarketNames);
+        return
+            (_totalCollateralValue.mul(100).div(initialMarginFactor))
+                .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
+                .sub(totalOpenNotional.abs()); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
+    }
+
+    function getMarketPosition(
+        address _marginAccount,
+        bytes32 _marketKey
+    ) public view returns (Position memory marketPosition) {
+        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
+            _marketKey
+        );
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            _protocolRiskManager
+        );
+        marketPosition = protocolRiskManager.getMarketPosition(
+            _marginAccount,
+            _marketKey
+        );
+    }
 }

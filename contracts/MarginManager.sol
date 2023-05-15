@@ -17,13 +17,14 @@ import {IRiskManager, VerifyTradeResult} from "./Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "./Interfaces/IMarginAccount.sol";
+import {IMarginManager} from "./Interfaces/IMarginManager.sol";
 import {IExchange} from "./Interfaces/IExchange.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 // import {IprotocolRiskManager} from "./Interfaces/IProtocolRiskManager.sol";
 import "hardhat/console.sol";
 
-contract MarginManager is ReentrancyGuard {
+contract MarginManager is IMarginManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using Math for uint256;
@@ -48,39 +49,6 @@ contract MarginManager is ReentrancyGuard {
         require(_address != address(0));
         _;
     }
-    event MarginAccountOpened(address indexed, address indexed);
-    event MarginAccountLiquidated(address indexed, address indexed);
-    event MarginAccountClosed(address indexed, address indexed);
-    event MarginTransferred(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
-        int256,
-        int256
-    );
-
-    // marginAccount, protocol, assetOut, size, openNotional
-    event PositionAdded(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
-        int256,
-        int256
-    );
-    event PositionUpdated(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
-        int256,
-        int256
-    );
-    event PositionClosed(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
-        int256,
-        int256
-    );
 
     constructor(
         IContractRegistry _contractRegistry,
@@ -90,16 +58,6 @@ contract MarginManager is ReentrancyGuard {
         contractRegistry = _contractRegistry;
         marketManager = _marketManager;
         priceOracle = _priceOracle;
-    }
-
-    function SetCollatralRatio(address token, uint256 value) external {
-        //onlyOwner
-        collatralRatio[token] = value;
-    }
-
-    function SetPenalty(uint256 value) external {
-        // onlyOwner
-        liquidationPenalty = value;
     }
 
     function SetRiskManager(
@@ -150,12 +108,66 @@ contract MarginManager is ReentrancyGuard {
         // }
     }
 
+    function getMarginAccount(address trader) external view returns (address) {
+        return _getMarginAccount(trader);
+    }
+
     function _getMarginAccount(address trader) internal view returns (address) {
         require(
             marginAccounts[trader] != address(0),
             "MM: Invalid margin account"
         );
         return marginAccounts[trader];
+    }
+
+    function _executePostMarketOrderUpdates(
+        IMarginAccount marginAcc,
+        bytes32 marketKey,
+        VerifyTradeResult memory verificationResult,
+        bool isOpen
+    )
+        internal
+    // bool isOpen, //TODO - Bhanu - remove all this shit and write 4 functions.
+    // bool isUpdate,
+    // bool isClose,
+    // bool isLiquidate
+    {
+        // check slippage based on verification result and actual market position.
+        // update position size and notional.
+
+        Position memory marketPosition = riskManager.getMarketPosition(
+            address(marginAcc),
+            marketKey
+        );
+
+        // merge verification result and marketPosition.
+        verificationResult.position.size = marketPosition.size;
+        verificationResult.position.openNotional = marketPosition.openNotional;
+
+        if (verificationResult.position.size.abs() > 0) {
+            // check if enough margin to open this position ??
+            marginAcc.updatePosition(marketKey, verificationResult.position);
+            // console.log("after merge details, orderFee, size, notional");
+            // console.log(verificationResult.position.orderFee);
+            // console.logInt(verificationResult.position.size);
+            // console.logInt(verificationResult.position.openNotional);
+            if (isOpen) {
+                emit PositionAdded(
+                    address(marginAcc),
+                    marketKey,
+                    verificationResult.position.size,
+                    verificationResult.position.openNotional
+                );
+            } else {
+                emit PositionUpdated(
+                    address(marginAcc),
+                    marketKey,
+                    verificationResult.position.size,
+                    verificationResult.position.openNotional
+                );
+            }
+        }
+        // updateUnsettledRealizedPnL
     }
 
     function openPosition(
@@ -177,15 +189,13 @@ contract MarginManager is ReentrancyGuard {
         );
 
         _updateData(marginAcc, marketKey, verificationResult);
-        Position memory position = marginAcc.getPosition(marketKey);
-        emit PositionAdded(
-            address(marginAcc),
-            marketKey,
-            verificationResult.tokenOut,
-            position.size,
-            position.openNotional
-        );
         marginAcc.execMultiTx(destinations, data);
+        _executePostMarketOrderUpdates(
+            marginAcc,
+            marketKey,
+            verificationResult,
+            true
+        );
     }
 
     function updatePosition(
@@ -205,15 +215,13 @@ contract MarginManager is ReentrancyGuard {
             data
         );
         _updateData(marginAcc, marketKey, verificationResult);
-        Position memory position = marginAcc.getPosition(marketKey);
-        emit PositionUpdated(
-            address(marginAcc),
-            marketKey,
-            verificationResult.tokenOut,
-            position.size,
-            position.openNotional
-        );
         marginAcc.execMultiTx(destinations, data);
+        _executePostMarketOrderUpdates(
+            marginAcc,
+            marketKey,
+            verificationResult,
+            false
+        );
     }
 
     function closePosition(
@@ -262,11 +270,11 @@ contract MarginManager is ReentrancyGuard {
             destinations,
             data
         );
-        console.log(
-            "liquidate",
-            verificationResult.position.size.abs(),
-            verificationResult.marginDeltaDollarValue.abs()
-        );
+        // console.log(
+        //     "liquidate",
+        //     verificationResult.position.size.abs(),
+        //     verificationResult.marginDeltaDollarValue.abs()
+        // );
         // require(positionSize.abs() == marginAcc.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
         // require(
         //     tokensToTransfer <= 0 && positionSize < 0,
@@ -280,14 +288,6 @@ contract MarginManager is ReentrancyGuard {
         //     marginAcc.removePosition(marketKeys[i]); // @todo remove all positiions
         // }
         // add penaulty
-    }
-
-    function RemoveCollateral() external {
-        /**
-        check margin, open positions
-        settleFee();
-        withdraw
-         */
     }
 
     /// @dev Gets margin account generic parameters
@@ -420,18 +420,13 @@ contract MarginManager is ReentrancyGuard {
         );
     }
 
-    // this will actually take profit or stop loss by closing the respective positions.
-    function settleRealizedAccounting(address trader) external {
-        address marginAccount = _getMarginAccount(trader);
-        IRiskManager(riskManager).settleRealizedAccounting(marginAccount);
-    }
-
     function _checkModifyPosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] calldata destinations,
         bytes[] calldata data
     ) private returns (VerifyTradeResult memory verificationResult) {
+        _updateUnsettledRealizedPnL(address(marginAcc));
         verificationResult = riskManager.verifyTrade(
             marginAcc,
             marketKey,
@@ -462,13 +457,12 @@ contract MarginManager is ReentrancyGuard {
         IMarginAccount marginAcc,
         VerifyTradeResult memory verificationResult
     ) private {
-        _updateUnsettledRealizedPnL(address(marginAcc));
         // _getInterestAccrued(address(marginAcc))
         address tokenIn = vault.asset();
+        uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(marginAcc));
         uint256 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
             address(marginAcc)
         );
-        uint256 tokenInBalance = IERC20(tokenIn).balanceOf(address(marginAcc));
         if (tokenOutBalance < verificationResult.marginDelta.abs()) {
             // TODO add oracle to get asset value.
             uint256 diff = verificationResult.marginDelta.abs().sub(
@@ -481,7 +475,11 @@ contract MarginManager is ReentrancyGuard {
                     ERC20(verificationResult.tokenOut).decimals(),
                     ERC20(tokenIn).decimals()
                 );
-            if (dollarValueOfTokenDifference > tokenInBalance) {
+
+            if (
+                dollarValueOfTokenDifference > tokenInBalance &&
+                tokenIn != verificationResult.tokenOut
+            ) {
                 increaseDebt(
                     address(marginAcc),
                     dollarValueOfTokenDifference.sub(tokenInBalance).add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
@@ -491,9 +489,11 @@ contract MarginManager is ReentrancyGuard {
                         )
                     )
                 );
-            }
-            // Note - change this to get exact token out and remove extra token in of 100 given above
-            if (tokenIn != verificationResult.tokenOut) {
+                tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
+                    address(marginAcc)
+                );
+
+                // Swap assets.
                 IExchange.SwapParams memory params = IExchange.SwapParams({
                     tokenIn: tokenIn,
                     tokenOut: verificationResult.tokenOut,
@@ -510,6 +510,14 @@ contract MarginManager is ReentrancyGuard {
                 });
                 uint256 amountOut = marginAcc.swap(params);
                 require(amountOut >= diff, "RM: Bad Swap");
+            } else if (
+                tokenIn == verificationResult.tokenOut &&
+                dollarValueOfTokenDifference > 0
+            ) {
+                increaseDebt(address(marginAcc), dollarValueOfTokenDifference);
+                tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
+                    address(marginAcc)
+                );
             }
         }
     }
@@ -519,10 +527,10 @@ contract MarginManager is ReentrancyGuard {
         bytes32 marketKey,
         VerifyTradeResult memory verificationResult
     ) internal {
-        if (verificationResult.position.size.abs() > 0) {
-            // check if enough margin to open this position ??
-            marginAcc.updatePosition(marketKey, verificationResult.position);
-        }
+        // if (verificationResult.position.size.abs() > 0) {
+        //     // check if enough margin to open this position ??
+        //     marginAcc.updatePosition(marketKey, verificationResult.position);
+        // }
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAcc.updateDollarMarginInMarkets(

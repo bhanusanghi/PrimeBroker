@@ -30,7 +30,7 @@ interface IProtocolRiskManager {
         bool isAllowed
     ) external;
 
-    function getUnrealizedPnL(address marginAccount) external returns (int256);
+    function getUnrealizedPnL(address marginAccount) external view returns (int256);
 
     // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
     //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
@@ -47,4 +47,9 @@ interface IProtocolRiskManager {
     ) external returns (int256);
 
     function getMarginToken() external view returns (address);
+
+    function getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) external view returns (Position memory position);
 }
