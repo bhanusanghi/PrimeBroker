@@ -24,6 +24,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IUniswapV3Pool} from "../Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
+import {VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "hardhat/console.sol";
@@ -118,22 +119,11 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
-    function verifyTrade(
+    function decodeTxCalldata(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    )
-        public
-        view
-        returns (
-            // int256 amount,
-            // int256 totalPosition,
-            // uint256 fee
-
-            int256 marginDelta,
-            Position memory position
-        )
-    {
+    ) public view returns (int256 marginDelta, Position memory position) {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
            call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
@@ -203,76 +193,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     fee,
                     10 ** 5 // todo - Ask ashish about this
                 );
-            } else if (funSig == ClosePosition) {
-                // @TODO - Ashish - use oppositeAmountBound to handle slippage stuff
-                // refer -
-                (address _baseToken, , , , ) = abi.decode(
-                    data[i][4:],
-                    (address, uint160, uint256, uint256, bytes32)
-                );
-                // _verifyIsBaseTokenAndMarketNameMatching(_baseToken, marketKey);
-                int256 markPrice = getMarkPrice(_baseToken).toInt256();
-                // position.size = -IAccountBalance(accountBalance)
-                //     .getTakerPositionSize(marginAccount, _baseToken);
-                // position.openNotional = IAccountBalance(accountBalance) // not adding a minus sign here as perp already has opposite sign compared to Chronux
-                //     .getTotalOpenNotional(marginAccount, _baseToken);
-
-                uint256 marketFeeRatio = uint256(
-                    marketRegistry.getFeeRatio(_baseToken)
-                );
-
-                // position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
-                // this refers to position opening fee.
-                // position.orderFee = position.openNotional.abs().mulDiv(
-                //     marketFeeRatio,
-                //     10 ** 5 // todo - Ask ashish about this
-                // );
-                // console.log(position.orderFee, "calculated order fee");
-            } else {
-                // Unsupported Function call
-                revert("PRM: Unsupported Function call");
-            }
-        }
-    }
-
-    function verifyClose(
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] calldata data
-    ) public view returns (int256 amount, int256 totalPosition, uint256 fee) {
-        uint8 len = data.length.toUint8(); // limit to 2
-        fee = 1;
-        require(destinations.length.toUint8() == len, "should match");
-        for (uint8 i = 0; i < len; i++) {
-            bytes4 funSig = bytes4(data[i]);
-            if (funSig == AP) {
-                // amount = abi.decode(data[i][36:], (int256));
-            } else if (funSig == CP) {
-                (
-                    address _baseToken,
-                    bool isShort,
-                    bool isExactInput,
-                    uint256 _amount,
-                    ,
-                    uint256 deadline,
-                    ,
-
-                ) = abi.decode(
-                        data[i][4:],
-                        (
-                            address,
-                            bool,
-                            bool,
-                            uint256,
-                            uint256,
-                            uint256,
-                            uint160,
-                            bytes32
-                        )
-                    );
-                totalPosition = isShort
-                    ? -(_amount.toInt256())
-                    : (_amount.toInt256());
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
@@ -328,5 +248,32 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         position.size = marketSize;
         position.openNotional = -marketOpenNotional;
         // TODO - check if order fee is already accounted for in this.
+    }
+
+    function decodeClosePositionCalldata(
+        IMarginAccount marginAccount,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external view returns (VerifyCloseResult memory result) {
+        require(
+            destinations.length == 1 && data.length == 1,
+            "PRM: Only single destination and data allowed"
+        );
+        bytes4 funSig = bytes4(data[0]);
+        if (funSig != ClosePosition) {
+            revert("PRM: Invalid Tx Data in close call");
+        }
+        address configuredBaseToken = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketBaseToken(marketKey);
+
+        (address baseToken, , , , ) = abi.decode(
+            data[0][4:],
+            (address, uint160, uint256, uint256, bytes32)
+        );
+        if (baseToken != configuredBaseToken) {
+            revert("PRM: Invalid base token in close call");
+        }
     }
 }

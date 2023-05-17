@@ -549,4 +549,35 @@ contract PerpfiUtils is Test, IEvents {
         }
         vm.stopPrank();
     }
+
+    function closeAndVerifyPosition(address trader, bytes32 marketKey) public {
+        vm.startPrank(trader);
+        address marketAddress = contracts.marketManager.getMarketAddress(
+            marketKey
+        );
+        address baseToken = contracts.marketManager.getMarketBaseToken(
+            marketKey
+        );
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = marketAddress;
+        data[0] = abi.encodeWithSelector(
+            0x00aa9a89,
+            baseToken,
+            0,
+            0,
+            type(uint256).max,
+            bytes32(0)
+        );
+        // check event for position opened on our side.
+        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
+        emit PositionClosed(marginAccount, marketKey);
+        contracts.marginManager.closePosition(marketKey, destinations, data);
+        verifyPositionNotional(marginAccount, marketKey, 0);
+        vm.stopPrank();
+    }
 }

@@ -21,11 +21,8 @@ interface IMarginManager {
     );
     event PositionUpdated(address indexed, bytes32 indexed, int256, int256);
     event PositionClosed(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
-        int256,
-        int256
+        address indexed marginAccount,
+        bytes32 indexed marketKey
     );
 
     function getInterestAccrued(
