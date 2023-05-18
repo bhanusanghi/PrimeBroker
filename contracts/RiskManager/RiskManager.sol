@@ -119,7 +119,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
+        // .getTotalOpeningNotional(_whitelistedMarketNames);
+            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames)
+            .toInt256();
         // Bp is in dollars vault asset decimals
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
