@@ -17,11 +17,11 @@ import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IUniswapV3Pool} from "../../../contracts/Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
 import {IAccountBalance} from "../../../contracts/Interfaces/Perpfi/IAccountBalance.sol";
-
+import {Constants} from "./Constants.sol";
 import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
-contract PerpfiUtils is Test, IEvents {
+contract PerpfiUtils is Test, Constants, IEvents {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
@@ -113,7 +113,7 @@ contract PerpfiUtils is Test, IEvents {
         assertApproxEqAbs(
             positionChronux.openNotional,
             expectedPositionNotional,
-            1 ether,
+            DUST_THRESHOLD,
             "expected and chronux openNotional do not match"
         );
         assertEq(
