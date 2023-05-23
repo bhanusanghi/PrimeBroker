@@ -201,8 +201,6 @@ contract SnxUtils is Test, IEvents {
         int256 expectedMargin
     ) public {
         int256 margin = fetchMargin(marginAccount, marketKey);
-        console2.log("current snx margin");
-        console2.logInt(margin);
         assertEq(margin, expectedMargin);
     }
 
@@ -240,7 +238,7 @@ contract SnxUtils is Test, IEvents {
                 true,
                 true,
                 true,
-                false, // there is a diff of 1 wei in the value due to rounding.
+                true, // there is a diff of 1 wei in the value due to rounding.
                 address(contracts.marginManager)
             );
             int256 marginDollarValue = deltaMargin.convertTokenDecimals(

@@ -42,11 +42,15 @@ contract ChronuxUtils is Test, IEvents {
             true,
             address(contracts.collateralManager)
         );
+        uint256 amountInVaultAssetDecimals = amount.convertTokenDecimals(
+            ERC20(token).decimals(),
+            ERC20(contracts.vault.asset()).decimals()
+        );
         emit CollateralAdded(
             marginAccount,
             token,
             amount,
-            amount.convertTokenDecimals(18, 6)
+            amountInVaultAssetDecimals
         );
         contracts.collateralManager.addCollateral(token, amount);
         vm.stopPrank();

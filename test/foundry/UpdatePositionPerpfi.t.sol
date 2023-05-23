@@ -210,7 +210,6 @@ contract UpdatePositionPerpfi is BaseSetup {
             )
         );
         int256 deltaNotional = expectedRemainingNotional / 3;
-        console2.logInt(deltaNotional);
         perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,

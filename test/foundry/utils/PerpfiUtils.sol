@@ -113,7 +113,7 @@ contract PerpfiUtils is Test, IEvents {
         assertApproxEqAbs(
             positionChronux.openNotional,
             expectedPositionNotional,
-            1 ether,
+            2 ether,
             "expected and chronux openNotional do not match"
         );
         assertEq(

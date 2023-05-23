@@ -526,6 +526,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         //     // check if enough margin to open this position ??
         //     marginAccount.updatePosition(marketKey, verificationResult.position);
         // }
+
         if (verificationResult.marginDeltaDollarValue.abs() > 0) {
             // TODO - check if this is correct. Should this be done on response adapter??
             marginAccount.updateDollarMarginInMarkets(
