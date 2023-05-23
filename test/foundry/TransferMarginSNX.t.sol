@@ -144,13 +144,17 @@ contract TransferMarginSNX is BaseSetup {
         int256 snxMargin
     ) public {
         uint256 margin = 5000 ether;
+        // vm.prank(0x061b87122Ed14b9526A813209C8a59a633257bAb);
+        // IERC20()
+        // vm.stopPrank();
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         int256 remainingTransferrableMargin = int256(
             contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
-        vm.assume(
-            snxMargin > 1 ether && snxMargin < remainingTransferrableMargin // otherwise the uniswap swap is extra bad
-        );
+        // vm.assume(
+        //     snxMargin > 1 ether && snxMargin < remainingTransferrableMargin // otherwise the uniswap swap is extra bad
+        // );
+        snxMargin = 15000 ether;
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
     }
 

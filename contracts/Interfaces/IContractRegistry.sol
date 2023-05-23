@@ -8,8 +8,31 @@ interface IContractRegistry {
 
     function removeContractFromRegistry(bytes32 contractName) external;
 
-    function getContractByName(bytes32 contractName)
-        external
-        view
-        returns (address);
+    function getContractByName(
+        bytes32 contractName
+    ) external view returns (address);
+
+    function getCurvePool(
+        address tokenIn,
+        address tokenOut
+    ) external view returns (address pool);
+
+    function addCurvePool(
+        address tokenIn,
+        address tokenOut,
+        address pool
+    ) external;
+
+    function addCurvePoolTokenIndex(
+        address curvePool,
+        address token,
+        int128 index
+    ) external;
+
+    function removeCurvePool(address tokenIn, address tokenOut) external;
+
+    function getCurvePoolTokenIndex(
+        address curvePool,
+        address token
+    ) external view returns (int128);
 }

@@ -201,6 +201,8 @@ contract SnxUtils is Test, IEvents {
         int256 expectedMargin
     ) public {
         int256 margin = fetchMargin(marginAccount, marketKey);
+        console2.log("current snx margin");
+        console2.logInt(margin);
         assertEq(margin, expectedMargin);
     }
 

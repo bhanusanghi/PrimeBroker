@@ -228,7 +228,7 @@ const openPositionData = async (sizeDelta: any, trackingCode: any) => {
 describe("Margin Manager", () => {
   describe("Open a new account", () => {
     let accAddress: any;
-    let marginAcc: any;
+    let marginAccount: any;
     // let accAddress;
     // let accAddress;
     const testamt = ethers.utils.parseUnits("1000", 18);
@@ -246,7 +246,7 @@ describe("Margin Manager", () => {
       sUSD = await new ethers.Contract(erc20.sUSD, IERC20ABI, account0);
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)
-      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
+      marginAccount = await ethers.getContractAt("MarginAccount", accAddress, account0)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
@@ -265,10 +265,10 @@ describe("Margin Manager", () => {
       // await usdc.transfer(accAddress, ethers.utils.parseUnits("10000", 6))
 
       // await sUSD.approve(accAddress, ethers.utils.parseUnits("5000", 6))
-      // await marginAcc.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
+      // await marginAccount.addCollateral(usdc.address, ethers.utils.parseUnits("5000", 6))
     });
     // it("test swap"), async () => {
-    //   const out = marginAcc.swap()
+    //   const out = marginAccount.swap()
     // }
     it("MarginAccount add new position using vault", async () => {
 
@@ -283,7 +283,7 @@ describe("Margin Manager", () => {
 
       const out = await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
       const parsedAmount = ethers.utils.parseUnits("1000", 6)
-      await usdc.transfer(marginAcc.address, parsedAmount)
+      await usdc.transfer(marginAccount.address, parsedAmount)
 
       // fundCreditAccount with vAave for now.
 
@@ -309,12 +309,12 @@ describe("Margin Manager", () => {
         [approveAmountCalldata, fundVaultCalldata, _perpOpenPositionCallData]
       );
 
-      console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI))
+      console.log(await marginAccount.positions(PERP_MARKET_KEY_AAVE), await marginAccount.positions(SNX_MARKET_KEY_sUNI))
     });
   });
   describe("Margin Manager:max leverage", () => {
     let accAddress: any;
-    let marginAcc: any;
+    let marginAccount: any;
     const testamt = ethers.utils.parseUnits("1000", 18);
     let IERC20ABI: any;
     beforeEach("Setup", async () => {
@@ -329,7 +329,7 @@ describe("Margin Manager", () => {
       sUSD = await new ethers.Contract(erc20.sUSD, IERC20ABI, account0);
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)
-      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
+      marginAccount = await ethers.getContractAt("MarginAccount", accAddress, account0)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       _exchangeRates = await myContract.getAddress(ethers.utils.formatBytes32String("ExchangeRates"))
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
@@ -361,13 +361,13 @@ describe("Margin Manager", () => {
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
 
       await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
-      console.log(await marginAcc.positions(SNX_MARKET_KEY_sUNI))
+      console.log(await marginAccount.positions(SNX_MARKET_KEY_sUNI))
       trData = await transferMarginData(accAddress, ethers.utils.parseUnits("-900", 18))
       sizeDelta = ethers.utils.parseUnits("-50", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
 
       await marginManager.updatePosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [posData, trData])
-      console.log(await marginAcc.positions(SNX_MARKET_KEY_sUNI))
+      console.log(await marginAccount.positions(SNX_MARKET_KEY_sUNI))
 
     });
     it("MarginAccount add/close position", async () => {
@@ -382,13 +382,13 @@ describe("Margin Manager", () => {
       const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
 
       await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
-      console.log(await marginAcc.positions(SNX_MARKET_KEY_sUNI))
+      console.log(await marginAccount.positions(SNX_MARKET_KEY_sUNI))
       trData = await transferMarginData(accAddress, ethers.utils.parseUnits("-900", 18))
       sizeDelta = ethers.utils.parseUnits("-50", 18);
       posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
 
       await marginManager.closePosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [posData, trData])
-      console.log(await marginAcc.positions(SNX_MARKET_KEY_sUNI))
+      console.log(await marginAccount.positions(SNX_MARKET_KEY_sUNI))
 
     });
     it("MarginAccount add position:snx case", async () => {
@@ -479,7 +479,7 @@ describe("Margin Manager", () => {
       //ExchangeRates
       console.log("After mining new blocks:...\n")
       console.log("eth market position", await EthFutures.positions(accAddress))
-      console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
+      console.log(await marginAccount.positions(PERP_MARKET_KEY_AAVE), await marginAccount.positions(SNX_MARKET_KEY_sUNI), await marginAccount.positions(SNX_MARKET_KEY_sETH))
     });
     it.only("MarginAccount add position:perpfi case", async () => {
 
@@ -491,7 +491,7 @@ describe("Margin Manager", () => {
       // let sizeDelta = ethers.utils.parseUnits("830", 18);
       // let posData = await openPositionData(sizeDelta, ethers.utils.formatBytes32String("GIGABRAINs"))
       // // const uniFutures = await ethers.getContractAt("IFuturesMarket", UNI_MARKET, account0)
-      // console.log("pending fee 0", await marginAcc.pendingFee())
+      // console.log("pending fee 0", await marginAccount.pendingFee())
       // let out = await marginManager.openPosition(SNX_MARKET_KEY_sUNI, [UNI_MARKET, UNI_MARKET], [trData, posData])
       // const perpfiOwner = await ethers.getImpersonatedSigner("0x76Ff908b6d43C182DAEC59b35CebC1d7A17D8086");
       // const EXCABI = (
@@ -544,7 +544,7 @@ describe("Margin Manager", () => {
       // console.log("yohoooo")
       // // console.log(ETH_MARKET, ":", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       // //positions,posData,
-      // console.log("pending fee 1", await marginAcc.pendingFee())
+      // console.log("pending fee 1", await marginAccount.pendingFee())
       // reciept = await marginManager.openPosition(SNX_MARKET_KEY_sETH, [ETH_MARKET, ETH_MARKET], [trData, posData])
       // console.log("eth market position", await EthFutures.positions(accAddress))
 
@@ -569,7 +569,7 @@ describe("Margin Manager", () => {
 
       console.log("perpOpenPositionCallData - ", _perpOpenPositionCallData, "--------------\n")
       // , await usdc.balanceOf(accAddress))
-      // console.log("pending fee 2", await marginAcc.pendingFee())
+      // console.log("pending fee 2", await marginAccount.pendingFee())
       // reciept = await marginManager.openPosition(
       //   PERP_MARKET_KEY_AAVE,
       //   [erc20.usdc, perpVault.address, perpClearingHouse.address],
@@ -588,10 +588,10 @@ describe("Margin Manager", () => {
 
       // console.log(ETH_MARKET, ":....", await EthFutures.baseAsset(), await EthFutures.assetPrice(), await EthFutures.positions(accAddress));
       // //positions,posData,
-      // console.log("pending fee 3", await marginAcc.pendingFee())
+      // console.log("pending fee 3", await marginAccount.pendingFee())
       // await marginManager.liquidate([SNX_MARKET_KEY_sETH], [ETH_MARKET], [posData])
-      // console.log("pending fee 4", await marginAcc.pendingFee())
-      // console.log(await marginAcc.positions(PERP_MARKET_KEY_AAVE), await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
+      // console.log("pending fee 4", await marginAccount.pendingFee())
+      // console.log(await marginAccount.positions(PERP_MARKET_KEY_AAVE), await marginAccount.positions(SNX_MARKET_KEY_sUNI), await marginAccount.positions(SNX_MARKET_KEY_sETH))
       // const outt = await accountBalance.connect(account0).getAccountInfo(accAddress, "0x34235C8489b06482A99bb7fcaB6d7c467b92d248")
       // console.log("eth market position", await EthFutures.positions(accAddress), await accountBalance.connect(account0).getPnlAndPendingFee(accAddress), outt)
     });
@@ -719,7 +719,7 @@ describe("Margin Manager", () => {
       // console.log(ETH_MARKET, ":....", await EthFutures.baseAsset(), await EthFutures.assetPrice());
       // reciept = await marginManager.liquidate([SNX_MARKET_KEY_sETH], [ETH_MARKET], [posData])
       // console.log("eth market position", await EthFutures.positions(accAddress))
-      // console.log(await marginAcc.positions(SNX_MARKET_KEY_sUNI), await marginAcc.positions(SNX_MARKET_KEY_sETH))
+      // console.log(await marginAccount.positions(SNX_MARKET_KEY_sUNI), await marginAccount.positions(SNX_MARKET_KEY_sETH))
     });
   });
 });

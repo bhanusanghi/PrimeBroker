@@ -67,4 +67,5 @@ interface IMarginManager {
     ) external;
 
     function updateUnsettledRealizedPnL(address trader) external;
+
 }
