@@ -15,9 +15,10 @@ import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol"
 import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IUniswapV3Pool} from "../../../contracts/Interfaces/IUniswapV3Pool.sol";
 import {IEvents} from "../IEvents.sol";
+import {Constants} from "./Constants.sol";
 import "forge-std/console2.sol";
 
-contract ChronuxUtils is Test, IEvents {
+contract ChronuxUtils is Test, Constants, IEvents {
     Contracts contracts;
 
     constructor(Contracts memory _contracts) {
@@ -77,7 +78,7 @@ contract ChronuxUtils is Test, IEvents {
         assertApproxEqAbs(
             int256(remainingNotional),
             expectedRemainingNotional,
-            1 ether,
+            DUST_THRESHOLD,
             "remaining positionNotional is not equal to amount"
         );
     }

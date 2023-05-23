@@ -1,5 +1,6 @@
 pragma solidity ^0.8.10;
-import {Position} from "./IMarginAccount.sol";
+import {Position, IMarginAccount} from "./IMarginAccount.sol";
+import {VerifyCloseResult} from "./IRiskManager.sol";
 
 interface IProtocolRiskManager {
     // mapping(bytes4=>string) public abiStrings;
@@ -7,7 +8,7 @@ interface IProtocolRiskManager {
 
     // function getPositionPnL(address marginAccount) external returns (int256);
 
-    function verifyTrade(
+    function decodeTxCalldata(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
@@ -19,18 +20,21 @@ interface IProtocolRiskManager {
             // uint256 fee
         );
 
-    function verifyClose(
+    function decodeClosePositionCalldata(
+        IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    ) external returns (int256 amount, int256 totalPosition, uint256 fee);
+    ) external returns (VerifyCloseResult memory result);
 
     function toggleAddressWhitelisting(
         address contractAddress,
         bool isAllowed
     ) external;
 
-    function getUnrealizedPnL(address marginAccount) external view returns (int256);
+    function getUnrealizedPnL(
+        address marginAccount
+    ) external view returns (int256);
 
     // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
     //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers

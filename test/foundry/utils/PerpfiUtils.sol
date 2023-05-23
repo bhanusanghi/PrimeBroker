@@ -17,11 +17,11 @@ import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IUniswapV3Pool} from "../../../contracts/Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
 import {IAccountBalance} from "../../../contracts/Interfaces/Perpfi/IAccountBalance.sol";
-
+import {Constants} from "./Constants.sol";
 import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
-contract PerpfiUtils is Test, IEvents {
+contract PerpfiUtils is Test, Constants, IEvents {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
@@ -113,7 +113,7 @@ contract PerpfiUtils is Test, IEvents {
         assertApproxEqAbs(
             positionChronux.openNotional,
             expectedPositionNotional,
-            1 ether,
+            DUST_THRESHOLD,
             "expected and chronux openNotional do not match"
         );
         assertEq(
@@ -547,6 +547,37 @@ contract PerpfiUtils is Test, IEvents {
             contracts.marginManager.openPosition(marketKey, destinations, data);
             verifyMargin(marginAccount, marketKey, margin);
         }
+        vm.stopPrank();
+    }
+
+    function closeAndVerifyPosition(address trader, bytes32 marketKey) public {
+        vm.startPrank(trader);
+        address marketAddress = contracts.marketManager.getMarketAddress(
+            marketKey
+        );
+        address baseToken = contracts.marketManager.getMarketBaseToken(
+            marketKey
+        );
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = marketAddress;
+        data[0] = abi.encodeWithSelector(
+            0x00aa9a89,
+            baseToken,
+            0,
+            0,
+            type(uint256).max,
+            bytes32(0)
+        );
+        // check event for position opened on our side.
+        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
+        emit PositionClosed(marginAccount, marketKey);
+        contracts.marginManager.closePosition(marketKey, destinations, data);
+        verifyPositionNotional(marginAccount, marketKey, 0);
         vm.stopPrank();
     }
 }
