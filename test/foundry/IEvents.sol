@@ -117,8 +117,10 @@ interface IEvents {
 
     event PositionAdded(address indexed, bytes32 indexed, int256, int256);
     event PositionUpdated(address indexed, bytes32 indexed, int256, int256);
-    event PositionClosed(address indexed, bytes32 indexed, int256, int256);
-
+    event PositionClosed(
+        address indexed marginAccount,
+        bytes32 indexed marketKey
+    );
     // Synthetix events
 
     event MarginTransferred(address indexed account, int256 marginDelta);

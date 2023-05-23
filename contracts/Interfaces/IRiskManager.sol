@@ -7,6 +7,15 @@ struct VerifyTradeResult {
     Position position;
     address tokenOut;
 }
+struct VerifyCloseResult {
+    // bool isValid;
+    // int256 finalPnL; // will fill this after tx execution
+    int256 closingPrice;
+    // int256 orderFee;
+    // int256 fundingFee;
+    // int256 positionSize;
+    // int256 positionNotional;
+}
 
 interface IRiskManager {
     function verifyTrade(
@@ -58,4 +67,11 @@ interface IRiskManager {
     function setCollateralManager(address _collateralManager) external;
 
     function setVault(address _vault) external;
+
+    function verifyClosePosition(
+        IMarginAccount marginAcc,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external returns (VerifyCloseResult memory result);
 }

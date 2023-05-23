@@ -13,8 +13,8 @@ import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
-import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
-import {Position} from "../Interfaces/IMarginAccount.sol";
+import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
+import {IRiskManager, VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
 import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
@@ -29,7 +29,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     address public marginToken;
     bytes4 public TM = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
-    bytes4 public CL = 0xa8c92cf6;
+    bytes4 public ClosePositionSig = 0xa8c92cf6;
     uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
     uint8 public marginTokenDecimals;
     uint8 public positionDecimals;
@@ -147,7 +147,7 @@ contract SNXRiskManager is IProtocolRiskManager {
 
     // assumes all destinations refer to same market.
     // Can have same destination
-    function verifyTrade(
+    function decodeTxCalldata(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
@@ -190,25 +190,6 @@ contract SNXRiskManager is IProtocolRiskManager {
                 // this refers to position opening fee.
                 (position.orderFee, ) = IFuturesMarket(destinations[i])
                     .orderFee(positionDelta);
-            } else if (funSig == CL) {
-                // get current position and use negative of those values to create pos struct.
-                // ensures we definitely close the position.
-                // (uint256 assetPrice, bool isInvalid) = IFuturesMarket(protocol)
-                //     .assetPrice();
-                // require(
-                //     !isInvalid,
-                //     "Error fetching asset price from third party protocol"
-                // );
-                // (, , , , int128 currentPositionSize) = IFuturesMarket(protocol)
-                //     .positions(marginAccount);
-                // position.size = -int256(currentPositionSize);
-                // position.openNotional = position.openNotional.add(
-                //     (position.size * int256(assetPrice)) / 1 ether
-                // );
-                // // this refers to position opening fee.
-                // (position.orderFee, ) = IFuturesMarket(protocol).orderFee(
-                //     position.size
-                // );
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
@@ -255,19 +236,6 @@ contract SNXRiskManager is IProtocolRiskManager {
         unrealizedPnL = _getPositionPnLAcrossMarkets(marginAccount);
     }
 
-    function verifyClose(
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] calldata data
-    ) public returns (int256 amount, int256 totalPosition, uint256 fee) {
-        // (amount, totalPosition, fee) = verifyTrade(
-        //     protocol,
-        //     destinations,
-        //     data
-        // );
-        //    require(totalPosition<0&&amount<=0,"Invalid close data:SNX");
-    }
-
     function getMarketPosition(
         address marginAccount,
         bytes32 marketKey
@@ -283,5 +251,28 @@ contract SNXRiskManager is IProtocolRiskManager {
             1 ether // check if needed.
         );
         // TODO - check how to get order fee
+    }
+
+    function decodeClosePositionCalldata(
+        IMarginAccount marginAccount,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external view returns (VerifyCloseResult memory result) {
+        require(
+            destinations.length == 1 && data.length == 1,
+            "PRM: Only single destination and data allowed"
+        );
+        bytes4 funSig = bytes4(data[0]);
+        if (funSig != ClosePositionSig) {
+            revert("PRM: Invalid Tx Data in close call");
+        }
+        address marketAddress = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketAddress(marketKey);
+
+        if (destinations[0] != marketAddress) {
+            revert("PRM: Market key and destination market address mismatch");
+        }
     }
 }

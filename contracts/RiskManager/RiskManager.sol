@@ -14,7 +14,7 @@ import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {Vault} from "../MarginPool/Vault.sol";
-import {IRiskManager, VerifyTradeResult} from "../Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyTradeResult, VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
@@ -88,11 +88,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         result.tokenOut = protocolRiskManager.getMarginToken();
 
-        (result.marginDelta, result.position) = protocolRiskManager.verifyTrade(
-            marketKey,
-            destinations,
-            data
-        );
+        (result.marginDelta, result.position) = protocolRiskManager
+            .decodeTxCalldata(marketKey, destinations, data);
         if (result.marginDelta != 0) {
             //idk unnecessary?
             result.marginDeltaDollarValue = priceOracle
@@ -121,16 +118,39 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketNames();
         int256 totalNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
+        // .getTotalOpeningNotional(_whitelistedMarketNames);
+            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames)
+            .toInt256();
         // Bp is in dollars vault asset decimals
         // Position Size is in 18 decimals -> need to convert
         // totalNotional is in 18 decimals
-        _checkModifyPosition(
+        _verifyFinalLeverage(
             address(marginAccount),
             buyingPower,
             result.position.openNotional,
             result.marginDeltaDollarValue,
             totalNotional
+        );
+    }
+
+    function verifyClosePosition(
+        IMarginAccount marginAcc,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] memory data
+    ) external returns (VerifyCloseResult memory result) {
+        address _protocolRiskManager;
+        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
+            marketKey
+        );
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            _protocolRiskManager
+        );
+        protocolRiskManager.decodeClosePositionCalldata(
+            marginAcc,
+            marketKey,
+            destinations,
+            data
         );
     }
 
@@ -158,7 +178,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
     }
 
-    function _checkModifyPosition(
+    function _verifyFinalLeverage(
         address marginAccount,
         uint256 buyingPower,
         int256 positionOpenNotional,

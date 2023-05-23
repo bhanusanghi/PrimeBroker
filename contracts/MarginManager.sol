@@ -13,7 +13,7 @@ import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/Reentra
 import {RiskManager} from "./RiskManager/RiskManager.sol";
 import {MarginAccount} from "./MarginAccount/MarginAccount.sol";
 import {Vault} from "./MarginPool/Vault.sol";
-import {IRiskManager, VerifyTradeResult} from "./Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyTradeResult, VerifyCloseResult} from "./Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "./Interfaces/IMarginAccount.sol";
@@ -118,21 +118,14 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return marginAccounts[trader];
     }
 
+    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values..
     function _executePostMarketOrderUpdates(
         IMarginAccount marginAccount,
         bytes32 marketKey,
         VerifyTradeResult memory verificationResult,
         bool isOpen
-    )
-        internal
-    // bool isOpen, //TODO - Bhanu - remove all this shit and write 4 functions.
-    // bool isUpdate,
-    // bool isClose,
-    // bool isLiquidate
-    {
+    ) internal {
         // check slippage based on verification result and actual market position.
-        // update position size and notional.
-
         Position memory marketPosition = riskManager.getMarketPosition(
             address(marginAccount),
             marketKey
@@ -171,6 +164,40 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // updateUnsettledRealizedPnL
     }
 
+    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values..
+    function _executePostPositionCloseUpdates(
+        IMarginAccount marginAccount,
+        bytes32 marketKey
+    ) internal {
+        // check slippage based on verification result and actual market position.
+        // update position size and notional.
+
+        Position memory marketPosition = riskManager.getMarketPosition(
+            address(marginAccount),
+            marketKey
+        );
+        require(
+            marketPosition.size == 0 && marketPosition.openNotional == 0,
+            "MM: Invalid close position call"
+        );
+    }
+
+    function _verifyTrade(
+        IMarginAccount marginAccount,
+        bytes32 marketKey,
+        address[] calldata destinations,
+        bytes[] calldata data
+    ) private returns (VerifyTradeResult memory verificationResult) {
+        _updateUnsettledRealizedPnL(address(marginAccount));
+        verificationResult = riskManager.verifyTrade(
+            marginAccount,
+            marketKey,
+            destinations,
+            data,
+            _getInterestAccrued(marginAccount)
+        );
+    }
+
     function openPosition(
         bytes32 marketKey,
         address[] calldata destinations,
@@ -182,14 +209,20 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _checkModifyPosition(
+        VerifyTradeResult memory verificationResult = _verifyTrade(
             marginAccount,
             marketKey,
             destinations,
             data
         );
-
-        _updateData(marginAccount, marketKey, verificationResult);
+        if (verificationResult.marginDelta.abs() > 0) {
+            _prepareMarginTransfer(marginAccount, verificationResult);
+            _updateMarginTransferData(
+                marginAccount,
+                marketKey,
+                verificationResult
+            );
+        }
         marginAccount.execMultiTx(destinations, data);
         _executePostMarketOrderUpdates(
             marginAccount,
@@ -209,13 +242,20 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
 
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _checkModifyPosition(
+        VerifyTradeResult memory verificationResult = _verifyTrade(
             marginAccount,
             marketKey,
             destinations,
             data
         );
-        _updateData(marginAccount, marketKey, verificationResult);
+        if (verificationResult.marginDelta.abs() > 0) {
+            _prepareMarginTransfer(marginAccount, verificationResult);
+            _updateMarginTransferData(
+                marginAccount,
+                marketKey,
+                verificationResult
+            );
+        }
         marginAccount.execMultiTx(destinations, data);
         _executePostMarketOrderUpdates(
             marginAccount,
@@ -225,6 +265,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
+    // In this call do we allow only closing of the position or do we also allow transferring back margin from the TPP?
     function closePosition(
         bytes32 marketKey,
         address[] calldata destinations,
@@ -234,26 +275,15 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _checkModifyPosition(
+        VerifyCloseResult memory result = riskManager.verifyClosePosition(
             marginAccount,
             marketKey,
             destinations,
             data
         );
-        _updateData(marginAccount, marketKey, verificationResult);
-        // require(
-        //     positionSize == oldPosition.size,
-        //     "Invalid close pos"
-        // );
-        Position memory position = marginAccount.getPosition(marketKey);
-        emit PositionClosed(
-            address(marginAccount),
-            marketKey,
-            verificationResult.tokenOut,
-            position.size,
-            position.openNotional
-        );
+        emit PositionClosed(address(marginAccount), marketKey);
         marginAccount.execMultiTx(destinations, data);
+        _executePostPositionCloseUpdates(marginAccount, marketKey);
         marginAccount.removePosition(marketKey);
     }
 
@@ -418,23 +448,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
-    function _checkModifyPosition(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        address[] calldata destinations,
-        bytes[] calldata data
-    ) private returns (VerifyTradeResult memory verificationResult) {
-        _updateUnsettledRealizedPnL(address(marginAccount));
-        verificationResult = riskManager.verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data,
-            _getInterestAccrued(marginAccount)
-        );
-        _checkPosition(marginAccount, verificationResult);
-    }
-
     function _checkLiquidatePosition(
         IMarginAccount marginAccount,
         bytes32 marketKey,
@@ -448,10 +461,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             data,
             _getInterestAccrued(marginAccount)
         );
-        _checkPosition(marginAccount, verificationResult);
+        _prepareMarginTransfer(marginAccount, verificationResult);
     }
 
-    function _checkPosition(
+    function _prepareMarginTransfer(
         IMarginAccount marginAccount,
         VerifyTradeResult memory verificationResult
     ) private {
@@ -517,28 +530,21 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         }
     }
 
-    function _updateData(
+    function _updateMarginTransferData(
         IMarginAccount marginAccount,
         bytes32 marketKey,
         VerifyTradeResult memory verificationResult
     ) internal {
-        // if (verificationResult.position.size.abs() > 0) {
-        //     // check if enough margin to open this position ??
-        //     marginAccount.updatePosition(marketKey, verificationResult.position);
-        // }
-
-        if (verificationResult.marginDeltaDollarValue.abs() > 0) {
-            // TODO - check if this is correct. Should this be done on response adapter??
-            marginAccount.updateDollarMarginInMarkets(
-                verificationResult.marginDeltaDollarValue
-            );
-            emit MarginTransferred(
-                address(marginAccount),
-                marketKey,
-                verificationResult.tokenOut,
-                verificationResult.marginDelta,
-                verificationResult.marginDeltaDollarValue
-            );
-        }
+        // TODO - check if this is correct. Should this be done on response adapter??
+        marginAccount.updateDollarMarginInMarkets(
+            verificationResult.marginDeltaDollarValue
+        );
+        emit MarginTransferred(
+            address(marginAccount),
+            marketKey,
+            verificationResult.tokenOut,
+            verificationResult.marginDelta,
+            verificationResult.marginDeltaDollarValue
+        );
     }
 }

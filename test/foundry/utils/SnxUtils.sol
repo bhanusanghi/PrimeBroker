@@ -284,4 +284,34 @@ contract SnxUtils is Test, IEvents {
         contracts.marginManager.openPosition(marketKey, destinations, data);
         vm.stopPrank();
     }
+
+    function closeAndVerifyPosition(address trader, bytes32 marketKey) public {
+        vm.startPrank(trader);
+        address marketAddress = contracts.marketManager.getMarketAddress(
+            marketKey
+        );
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        bytes memory closePositionData = abi.encodeWithSignature(
+            "closePositionWithTracking(bytes32)",
+            keccak256("GigabrainMarginAccount")
+        );
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = marketAddress;
+        data[0] = closePositionData;
+        // check event for position opened on our side.
+        vm.expectEmit(
+            true,
+            true,
+            true,
+            false, // there is a diff of 1 wei in the value due to rounding.
+            address(contracts.marginManager)
+        );
+        emit PositionClosed(marginAccount, marketKey);
+        contracts.marginManager.closePosition(marketKey, destinations, data);
+        verifyPosition(marginAccount, marketKey, 0);
+        vm.stopPrank();
+    }
 }
