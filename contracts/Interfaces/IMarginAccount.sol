@@ -1,7 +1,5 @@
 pragma solidity ^0.8.10;
 
-import {IExchange} from "./IExchange.sol";
-
 // position openNotional should be in 18 decimal points
 // position size should be in 18 decimal points
 struct Position {
@@ -12,7 +10,7 @@ struct Position {
     uint256 lastPrice;
 }
 
-interface IMarginAccount is IExchange {
+interface IMarginAccount {
     function totalBorrowed() external view returns (uint256);
 
     function cumulativeIndexAtOpen() external view returns (uint256);
@@ -78,4 +76,11 @@ interface IMarginAccount is IExchange {
     ) external view returns (uint256 totalNotional);
 
     function unsettledRealizedPnL() external view returns (int256);
+
+    function swapTokens(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) external returns (uint256 amountOut);
 }

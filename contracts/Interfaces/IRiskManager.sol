@@ -19,7 +19,7 @@ struct VerifyCloseResult {
 
 interface IRiskManager {
     function verifyTrade(
-        IMarginAccount marginAcc,
+        IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data,

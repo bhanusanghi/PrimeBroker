@@ -118,7 +118,7 @@ const setup = async () => {
 describe("Margin Manager:SNX", () => {
   describe("Open a new account", () => {
     let accAddress: any;
-    let marginAcc: any;
+    let marginAccount: any;
     // let accAddress;
     // let accAddress;
     const synthSUSDAddress = "0xD1599E478cC818AFa42A4839a6C665D9279C3E50";
@@ -147,7 +147,7 @@ describe("Margin Manager:SNX", () => {
       await MarketManager.addMarket(SNX_MARKET_KEY_sUNI, UNI_MARKET, sNXRiskManager.address)
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)
-      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
+      marginAccount = await ethers.getContractAt("MarginAccount", accAddress, account0)
       await sUSD.approve(accAddress, testamt)
       await sUSD.approve(vault.address, MINT_AMOUNT)
       await vault.deposit(MINT_AMOUNT, account0.address)
@@ -155,14 +155,14 @@ describe("Margin Manager:SNX", () => {
     });
 
     it("Margin manager.open new account", async () => {
-      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      await marginAccount.addCollateral(synthSUSDAddress, testamt)
       let balance = await sUSD.balanceOf(accAddress);
       expect(balance).to.equal(testamt);
     });
 
     it("MarginAccount add new position", async () => {
       await sUSD.approve(accAddress, testamt)
-      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      await marginAccount.addCollateral(synthSUSDAddress, testamt)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
@@ -176,7 +176,7 @@ describe("Margin Manager:SNX", () => {
     });
     it("MarginAccount close position", async () => {
       await sUSD.approve(accAddress, testamt)
-      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      await marginAccount.addCollateral(synthSUSDAddress, testamt)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
 
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
@@ -197,7 +197,7 @@ describe("Margin Manager:SNX", () => {
     });
     it("MarginAccount add position by 50% and close 50% of it", async () => {
       await sUSD.approve(accAddress, testamt)
-      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      await marginAccount.addCollateral(synthSUSDAddress, testamt)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)
@@ -225,7 +225,7 @@ describe("Margin Manager:SNX", () => {
 
     it("MarginAccount take a short", async () => {
       await sUSD.approve(accAddress, testamt)
-      await marginAcc.addCollateral(synthSUSDAddress, testamt)
+      await marginAccount.addCollateral(synthSUSDAddress, testamt)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))
       const futuresManager = await ethers.getContractAt("IFuturesMarketManager", fmAddress, account0)

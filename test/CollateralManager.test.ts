@@ -199,7 +199,7 @@ const setup = async () => {
 describe("CollateralManager", () => {
   describe("CM:", () => {
     let accAddress: any;
-    let marginAcc: any;
+    let marginAccount: any;
     let depositAmount: any;
     beforeEach("Setup", async () => {
       await forkAtBlock(37274241);
@@ -213,7 +213,7 @@ describe("CollateralManager", () => {
       sUSD = await new ethers.Contract(erc20.sUSD, IERC20ABI, account0);
       await marginManager.openMarginAccount();
       accAddress = await marginManager.marginAccounts(account0.address)
-      marginAcc = await ethers.getContractAt("MarginAccount", accAddress, account0)
+      marginAccount = await ethers.getContractAt("MarginAccount", accAddress, account0)
       const myContract = await ethers.getContractAt("IAddressResolver", ADDRESS_RESOLVER);
       _exchangeRates = await myContract.getAddress(ethers.utils.formatBytes32String("ExchangeRates"))
       const fmAddress = await myContract.getAddress(ethers.utils.formatBytes32String("FuturesMarketManager"))

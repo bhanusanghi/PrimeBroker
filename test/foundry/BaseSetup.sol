@@ -24,6 +24,7 @@ import {IPriceOracle} from "../../contracts/Interfaces/IPriceOracle.sol";
 import {IMarketManager} from "../../contracts/Interfaces/IMarketManager.sol";
 import {IMarginManager} from "../../contracts/Interfaces/IMarginManager.sol";
 import {IRiskManager} from "../../contracts/Interfaces/IRiskManager.sol";
+import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICollateralManager} from "../../contracts/Interfaces/ICollateralManager.sol";
 import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
@@ -45,8 +46,6 @@ struct RoundData {
 }
 
 // The following interface is inherited by BaseSetup for exposing all its public functions.
-
-
 
 contract BaseSetup is Test, IEvents {
     // ============= Libraries =============
@@ -302,7 +301,7 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupSNXFixture() internal {
-        _setupCommonFixture(susd);
+        _setupCommonFixture(usdc);
         // =============================== Get Market Addresses from SNX using Keys ===============================
         snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("FuturesMarketManager"));
@@ -334,6 +333,26 @@ contract BaseSetup is Test, IEvents {
         contracts.snxRiskManager.toggleAddressWhitelisting(
             ethFuturesMarket,
             true
+        );
+        contracts.contractRegistry.addCurvePool(
+            usdc,
+            susd,
+            0x061b87122Ed14b9526A813209C8a59a633257bAb
+        );
+        contracts.contractRegistry.addCurvePool(
+            susd,
+            usdc,
+            0x061b87122Ed14b9526A813209C8a59a633257bAb
+        );
+        contracts.contractRegistry.addCurvePoolTokenIndex(
+            0x061b87122Ed14b9526A813209C8a59a633257bAb,
+            susd,
+            0
+        );
+        contracts.contractRegistry.addCurvePoolTokenIndex(
+            0x061b87122Ed14b9526A813209C8a59a633257bAb,
+            usdc,
+            2
         );
     }
 

@@ -10,12 +10,12 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import {IExchange} from "../Interfaces/IExchange.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
-import {UniExchange} from "../Exchange/UniExchange.sol";
+import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
+import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
-contract MarginAccount is IMarginAccount, UniExchange {
+contract MarginAccount is IMarginAccount {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -51,14 +51,13 @@ contract MarginAccount is IMarginAccount, UniExchange {
     //     underlyingToken = underlyingToken;
     // }
 
+    IContractRegistry contractRegistry;
+
     constructor(
-        address _router
-    )
-        //  address _marketManager
-        //  address _contractRegistry
-        UniExchange(_router)
-    {
+        address _contractRegistry //  address _marketManager
+    ) {
         marginManager = msg.sender;
+        contractRegistry = IContractRegistry(_contractRegistry);
         // TODO- Market manager is not related to accounts.
         // marketManager = IMarketManager(_marketManager);
     }
@@ -196,5 +195,34 @@ contract MarginAccount is IMarginAccount, UniExchange {
 
     function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
         unsettledRealizedPnL = _realizedPnL;
+    }
+
+    function swapTokens(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) public returns (uint256 amountOut) {
+        // only marginManager.
+
+        IStableSwap pool = IStableSwap(
+            contractRegistry.getCurvePool(tokenIn, tokenOut)
+        );
+        int128 tokenInIndex = contractRegistry.getCurvePoolTokenIndex(
+            address(pool),
+            tokenIn
+        );
+        int128 tokenOutIndex = contractRegistry.getCurvePoolTokenIndex(
+            address(pool),
+            tokenOut
+        );
+
+        IERC20(tokenIn).approve(address(pool), amountIn);
+        amountOut = pool.exchange_underlying(
+            tokenInIndex, // TODO - correct this
+            tokenOutIndex,
+            amountIn,
+            minAmountOut
+        );
     }
 }

@@ -18,7 +18,6 @@ import {PercentageMath} from "../Libraries/PercentageMath.sol";
 import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IAccountBalance} from "../Interfaces/Perpfi/IAccountBalance.sol";
 import {IClearingHouse} from "../Interfaces/Perpfi/IClearingHouse.sol";
-import {IExchange} from "../Interfaces/Perpfi/IExchange.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
@@ -38,7 +37,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     using SettlementTokenMath for int256;
     using SignedSafeMath for int256;
     // address public perp
-    // function getPositionOpenNotional(address marginAcc) public override {}
+    // function getPositionOpenNotional(address marginAccount) public override {}
     bytes4 public AP = 0x095ea7b3;
     bytes4 public MT = 0x47e7ef24;
     bytes4 public OpenPosition = 0xb6b1b6c3;
@@ -91,7 +90,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     //     perpExchange = IExchange(_perpExchange);
     // }
 
-    // function getTotalPnL(address marginAcc) public returns (int256) {
+    // function getTotalPnL(address marginAccount) public returns (int256) {
 
     // }
 

@@ -19,7 +19,6 @@ import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginManager} from "../Interfaces/IMarginManager.sol";
-import {IExchange} from "../Interfaces/IExchange.sol";
 import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import "hardhat/console.sol";

@@ -8,7 +8,6 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
-import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol";
@@ -20,6 +19,8 @@ import "forge-std/console2.sol";
 
 contract ChronuxUtils is Test, Constants, IEvents {
     Contracts contracts;
+    using SettlementTokenMath for uint256;
+    using SettlementTokenMath for int256;
 
     constructor(Contracts memory _contracts) {
         contracts = _contracts;
@@ -42,7 +43,16 @@ contract ChronuxUtils is Test, Constants, IEvents {
             true,
             address(contracts.collateralManager)
         );
-        emit CollateralAdded(marginAccount, token, amount, amount);
+        uint256 amountInVaultAssetDecimals = amount.convertTokenDecimals(
+            ERC20(token).decimals(),
+            ERC20(contracts.vault.asset()).decimals()
+        );
+        emit CollateralAdded(
+            marginAccount,
+            token,
+            amount,
+            amountInVaultAssetDecimals
+        );
         contracts.collateralManager.addCollateral(token, amount);
         vm.stopPrank();
     }
