@@ -16,6 +16,10 @@ struct VerifyCloseResult {
     // int256 positionSize;
     // int256 positionNotional;
 }
+struct VerifyLiquidationResult {
+    int256 marginDelta;
+    bool isFullLiquidation;
+}
 
 interface IRiskManager {
     function verifyTrade(
@@ -74,4 +78,11 @@ interface IRiskManager {
         address[] memory destinations,
         bytes[] memory data
     ) external returns (VerifyCloseResult memory result);
+
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external returns (VerifyLiquidationResult memory result);
 }

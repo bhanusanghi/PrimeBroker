@@ -13,7 +13,7 @@ import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/Reentra
 import {RiskManager} from "./RiskManager/RiskManager.sol";
 import {MarginAccount} from "./MarginAccount/MarginAccount.sol";
 import {Vault} from "./MarginPool/Vault.sol";
-import {IRiskManager, VerifyTradeResult, VerifyCloseResult} from "./Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "./Interfaces/IRiskManager.sol";
 import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "./Interfaces/IMarginAccount.sol";
@@ -34,7 +34,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     using SignedSafeMath for int256;
     RiskManager public riskManager;
     IContractRegistry public contractRegistry;
-    IMarketManager public marketManager;
+    // IMarketManager public marketManager;
     IPriceOracle public priceOracle;
 
     Vault public vault;
@@ -51,11 +51,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
     constructor(
         IContractRegistry _contractRegistry,
-        IMarketManager _marketManager,
+        // IMarketManager _marketManager,
         IPriceOracle _priceOracle
     ) {
         contractRegistry = _contractRegistry;
-        marketManager = _marketManager;
+        // marketManager = _marketManager;
         priceOracle = _priceOracle;
     }
 
@@ -91,19 +91,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return funds
         burn contract account and remove mappings
          */
-    }
-
-    function settleFee(address acc) public {
-        // for each market
-        // prm.settleFeeForMarket()
-        // bytes32[] memory _allowedMarketNames = marketManager.getAllMarketNames();
-        // int256 fee;
-        // address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-        // for (uint256 i = 0; i < _riskManagers.length; i++) {
-        //     fee += IProtocolRiskManager(_riskManagers[i]).settleFeeForMarket(
-        //         acc
-        //     );
-        // }
     }
 
     function getMarginAccount(address trader) external view returns (address) {
@@ -204,6 +191,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
+        _syncPositions(marginAccount);
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = _verifyTrade(
             marginAccount,
@@ -236,7 +224,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-
+        _syncPositions(marginAccount);
+        // Add check for an existing position.
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = _verifyTrade(
             marginAccount,
@@ -271,6 +260,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
+        _syncPositions(marginAccount);
+        // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
             marginAccount,
             marketKey,
@@ -279,42 +270,78 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         emit PositionClosed(address(marginAccount), marketKey);
         marginAccount.execMultiTx(destinations, data);
-        _executePostPositionCloseUpdates(marginAccount, marketKey);
+        _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
         marginAccount.removePosition(marketKey);
     }
 
     function liquidate(
-        bytes32 marketKey,
+        address trader,
+        bytes32[] calldata marketKeys,
         address[] calldata destinations,
         bytes[] calldata data
     ) external {
-        MarginAccount marginAccount = MarginAccount(marginAccounts[msg.sender]);
-        settleFee(address(marginAccount));
-
-        VerifyTradeResult memory verificationResult = _checkLiquidatePosition(
+        MarginAccount marginAccount = _getMarginAccount(trader);
+        _syncPositions(marginAccount);
+        // verifies if account is liquidatable, verifies tx calldata, and returns the amount of margin to be transferred.
+        VerifyLiquidationResult memory result = riskManager.liquidate(
             marginAccount,
-            marketKey,
+            marketKeys,
             destinations,
             data
         );
-        // console.log(
-        //     "liquidate",
-        //     verificationResult.position.size.abs(),
-        //     verificationResult.marginDeltaDollarValue.abs()
-        // );
-        // require(positionSize.abs() == marginAccount.getTotalOpeningAbsoluteNotional(marketKeys),"Invalid close pos");
-        // require(
-        //     tokensToTransfer <= 0 && positionSize < 0,
-        //     "add margin is not allowed in close position"
-        // );
-        // marginAccount.execMultiTx(destinations, data);
-        // if (tokensToTransfer < 0) {
-        //     decreaseDebt(address(marginAccount), tokensToTransfer.abs());
-        // }
-        // for (uint256 i = 0; i < marketKeys.length; i++) {
-        //     marginAccount.removePosition(marketKeys[i]); // @todo remove all positiions
-        // }
-        // add penaulty
+        // Update totalMarginInMarkets data.
+        marginAccount.execMultiTx(destinations, data);
+
+        // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
+        _verifyPostLiquidationTxs(marginAccount, result);
+
+        bool hasBadDebt = _hasBadDebt(marginAccount);
+        if (!hasBadDebt) {
+            // pay money to liquidator based on config.
+            // pay interest
+        } else {
+            // bring insurance fund in to cover the negative balance.
+            // pay interest
+            // pay liquidator
+        }
+        _executePostLiquidationUpdates(marginAccount, result);
+    }
+
+    function _hasBadDebt(
+        IMarginAccount marginAccount
+    ) internal view returns (bool) {
+        // return riskManager.hasBadDebt(address(marginAccount));
+        return false;
+    }
+
+    function _verifyPostLiquidationTxs(
+        IMarginAccount marginAccount
+    ) internal view {
+        // check if all positions are closed.
+
+        // check if all margin is transferred back to Chronux.
+        uint256 marginInMarkets = riskManager.getDollarMarginInMarkets(
+            address(marginAccount)
+        );
+        require(
+            marginInMarkets == 0,
+            "MM: Complete Mmrgin not transferred back to Chronux"
+        );
+        // When margin in market is 0 it implies all positions are also closed.
+    }
+
+    function _executePostLiquidationUpdates(
+        IMarginAccount marginAccount,
+        VerifyLiquidationResult memory result
+    ) internal {
+        // Make changes to stored positions.
+        _syncPositions(marginAccount);
+        _updateUnsettledRealizedPnL(marginAccount);
+        // Emit a liquidation event with relevant data.
+
+        // Update totalMarginInMarkets data.
+
+        //
     }
 
     /// @dev Gets margin account generic parameters
@@ -444,22 +471,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
-    function _checkLiquidatePosition(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        address[] calldata destinations,
-        bytes[] calldata data
-    ) private returns (VerifyTradeResult memory verificationResult) {
-        verificationResult = riskManager.verifyLiquidation(
-            marginAccount,
-            marketKey,
-            destinations,
-            data,
-            _getInterestAccrued(marginAccount)
-        );
-        _prepareMarginTransfer(marginAccount, verificationResult);
-    }
-
     function _prepareMarginTransfer(
         IMarginAccount marginAccount,
         VerifyTradeResult memory verificationResult
@@ -542,5 +553,43 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult.marginDelta,
             verificationResult.marginDeltaDollarValue
         );
+    }
+
+    function syncPositions(address trader) public {
+        address marginAccount = _getMarginAccount(trader);
+        _syncPositions(marginAccount);
+    }
+
+    // this function fetches the current market position and checks if the value is not same as stored position data.
+    // Mention wht is the motivation to do this ??
+    function _syncPositions(address marginAccount) internal {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName("MarketManager")
+        );
+        bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
+        for (uint256 i = 0; i < marketKeys.length; i++) {
+            bytes32 marketKey = marketKeys[i];
+            uint256 marketPosition = riskManager.getMarketPosition(
+                marginAccount,
+                marketKey
+            );
+            // @note - compa
+            Position memory storedPosition = IMarginAccount(marginAccount)
+                .getPosition(marketKey);
+            if (
+                storedPosition.size != marketPosition.size ||
+                storedPosition.openNotional != marketPosition.openNotional
+            ) {
+                storedPosition.size = marketPosition.size;
+                storedPosition.openNotional = marketPosition.openNotional;
+                if (
+                    storedPosition.size == 0 && storedPosition.openNotional == 0
+                ) marginAccount.removePosition(marketKey);
+                else {
+                    marginAccount.updatePosition(marketKey, storedPosition);
+                }
+            }
+            // emit PositionSynced(marginAccount, marketKey, marketPosition);
+        }
     }
 }

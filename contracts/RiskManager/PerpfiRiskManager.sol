@@ -23,7 +23,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IUniswapV3Pool} from "../Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
-import {VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
+import {VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "hardhat/console.sol";
@@ -38,12 +38,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     using SignedSafeMath for int256;
     // address public perp
     // function getPositionOpenNotional(address marginAccount) public override {}
-    bytes4 public AP = 0x095ea7b3;
-    bytes4 public MT = 0x47e7ef24;
-    bytes4 public OpenPosition = 0xb6b1b6c3;
-    bytes4 public CP = 0x2f86e2dd;
-    bytes4 public WA = 0xf3fef3a3;
-    bytes4 public ClosePosition = 0x00aa9a89;
+    bytes4 public ADD_MARGIN = 0x47e7ef24;
+    bytes4 public OPEN_POSITION = 0xb6b1b6c3;
+    bytes4 public WITHDRAW_MARGIN = 0xf3fef3a3;
+    bytes4 public CLOSE_POSITION = 0x00aa9a89;
     address public marginToken;
     uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
     uint8 public marginTokenDecimals;
@@ -130,20 +128,23 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            sizeDelta  : 64 bytes
            32 bytes tracking code, or we can append hehe
         */
-        // check for destinations as well
+
+        address market = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketAddress(marketKey);
         uint256 len = data.length; // limit to 2
         require(destinations.length == len, "should match");
         for (uint256 i = 0; i < len; i++) {
+            require(
+                whitelistedAddresses[destinations[i]] == true,
+                "PRM: Calling non whitelisted contract"
+            );
             bytes4 funSig = bytes4(data[i]);
-            if (funSig == AP) {
-                // amount = abi.decode(data[i][36:], (int256));
-            } else if (funSig == MT) {
-                // @note for now will restrict only one TM and combine multiple interactions via higher order functions
-                // marginDelta + abi.decode(data[i][36:], (int256));
+            if (funSig == ADD_MARGIN) {
                 marginDelta = abi.decode(data[i][36:], (int256));
-            } else if (funSig == WA) {
+            } else if (funSig == WITHDRAW_MARGIN) {
                 marginDelta = -abi.decode(data[i][36:], (int256));
-            } else if (funSig == OpenPosition) {
+            } else if (funSig == OPEN_POSITION) {
                 (
                     address _baseToken,
                     bool isShort, //isBaseToQuote
@@ -232,6 +233,13 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address marginAccount,
         bytes32 marketKey
     ) external view returns (Position memory position) {
+        return _getMarketPosition(marginAccount, marketKey);
+    }
+
+    function _getMarketPosition(
+        address marginAccount,
+        bytes32 marketKey
+    ) internal view returns (Position memory position) {
         address baseToken = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketBaseToken(marketKey);
@@ -259,8 +267,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             destinations.length == 1 && data.length == 1,
             "PRM: Only single destination and data allowed"
         );
+        require(
+            whitelistedAddresses[destinations[0]] == true,
+            "PRM: Calling non whitelisted contract"
+        );
         bytes4 funSig = bytes4(data[0]);
-        if (funSig != ClosePosition) {
+        if (funSig != CLOSE_POSITION) {
             revert("PRM: Invalid Tx Data in close call");
         }
         address configuredBaseToken = IMarketManager(
@@ -273,6 +285,38 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         );
         if (baseToken != configuredBaseToken) {
             revert("PRM: Invalid base token in close call");
+        }
+    }
+
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32 marketKey,
+        address destination,
+        bytes calldata data
+    ) external returns (VerifyLiquidationResult memory result) {
+        // Needs to verify stuff for full vs partial liquidation
+        require(
+            whitelistedAddresses[destination] == true,
+            "PRM: Calling non whitelisted contract"
+        );
+        bytes4 funSig = bytes4(data);
+        address configuredBaseToken = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketBaseToken(marketKey);
+
+        if (funSig == CLOSE_POSITION) {
+            (address baseToken, , , , ) = abi.decode(
+                data[4:],
+                (address, uint160, uint256, uint256, bytes32)
+            );
+            if (baseToken != configuredBaseToken) {
+                revert("PRM: Invalid base token in close call");
+            }
+        } else if (funSig == WITHDRAW_MARGIN) {
+            result.marginDelta = -abi.decode(data[36:], (int256));
+        } else {
+            revert("PRM: Invalid Tx Data in liquidate call");
         }
     }
 }

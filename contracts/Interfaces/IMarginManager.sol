@@ -58,11 +58,11 @@ interface IMarginManager {
     ) external;
 
     function liquidate(
-        bytes32 marketKey,
+        address trader,
+        bytes32[] calldata marketKeys,
         address[] calldata destinations,
         bytes[] calldata data
     ) external;
 
     function updateUnsettledRealizedPnL(address trader) external;
-
 }

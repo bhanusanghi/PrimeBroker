@@ -14,7 +14,7 @@ import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
-import {IRiskManager, VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
@@ -27,9 +27,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     using SignedSafeMath for int256;
     IFuturesMarketManager public futureManager;
     address public marginToken;
-    bytes4 public TM = 0x88a3c848;
+    bytes4 public TRANSFER_MARGIN = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
-    bytes4 public ClosePositionSig = 0xa8c92cf6;
+    bytes4 public CLOSE_POSITION = 0xa8c92cf6;
     uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
     uint8 public marginTokenDecimals;
     uint8 public positionDecimals;
@@ -114,7 +114,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
         bytes32[] memory allMarketnames = marketManager
-            .getMarketNamesForRiskManager(address(this));
+            .getMarketKeysForRiskManager(address(this));
         address[] memory allMarkets = marketManager.getMarketsForRiskManager(
             address(this)
         );
@@ -167,7 +167,7 @@ contract SNXRiskManager is IProtocolRiskManager {
                 "PRM: Calling non whitelisted contract"
             );
             bytes4 funSig = bytes4(data[i]);
-            if (funSig == TM) {
+            if (funSig == TRANSFER_MARGIN) {
                 marginDelta = marginDelta.add(
                     abi.decode(data[i][4:], (int256))
                 );
@@ -264,7 +264,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             "PRM: Only single destination and data allowed"
         );
         bytes4 funSig = bytes4(data[0]);
-        if (funSig != ClosePositionSig) {
+        if (funSig != CLOSE_POSITION) {
             revert("PRM: Invalid Tx Data in close call");
         }
         address marketAddress = IMarketManager(
@@ -273,6 +273,37 @@ contract SNXRiskManager is IProtocolRiskManager {
 
         if (destinations[0] != marketAddress) {
             revert("PRM: Market key and destination market address mismatch");
+        }
+    }
+
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32 marketKey,
+        address destination,
+        bytes calldata data
+    ) external returns (VerifyLiquidationResult memory result) {
+        // Needs to verify stuff for full vs partial liquidation
+        require(
+            whitelistedAddresses[destination] == true,
+            "PRM: Calling non whitelisted contract"
+        );
+        bytes4 funSig = bytes4(data);
+        address configuredBaseToken = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketBaseToken(marketKey);
+
+        if (funSig == CLOSE_POSITION) {
+            // do nothing
+        } else if (funSig == TRANSFER_MARGIN) {
+            result.marginDelta = abi.decode(data[36:], (int256));
+            if (result.marginDelta > 0) {
+                revert(
+                    "PRM: Invalid Tx Data in liquidate call, cannot add margin to Protocol"
+                );
+            }
+        } else {
+            revert("PRM: Invalid Tx Data in liquidate call");
         }
     }
 }

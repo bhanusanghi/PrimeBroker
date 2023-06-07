@@ -156,7 +156,6 @@ contract BaseSetup is Test, IEvents {
     function setupMarginManager() internal {
         contracts.marginManager = new MarginManager(
             contracts.contractRegistry,
-            contracts.marketManager,
             contracts.priceOracle
         );
         contracts.contractRegistry.addContractToRegistry(

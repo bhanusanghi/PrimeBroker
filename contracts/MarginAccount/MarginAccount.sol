@@ -27,7 +27,6 @@ contract MarginAccount is IMarginAccount {
 
     // address public baseToken; //usdt/c
     address public marginManager;
-    uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
@@ -64,8 +63,12 @@ contract MarginAccount is IMarginAccount {
 
     function getPosition(
         bytes32 market
-    ) public view override returns (Position memory) {
-        return positions[market];
+    ) public view override returns (Position memory position) {
+        position = positions[market];
+        require(
+            position.size == 0 || position.openNotional == 0,
+            "Position doesn't exist"
+        );
     }
 
     function getTotalOpeningAbsoluteNotional(
@@ -164,10 +167,10 @@ contract MarginAccount is IMarginAccount {
         positions[marketKey].orderFee = position.orderFee;
     }
 
-    function removePosition(bytes32 market) public override {
+    function removePosition(bytes32 marketKey) public override {
         // only riskmanagger
-        existingPosition[market] = false;
-        delete positions[market];
+        existingPosition[marketKey] = false;
+        delete positions[marketKey];
     }
 
     /// @dev Updates borrowed amount. Restricted for current credit manager only

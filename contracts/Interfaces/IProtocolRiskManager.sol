@@ -1,6 +1,6 @@
 pragma solidity ^0.8.10;
 import {Position, IMarginAccount} from "./IMarginAccount.sol";
-import {VerifyCloseResult} from "./IRiskManager.sol";
+import {VerifyCloseResult, VerifyLiquidationResult} from "./IRiskManager.sol";
 
 interface IProtocolRiskManager {
     // mapping(bytes4=>string) public abiStrings;
@@ -26,6 +26,15 @@ interface IProtocolRiskManager {
         address[] memory destinations,
         bytes[] calldata data
     ) external returns (VerifyCloseResult memory result);
+
+    // Checks if the function signatures are allowed in liquidation calls.
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external returns (VerifyLiquidationResult memory result);
 
     function toggleAddressWhitelisting(
         address contractAddress,

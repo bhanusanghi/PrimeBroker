@@ -14,7 +14,7 @@ import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {Vault} from "../MarginPool/Vault.sol";
-import {IRiskManager, VerifyTradeResult, VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
@@ -116,7 +116,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             address(marginAccount)
         ).mulDiv(100, initialMarginFactor);
         bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
+            .getAllMarketKeys();
         int256 totalNotional = IMarginAccount(marginAccount)
         // .getTotalOpeningNotional(_whitelistedMarketNames);
             .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames)
@@ -151,30 +151,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             marketKey,
             destinations,
             data
-        );
-    }
-
-    function verifyLiquidation(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
-    ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(marketKey, destinations, data);
-        uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        );
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        int256 totalNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
-        _checkLiquidable(
-            marginAccount,
-            buyingPower,
-            result.position.openNotional,
-            result.marginDeltaDollarValue,
-            totalNotional
         );
     }
 
@@ -215,28 +191,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 positionOpenNotional.abs(),
             "Extra leverage not allowed"
         );
-    }
-
-    function _checkLiquidable(
-        IMarginAccount marginAccount,
-        uint256 buyingPower,
-        int256 positionOpenNotional,
-        int256 marginDeltaDollarValue,
-        int256 totalNotional
-    ) internal {
-        buyingPower = buyingPower.mulDiv(100, maintanaceMarginFactor);
-
-        // check if open
-        // require(marginDeltaDollarValue>=0, "Extra Transfer not allowed");
-        // require(
-        //     getRemainingMarginTransfer(marginAccount) >= marginDeltaDollarValue,
-        //     "Extra Transfer not allowed"
-        // );
-        // require(
-        //     getRemainingPositionOpenNotional(marginAccount) >=
-        //         positionOpenNotional,
-        //     "Extra leverage not allowed"
-        // );
     }
 
     // @TODO - should be able to get buying power from account directly.
@@ -357,7 +311,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             address(marginAccount)
         );
         bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
+            .getAllMarketKeys();
         int256 totalOpenNotional = IMarginAccount(marginAccount)
             .getTotalOpeningNotional(_whitelistedMarketNames);
         return
@@ -379,6 +333,95 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         marketPosition = protocolRiskManager.getMarketPosition(
             _marginAccount,
             _marketKey
+        );
+    }
+
+    // ===========================================Liquidation===========================================
+
+    function liquidate(
+        IMarginAccount marginAccount,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) returns (VerifyLiquidationResult memory result) {
+        // check if account is liquidatable
+        // restrict to only marginManager.
+        (
+            bool isAccountLiquidatable,
+            bool isFullyLiquidatable
+        ) = _isAccountLiquidatable(marginAccount);
+        require(isAccountLiquidatable, "PRM: Account not liquidatable");
+        // decode and verify data
+        result = decodeAndVerifyLiquidationCalldata(
+            marginAccount,
+            isFullyLiquidatable,
+            marketKeys,
+            destinations,
+            data
+        );
+    }
+
+    function isAccountLiquidatable(
+        IMarginAccount marginAccount
+    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable) {
+        // check if account is liquidatable
+        return _isAccountLiquidatable(marginAccount);
+    }
+
+    function _isAccountLiquidatable(
+        IMarginAccount marginAccount
+    ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
+        // Add conditions for partial liquidation.
+
+        isFullyLiquidatable = true;
+
+        // check if account is liquidatable
+    }
+
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) public returns (VerifyLiquidationResult memory result) {
+        require(
+            destinations.length == data.length &&
+                destinations.length == marketKeys.length,
+            "PRM: Destinations and data length mismatch"
+        );
+        for (uint256 i = 0; i < destinations.length; i++) {
+            VerifyLiquidationResult
+                memory _result = _decodeAndVerifyLiquidationCalldata(
+                    marginAcc,
+                    marketKeys[i],
+                    destinations[i],
+                    data[i]
+                );
+            result.marginDelta += _result.marginDelta;
+        }
+        // Add stuff for full liquidation
+
+        // Add checks for half liquidation
+    }
+
+    function _decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32 marketKey,
+        address destination,
+        bytes calldata data
+    ) internal returns (VerifyLiquidationResult memory result) {
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            marketManager.getRiskManagerByMarketName(marketKey)
+        );
+
+        result = protocolRiskManager.decodeAndVerifyLiquidationCalldata(
+            marginAcc,
+            isFullyLiquidatable,
+            marketKey,
+            destination,
+            data
         );
     }
 }
