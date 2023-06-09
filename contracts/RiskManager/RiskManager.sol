@@ -44,6 +44,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     IMarketManager public marketManager;
     uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
     uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
+    uint256 public liquidationPenalty = 2; // lets say it is 2 percent for now.
 
     constructor(
         IContractRegistry _contractRegistery,
@@ -312,12 +313,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
-        int256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
+        uint256 totalOpenNotional = IMarginAccount(marginAccount)
+            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
         return
             (_totalCollateralValue.mul(100).div(initialMarginFactor))
                 .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
-                .sub(totalOpenNotional.abs()); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
+                .sub(totalOpenNotional); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
     }
 
     function getMarketPosition(
@@ -373,9 +374,72 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
         // Add conditions for partial liquidation.
 
+        uint256 accountValue = _getAbsTotalCollateralValue(
+            address(marginAccount)
+        );
+
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketKeys();
+        uint256 totalOpenNotional = IMarginAccount(marginAccount)
+            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
+
+        uint256 minimumMarginRequirement = totalOpenNotional.mul(100).div(
+            maintanaceMarginFactor
+        );
+        if (accountValue <= minimumMarginRequirement) {
+            isLiquidatable = true;
+        } else {
+            isLiquidatable = false;
+        }
         isFullyLiquidatable = true;
 
         // check if account is liquidatable
+    }
+
+    function isTraderBankrupt(
+        IMarginAccount marginAccount,
+        uint256 vaultLiability
+    ) public view returns (bool isBankrupt) {
+        // check if account is liquidatable
+        return _isTraderBankrupt(marginAccount);
+    }
+
+    // This function gets the total account value.
+    // And compares it with all of trader's liabilities.
+    // If the account value is less than the liabilities, then the trader is bankrupt.
+    // Liabilities include -> (borrowed+interest) + liquidationPenalty.
+    // liquidationPenalty is totalNotional * liquidationPenaltyFactor
+    // vaultLiability = borrowed + interest
+    function _isTraderBankrupt(
+        IMarginAccount marginAccount,
+        uint256 vaultLiability
+    ) internal view returns (bool) {
+        uint256 totalOpenNotional = _getTotalNotional(marginAccount);
+        uint256 penalty = totalOpenNotional.mul(liquidationPenaltyFactor).div(
+            100
+        );
+        uint256 liability = vaultLiability + penalty;
+        uint256 accountValue = _getAbsTotalCollateralValue(
+            address(marginAccount)
+        );
+        return accountValue < liability;
+    }
+
+    function _getTotalNotional(
+        IMarginAccount marginAccount
+    ) internal view returns (uint256 totalOpenNotional) {
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketKeys();
+        totalOpenNotional = marginAccount.getTotalOpeningAbsoluteNotional(
+            _whitelistedMarketNames
+        );
+    }
+
+    function _getLiquidationPenalty(
+        IMarginAccount marginAccount
+    ) internal view returns (uint256 penalty) {
+        uint256 totalOpenNotional = _getTotalNotional(marginAccount);
+        penalty = totalOpenNotional.mul(liquidationPenaltyFactor).div(100);
     }
 
     function decodeAndVerifyLiquidationCalldata(

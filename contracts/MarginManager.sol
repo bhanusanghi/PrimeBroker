@@ -294,8 +294,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
         _verifyPostLiquidationTxs(marginAccount, result);
-
-        bool hasBadDebt = _hasBadDebt(marginAccount);
+        _executePostLiquidationUpdates(marginAccount, result);
+        uint256 vaultLiability = _marginAccount.totalBorrowed() +
+            _getInterestAccrued(marginAccount);
+        bool hasBadDebt = riskManager.isTraderBankrupt(
+            marginAccount,
+            vaultLiability
+        );
         if (!hasBadDebt) {
             // pay money to liquidator based on config.
             // pay interest
@@ -304,16 +309,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // pay interest
             // pay liquidator
         }
-        _executePostLiquidationUpdates(marginAccount, result);
     }
 
-    function _hasBadDebt(
-        IMarginAccount marginAccount
-    ) internal view returns (bool) {
-        // return riskManager.hasBadDebt(address(marginAccount));
-        return false;
-    }
-
+    // @note - this function validates the following points
+    // 1. All positions are closed i.e Margin in all markets is 0.
+    // 2. All margin is transferred back to Chronux by assessing if Delta margin is equal to amount of tokens transferred back to Chronux.
     function _verifyPostLiquidationTxs(
         IMarginAccount marginAccount
     ) internal view {

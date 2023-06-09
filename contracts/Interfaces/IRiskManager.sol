@@ -85,4 +85,9 @@ interface IRiskManager {
         address[] memory destinations,
         bytes[] calldata data
     ) external returns (VerifyLiquidationResult memory result);
+
+    function isTraderBankrupt(
+        IMarginAccount marginAccount,
+        uint256 vaultLiability
+    ) external view returns (bool isBankrupt);
 }
