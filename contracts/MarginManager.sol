@@ -191,7 +191,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-        _syncPositions(marginAccount);
+        _syncPositions(address(marginAccount));
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = _verifyTrade(
             marginAccount,
@@ -224,7 +224,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
-        _syncPositions(marginAccount);
+        _syncPositions(address(marginAccount));
         // Add check for an existing position.
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = _verifyTrade(
@@ -260,7 +260,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _getMarginAccount(msg.sender)
         );
         // @note fee is assumed to be in usdc value
-        _syncPositions(marginAccount);
+        _syncPositions(address(marginAccount));
         // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
             marginAccount,
@@ -280,8 +280,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         address[] calldata destinations,
         bytes[] calldata data
     ) external {
-        MarginAccount marginAccount = _getMarginAccount(trader);
-        _syncPositions(marginAccount);
+        IMarginAccount marginAccount = IMarginAccount(
+            _getMarginAccount(trader)
+        );
+        _syncPositions(address(marginAccount));
         // verifies if account is liquidatable, verifies tx calldata, and returns the amount of margin to be transferred.
         VerifyLiquidationResult memory result = riskManager.liquidate(
             marginAccount,
@@ -295,7 +297,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
         _verifyPostLiquidationTxs(marginAccount, result);
         _executePostLiquidationUpdates(marginAccount, result);
-        uint256 vaultLiability = _marginAccount.totalBorrowed() +
+        uint256 vaultLiability = marginAccount.totalBorrowed() +
             _getInterestAccrued(marginAccount);
         bool hasBadDebt = riskManager.isTraderBankrupt(
             marginAccount,
@@ -315,12 +317,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // 1. All positions are closed i.e Margin in all markets is 0.
     // 2. All margin is transferred back to Chronux by assessing if Delta margin is equal to amount of tokens transferred back to Chronux.
     function _verifyPostLiquidationTxs(
-        IMarginAccount marginAccount
-    ) internal view {
+        IMarginAccount marginAccount,
+        VerifyLiquidationResult memory result
+    ) internal {
         // check if all positions are closed.
 
         // check if all margin is transferred back to Chronux.
-        uint256 marginInMarkets = riskManager.getDollarMarginInMarkets(
+        int256 marginInMarkets = riskManager.getCurrentDollarMarginInMarkets(
             address(marginAccount)
         );
         require(
@@ -335,8 +338,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         VerifyLiquidationResult memory result
     ) internal {
         // Make changes to stored positions.
-        _syncPositions(marginAccount);
-        _updateUnsettledRealizedPnL(marginAccount);
+        _syncPositions(address(marginAccount));
+        _updateUnsettledRealizedPnL(address(marginAccount));
         // Emit a liquidation event with relevant data.
 
         // Update totalMarginInMarkets data.
@@ -569,7 +572,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
         for (uint256 i = 0; i < marketKeys.length; i++) {
             bytes32 marketKey = marketKeys[i];
-            uint256 marketPosition = riskManager.getMarketPosition(
+            Position memory marketPosition = riskManager.getMarketPosition(
                 marginAccount,
                 marketKey
             );
@@ -584,9 +587,12 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 storedPosition.openNotional = marketPosition.openNotional;
                 if (
                     storedPosition.size == 0 && storedPosition.openNotional == 0
-                ) marginAccount.removePosition(marketKey);
+                ) IMarginAccount(marginAccount).removePosition(marketKey);
                 else {
-                    marginAccount.updatePosition(marketKey, storedPosition);
+                    IMarginAccount(marginAccount).updatePosition(
+                        marketKey,
+                        storedPosition
+                    );
                 }
             }
             // emit PositionSynced(marginAccount, marketKey, marketPosition);

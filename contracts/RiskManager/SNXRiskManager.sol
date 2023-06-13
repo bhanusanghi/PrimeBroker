@@ -103,6 +103,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address marginAccount
     )
         internal
+        view
         returns (
             // override
             int256 margin
@@ -199,7 +200,7 @@ contract SNXRiskManager is IProtocolRiskManager {
 
     function getDollarMarginInMarkets(
         address marginAccount
-    ) external returns (int256) {
+    ) external view returns (int256) {
         return
             _getMarginAcrossMarkets(marginAccount).convertTokenDecimals(
                 marginTokenDecimals,

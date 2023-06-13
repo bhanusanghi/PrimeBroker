@@ -233,7 +233,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // This does not take profit or stop loss
     function getCurrentDollarMarginInMarkets(
         address marginAccount
-    ) external override returns (int256 totalCurrentDollarMargin) {
+    ) external view override returns (int256 totalCurrentDollarMargin) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
 
@@ -249,7 +249,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // returns in vault base decimals
     function getUnrealizedPnL(
         address marginAccount
-    ) external override returns (int256 totalUnrealizedPnL) {
+    ) external view override returns (int256 totalUnrealizedPnL) {
         return _getUnrealizedPnL(marginAccount);
     }
 
@@ -267,17 +267,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             totalUnrealizedPnL += unrealizedPnL;
         }
     }
-
-    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
-    //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
-    // This should affect the Trader's Margin directly.
-    // This actually stops loss or takes profit.
-    function settleRealizedAccounting(address marginAccount) external {}
-
-    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
-    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
-    // This should effect the Buying Power of account.
-    function getUnsettledAccounting(address marginAccount) external {}
 
     function getRemainingMarginTransfer(
         address _marginAccount
@@ -344,7 +333,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory marketKeys,
         address[] memory destinations,
         bytes[] calldata data
-    ) returns (VerifyLiquidationResult memory result) {
+    ) public returns (VerifyLiquidationResult memory result) {
         // check if account is liquidatable
         // restrict to only marginManager.
         (
@@ -352,8 +341,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             bool isFullyLiquidatable
         ) = _isAccountLiquidatable(marginAccount);
         require(isAccountLiquidatable, "PRM: Account not liquidatable");
-        // decode and verify data
-        result = decodeAndVerifyLiquidationCalldata(
+        result.liquidator = msg.sender;
+        // TODO - add this result.liquidationPenalty =
+        result = decodeAndVerifyLiquidationCalldata( // decode and verify data
             marginAccount,
             isFullyLiquidatable,
             marketKeys,
@@ -401,7 +391,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 vaultLiability
     ) public view returns (bool isBankrupt) {
         // check if account is liquidatable
-        return _isTraderBankrupt(marginAccount);
+        (
+            bool isAccountLiquidatable,
+            bool isFullyLiquidatable
+        ) = _isAccountLiquidatable(marginAccount);
+        if (!isAccountLiquidatable) return false;
+        uint256 penalty = _getLiquidationPenalty(
+            marginAccount,
+            isFullyLiquidatable
+        );
+        return _isTraderBankrupt(marginAccount, vaultLiability, penalty);
     }
 
     // This function gets the total account value.
@@ -412,12 +411,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // vaultLiability = borrowed + interest
     function _isTraderBankrupt(
         IMarginAccount marginAccount,
-        uint256 vaultLiability
+        uint256 vaultLiability,
+        uint256 penalty
     ) internal view returns (bool) {
-        uint256 totalOpenNotional = _getTotalNotional(marginAccount);
-        uint256 penalty = totalOpenNotional.mul(liquidationPenaltyFactor).div(
-            100
-        );
         uint256 liability = vaultLiability + penalty;
         uint256 accountValue = _getAbsTotalCollateralValue(
             address(marginAccount)
@@ -436,10 +432,17 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function _getLiquidationPenalty(
-        IMarginAccount marginAccount
+        IMarginAccount marginAccount,
+        bool isFullyLiquidatable
     ) internal view returns (uint256 penalty) {
         uint256 totalOpenNotional = _getTotalNotional(marginAccount);
-        penalty = totalOpenNotional.mul(liquidationPenaltyFactor).div(100);
+        uint256 penalty;
+        if (isFullyLiquidatable) {
+            penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
+        } else {
+            // TODO - Add partial liquidation penalty logic here.
+            penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
+        }
     }
 
     function decodeAndVerifyLiquidationCalldata(
@@ -458,6 +461,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             VerifyLiquidationResult
                 memory _result = _decodeAndVerifyLiquidationCalldata(
                     marginAcc,
+                    isFullyLiquidatable,
                     marketKeys[i],
                     destinations[i],
                     data[i]

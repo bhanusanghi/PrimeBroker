@@ -19,6 +19,8 @@ struct VerifyCloseResult {
 struct VerifyLiquidationResult {
     int256 marginDelta;
     bool isFullLiquidation;
+    address liquidator;
+    address liquidationPenalty;
 }
 
 interface IRiskManager {
@@ -39,21 +41,11 @@ interface IRiskManager {
     // This should affect the Trader's Margin directly.
     function getCurrentDollarMarginInMarkets(
         address marginAccount
-    ) external returns (int256);
+    ) external view returns (int256);
 
     function getUnrealizedPnL(
         address marginAccount
-    ) external returns (int256 totalUnrealizedPnL);
-
-    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
-    //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
-    // This should affect the Trader's Margin directly.
-    function settleRealizedAccounting(address marginAccount) external;
-
-    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
-    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
-    // This should effect the Buying Power of account.
-    function getUnsettledAccounting(address marginAccount) external;
+    ) external view returns (int256 totalUnrealizedPnL);
 
     function getRemainingMarginTransfer(
         address _marginAccount
@@ -75,12 +67,13 @@ interface IRiskManager {
     function verifyClosePosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data
+        address[] calldata destinations,
+        bytes[] calldata data
     ) external returns (VerifyCloseResult memory result);
 
     function decodeAndVerifyLiquidationCalldata(
         IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
         bytes32[] memory marketKeys,
         address[] memory destinations,
         bytes[] calldata data
