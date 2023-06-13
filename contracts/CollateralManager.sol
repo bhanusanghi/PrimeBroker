@@ -173,18 +173,14 @@ contract CollateralManager is ICollateralManager {
         return _balance[_marginAccount][_asset];
     }
 
-    // While withdrawing collateral we have to be conservative and we cannot account unrealized PnLs
-    // free collateral = TotalCollateralValue - interest accrued - marginInProtocols (totalBorrowed) / marginFactor
+    // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
     function _getFreeCollateralValue(
         address _marginAccount
     ) internal returns (uint256 freeCollateral) {
         // free collateral
-        (, uint256 x) = IMarginAccount(_marginAccount).totalBorrowed().tryMul(
-            riskManager.initialMarginFactor()
+        freeCollateral = _getCollateralHeldInMarginAccount(_marginAccount).sub(
+            marginManager.getInterestAccrued(_marginAccount)
         );
-        freeCollateral = _depositedCollateralValue(_marginAccount)
-            .sub(marginManager.getInterestAccrued(_marginAccount))
-            .sub(x);
     }
 
     function totalCollateralValue(
