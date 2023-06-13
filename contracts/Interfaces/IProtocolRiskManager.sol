@@ -48,7 +48,7 @@ interface IProtocolRiskManager {
 
     function getDollarMarginInMarkets(
         address marginAccount
-    ) external returns (int256);
+    ) external view returns (int256);
 
     function getMarginToken() external view returns (address);
 

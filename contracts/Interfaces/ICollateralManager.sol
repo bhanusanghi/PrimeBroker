@@ -33,4 +33,8 @@ interface ICollateralManager {
         address _marginAccount,
         address _asset
     ) external view returns (int256);
+
+    function getCollateralHeldInMarginAccount(
+        address _marginAccount
+    ) external view returns (uint256 totalAmount);
 }
