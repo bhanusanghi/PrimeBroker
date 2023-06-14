@@ -32,7 +32,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     using SettlementTokenMath for int256;
     using SignedMath for int256;
     using SignedSafeMath for int256;
-    RiskManager public riskManager;
+    IRiskManager public riskManager;
     IContractRegistry public contractRegistry;
     IMarketManager public marketManager;
     IPriceOracle public priceOracle;
@@ -63,7 +63,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         address _riskmgr
     ) external nonZeroAddress(_riskmgr) {
         // onlyOwner
-        riskManager = RiskManager(_riskmgr);
+        riskManager = IRiskManager(_riskmgr);
     }
 
     function setVault(address _vault) external nonZeroAddress(_vault) {
@@ -157,6 +157,9 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 );
             }
         }
+        if (verificationResult.marginDelta > 0) {
+            riskManager.verifyBorrowLimit(address(marginAccount));
+        }
         // updateUnsettledRealizedPnL
     }
 
@@ -176,6 +179,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             marketPosition.size == 0 && marketPosition.openNotional == 0,
             "MM: Invalid close position call"
         );
+        riskManager.verifyBorrowLimit(address(marginAccount));
     }
 
     function _verifyTrade(
@@ -184,7 +188,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         address[] calldata destinations,
         bytes[] calldata data
     ) private returns (VerifyTradeResult memory verificationResult) {
-        _updateUnsettledRealizedPnL(address(marginAccount));
+        // _updateUnsettledRealizedPnL(address(marginAccount));
         verificationResult = riskManager.verifyTrade(
             marginAccount,
             marketKey,

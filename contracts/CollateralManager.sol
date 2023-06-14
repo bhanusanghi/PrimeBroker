@@ -14,6 +14,8 @@ import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/Signed
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 // @TODO - Add ACL checks.
 contract CollateralManager is ICollateralManager {
@@ -121,7 +123,7 @@ contract CollateralManager is ICollateralManager {
             address(marginAccount),
             _token,
             _amount,
-            _totalCollateralValue(address(marginAccount))
+            _depositedCollateralValue(address(marginAccount))
         );
     }
 
@@ -171,28 +173,25 @@ contract CollateralManager is ICollateralManager {
         return _balance[_marginAccount][_asset];
     }
 
-    // While withdrawing collateral we have to be conservative and we cannot account unrealized PnLs
-    // free collateral = TotalCollateralValue - interest accrued - marginInProtocols (totalBorrowed) / marginFactor
+    // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
     function _getFreeCollateralValue(
         address _marginAccount
     ) internal returns (uint256 freeCollateral) {
         // free collateral
-        (, uint256 x) = IMarginAccount(_marginAccount).totalBorrowed().tryMul(
-            riskManager.initialMarginFactor()
+        freeCollateral = _getCollateralHeldInMarginAccount(_marginAccount).sub(
+            marginManager.getInterestAccrued(_marginAccount)
         );
-        freeCollateral = _totalCollateralValue(_marginAccount)
-            .sub(marginManager.getInterestAccrued(_marginAccount))
-            .sub(x);
     }
 
     function totalCollateralValue(
         address _marginAccount
     ) external view returns (uint256 totalAmount) {
-        return _totalCollateralValue(_marginAccount);
+        // return _depositedCollateralValue(_marginAccount);
+        return _totalCurrentCollateralValue(_marginAccount);
     }
 
     // sends usdc value with 6 decimals. (Vault base decimals)
-    function _totalCollateralValue(
+    function _depositedCollateralValue(
         address _marginAccount
     ) internal view returns (uint256 totalAmount) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
@@ -212,6 +211,46 @@ contract CollateralManager is ICollateralManager {
                 )
             );
         }
+    }
+
+    function _getCollateralHeldInMarginAccount(
+        address _marginAccount
+    ) internal view returns (uint256 totalAmount) {
+        for (uint256 i = 0; i < allowedCollateral.length; i++) {
+            address token = allowedCollateral[i];
+            uint256 tokenAmount = IERC20(token).balanceOf(_marginAccount);
+            totalAmount = totalAmount.add(
+                tokenAmount
+                    .mulDiv(collateralWeight[token], 100)
+                    .convertTokenDecimals(
+                        _decimals[token],
+                        ERC20(address(vault.asset())).decimals()
+                    )
+            );
+        }
+    }
+
+    function getCollateralHeldInMarginAccount(
+        address _marginAccount
+    ) external view returns (uint256 totalAmount) {
+        return _getCollateralHeldInMarginAccount(_marginAccount);
+    }
+
+    function _totalCurrentCollateralValue(
+        address _marginAccount
+    ) internal view returns (uint256 totalAmount) {
+        uint256 collateralHeldInMarginAccount = _getCollateralHeldInMarginAccount(
+                _marginAccount
+            );
+        uint256 totalCollateralInMarkets = riskManager.getCollateralInMarkets(
+            _marginAccount
+        );
+        uint256 totalBorrowed = IMarginAccount(_marginAccount).totalBorrowed();
+        totalAmount =
+            collateralHeldInMarginAccount +
+            totalCollateralInMarkets -
+            totalBorrowed;
+        // console.log("totalAmount", totalAmount);
     }
 
     function getAllCollateralTokens() public view returns (address[] memory) {

@@ -280,7 +280,7 @@ contract SnxUtils is Test, IEvents {
         destinations[0] = marketAddress;
         data[0] = transferMarginData;
         // check event for position opened on our side.
-        vm.expectRevert(bytes("Extra Transfer not allowed"));
+        vm.expectRevert(bytes("Borrow limit exceeded"));
         contracts.marginManager.openPosition(marketKey, destinations, data);
         vm.stopPrank();
     }

@@ -115,10 +115,10 @@ contract OpenPositionSnX is BaseSetup {
     // max BP = 200k
 
     function testBobOpensLongPositionWithLeverage(int256 positionSize) public {
-        uint256 chronuxMargin = 1000 ether;
+        uint256 chronuxMargin = 1500 ether;
         uint256 imf = contracts.riskManager.initialMarginFactor();
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, 4000 ether, false, "");
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, 3000 ether, false, "");
         int256 remainingNotional = int256(
             contracts.riskManager.getRemainingPositionOpenNotional(
                 bobMarginAccount
@@ -136,7 +136,7 @@ contract OpenPositionSnX is BaseSetup {
         uint256 chronuxMargin = 1000 ether;
         uint256 imf = contracts.riskManager.initialMarginFactor();
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, 4000 ether, false, "");
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, 2000 ether, false, "");
         int256 remainingNotional = int256(
             contracts.riskManager.getRemainingPositionOpenNotional(
                 bobMarginAccount

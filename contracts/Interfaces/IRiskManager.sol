@@ -74,4 +74,22 @@ interface IRiskManager {
         address[] memory destinations,
         bytes[] memory data
     ) external returns (VerifyCloseResult memory result);
+
+    function getCollateralInMarkets(
+        address _marginAccount
+    ) external view returns (uint256 totalCollateralValue);
+
+    function verifyBorrowLimit(address _marginAccount) external view;
+
+    function verifyLiquidation(
+        IMarginAccount marginAccount,
+        bytes32 marketKey,
+        address[] memory destinations,
+        bytes[] memory data,
+        uint256 interestAccrued
+    ) external returns (VerifyTradeResult memory result);
+
+    function getMaxBorrowLimit(
+        address _marginAccount
+    ) external view returns (uint256);
 }
