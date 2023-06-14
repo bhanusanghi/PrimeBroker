@@ -32,6 +32,13 @@ interface IRiskManager {
         uint256 interestAccrued
     ) external returns (VerifyTradeResult memory result);
 
+    function liquidate(
+        IMarginAccount marginAccount,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external returns (VerifyLiquidationResult memory result);
+
     function initialMarginFactor() external returns (uint256);
 
     function setPriceOracle(address oracle) external;
