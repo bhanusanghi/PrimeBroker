@@ -30,6 +30,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     bytes4 public TRANSFER_MARGIN = 0x88a3c848;
     bytes4 public OP = 0xa28a2bc0;
     bytes4 public CLOSE_POSITION = 0xa8c92cf6;
+    bytes4 public WITHDRAW_ALL_MARGIN = 0x5a1cbd2b;
     uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
     uint8 public marginTokenDecimals;
     uint8 public positionDecimals;

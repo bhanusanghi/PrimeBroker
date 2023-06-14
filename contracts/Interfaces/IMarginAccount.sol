@@ -22,8 +22,6 @@ interface IMarginAccount {
 
     // function baseToken() external returns (address);
 
-    function approveToProtocol(address token, address protocol) external;
-
     function addCollateral(
         address from,
         address token,
@@ -83,4 +81,6 @@ interface IMarginAccount {
         uint256 amountIn,
         uint256 minAmountOut
     ) external returns (uint256 amountOut);
+
+    function isActivePosition(bytes32 market) external view returns (bool);
 }

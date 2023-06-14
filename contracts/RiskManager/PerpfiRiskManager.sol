@@ -41,6 +41,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public ADD_MARGIN = 0x47e7ef24;
     bytes4 public OPEN_POSITION = 0xb6b1b6c3;
     bytes4 public WITHDRAW_MARGIN = 0xf3fef3a3;
+    bytes4 public WITHDRAW_ALL_MARGIN = 0xfa09e630;
     bytes4 public CLOSE_POSITION = 0x00aa9a89;
     address public marginToken;
     uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
@@ -313,7 +314,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (baseToken != configuredBaseToken) {
                 revert("PRM: Invalid base token in close call");
             }
-        } else if (funSig == WITHDRAW_MARGIN) {
+        } else if (funSig == WITHDRAW_ALL_MARGIN) {
             result.marginDelta = -abi.decode(data[36:], (int256));
         } else {
             revert("PRM: Invalid Tx Data in liquidate call");

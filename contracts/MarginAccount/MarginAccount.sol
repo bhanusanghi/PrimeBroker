@@ -71,6 +71,12 @@ contract MarginAccount is IMarginAccount {
         );
     }
 
+    function isActivePosition(
+        bytes32 marketKey
+    ) public view override returns (bool) {
+        return existingPosition[marketKey];
+    }
+
     function getTotalOpeningAbsoluteNotional(
         bytes32[] memory _allowedMarkets
     ) public view override returns (uint256 totalNotional) {
@@ -104,13 +110,13 @@ contract MarginAccount is IMarginAccount {
         // update in collatral manager
     }
 
-    function approveToProtocol(
-        address token,
-        address protocol
-    ) external override {
-        // onlyMarginmanager
-        IERC20(token).approve(protocol, type(uint256).max);
-    }
+    // function approveToProtocol(
+    //     address token,
+    //     address protocol
+    // ) external override {
+    //     // onlyMarginmanager
+    //     IERC20(token).approve(protocol, type(uint256).max);
+    // }
 
     function transferTokens(
         address token,

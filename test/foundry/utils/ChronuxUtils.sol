@@ -92,4 +92,141 @@ contract ChronuxUtils is Test, Constants, IEvents {
             "remaining positionNotional is not equal to amount"
         );
     }
+
+    function getAllActiveMarketsForTrader(
+        address trader
+    ) public view returns (bytes32[] memory activeMarkets) {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        bytes32[] memory allMarketKeys = contracts
+            .marketManager
+            .getAllMarketKeys();
+        for (uint256 i = 0; i < allMarketKeys.length; i++) {
+            bytes32 marketKey = allMarketKeys[i];
+
+            if (IMarginAccount(marginAccount).isActivePosition(marketKey)) {
+                activeMarkets[i] = marketKey;
+            }
+        }
+    }
+
+    function getLiquidationData(
+        address trader
+    )
+        public
+        view
+        returns (
+            bytes32[] memory activeMarkets,
+            address[] memory addresses,
+            bytes[] memory data
+        )
+    {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        bytes32[] memory activePositionMarkets = getAllActiveMarketsForTrader(
+            trader
+        );
+        bytes
+            memory withdrawMarginDataSnx = getSnxWithdrawAllCollateralCalldata();
+        bytes
+            memory withdrawMarginDataPerpfi = getPerpfiWithdrawAllCollateralCalldata();
+        bool hasMarginOnPerp = false;
+        bytes32 perpfiMarketKey;
+        address perpfiMarketAddress;
+        for (uint256 i = 0; i < activePositionMarkets.length; i++) {
+            bytes32 marketKey = activePositionMarkets[i];
+            // check if market key is SNX or Perp key
+            if (
+                contracts.marketManager.getMarketBaseToken(marketKey) !=
+                address(0)
+            ) {
+                (
+                    address destination,
+                    bytes memory dataa
+                ) = getPerpfiClosePositionData(marketKey);
+                activeMarkets[activeMarkets.length + 1] = marketKey;
+                addresses[addresses.length + 1] = destination;
+                data[data.length + 1] = dataa;
+                if (hasMarginOnPerp = false) {
+                    hasMarginOnPerp = true;
+                    perpfiMarketKey = marketKey;
+                    perpfiMarketAddress = destination;
+                }
+                // add an extra call to withdraw collateral from perpfi at the last.
+            } else {
+                (
+                    address destination,
+                    bytes memory dataa
+                ) = getSnxClosePositionData(marketKey);
+
+                activeMarkets[activeMarkets.length + 1] = marketKey;
+                addresses[addresses.length + 1] = destination;
+                data[data.length + 1] = dataa;
+                // add an extra call to withdraw collateral
+
+                activeMarkets[activeMarkets.length + 1] = marketKey;
+                addresses[addresses.length + 1] = destination;
+                data[data.length + 1] = withdrawMarginDataSnx;
+            }
+        }
+        if (hasMarginOnPerp) {
+            activeMarkets[activeMarkets.length + 1] = perpfiMarketKey;
+            addresses[addresses.length + 1] = perpfiMarketAddress;
+            data[data.length + 1] = withdrawMarginDataPerpfi;
+        }
+    }
+
+    function getSnxWithdrawAllCollateralCalldata()
+        public
+        view
+        returns (bytes memory withdrawAllCalldata)
+    {
+        withdrawAllCalldata = abi.encodeWithSelector(0x5a1cbd2b);
+    }
+
+    function getPerpfiWithdrawAllCollateralCalldata()
+        public
+        view
+        returns (bytes memory withdrawAllCalldata)
+    {
+        withdrawAllCalldata = abi.encodeWithSelector(
+            0xfa09e630,
+            contracts.vault.asset()
+        );
+    }
+
+    function getSnxClosePositionData(
+        bytes32 marketKey
+    ) public view returns (address destination, bytes memory data) {
+        address marketAddress = contracts.marketManager.getMarketAddress(
+            marketKey
+        );
+        destination = marketAddress;
+        data = abi.encodeWithSignature(
+            "closePositionWithTracking(bytes32)",
+            keccak256("GigabrainMarginAccount")
+        );
+    }
+
+    function getPerpfiClosePositionData(
+        bytes32 marketKey
+    ) public view returns (address destination, bytes memory data) {
+        address marketAddress = contracts.marketManager.getMarketAddress(
+            marketKey
+        );
+        address baseToken = contracts.marketManager.getMarketBaseToken(
+            marketKey
+        );
+        destination = marketAddress;
+        data = abi.encodeWithSelector(
+            0x00aa9a89,
+            baseToken,
+            0,
+            0,
+            type(uint256).max,
+            bytes32(0)
+        );
+    }
 }

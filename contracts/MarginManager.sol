@@ -147,7 +147,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // updateUnsettledRealizedPnL
     }
 
-    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values..
+    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values.
+    // TO DO - verify repaid interest.
     function _executePostPositionCloseUpdates(
         IMarginAccount marginAccount,
         bytes32 marketKey
@@ -270,6 +271,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         emit PositionClosed(address(marginAccount), marketKey);
         marginAccount.execMultiTx(destinations, data);
+        // TO DO - repay interest and stuff.
         _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
         marginAccount.removePosition(marketKey);
     }
@@ -567,7 +569,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // Mention wht is the motivation to do this ??
     function _syncPositions(address marginAccount) internal {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName("MarketManager")
+            contractRegistry.getContractByName(keccak256("MarketManager)"))
         );
         bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
         for (uint256 i = 0; i < marketKeys.length; i++) {
