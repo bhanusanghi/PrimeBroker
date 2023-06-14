@@ -95,33 +95,34 @@ contract ChronuxUtils is Test, Constants, IEvents {
 
     function getAllActiveMarketsForTrader(
         address trader
-    ) public view returns (bytes32[] memory activeMarkets) {
-        address marginAccount = contracts.marginManager.getMarginAccount(
-            trader
-        );
+    ) public view returns (bytes32[] memory) {
         bytes32[] memory allMarketKeys = contracts
             .marketManager
             .getAllMarketKeys();
+        bytes32[] memory activeMarkets = new bytes32[](allMarketKeys.length);
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+
         for (uint256 i = 0; i < allMarketKeys.length; i++) {
             bytes32 marketKey = allMarketKeys[i];
-
             if (IMarginAccount(marginAccount).isActivePosition(marketKey)) {
                 activeMarkets[i] = marketKey;
             }
         }
+        return activeMarkets;
+    }
+
+    struct LiquidationParams {
+        address trader;
+        bytes32[] activeMarkets;
+        address[] destinations;
+        bytes[] data;
     }
 
     function getLiquidationData(
         address trader
-    )
-        public
-        view
-        returns (
-            bytes32[] memory activeMarkets,
-            address[] memory addresses,
-            bytes[] memory data
-        )
-    {
+    ) public view returns (LiquidationParams memory params) {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
         );
@@ -137,6 +138,9 @@ contract ChronuxUtils is Test, Constants, IEvents {
         address perpfiMarketAddress;
         for (uint256 i = 0; i < activePositionMarkets.length; i++) {
             bytes32 marketKey = activePositionMarkets[i];
+            if (marketKey == bytes32(0)) {
+                continue;
+            }
             // check if market key is SNX or Perp key
             if (
                 contracts.marketManager.getMarketBaseToken(marketKey) !=
@@ -146,9 +150,13 @@ contract ChronuxUtils is Test, Constants, IEvents {
                     address destination,
                     bytes memory dataa
                 ) = getPerpfiClosePositionData(marketKey);
-                activeMarkets[activeMarkets.length + 1] = marketKey;
-                addresses[addresses.length + 1] = destination;
-                data[data.length + 1] = dataa;
+                params.activeMarkets[
+                    params.activeMarkets.length + 1
+                ] = marketKey;
+                params.destinations[
+                    params.destinations.length + 1
+                ] = destination;
+                params.data[params.data.length + 1] = dataa;
                 if (hasMarginOnPerp = false) {
                     hasMarginOnPerp = true;
                     perpfiMarketKey = marketKey;
@@ -161,20 +169,32 @@ contract ChronuxUtils is Test, Constants, IEvents {
                     bytes memory dataa
                 ) = getSnxClosePositionData(marketKey);
 
-                activeMarkets[activeMarkets.length + 1] = marketKey;
-                addresses[addresses.length + 1] = destination;
-                data[data.length + 1] = dataa;
+                params.activeMarkets[
+                    params.activeMarkets.length + 1
+                ] = marketKey;
+                params.destinations[
+                    params.destinations.length + 1
+                ] = destination;
+                params.data[params.data.length + 1] = dataa;
                 // add an extra call to withdraw collateral
 
-                activeMarkets[activeMarkets.length + 1] = marketKey;
-                addresses[addresses.length + 1] = destination;
-                data[data.length + 1] = withdrawMarginDataSnx;
+                params.activeMarkets[
+                    params.activeMarkets.length + 1
+                ] = marketKey;
+                params.destinations[
+                    params.destinations.length + 1
+                ] = destination;
+                params.data[params.data.length + 1] = withdrawMarginDataSnx;
             }
         }
         if (hasMarginOnPerp) {
-            activeMarkets[activeMarkets.length + 1] = perpfiMarketKey;
-            addresses[addresses.length + 1] = perpfiMarketAddress;
-            data[data.length + 1] = withdrawMarginDataPerpfi;
+            params.activeMarkets[
+                params.activeMarkets.length + 1
+            ] = perpfiMarketKey;
+            params.destinations[
+                params.destinations.length + 1
+            ] = perpfiMarketAddress;
+            params.data[params.data.length + 1] = withdrawMarginDataPerpfi;
         }
     }
 
