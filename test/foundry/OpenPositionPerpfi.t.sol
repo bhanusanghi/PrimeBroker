@@ -86,7 +86,7 @@ contract OpenPositionPerpfi is BaseSetup {
             perpAaveKey,
             perpMargin,
             true,
-            "Extra Transfer not allowed"
+            "Borrow limit exceeded"
         );
     }
 

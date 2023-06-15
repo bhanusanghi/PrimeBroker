@@ -39,6 +39,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // address public perp
     // function getPositionOpenNotional(address marginAccount) public override {}
     bytes4 public ADD_MARGIN = 0x47e7ef24;
+    bytes4 public APPROVE_TRANSFER = 0x095ea7b3;
     bytes4 public OPEN_POSITION = 0xb6b1b6c3;
     bytes4 public WITHDRAW_MARGIN = 0xf3fef3a3;
     bytes4 public WITHDRAW_ALL_MARGIN = 0xfa09e630;
@@ -141,7 +142,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 "PRM: Calling non whitelisted contract"
             );
             bytes4 funSig = bytes4(data[i]);
-            if (funSig == ADD_MARGIN) {
+            if (funSig == APPROVE_TRANSFER) {
+                //  @dev - TODO - FIND SPENDER AND COMPARE WITH WHITELISTED CONTRACTS
+            } else if (funSig == ADD_MARGIN) {
                 marginDelta = abi.decode(data[i][36:], (int256));
             } else if (funSig == WITHDRAW_MARGIN) {
                 marginDelta = -abi.decode(data[i][36:], (int256));
@@ -195,7 +198,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     10 ** 5 // todo - Ask ashish about this
                 );
             } else {
-                // Unsupported Function call
+                console.log("funSig");
+                console.logBytes4(funSig); // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
         }

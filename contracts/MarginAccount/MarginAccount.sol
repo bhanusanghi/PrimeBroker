@@ -65,10 +65,10 @@ contract MarginAccount is IMarginAccount {
         bytes32 market
     ) public view override returns (Position memory position) {
         position = positions[market];
-        require(
-            position.size == 0 || position.openNotional == 0,
-            "Position doesn't exist"
-        );
+        // require(
+        //     position.size != 0 || position.openNotional != 0,
+        //     "Position doesn't exist"
+        // );
     }
 
     function isActivePosition(

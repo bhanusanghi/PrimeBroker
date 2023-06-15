@@ -32,7 +32,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     using SettlementTokenMath for int256;
     using SignedMath for int256;
     using SignedSafeMath for int256;
-    RiskManager public riskManager;
+    IRiskManager public riskManager;
     IContractRegistry public contractRegistry;
     // IMarketManager public marketManager;
     IPriceOracle public priceOracle;
@@ -63,7 +63,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         address _riskmgr
     ) external nonZeroAddress(_riskmgr) {
         // onlyOwner
-        riskManager = RiskManager(_riskmgr);
+        riskManager = IRiskManager(_riskmgr);
     }
 
     function setVault(address _vault) external nonZeroAddress(_vault) {
@@ -117,18 +117,18 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             address(marginAccount),
             marketKey
         );
-
         // merge verification result and marketPosition.
         verificationResult.position.size = marketPosition.size;
         verificationResult.position.openNotional = marketPosition.openNotional;
 
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-            marginAccount.updatePosition(
-                marketKey,
-                verificationResult.position
-            );
+
             if (isOpen) {
+                marginAccount.addPosition(
+                    marketKey,
+                    verificationResult.position
+                );
                 emit PositionAdded(
                     address(marginAccount),
                     marketKey,
@@ -136,6 +136,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     verificationResult.position.openNotional
                 );
             } else {
+                marginAccount.updatePosition(
+                    marketKey,
+                    verificationResult.position
+                );
                 emit PositionUpdated(
                     address(marginAccount),
                     marketKey,
@@ -143,6 +147,9 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     verificationResult.position.openNotional
                 );
             }
+        }
+        if (verificationResult.marginDelta > 0) {
+            riskManager.verifyBorrowLimit(address(marginAccount));
         }
         // updateUnsettledRealizedPnL
     }
@@ -164,6 +171,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             marketPosition.size == 0 && marketPosition.openNotional == 0,
             "MM: Invalid close position call"
         );
+        riskManager.verifyBorrowLimit(address(marginAccount));
     }
 
     function _verifyTrade(
@@ -172,7 +180,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         address[] calldata destinations,
         bytes[] calldata data
     ) private returns (VerifyTradeResult memory verificationResult) {
-        _updateUnsettledRealizedPnL(address(marginAccount));
+        // _updateUnsettledRealizedPnL(address(marginAccount));
         verificationResult = riskManager.verifyTrade(
             marginAccount,
             marketKey,
@@ -569,7 +577,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // Mention wht is the motivation to do this ??
     function _syncPositions(address marginAccount) internal {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager)"))
+            contractRegistry.getContractByName(keccak256("MarketManager"))
         );
         bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
         for (uint256 i = 0; i < marketKeys.length; i++) {
@@ -581,6 +589,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // @note - compa
             Position memory storedPosition = IMarginAccount(marginAccount)
                 .getPosition(marketKey);
+            if (storedPosition.size == 0 && storedPosition.openNotional == 0)
+                continue;
             if (
                 storedPosition.size != marketPosition.size ||
                 storedPosition.openNotional != marketPosition.openNotional

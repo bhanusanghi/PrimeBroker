@@ -127,10 +127,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // totalNotional is in 18 decimals
         _verifyFinalLeverage(
             address(marginAccount),
-            buyingPower,
-            result.position.openNotional,
-            result.marginDeltaDollarValue,
-            totalNotional
+            result.position.openNotional
         );
     }
 
@@ -157,36 +154,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function _verifyFinalLeverage(
         address marginAccount,
-        uint256 buyingPower,
-        int256 positionOpenNotional,
-        int256 marginDeltaDollarValue,
-        int256 totalNotional
+        int256 positionOpenNotional
     ) internal {
-        // buyingPower = buyingPower.mulDiv(100, initialMarginFactor); // TODO - make sure the decimals work fine.
-        // check if open
-        // require(
-        //     buyingPower >=
-        //         (
-        //             marginAccount.totalDollarMarginInMarkets().add(
-        //                 marginDeltaDollarValue
-        //             ) // this is also in vault asset decimals
-        //         ).abs(),
-        //     "Extra Transfer not allowed"
-        // );
-        // require(
-        //     buyingPower.convertTokenDecimals(
-        //         ERC20(vault.asset()).decimals(),
-        //         18 // needs to remove this hardcoded value and get from market config dynamically
-        //     ) >= (totalNotional.add(positionOpenNotional)).abs(),
-        //     "Extra leverage not allowed"
-        // );
-        if (marginDeltaDollarValue > 0) {
-            require(
-                getRemainingMarginTransfer(address(marginAccount)) >=
-                    marginDeltaDollarValue.abs(),
-                "Extra Transfer not allowed"
-            );
-        }
         require(
             getRemainingPositionOpenNotional(marginAccount) >=
                 positionOpenNotional.abs(),
@@ -216,8 +185,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 .sub(interestAccrued)
                 .toInt256()
                 .add(_getUnrealizedPnL(marginAccount))
-                .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
                 .abs();
+        // .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
     }
 
     function getTotalBuyingPower(
@@ -230,7 +199,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     // @note This finds and returns delta margin across all markets.
-    // This does not take profit or stop loss
+
     function getCurrentDollarMarginInMarkets(
         address marginAccount
     ) external view override returns (int256 totalCurrentDollarMargin) {
@@ -274,18 +243,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return _getRemainingMarginTransfer(_marginAccount);
     }
 
+    // Remaining transferrable margin will be
+    // totalCollateralInMarginAccount + availableBorrowLimit
     function _getRemainingMarginTransfer(
         address marginAccount
     ) private view returns (uint256) {
-        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        );
-        int256 marginInMarkets = IMarginAccount(marginAccount)
-            .totalDollarMarginInMarkets();
-        return
-            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
-                uint256(marginInMarkets)
-            );
+        uint256 totalCollateralInMarginAccount = collateralManager
+            .getCollateralHeldInMarginAccount(marginAccount);
+        uint256 availableBorrowLimit = getRemainingBorrowLimit(marginAccount);
+        return totalCollateralInMarginAccount + availableBorrowLimit;
     }
 
     function getRemainingPositionOpenNotional(
@@ -308,6 +274,57 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             (_totalCollateralValue.mul(100).div(initialMarginFactor))
                 .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
                 .sub(totalOpenNotional); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
+    }
+
+    // @todo - later add the collateral weights to the calculations below.
+    // Currently does not take into account the collateral weights.
+    function getCollateralInMarkets(
+        address _marginAccount
+    ) public view returns (uint256 totalCollateralValue) {
+        // todo - can be moved into margin account and removed from here. See whats the better design.
+        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+
+        for (uint256 i = 0; i < _riskManagers.length; i++) {
+            int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
+                .getDollarMarginInMarkets(_marginAccount);
+            totalCollateralValue = totalCollateralValue.add(dollarMargin.abs());
+        }
+    }
+
+    // get max borrow limit using this formula
+    // maxBorrowLimit = totalCollateralValue * ((100 - mmf)/mmf)
+    // if borrowed amount > maxBorrowLimit then revert
+    function _getMaxBorrowLimit(
+        address _marginAccount
+    ) internal view returns (uint256 maxBorrowLimit) {
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            address(_marginAccount)
+        );
+        maxBorrowLimit = _totalCollateralValue.mulDiv(
+            100 - initialMarginFactor,
+            initialMarginFactor
+        );
+    }
+
+    function getMaxBorrowLimit(
+        address _marginAccount
+    ) public view returns (uint256) {
+        return _getMaxBorrowLimit(_marginAccount);
+    }
+
+    function getRemainingBorrowLimit(
+        address _marginAccount
+    ) public view returns (uint256) {
+        return
+            _getMaxBorrowLimit(_marginAccount) -
+            IMarginAccount(_marginAccount).totalBorrowed();
+    }
+
+    function verifyBorrowLimit(address _marginAccount) external view {
+        // Get margin account borrowed amount.
+        uint256 maxBorrowLimit = _getMaxBorrowLimit(_marginAccount);
+        uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
+        require(borrowedAmount <= maxBorrowLimit, "Borrow limit exceeded");
     }
 
     function getMarketPosition(
@@ -373,9 +390,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
             .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
 
-        uint256 minimumMarginRequirement = totalOpenNotional.mul(100).div(
-            maintanaceMarginFactor
-        );
+        uint256 minimumMarginRequirement = totalOpenNotional
+            .mul(maintanaceMarginFactor)
+            .div(100);
         if (accountValue <= minimumMarginRequirement) {
             isLiquidatable = true;
         } else {

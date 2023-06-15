@@ -90,4 +90,18 @@ interface IRiskManager {
         IMarginAccount marginAccount,
         uint256 vaultLiability
     ) external view returns (bool isBankrupt);
+
+    function getCollateralInMarkets(
+        address _marginAccount
+    ) external view returns (uint256 totalCollateralValue);
+
+    function verifyBorrowLimit(address _marginAccount) external view;
+
+    function getMaxBorrowLimit(
+        address _marginAccount
+    ) external view returns (uint256);
+
+    function isAccountLiquidatable(
+        IMarginAccount marginAccount
+    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
 }

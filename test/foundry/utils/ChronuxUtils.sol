@@ -17,6 +17,13 @@ import {IEvents} from "../IEvents.sol";
 import {Constants} from "./Constants.sol";
 import "forge-std/console2.sol";
 
+struct LiquidationParams {
+    address trader;
+    bytes32[] activeMarkets;
+    address[] destinations;
+    bytes[] data;
+}
+
 contract ChronuxUtils is Test, Constants, IEvents {
     Contracts contracts;
     using SettlementTokenMath for uint256;
@@ -111,13 +118,6 @@ contract ChronuxUtils is Test, Constants, IEvents {
             }
         }
         return activeMarkets;
-    }
-
-    struct LiquidationParams {
-        address trader;
-        bytes32[] activeMarkets;
-        address[] destinations;
-        bytes[] data;
     }
 
     function getLiquidationData(
