@@ -15,7 +15,9 @@ import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
-contract MarginAccount is IMarginAccount {
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
+
+contract MarginAccount is IMarginAccount, AccessControl {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -27,7 +29,6 @@ contract MarginAccount is IMarginAccount {
 
     // address public baseToken; //usdt/c
     address public marginManager;
-    uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
@@ -60,6 +61,14 @@ contract MarginAccount is IMarginAccount {
         contractRegistry = IContractRegistry(_contractRegistry);
         // TODO- Market manager is not related to accounts.
         // marketManager = IMarketManager(_marketManager);
+    }
+
+    modifier onlyMarginManager() {
+        require(
+            marginManager == msg.sender,
+            "MarginAccount: Only margin manager"
+        );
+        _;
     }
 
     function getPosition(
@@ -104,49 +113,41 @@ contract MarginAccount is IMarginAccount {
     function approveToProtocol(
         address token,
         address protocol
-    ) external override {
-        // onlyMarginmanager
+    ) external onlyMarginManager {
         IERC20(token).approve(protocol, type(uint256).max);
     }
 
     function transferTokens(
         address token,
         address to,
-        uint256 amount // onlyMarginManager
-    ) external {
+        uint256 amount
+    ) external onlyMarginManager {
         IERC20(token).safeTransfer(to, amount);
     }
 
     function executeTx(
         address destination,
         bytes memory data
-    ) external returns (bytes memory) {
-        // onlyMarginManager
+    ) external onlyMarginManager returns (bytes memory) {
         bytes memory returnData = destination.functionCall(data);
-        // make post trade chnges
-        // add new position in array, update leverage int, ext
         return returnData;
     }
 
     function execMultiTx(
         address[] calldata destinations,
         bytes[] memory dataArray
-    ) external override returns (bytes memory returnData) {
-        // onlyMarginManager
+    ) external override onlyMarginManager returns (bytes memory returnData) {
         uint8 len = destinations.length.toUint8();
         for (uint8 i = 0; i < len; i++) {
             returnData = destinations[i].functionCall(dataArray[i]);
         }
-        // add new position in array, update leverage int, ext
         return returnData;
     }
 
     function addPosition(
         bytes32 market,
         Position memory position
-    ) public override {
-        // only riskmanagger
-
+    ) external override onlyMarginManager {
         require(!existingPosition[market], "Existing position");
         positions[market] = position;
         existingPosition[market] = true;
@@ -155,8 +156,7 @@ contract MarginAccount is IMarginAccount {
     function updatePosition(
         bytes32 marketKey,
         Position memory position
-    ) public override {
-        // only riskmanagger
+    ) external override onlyMarginManager {
         // require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
         positions[marketKey].protocol = positions[marketKey].protocol; //@note @0xAshish rewriting it as of now will remove it later
         positions[marketKey].openNotional = position.openNotional;
@@ -164,8 +164,9 @@ contract MarginAccount is IMarginAccount {
         positions[marketKey].orderFee = position.orderFee;
     }
 
-    function removePosition(bytes32 market) public override {
-        // only riskmanagger
+    function removePosition(
+        bytes32 market
+    ) external override onlyMarginManager {
         existingPosition[market] = false;
         delete positions[market];
     }
@@ -175,15 +176,14 @@ contract MarginAccount is IMarginAccount {
     function updateBorrowData(
         uint256 totalBorrowedAmount,
         uint256 _cumulativeIndexAtOpen
-    ) external override {
-        // add acl check
+    ) external override onlyMarginManager {
         totalBorrowed = totalBorrowedAmount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
     function updateDollarMarginInMarkets(
         int256 transferredMargin
-    ) public override {
+    ) external override onlyMarginManager {
         // require(
         //     marginInMarket[market].add(transferredMargin) > 0,
         //     "MA: Cannot have negative margin In protocol"
@@ -193,7 +193,9 @@ contract MarginAccount is IMarginAccount {
         );
     }
 
-    function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
+    function updateUnsettledRealizedPnL(
+        int256 _realizedPnL
+    ) external override onlyMarginManager {
         unsettledRealizedPnL = _realizedPnL;
     }
 
@@ -202,9 +204,7 @@ contract MarginAccount is IMarginAccount {
         address tokenOut,
         uint256 amountIn,
         uint256 minAmountOut
-    ) public returns (uint256 amountOut) {
-        // only marginManager.
-
+    ) public onlyMarginManager returns (uint256 amountOut) {
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );

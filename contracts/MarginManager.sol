@@ -386,7 +386,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     function decreaseDebt(
         IMarginAccount marginAccount,
         uint256 amount
-    ) public returns (uint256 newBorrowedAmount) {
+    ) internal returns (uint256 newBorrowedAmount) {
         // add acl check
         (uint256 borrowedAmount, , ) = _getMarginAccountDetails(marginAccount);
         uint256 interestAccrued = _getInterestAccrued(marginAccount);
@@ -503,8 +503,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     )
                 );
                 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
-                    address(marginAccount)
-                );
+                        address(marginAccount)
+                    );
 
                 uint256 amountOut = marginAccount.swapTokens(
                     tokenIn,
@@ -524,8 +524,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             ) {
                 increaseDebt(marginAccount, dollarValueOfTokenDifference);
                 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
-                    address(marginAccount)
-                );
+                        address(marginAccount)
+                    );
             }
         }
     }

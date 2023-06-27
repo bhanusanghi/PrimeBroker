@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.10;
-
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
@@ -17,8 +17,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 
-// @TODO - Add ACL checks.
-contract CollateralManager is ICollateralManager {
+contract CollateralManager is ICollateralManager, AccessControl {
     using SafeMath for uint256;
     using SafeMath for int256;
     using Math for uint256;
@@ -27,6 +26,8 @@ contract CollateralManager is ICollateralManager {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
+
     // TODO - Move all these to Contract Registry.
     MarginManager public marginManager;
     IRiskManager public riskManager;
@@ -57,6 +58,7 @@ contract CollateralManager is ICollateralManager {
         riskManager = IRiskManager(_riskManager);
         priceOracle = IPriceOracle(_priceOracle);
         vault = IVault(_vault);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
     function updateCollateralAmount(uint256 amount) external {
@@ -66,7 +68,7 @@ contract CollateralManager is ICollateralManager {
     function addAllowedCollaterals(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
-    ) public {
+    ) public onlyRole(REGISTRAR_ROLE) {
         require(
             _allowed.length == _collateralWeights.length,
             "CM: No array parity"
@@ -89,7 +91,7 @@ contract CollateralManager is ICollateralManager {
     function addAllowedCollateral(
         address _allowed,
         uint256 _collateralWeight
-    ) public {
+    ) public onlyRole(REGISTRAR_ROLE) {
         require(_allowed != address(0), "CM: Zero Address");
         require(isAllowed[_allowed] == false, "CM: Collateral already added");
         allowedCollateral.push(_allowed);
@@ -160,8 +162,7 @@ contract CollateralManager is ICollateralManager {
     function updateCollateralWeight(
         address _token,
         uint256 _collateralWeight
-    ) external {
-        // onlyOwner
+    ) external onlyRole(REGISTRAR_ROLE) {
         require(isAllowed[_token], "CM: Collateral not found");
         collateralWeight[_token] = _collateralWeight;
     }

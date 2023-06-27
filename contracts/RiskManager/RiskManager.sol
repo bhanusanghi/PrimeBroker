@@ -1,5 +1,6 @@
 pragma solidity ^0.8.10;
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -23,7 +24,7 @@ import {CollateralManager} from "../CollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import "hardhat/console.sol";
 
-contract RiskManager is IRiskManager, ReentrancyGuard {
+contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     using SafeMath for uint256;
@@ -34,6 +35,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     using SignedSafeMath for int256;
     using SafeCast for int256;
     using SignedMath for int256;
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
     IPriceOracle public priceOracle;
     Vault public vault;
     modifier xyz() {
@@ -51,18 +53,21 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) {
         contractRegistery = _contractRegistery;
         marketManager = _marketManager;
+        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
-    function setPriceOracle(address oracle) external {
+    function setPriceOracle(address oracle) external onlyRole(REGISTRAR_ROLE) {
         // onlyOwner
         priceOracle = IPriceOracle(oracle);
     }
 
-    function setCollateralManager(address _collateralManager) public {
+    function setCollateralManager(
+        address _collateralManager
+    ) public onlyRole(REGISTRAR_ROLE) {
         collateralManager = CollateralManager(_collateralManager);
     }
 
-    function setVault(address _vault) external {
+    function setVault(address _vault) external onlyRole(REGISTRAR_ROLE) {
         vault = Vault(_vault);
     }
 
