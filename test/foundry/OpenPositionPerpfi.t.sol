@@ -141,13 +141,25 @@ contract OpenPositionPerpfi is BaseSetup {
             ""
         );
         vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
-        perpfiUtils.addAndVerifyPositionNotional(
-            bob,
-            perpAaveKey,
-            -notional,
-            false,
-            ""
-        );
+        try
+            perpfiUtils.addAndVerifyPositionNotional(
+                alice,
+                perpAaveKey,
+                -notional,
+                false,
+                ""
+            )
+        {
+            revert("Short position not allowed");
+        } catch {
+            perpfiUtils.addAndVerifyPositionNotional(
+                bob,
+                perpAaveKey,
+                -notional,
+                false,
+                ""
+            );
+        }
         // check third party events and value by using static call.
     }
 
