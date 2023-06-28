@@ -179,6 +179,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .getInterestAccrued(marginAccount);
         // unsettledRealizedPnL is in vault decimals
         // unrealizedPnL is in vault decimals
+        console.log("unrealizedPnL");
+        console.logInt(_getUnrealizedPnL(marginAccount));
         return
             collateralManager
                 .totalCollateralValue(marginAccount)
@@ -392,7 +394,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
-            .div(100);
+            .div(100)
+            .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
+
+        console.log("accountValue", accountValue);
+        console.log("minimumMarginRequirement", minimumMarginRequirement);
+
         if (accountValue <= minimumMarginRequirement) {
             isLiquidatable = true;
         } else {

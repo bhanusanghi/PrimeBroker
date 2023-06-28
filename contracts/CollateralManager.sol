@@ -245,6 +245,7 @@ contract CollateralManager is ICollateralManager {
         uint256 totalCollateralInMarkets = riskManager.getCollateralInMarkets(
             _marginAccount
         );
+        console.log("totalCollateralInMarkets", totalCollateralInMarkets);
         uint256 totalBorrowed = IMarginAccount(_marginAccount).totalBorrowed();
         totalAmount =
             collateralHeldInMarginAccount +

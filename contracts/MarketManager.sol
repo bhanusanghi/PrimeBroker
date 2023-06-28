@@ -42,10 +42,10 @@ contract MarketManager is IMarketManager, AccessControl {
             "MM: Market already exists"
         );
         require(_market != address(0), "MM: Adding Zero Address as Market");
-        require(
-            _baseToken != address(0),
-            "MM: Adding Zero Address as Base token"
-        );
+        // require(
+        //     _baseToken != address(0),
+        //     "MM: Adding Zero Address as Base token"
+        // );
         require(
             _marginToken != address(0),
             "MM: Adding Zero Address as Margin token"

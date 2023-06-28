@@ -319,7 +319,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 revert("PRM: Invalid base token in close call");
             }
         } else if (funSig == WITHDRAW_ALL_MARGIN) {
-            result.marginDelta = -abi.decode(data[36:], (int256));
+            // result.marginDelta = -abi.decode(data[36:], (int256));
         } else {
             revert("PRM: Invalid Tx Data in liquidate call");
         }

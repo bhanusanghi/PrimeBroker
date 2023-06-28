@@ -144,6 +144,7 @@ contract MarginAccount is IMarginAccount {
         // onlyMarginManager
         uint8 len = destinations.length.toUint8();
         for (uint8 i = 0; i < len; i++) {
+            if (destinations[i] == address(0)) continue;
             returnData = destinations[i].functionCall(dataArray[i]);
         }
         // add new position in array, update leverage int, ext

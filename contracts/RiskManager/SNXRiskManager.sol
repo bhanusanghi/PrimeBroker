@@ -212,7 +212,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     // returns value in vault decimals
     function _getAccruedFundingAcrossMarkets(
         address marginAccount
-    ) internal returns (int256 totalAccruedFunding) {
+    ) internal view returns (int256 totalAccruedFunding) {
         address[] memory allMarkets = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketsForRiskManager(address(this));
@@ -235,7 +235,8 @@ contract SNXRiskManager is IProtocolRiskManager {
     function getUnrealizedPnL(
         address marginAccount
     ) external view override returns (int256 unrealizedPnL) {
-        unrealizedPnL = _getPositionPnLAcrossMarkets(marginAccount);
+        unrealizedPnL += _getAccruedFundingAcrossMarkets(marginAccount);
+        unrealizedPnL += _getPositionPnLAcrossMarkets(marginAccount);
     }
 
     function getMarketPosition(
@@ -297,13 +298,13 @@ contract SNXRiskManager is IProtocolRiskManager {
 
         if (funSig == CLOSE_POSITION) {
             // do nothing
-        } else if (funSig == TRANSFER_MARGIN) {
-            result.marginDelta = abi.decode(data[36:], (int256));
-            if (result.marginDelta > 0) {
-                revert(
-                    "PRM: Invalid Tx Data in liquidate call, cannot add margin to Protocol"
-                );
-            }
+        } else if (funSig == WITHDRAW_ALL_MARGIN) {
+            // result.marginDelta = abi.decode(data[36:], (int256));
+            // if (result.marginDelta > 0) {
+            //     revert(
+            //         "PRM: Invalid Tx Data in liquidate call, cannot add margin to Protocol"
+            //     );
+            // }
         } else {
             revert("PRM: Invalid Tx Data in liquidate call");
         }

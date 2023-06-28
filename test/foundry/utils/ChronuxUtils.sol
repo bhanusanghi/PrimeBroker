@@ -106,20 +106,52 @@ contract ChronuxUtils is Test, Constants, IEvents {
         bytes32[] memory allMarketKeys = contracts
             .marketManager
             .getAllMarketKeys();
-        bytes32[] memory activeMarkets = new bytes32[](allMarketKeys.length);
+        uint256 activeCount = 0;
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
         );
-
         for (uint256 i = 0; i < allMarketKeys.length; i++) {
             bytes32 marketKey = allMarketKeys[i];
             if (IMarginAccount(marginAccount).isActivePosition(marketKey)) {
-                activeMarkets[i] = marketKey;
+                activeCount++;
+            }
+        }
+        bytes32[] memory activeMarkets = new bytes32[](activeCount);
+        uint256 filledLength = 0;
+        for (uint256 i = 0; i < allMarketKeys.length; i++) {
+            bytes32 marketKey = allMarketKeys[i];
+            if (IMarginAccount(marginAccount).isActivePosition(marketKey)) {
+                activeMarkets[filledLength] = marketKey;
+                filledLength++;
             }
         }
         return activeMarkets;
     }
 
+    // find number of snx markets. multiply by 2
+    // find number of perp markets, add 1.
+    function getResultArrayLength(
+        bytes32[] memory activePositionMarkets
+    ) public view returns (uint256 resultLength) {
+        uint256 snxCount = 0;
+        uint256 perpCount = 0;
+        for (uint256 i = 0; i < activePositionMarkets.length; i++) {
+            bytes32 marketKey = activePositionMarkets[i];
+            if (
+                contracts.marketManager.getMarketBaseToken(marketKey) ==
+                address(0) // means snx market
+            ) {
+                snxCount++;
+            } else {
+                perpCount++;
+            }
+        }
+        return (snxCount * 2) + perpCount + 1;
+        console2.log("snxCount", snxCount);
+        console2.log("perpCount", perpCount);
+    }
+
+    // todo - add a condition for 0 active market positions.
     function getLiquidationData(
         address trader
     ) public view returns (LiquidationParams memory params) {
@@ -129,6 +161,11 @@ contract ChronuxUtils is Test, Constants, IEvents {
         bytes32[] memory activePositionMarkets = getAllActiveMarketsForTrader(
             trader
         );
+        uint256 resultLength = getResultArrayLength(activePositionMarkets);
+        params.activeMarkets = new bytes32[](resultLength);
+        params.destinations = new address[](resultLength);
+        params.data = new bytes[](resultLength);
+        params.trader = trader;
         bytes
             memory withdrawMarginDataSnx = getSnxWithdrawAllCollateralCalldata();
         bytes
@@ -136,32 +173,29 @@ contract ChronuxUtils is Test, Constants, IEvents {
         bool hasMarginOnPerp = false;
         bytes32 perpfiMarketKey;
         address perpfiMarketAddress;
+
+        uint256 fillLength = 0;
         for (uint256 i = 0; i < activePositionMarkets.length; i++) {
             bytes32 marketKey = activePositionMarkets[i];
-            if (marketKey == bytes32(0)) {
-                continue;
-            }
-            // check if market key is SNX or Perp key
+
+            // check if market key is SNX or Perp key.
             if (
                 contracts.marketManager.getMarketBaseToken(marketKey) !=
-                address(0)
+                address(0) // this means its a perp market
             ) {
                 (
                     address destination,
                     bytes memory dataa
                 ) = getPerpfiClosePositionData(marketKey);
-                params.activeMarkets[
-                    params.activeMarkets.length + 1
-                ] = marketKey;
-                params.destinations[
-                    params.destinations.length + 1
-                ] = destination;
-                params.data[params.data.length + 1] = dataa;
-                if (hasMarginOnPerp = false) {
+                params.activeMarkets[fillLength] = marketKey;
+                params.destinations[fillLength] = destination;
+                params.data[fillLength] = dataa;
+                if (hasMarginOnPerp == false) {
                     hasMarginOnPerp = true;
                     perpfiMarketKey = marketKey;
                     perpfiMarketAddress = destination;
                 }
+                fillLength++;
                 // add an extra call to withdraw collateral from perpfi at the last.
             } else {
                 (
@@ -169,32 +203,23 @@ contract ChronuxUtils is Test, Constants, IEvents {
                     bytes memory dataa
                 ) = getSnxClosePositionData(marketKey);
 
-                params.activeMarkets[
-                    params.activeMarkets.length + 1
-                ] = marketKey;
-                params.destinations[
-                    params.destinations.length + 1
-                ] = destination;
-                params.data[params.data.length + 1] = dataa;
+                params.activeMarkets[fillLength] = marketKey;
+                params.destinations[fillLength] = destination;
+                params.data[fillLength] = dataa;
                 // add an extra call to withdraw collateral
 
-                params.activeMarkets[
-                    params.activeMarkets.length + 1
-                ] = marketKey;
-                params.destinations[
-                    params.destinations.length + 1
-                ] = destination;
-                params.data[params.data.length + 1] = withdrawMarginDataSnx;
+                //TODO - check this part.
+                params.activeMarkets[fillLength + 1] = marketKey;
+                params.destinations[fillLength + 1] = destination;
+                params.data[fillLength + 1] = withdrawMarginDataSnx;
+                fillLength += 2;
             }
         }
         if (hasMarginOnPerp) {
-            params.activeMarkets[
-                params.activeMarkets.length + 1
-            ] = perpfiMarketKey;
-            params.destinations[
-                params.destinations.length + 1
-            ] = perpfiMarketAddress;
-            params.data[params.data.length + 1] = withdrawMarginDataPerpfi;
+            address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
+            params.activeMarkets[resultLength - 1] = perpfiMarketKey;
+            params.destinations[resultLength - 1] = perpVault;
+            params.data[resultLength - 1] = withdrawMarginDataPerpfi;
         }
     }
 

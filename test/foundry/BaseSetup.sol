@@ -294,14 +294,6 @@ contract BaseSetup is Test, IEvents {
         bobMarginAccount = contracts.marginManager.openMarginAccount();
         vm.prank(alice);
         aliceMarginAccount = contracts.marginManager.openMarginAccount();
-
-        // Set mock response for price oracle
-        makeSusdAndUsdcEqualToOne();
-    }
-
-    function setupSNXFixture() internal {
-        _setupCommonFixture(usdc);
-        // =============================== Get Market Addresses from SNX using Keys ===============================
         snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("FuturesMarketManager"));
         uniFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
@@ -310,6 +302,15 @@ contract BaseSetup is Test, IEvents {
         ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
             .marketForKey(snxEth_marketKey);
         vm.label(ethFuturesMarket, "ETH futures Market");
+
+        // Set mock response for price oracle
+        makeSusdAndUsdcEqualToOne();
+    }
+
+    function setupSNXFixture() internal {
+        _setupCommonFixture(usdc);
+        // =============================== Get Market Addresses from SNX using Keys ===============================
+
         // =============================== Add Markets to Market Manager and setup Whitelist ===============================
         contracts.marketManager.addMarket(
             snxUniKey,
@@ -357,6 +358,15 @@ contract BaseSetup is Test, IEvents {
 
     function setupPerpfiFixture() internal {
         _setupCommonFixture(usdc);
+        snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
+            .getAddress(bytes32("FuturesMarketManager"));
+        uniFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
+            .marketForKey(snxUni_marketKey);
+        vm.label(uniFuturesMarket, "UNI futures Market");
+        ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
+            .marketForKey(snxEth_marketKey);
+        vm.label(ethFuturesMarket, "ETH futures Market");
+
         contracts.marketManager.addMarket(
             perpAaveKey,
             perpClearingHouse,
@@ -371,6 +381,50 @@ contract BaseSetup is Test, IEvents {
         );
         contracts.perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
         contracts.perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
+
+        // for working with snx together
+        contracts.marketManager.addMarket(
+            snxUniKey,
+            uniFuturesMarket,
+            address(contracts.snxRiskManager),
+            address(0),
+            susd
+        );
+        contracts.marketManager.addMarket(
+            snxEthKey,
+            ethFuturesMarket,
+            address(contracts.snxRiskManager),
+            address(0),
+            susd
+        );
+        contracts.snxRiskManager.toggleAddressWhitelisting(
+            uniFuturesMarket,
+            true
+        );
+        contracts.snxRiskManager.toggleAddressWhitelisting(
+            ethFuturesMarket,
+            true
+        );
+        contracts.contractRegistry.addCurvePool(
+            usdc,
+            susd,
+            0x061b87122Ed14b9526A813209C8a59a633257bAb
+        );
+        contracts.contractRegistry.addCurvePool(
+            susd,
+            usdc,
+            0x061b87122Ed14b9526A813209C8a59a633257bAb
+        );
+        contracts.contractRegistry.addCurvePoolTokenIndex(
+            0x061b87122Ed14b9526A813209C8a59a633257bAb,
+            susd,
+            0
+        );
+        contracts.contractRegistry.addCurvePoolTokenIndex(
+            0x061b87122Ed14b9526A813209C8a59a633257bAb,
+            usdc,
+            2
+        );
     }
 
     function makeSusdAndUsdcEqualToOne() internal {
