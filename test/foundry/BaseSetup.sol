@@ -28,6 +28,8 @@ import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICollateralManager} from "../../contracts/Interfaces/ICollateralManager.sol";
 import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
+import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
+import {ISystemStatus} from "../../contracts/Interfaces/SNX/ISystemStatus.sol";
 import {Utils} from "./utils/Utils.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
@@ -93,7 +95,9 @@ contract BaseSetup is Test, IEvents {
     address snxFuturesMarketManager;
     address snxOwner = 0x6d4a64C57612841c2C6745dB2a4E4db34F002D20;
     address circuitBreaker = 0x803FD1d99C3a6cbcbABAB79C44e108dC2fb67102;
-
+    address exchangeRates = 0x913bd76F7E1572CC8278CeF2D6b06e2140ca9Ce2;
+    address systemStatus = 0xE8c41bE1A167314ABAF2423b72Bf8da826943FFD;
+    address exchangeCircuitBreaker = 0x7322e8F6cB6c6a7B4e6620C486777fcB9Ea052a4;
     bytes32 perpAaveKey = keccak256("PERP.AAVE");
     bytes32 invalidKey = keccak256("BKL.MKC");
     bytes32 snxUniKey = keccak256("SNX.UNI");
@@ -305,25 +309,39 @@ contract BaseSetup is Test, IEvents {
 
         // Set mock response for price oracle
         makeSusdAndUsdcEqualToOne();
+
+        // Set Mock response of SNX Probe Circuit Broken to false always
+        vm.mockCall(
+            circuitBreaker,
+            abi.encodeWithSelector(
+                ICircuitBreaker.probeCircuitBreaker.selector
+            ),
+            abi.encode(false)
+        );
+
+        vm.mockCall(
+            systemStatus,
+            abi.encodeWithSelector(ISystemStatus.synthSuspended.selector),
+            abi.encode(false)
+        );
     }
 
     function setupSNXFixture() internal {
         _setupCommonFixture(usdc);
         // =============================== Get Market Addresses from SNX using Keys ===============================
-
         // =============================== Add Markets to Market Manager and setup Whitelist ===============================
         contracts.marketManager.addMarket(
             snxUniKey,
             uniFuturesMarket,
             address(contracts.snxRiskManager),
-            susd,
+            address(0),
             susd
         );
         contracts.marketManager.addMarket(
             snxEthKey,
             ethFuturesMarket,
             address(contracts.snxRiskManager),
-            susd,
+            address(0),
             susd
         );
         contracts.snxRiskManager.toggleAddressWhitelisting(

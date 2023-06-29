@@ -210,6 +210,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         if (verificationResult.marginDelta.abs() > 0) {
             _prepareMarginTransfer(marginAccount, verificationResult);
+
             _updateMarginTransferData(
                 marginAccount,
                 marketKey,
@@ -509,32 +510,30 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     ERC20(tokenIn).decimals()
                 );
 
-            if (
-                dollarValueOfTokenDifference > tokenInBalance &&
-                tokenIn != verificationResult.tokenOut
-            ) {
+            if (tokenIn != verificationResult.tokenOut) {
+                uint256 slippageMoney = uint256(10).convertTokenDecimals(
+                    0,
+                    ERC20(tokenIn).decimals()
+                );
+                uint256 tokenSwapAmountIn = dollarValueOfTokenDifference +
+                    slippageMoney;
                 increaseDebt(
                     marginAccount,
-                    dollarValueOfTokenDifference.sub(tokenInBalance).add( // this is the new credit. // TODO - Account for slippage and remmove the excess 500 sent
-                        uint256(1000).convertTokenDecimals(
-                            0,
-                            ERC20(tokenIn).decimals()
-                        )
-                    )
+                    slippageMoney // TODO - Account for slippage and remmove the excess 500 sent
                 );
+                if (dollarValueOfTokenDifference > tokenInBalance) {
+                    increaseDebt(
+                        marginAccount,
+                        tokenSwapAmountIn.sub(tokenInBalance) // this is the new credit
+                    );
+                }
                 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
                     address(marginAccount)
                 );
-
                 uint256 amountOut = marginAccount.swapTokens(
                     tokenIn,
                     verificationResult.tokenOut,
-                    dollarValueOfTokenDifference.add( // TODO - Account for slippage and remmove the excess 500 sent
-                        uint256(1000).convertTokenDecimals(
-                            0,
-                            ERC20(tokenIn).decimals()
-                        )
-                    ),
+                    tokenSwapAmountIn,
                     diff
                 );
                 require(amountOut >= diff, "RM: Bad Swap");

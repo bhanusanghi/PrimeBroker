@@ -235,7 +235,8 @@ contract SNXRiskManager is IProtocolRiskManager {
     function getUnrealizedPnL(
         address marginAccount
     ) external view override returns (int256 unrealizedPnL) {
-        unrealizedPnL += _getAccruedFundingAcrossMarkets(marginAccount);
+        // NOTE - Removing this to simulate sudden price change.
+        // unrealizedPnL += _getAccruedFundingAcrossMarkets(marginAccount);
         unrealizedPnL += _getPositionPnLAcrossMarkets(marginAccount);
     }
 
@@ -306,6 +307,8 @@ contract SNXRiskManager is IProtocolRiskManager {
             //     );
             // }
         } else {
+            console.log("failing funSig");
+            console.logBytes4(funSig);
             revert("PRM: Invalid Tx Data in liquidate call");
         }
     }

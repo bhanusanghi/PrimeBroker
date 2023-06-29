@@ -1,6 +1,7 @@
 pragma solidity ^0.8.10;
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
+import "hardhat/console.sol";
 
 contract MarketManager is IMarketManager, AccessControl {
     // TODO - move to single acl point.
@@ -55,6 +56,9 @@ contract MarketManager is IMarketManager, AccessControl {
         whitelistedMarketKeys.push(_marketKey);
         marketBaseToken[_marketKey] = _baseToken;
         marketMarginToken[_marketKey] = _marginToken;
+        console.log("Debug this");
+        console.logBytes32(_marketKey);
+        console.log(_baseToken);
         if (!registeredMarketAddresses[_market]) {
             marketKeysForRiskManager[_riskManager].push(_marketKey);
             registeredMarketAddresses[_market] = true;

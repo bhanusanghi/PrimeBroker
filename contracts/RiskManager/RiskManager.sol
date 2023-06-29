@@ -181,6 +181,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // unrealizedPnL is in vault decimals
         console.log("unrealizedPnL");
         console.logInt(_getUnrealizedPnL(marginAccount));
+        if (
+            collateralManager
+                .totalCollateralValue(marginAccount)
+                .sub(interestAccrued)
+                .toInt256()
+                .add(_getUnrealizedPnL(marginAccount)) < 0
+        ) {
+            return 0;
+        }
         return
             collateralManager
                 .totalCollateralValue(marginAccount)
@@ -376,6 +385,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) external view returns (bool isLiquidatable, bool isFullyLiquidatable) {
         // check if account is liquidatable
         return _isAccountLiquidatable(marginAccount);
+        // return _isAccountLiquidatable(marginAccount);
     }
 
     function _isAccountLiquidatable(
@@ -397,9 +407,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .div(100)
             .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
 
-        console.log("accountValue", accountValue);
-        console.log("minimumMarginRequirement", minimumMarginRequirement);
-
         if (accountValue <= minimumMarginRequirement) {
             isLiquidatable = true;
         } else {
@@ -408,6 +415,28 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         isFullyLiquidatable = true;
 
         // check if account is liquidatable
+    }
+
+    // returns in vault asset decimals.
+    function getMinimumMarginRequirement(
+        address marginAccount
+    ) public view returns (uint256) {
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketKeys();
+        uint256 totalOpenNotional = IMarginAccount(marginAccount)
+            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
+        uint256 minimumMarginRequirement = totalOpenNotional
+            .mul(maintanaceMarginFactor)
+            .div(100)
+            .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
+
+        return minimumMarginRequirement;
+    }
+
+    function getAccountValue(
+        address marginAccount
+    ) public view returns (uint256) {
+        return _getAbsTotalCollateralValue(marginAccount);
     }
 
     function isTraderBankrupt(

@@ -37,11 +37,12 @@ contract LiquidationPerpfi is BaseSetup {
         perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
     }
-
+    
+    // UnrealisedPnL = -1000$
     // ChronuxMargin |  Perpfi Margin | Perpfi ON
     // 1000 USDC     |  0 USDC     | 0 USDC
-    // 0 USDC        |  4000 USDC  | 4000 USDC               -> Min Margin = 800
-    // 0 USDC        |  3000 USDC  | 4000 USDC               pnl = -1000$ (is liquidatablt true)
+    // 0 USDC        |  4000 USDC  | 4000 USDC              
+    // 0 USDC        |  4000 USDC  | 3000 USDC               pnl = -1000$ (is liquidatablt true)  -> Min Margin = 800
     function testIsLiquidatable() public {
         uint256 chronuxMargin = 1000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);

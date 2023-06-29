@@ -104,4 +104,12 @@ interface IRiskManager {
     function isAccountLiquidatable(
         IMarginAccount marginAccount
     ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
+
+    function getMinimumMarginRequirement(
+        address marginAccount
+    ) external view returns (uint256);
+
+    function getAccountValue(
+        address marginAccount
+    ) external view returns (uint256);
 }

@@ -101,10 +101,7 @@ contract Utils is Test, IEvents {
         address[] memory addresses = new address[](1);
         uint256[] memory values = new uint256[](1);
         addresses[0] = aggregator;
-        values[0] = price.convertTokenDecimals(
-            AggregatorV3Interface(aggregator).decimals(),
-            18
-        );
+        values[0] = price;
         address snxOwner = 0x6d4a64C57612841c2C6745dB2a4E4db34F002D20;
         vm.prank(snxOwner);
         ICircuitBreaker(circuitBreaker).resetLastValue(addresses, values);
@@ -256,17 +253,34 @@ contract Utils is Test, IEvents {
         address SNX_ADDRESS_RESOLVER = 0x1Cb059b7e74fD21665968C908806143E744D5F30;
         address exchangeRates = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("ExchangeRates"));
-        int256 newPrice = (openNotional + pnl) / positionSize;
+        int256 newPrice = ((openNotional + pnl) * 1e8) / positionSize;
+        console2.log("calc new price", newPrice);
         address aggregator = IExchangeRates(exchangeRates).aggregators(
             currencyKey
         );
+
         setAssetPriceSnx(
             aggregator,
-            newPrice.abs() * 1e18,
+            newPrice.abs(),
             block.timestamp,
             circuitBreaker
         );
+        console2.log(
+            "debug cb",
+            ICircuitBreaker(circuitBreaker).circuitBroken(aggregator)
+        );
     }
+
+    // 1 ether -> 1500
+    // size - 1 ether , on 1500
+
+    // pnl = +1500
+    // 1500 + 1500 / 1
+    // ether 3000
+
+    // pnl = +4500
+    // 1500 + 4500 / 1
+    // ether 6000
 
     // @notice Returns the price of th UniV3Pool.
     function getMarkPricePerp(

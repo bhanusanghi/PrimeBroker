@@ -146,9 +146,10 @@ contract ChronuxUtils is Test, Constants, IEvents {
                 perpCount++;
             }
         }
-        return (snxCount * 2) + perpCount + 1;
-        console2.log("snxCount", snxCount);
-        console2.log("perpCount", perpCount);
+        if (perpCount != 0) {
+            perpCount++;
+        }
+        return (snxCount * 2) + perpCount;
     }
 
     // todo - add a condition for 0 active market positions.
@@ -161,6 +162,7 @@ contract ChronuxUtils is Test, Constants, IEvents {
         bytes32[] memory activePositionMarkets = getAllActiveMarketsForTrader(
             trader
         );
+        console2.log("activeMarketLengths", activePositionMarkets.length);
         uint256 resultLength = getResultArrayLength(activePositionMarkets);
         params.activeMarkets = new bytes32[](resultLength);
         params.destinations = new address[](resultLength);
