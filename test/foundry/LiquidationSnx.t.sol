@@ -363,11 +363,11 @@ contract LiquidationSnx is BaseSetup {
         console2.log(broken, "fbroken");
         console2.log(staleOrInvalid, "fstaleOrInvalid");
 
-        // assertEq(
-        //     isLiquidatable,
-        //     false,
-        //     "IsLiquidatable is not working properly"
-        // );
+        assertEq(
+            isLiquidatable,
+            false,
+            "IsLiquidatable is not working properly"
+        );
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         contracts.marginManager.liquidate(
             bob,

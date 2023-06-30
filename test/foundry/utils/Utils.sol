@@ -3,6 +3,7 @@ pragma solidity >=0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegistry.sol";
 import {IBaseToken} from "../../../contracts/Interfaces/Perpfi/IBaseToken.sol";
+import {IPriceFeedV2} from "../../../contracts/Interfaces/Perpfi/PriceFeed.sol";
 import {IClearingHouseConfig} from "../../../contracts/Interfaces/Perpfi/IClearingHouseConfig.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
@@ -115,13 +116,14 @@ contract Utils is Test, IEvents {
         ).getTwapInterval();
         console2.log("check selectors here");
         console2.logBytes4(IBaseToken.getIndexPrice.selector);
-        console2.logBytes4(bytes4(keccak256("getIndexPrice(uint256)")));
+        console2.logBytes4(bytes4(keccak256("getPrice(uint256)")));
         vm.mockCall(
             aggregator,
-            abi.encodeWithSelector(IBaseToken.getIndexPrice.selector),
+            abi.encodeWithSelector(IPriceFeedV2.getPrice.selector),
             abi.encode(price)
         );
-        // uint256 _price = IPriceFeedV2(aggregator).getPrice(900);
+        uint256 _price = IPriceFeedV2(aggregator).getPrice(interval);
+        console2.log("price", _price, "interval", interval);
     }
 
     function sqrt(uint y) internal pure returns (uint z) {
@@ -207,12 +209,13 @@ contract Utils is Test, IEvents {
             .getPnlAndPendingFee(trader);
         uint256 currentPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
         // uint256 iMarkPrice = getMarkPricePerp(perpMarketRegistry, baseToken);
-        int256 newPrice = (openNotional + pnl) / positionSize;
+        int256 newPrice = 55 * 10 ** 8;
+        // (openNotional + pnl) / positionSize;
         int256 initialPosValue = IAccountBalance(accountBalance)
             .getTotalPositionValue(trader, baseToken);
-        setMarkPrice(baseToken, newPrice.abs());
-        setAavePrice(newPrice.abs() * 1e8);
-        setAssetPricePerpfi(baseToken, newPrice.abs() * 1e18);
+        // setMarkPrice(baseToken, newPrice.abs());
+        // setAavePrice(newPrice.abs() * 1e8);
+        setAssetPricePerpfi(baseToken, newPrice.abs());
         uint256 updatedPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
         console2.log("isBaseTokenClosed", IBaseToken(baseToken).isClosed());
         console2.log("currentPrice", currentPrice);
@@ -227,18 +230,8 @@ contract Utils is Test, IEvents {
         int256 finalPosValue = IAccountBalance(accountBalance)
             .getTotalPositionValue(trader, baseToken);
         console2.log("iPosValue", initialPosValue);
-        console2.log("finalPosValue", finalPosValue);
-        console2.log("initialPnL", initialPnL);
-        console2.log("finalPnL", finalPnL);
-        console2.log("positionSize", positionSize);
-        // console2.log(
-        //     "initialNotional",
-        //     (int256(currentPrice) * positionSize) / 1 ether
-        // );
-        // console2.log(
-        //     "finalNotional",
-        //     (int256(updatedPrice) * positionSize) / 1 ether
-        // );
+
+        // getPrice
         console2.log("openNotional", openNotional);
     }
 

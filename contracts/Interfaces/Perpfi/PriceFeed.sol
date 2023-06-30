@@ -28,7 +28,9 @@ library Address {
 
         uint256 size;
         // solhint-disable-next-line no-inline-assembly
-        assembly { size := extcodesize(account) }
+        assembly {
+            size := extcodesize(account)
+        }
         return size > 0;
     }
 
@@ -49,11 +51,17 @@ library Address {
      * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
+        require(
+            address(this).balance >= amount,
+            "Address: insufficient balance"
+        );
 
         // solhint-disable-next-line avoid-low-level-calls, avoid-call-value
-        (bool success, ) = recipient.call{ value: amount }("");
-        require(success, "Address: unable to send value, recipient may have reverted");
+        (bool success, ) = recipient.call{value: amount}("");
+        require(
+            success,
+            "Address: unable to send value, recipient may have reverted"
+        );
     }
 
     /**
@@ -74,8 +82,11 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-      return functionCall(target, data, "Address: low-level call failed");
+    function functionCall(
+        address target,
+        bytes memory data
+    ) internal returns (bytes memory) {
+        return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -84,7 +95,11 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+    function functionCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
         return functionCallWithValue(target, data, 0, errorMessage);
     }
 
@@ -99,8 +114,18 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
-        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value
+    ) internal returns (bytes memory) {
+        return
+            functionCallWithValue(
+                target,
+                data,
+                value,
+                "Address: low-level call with value failed"
+            );
     }
 
     /**
@@ -109,12 +134,22 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(address target, bytes memory data, uint256 value, string memory errorMessage) internal returns (bytes memory) {
-        require(address(this).balance >= value, "Address: insufficient balance for call");
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
+        require(
+            address(this).balance >= value,
+            "Address: insufficient balance for call"
+        );
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) = target.call{ value: value }(data);
+        (bool success, bytes memory returndata) = target.call{value: value}(
+            data
+        );
         return _verifyCallResult(success, returndata, errorMessage);
     }
 
@@ -124,8 +159,16 @@ library Address {
      *
      * _Available since v3.3._
      */
-    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
-        return functionStaticCall(target, data, "Address: low-level static call failed");
+    function functionStaticCall(
+        address target,
+        bytes memory data
+    ) internal view returns (bytes memory) {
+        return
+            functionStaticCall(
+                target,
+                data,
+                "Address: low-level static call failed"
+            );
     }
 
     /**
@@ -134,7 +177,11 @@ library Address {
      *
      * _Available since v3.3._
      */
-    function functionStaticCall(address target, bytes memory data, string memory errorMessage) internal view returns (bytes memory) {
+    function functionStaticCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal view returns (bytes memory) {
         require(isContract(target), "Address: static call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
@@ -148,8 +195,16 @@ library Address {
      *
      * _Available since v3.4._
      */
-    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {
-        return functionDelegateCall(target, data, "Address: low-level delegate call failed");
+    function functionDelegateCall(
+        address target,
+        bytes memory data
+    ) internal returns (bytes memory) {
+        return
+            functionDelegateCall(
+                target,
+                data,
+                "Address: low-level delegate call failed"
+            );
     }
 
     /**
@@ -158,7 +213,11 @@ library Address {
      *
      * _Available since v3.4._
      */
-    function functionDelegateCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+    function functionDelegateCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
         require(isContract(target), "Address: delegate call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
@@ -166,7 +225,11 @@ library Address {
         return _verifyCallResult(success, returndata, errorMessage);
     }
 
-    function _verifyCallResult(bool success, bytes memory returndata, string memory errorMessage) private pure returns(bytes memory) {
+    function _verifyCallResult(
+        bool success,
+        bytes memory returndata,
+        string memory errorMessage
+    ) private pure returns (bytes memory) {
         if (success) {
             return returndata;
         } else {
@@ -186,56 +249,55 @@ library Address {
     }
 }
 
-
 // File chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol@v0.1.7
 
-
 interface AggregatorV3Interface {
+    function decimals() external view returns (uint8);
 
-  function decimals() external view returns (uint8);
-  function description() external view returns (string memory);
-  function version() external view returns (uint256);
+    function description() external view returns (string memory);
 
-  // getRoundData and latestRoundData should both raise "No data present"
-  // if they do not have data to report, instead of returning unset values
-  // which could be misinterpreted as actual reported values.
-  function getRoundData(uint80 _roundId)
-    external
-    view
-    returns (
-      uint80 roundId,
-      int256 answer,
-      uint256 startedAt,
-      uint256 updatedAt,
-      uint80 answeredInRound
-    );
-  function latestRoundData()
-    external
-    view
-    returns (
-      uint80 roundId,
-      int256 answer,
-      uint256 startedAt,
-      uint256 updatedAt,
-      uint80 answeredInRound
-    );
+    function version() external view returns (uint256);
 
+    // getRoundData and latestRoundData should both raise "No data present"
+    // if they do not have data to report, instead of returning unset values
+    // which could be misinterpreted as actual reported values.
+    function getRoundData(
+        uint80 _roundId
+    )
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
 }
 
-
 // File contracts/interface/IChainlinkPriceFeed.sol
-
 
 interface IChainlinkPriceFeed {
     function getAggregator() external view returns (address);
 
     /// @param roundId The roundId that fed into Chainlink aggregator.
-    function getRoundData(uint80 roundId) external view returns (uint256, uint256);
+    function getRoundData(
+        uint80 roundId
+    ) external view returns (uint256, uint256);
 }
 
-
 // File contracts/interface/IPriceFeed.sol
-
 
 interface IPriceFeed {
     function decimals() external view returns (uint8);
@@ -245,19 +307,21 @@ interface IPriceFeed {
     function getPrice(uint256 interval) external view returns (uint256);
 }
 
-
 // File contracts/interface/IPriceFeedV2.sol
 
-
 interface IPriceFeedV2 is IPriceFeed {
+    function decimals() external view returns (uint8);
+
+    /// @dev Returns the index price of the token.
+    /// @param interval The interval represents twap interval.
+    function getPrice(uint256 interval) external view returns (uint256);
+
     /// @dev Returns the cached index price of the token.
     /// @param interval The interval represents twap interval.
     function cacheTwap(uint256 interval) external returns (uint256);
 }
 
-
 // File contracts/base/BlockContext.sol
-
 
 abstract contract BlockContext {
     function _blockTimestamp() internal view virtual returns (uint256) {
@@ -272,10 +336,7 @@ abstract contract BlockContext {
     }
 }
 
-
 // File openzeppelin-contracts/contracts/math/SafeMath.sol@v3.4.0
-
-
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -296,7 +357,10 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryAdd(
+        uint256 a,
+        uint256 b
+    ) internal pure returns (bool, uint256) {
         uint256 c = a + b;
         if (c < a) return (false, 0);
         return (true, c);
@@ -307,7 +371,10 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function trySub(
+        uint256 a,
+        uint256 b
+    ) internal pure returns (bool, uint256) {
         if (b > a) return (false, 0);
         return (true, a - b);
     }
@@ -317,7 +384,10 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryMul(
+        uint256 a,
+        uint256 b
+    ) internal pure returns (bool, uint256) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -332,7 +402,10 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryDiv(
+        uint256 a,
+        uint256 b
+    ) internal pure returns (bool, uint256) {
         if (b == 0) return (false, 0);
         return (true, a / b);
     }
@@ -342,7 +415,10 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryMod(
+        uint256 a,
+        uint256 b
+    ) internal pure returns (bool, uint256) {
         if (b == 0) return (false, 0);
         return (true, a % b);
     }
@@ -442,7 +518,11 @@ library SafeMath {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         return a - b;
     }
@@ -462,7 +542,11 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b > 0, errorMessage);
         return a / b;
     }
@@ -482,17 +566,19 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b > 0, errorMessage);
         return a % b;
     }
 }
 
-
 // File contracts/twap/CumulativeTwap.sol
 
 pragma experimental ABIEncoderV2;
-
 
 contract CumulativeTwap is BlockContext {
     using SafeMath for uint256;
@@ -523,13 +609,19 @@ contract CumulativeTwap is BlockContext {
     function _update(uint256 price, uint256 lastUpdatedTimestamp) internal {
         // for the first time update
         if (currentObservationIndex == 0 && observations[0].timestamp == 0) {
-            observations[0] = Observation({ price: price, priceCumulative: 0, timestamp: lastUpdatedTimestamp });
+            observations[0] = Observation({
+                price: price,
+                priceCumulative: 0,
+                timestamp: lastUpdatedTimestamp
+            });
             emit PriceUpdated(price, lastUpdatedTimestamp, 0);
             return;
         }
 
         // CT_IT: invalid timestamp
-        Observation memory lastObservation = observations[currentObservationIndex];
+        Observation memory lastObservation = observations[
+            currentObservationIndex
+        ];
         require(lastUpdatedTimestamp > lastObservation.timestamp, "CT_IT");
 
         // overflow of currentObservationIndex is desired since currentObservationIndex is uint8 (0 - 255),
@@ -538,7 +630,8 @@ contract CumulativeTwap is BlockContext {
 
         uint256 elapsedTime = lastUpdatedTimestamp - lastObservation.timestamp;
         observations[currentObservationIndex] = Observation({
-            priceCumulative: lastObservation.priceCumulative + (lastObservation.price * elapsedTime),
+            priceCumulative: lastObservation.priceCumulative +
+                (lastObservation.price * elapsedTime),
             timestamp: lastUpdatedTimestamp,
             price: price
         });
@@ -551,7 +644,9 @@ contract CumulativeTwap is BlockContext {
         uint256 latestPrice,
         uint256 latestUpdatedTimestamp
     ) internal view returns (uint256) {
-        Observation memory latestObservation = observations[currentObservationIndex];
+        Observation memory latestObservation = observations[
+            currentObservationIndex
+        ];
         if (latestObservation.price == 0) {
             // CT_ND: no data
             revert("CT_ND");
@@ -559,13 +654,17 @@ contract CumulativeTwap is BlockContext {
 
         uint256 currentTimestamp = _blockTimestamp();
         uint256 targetTimestamp = currentTimestamp.sub(interval);
-        (Observation memory beforeOrAt, Observation memory atOrAfter) = _getSurroundingObservations(targetTimestamp);
-        uint256 currentCumulativePrice =
-            latestObservation.priceCumulative.add(
-                (latestObservation.price.mul(latestUpdatedTimestamp.sub(latestObservation.timestamp))).add(
-                    latestPrice.mul(currentTimestamp.sub(latestUpdatedTimestamp))
+        (
+            Observation memory beforeOrAt,
+            Observation memory atOrAfter
+        ) = _getSurroundingObservations(targetTimestamp);
+        uint256 currentCumulativePrice = latestObservation.priceCumulative.add(
+            (
+                latestObservation.price.mul(
+                    latestUpdatedTimestamp.sub(latestObservation.timestamp)
                 )
-            );
+            ).add(latestPrice.mul(currentTimestamp.sub(latestUpdatedTimestamp)))
+        );
 
         //
         //                   beforeOrAt                    atOrAfter
@@ -588,19 +687,26 @@ contract CumulativeTwap is BlockContext {
         }
         // case3. in the middle
         else {
-            uint256 observationTimeDelta = atOrAfter.timestamp - beforeOrAt.timestamp;
+            uint256 observationTimeDelta = atOrAfter.timestamp -
+                beforeOrAt.timestamp;
             uint256 targetTimeDelta = targetTimestamp - beforeOrAt.timestamp;
             targetCumulativePrice = beforeOrAt.priceCumulative.add(
-                ((atOrAfter.priceCumulative.sub(beforeOrAt.priceCumulative)).mul(targetTimeDelta)).div(
-                    observationTimeDelta
-                )
+                (
+                    (atOrAfter.priceCumulative.sub(beforeOrAt.priceCumulative))
+                        .mul(targetTimeDelta)
+                ).div(observationTimeDelta)
             );
         }
 
-        return currentCumulativePrice.sub(targetCumulativePrice).div(currentTimestamp - targetTimestamp);
+        return
+            currentCumulativePrice.sub(targetCumulativePrice).div(
+                currentTimestamp - targetTimestamp
+            );
     }
 
-    function _getSurroundingObservations(uint256 targetTimestamp)
+    function _getSurroundingObservations(
+        uint256 targetTimestamp
+    )
         internal
         view
         returns (Observation memory beforeOrAt, Observation memory atOrAfter)
@@ -646,9 +752,7 @@ contract CumulativeTwap is BlockContext {
     }
 }
 
-
 // File contracts/twap/CachedTwap.sol
-
 
 abstract contract CachedTwap is CumulativeTwap {
     uint256 internal _cachedTwap;
@@ -666,7 +770,12 @@ abstract contract CachedTwap is CumulativeTwap {
     ) internal virtual returns (uint256) {
         // if requested interval is not the same as the one we have cached, then call _getPrice() directly
         if (_interval != interval) {
-            return _calculateTwapPrice(interval, latestPrice, latestUpdatedTimestamp);
+            return
+                _calculateTwapPrice(
+                    interval,
+                    latestPrice,
+                    latestUpdatedTimestamp
+                );
         }
 
         // if twap has been calculated in this block, then return cached value directly
@@ -676,7 +785,11 @@ abstract contract CachedTwap is CumulativeTwap {
 
         _update(latestPrice, latestUpdatedTimestamp);
         _lastUpdatedAt = uint160(_blockTimestamp());
-        _cachedTwap = _calculateTwapPrice(interval, latestPrice, latestUpdatedTimestamp);
+        _cachedTwap = _calculateTwapPrice(
+            interval,
+            latestPrice,
+            latestUpdatedTimestamp
+        );
 
         return _cachedTwap;
     }
@@ -689,25 +802,27 @@ abstract contract CachedTwap is CumulativeTwap {
         if (_blockTimestamp() == _lastUpdatedAt && interval == _interval) {
             return _cachedTwap;
         }
-        return _calculateTwapPrice(interval, latestPrice, latestUpdatedTimestamp);
+        return
+            _calculateTwapPrice(interval, latestPrice, latestUpdatedTimestamp);
     }
 }
 
-
 // File contracts/ChainlinkPriceFeedV2.sol
 
-
-
-
-
-
-
-contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext, CachedTwap {
+contract ChainlinkPriceFeedV2 is
+    IChainlinkPriceFeed,
+    IPriceFeedV2,
+    BlockContext,
+    CachedTwap
+{
     using Address for address;
 
     AggregatorV3Interface private immutable _aggregator;
 
-    constructor(AggregatorV3Interface aggregator, uint80 cacheTwapInterval) CachedTwap(cacheTwapInterval) {
+    constructor(
+        AggregatorV3Interface aggregator,
+        uint80 cacheTwapInterval
+    ) CachedTwap(cacheTwapInterval) {
         // CPF_ANC: Aggregator address is not contract
         require(address(aggregator).isContract(), "CPF_ANC");
 
@@ -716,12 +831,20 @@ contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext
 
     /// @dev anyone can help update it.
     function update() external {
-        (, uint256 latestPrice, uint256 latestTimestamp) = _getLatestRoundData();
+        (
+            ,
+            uint256 latestPrice,
+            uint256 latestTimestamp
+        ) = _getLatestRoundData();
         _update(latestPrice, latestTimestamp);
     }
 
     function cacheTwap(uint256 interval) external override returns (uint256) {
-        (uint80 round, uint256 latestPrice, uint256 latestTimestamp) = _getLatestRoundData();
+        (
+            uint80 round,
+            uint256 latestPrice,
+            uint256 latestTimestamp
+        ) = _getLatestRoundData();
 
         if (interval == 0 || round == 0) {
             return latestPrice;
@@ -737,11 +860,15 @@ contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext
         return address(_aggregator);
     }
 
-    function getRoundData(uint80 roundId) external view override returns (uint256, uint256) {
+    function getRoundData(
+        uint80 roundId
+    ) external view override returns (uint256, uint256) {
         // NOTE: aggregator will revert if roundId is invalid (but there might not be a revert message sometimes)
         // will return (roundId, 0, 0, 0, roundId) if round is not complete (not existed yet)
         // https://docs.chain.link/docs/historical-price-data/
-        (, int256 price, , uint256 updatedAt, ) = _aggregator.getRoundData(roundId);
+        (, int256 price, , uint256 updatedAt, ) = _aggregator.getRoundData(
+            roundId
+        );
 
         // CPF_IP: Invalid Price
         require(price > 0, "CPF_IP");
@@ -752,11 +879,17 @@ contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext
         return (uint256(price), updatedAt);
     }
 
-    function getPrice(uint256 interval) external view override returns (uint256) {
-        (uint80 round, uint256 latestPrice, uint256 latestTimestamp) = _getLatestRoundData();
+    function getPrice(
+        uint256 interval
+    ) external view override returns (uint256) {
+        (
+            uint80 round,
+            uint256 latestPrice,
+            uint256 latestTimestamp
+        ) = _getLatestRoundData();
 
         // if (interval == 0 || round == 0) {
-            return latestPrice;
+        return latestPrice;
         // }
 
         // return _getCachedTwap(interval, latestPrice, latestTimestamp);
@@ -765,13 +898,15 @@ contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext
     function _getLatestRoundData()
         private
         view
-        returns (
-            uint80,
-            uint256 finalPrice,
-            uint256
-        )
+        returns (uint80, uint256 finalPrice, uint256)
     {
-        (uint80 round, int256 latestPrice, , uint256 latestTimestamp, ) = _aggregator.latestRoundData();
+        (
+            uint80 round,
+            int256 latestPrice,
+            ,
+            uint256 latestTimestamp,
+
+        ) = _aggregator.latestRoundData();
         finalPrice = uint256(latestPrice);
         if (latestPrice < 0) {
             _requireEnoughHistory(round);
@@ -780,20 +915,22 @@ contract ChainlinkPriceFeedV2 is IChainlinkPriceFeed, IPriceFeedV2, BlockContext
         return (round, finalPrice, latestTimestamp);
     }
 
-    function _getRoundData(uint80 _round)
-        private
-        view
-        returns (
-            uint80,
-            uint256,
-            uint256
-        )
-    {
-        (uint80 round, int256 latestPrice, , uint256 latestTimestamp, ) = _aggregator.getRoundData(_round);
+    function _getRoundData(
+        uint80 _round
+    ) private view returns (uint80, uint256, uint256) {
+        (
+            uint80 round,
+            int256 latestPrice,
+            ,
+            uint256 latestTimestamp,
+
+        ) = _aggregator.getRoundData(_round);
         while (latestPrice < 0) {
             _requireEnoughHistory(round);
             round = round - 1;
-            (, latestPrice, , latestTimestamp, ) = _aggregator.getRoundData(round);
+            (, latestPrice, , latestTimestamp, ) = _aggregator.getRoundData(
+                round
+            );
         }
         return (round, uint256(latestPrice), latestTimestamp);
     }

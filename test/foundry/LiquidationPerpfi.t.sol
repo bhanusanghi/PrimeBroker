@@ -37,11 +37,11 @@ contract LiquidationPerpfi is BaseSetup {
         perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
     }
-    
+
     // UnrealisedPnL = -1000$
     // ChronuxMargin |  Perpfi Margin | Perpfi ON
     // 1000 USDC     |  0 USDC     | 0 USDC
-    // 0 USDC        |  4000 USDC  | 4000 USDC              
+    // 0 USDC        |  4000 USDC  | 4000 USDC
     // 0 USDC        |  4000 USDC  | 3000 USDC               pnl = -1000$ (is liquidatablt true)  -> Min Margin = 800
     function testIsLiquidatable() public {
         uint256 chronuxMargin = 1000 * ONE_USDC;
@@ -217,14 +217,8 @@ contract LiquidationPerpfi is BaseSetup {
         );
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(perpAaveKey);
-        utils.simulateUnrealisedPnLPerpfi(
-            perpAccountBalance,
-            bobMarginAccount,
-            perpAaveMarket,
-            openPosition.openNotional,
-            openPosition.size,
-            -100 ether
-        );
+        uint256 newPrice = 55 * 10 ** 8;
+        utils.setAssetPricePerpfi(perpAaveMarket, newPrice);
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
             .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
