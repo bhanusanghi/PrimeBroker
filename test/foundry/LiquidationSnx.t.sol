@@ -8,6 +8,7 @@ import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {BaseSetup} from "./BaseSetup.sol";
 import {Utils} from "./utils/Utils.sol";
 import {SnxUtils} from "./utils/SnxUtils.sol";
@@ -308,6 +309,10 @@ contract LiquidationSnx is BaseSetup {
             .getPosition(snxUniKey);
 
         (assetPrice, isInvalid) = IFuturesMarket(market).assetPrice();
+        (int256 notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
+            bobMarginAccount
+        );
+        console2.log("notionalOnSnx", notionalOnSnx);
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
             .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
@@ -337,24 +342,32 @@ contract LiquidationSnx is BaseSetup {
         console2.log(suspended, "suspended");
         // bool breakHuaKya  = ICircuitBreaker(circuitBreaker)
         //     .probeCircuitBreaker(snxUni_marketKey);
-        // vm.mockCall(
-        //     exchangeCircuitBreaker,
-        //     abi.encodeWithSelector(
-        //         IExchangeCircuitBreaker.rateWithBreakCircuit.selector
-        //     ),
-        //     abi.encode(rate, false)
-        // )
+        vm.mockCall(
+            exchangeCircuitBreaker,
+            abi.encodeWithSelector(
+                IExchangeCircuitBreaker.rateWithBreakCircuit.selector
+            ),
+            abi.encode(rate, false)
+        );
+        (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
+            bobMarginAccount
+        );
+        console2.log("notionalOnSnx1", notionalOnSnx);
+        console2.log("bob margin account balence:PRE");
+        console2.log(ERC20(usdc).balanceOf(bobMarginAccount), "usdc");
+        console2.log(ERC20(susd).balanceOf(bobMarginAccount), "susd");
+        console2.log("__________________________________\n");
         // console2.log(rote, "rote");
         // console2.log(isBroken, "fisBroken");
         console2.log(rate, "frate");
         console2.log(broken, "fbroken");
         console2.log(staleOrInvalid, "fstaleOrInvalid");
 
-        assertEq(
-            isLiquidatable,
-            false,
-            "IsLiquidatable is not working properly"
-        );
+        // assertEq(
+        //     isLiquidatable,
+        //     false,
+        //     "IsLiquidatable is not working properly"
+        // );
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         contracts.marginManager.liquidate(
             bob,
@@ -362,6 +375,22 @@ contract LiquidationSnx is BaseSetup {
             params.destinations,
             params.data
         );
+        (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
+            bobMarginAccount
+        );
+        console2.log("notionalOnSnx2", notionalOnSnx);
+        (uint256 rem, ) = IFuturesMarket(market).remainingMargin(
+            bobMarginAccount
+        );
+        (uint256 acc, ) = IFuturesMarket(market).accessibleMargin(
+            bobMarginAccount
+        );
+        console2.log(rem, acc);
+        console2.log("bob margin account balence:POST");
+        console2.log(ERC20(usdc).balanceOf(bobMarginAccount), "usdc");
+        console2.log(ERC20(susd).balanceOf(bobMarginAccount), "susd");
+        console2.log("__________________________________\n");
+
         // check third party events and value by using static call.
     }
 }

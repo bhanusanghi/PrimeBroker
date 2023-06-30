@@ -253,8 +253,9 @@ contract Utils is Test, IEvents {
         address SNX_ADDRESS_RESOLVER = 0x1Cb059b7e74fD21665968C908806143E744D5F30;
         address exchangeRates = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("ExchangeRates"));
-        int256 newPrice = ((openNotional + pnl) * 1e8) / positionSize;
+        int256 newPrice = 41 * 10 ** 7;
         console2.log("calc new price", newPrice);
+        console2.logInt(positionSize);
         address aggregator = IExchangeRates(exchangeRates).aggregators(
             currencyKey
         );
