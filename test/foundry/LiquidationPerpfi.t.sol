@@ -12,8 +12,7 @@ import {BaseSetup} from "./BaseSetup.sol";
 import {Utils} from "./utils/Utils.sol";
 import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
 import {ChronuxUtils, LiquidationParams} from "./utils/ChronuxUtils.sol";
-import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
-import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
+import {IMarginAccount, Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 
 contract LiquidationPerpfi is BaseSetup {
     using SafeMath for uint256;
@@ -128,7 +127,6 @@ contract LiquidationPerpfi is BaseSetup {
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
             .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
-        console2.log(isLiquidatable, "isLiquidatable");
         assertEq(
             isLiquidatable,
             false,

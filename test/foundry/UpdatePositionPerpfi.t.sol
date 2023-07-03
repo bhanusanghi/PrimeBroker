@@ -196,7 +196,7 @@ contract UpdatePositionPerpfi is BaseSetup {
             false,
             ""
         );
-        utils.mineBlocks(2, block.timestamp + 10_000);
+        utils.mineBlocks(2, 10_000);
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - notional

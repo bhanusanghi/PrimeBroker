@@ -56,9 +56,6 @@ contract MarketManager is IMarketManager, AccessControl {
         whitelistedMarketKeys.push(_marketKey);
         marketBaseToken[_marketKey] = _baseToken;
         marketMarginToken[_marketKey] = _marginToken;
-        console.log("Debug this");
-        console.logBytes32(_marketKey);
-        console.log(_baseToken);
         if (!registeredMarketAddresses[_market]) {
             marketKeysForRiskManager[_riskManager].push(_marketKey);
             registeredMarketAddresses[_market] = true;

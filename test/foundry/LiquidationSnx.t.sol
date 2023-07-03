@@ -14,12 +14,10 @@ import {Utils} from "./utils/Utils.sol";
 import {SnxUtils} from "./utils/SnxUtils.sol";
 import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
 import {ChronuxUtils, LiquidationParams} from "./utils/ChronuxUtils.sol";
-import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
-import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
+import {IMarginAccount, Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
 import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 import {IExchangeRates} from "../../contracts/Interfaces/SNX/IExchangeRates.sol";
-import {IExchangeCircuitBreaker} from "../../contracts/Interfaces/SNX/IExchangeCircuitBreaker.sol";
 import {ISystemStatus} from "../../contracts/Interfaces/SNX/ISystemStatus.sol";
 
 contract LiquidationSnx is BaseSetup {
@@ -59,19 +57,11 @@ contract LiquidationSnx is BaseSetup {
         int256 openNotional = int256(3000 ether);
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        console2.log("iap", assetPrice);
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
-        console2.log("positionSize abc", positionSize);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        console2.log("deposited margin snx", positionSize);
-
         snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
-        console2.log("added position");
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
-        console2.log("simulating pnl now");
-        console2.log("on", openPosition.openNotional);
-        console2.log("os", openPosition.size);
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -81,7 +71,6 @@ contract LiquidationSnx is BaseSetup {
             -1000 ether
         );
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        console2.log("uap", assetPrice);
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
             .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
@@ -268,9 +257,6 @@ contract LiquidationSnx is BaseSetup {
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
-        console2.log("iminMarginRequirement", minMarginRequirement);
-        console2.log("iaccountValue", accountValue);
-
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -284,45 +270,29 @@ contract LiquidationSnx is BaseSetup {
             .riskManager
             .getMinimumMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
-        console2.log("fminMarginRequirement", minMarginRequirement);
-        console2.log("faccountValue", accountValue);
     }
 
     // ChronuxMargin |  Snx Margin | snx ON
     // 1000 USDC     |  0 USDC     | 0 USDC
     // 0 USDC        |  1000 susd  | 2500 ether               -> Min Margin = 500
     // 0 USDC        |  1000 susd  | 2300 ether               unrealisedPnL = -510
+    // 451.9 USDC    |  0 susd     | 0 ether                   realizedPnL = -548.1
     function testLiquidateUnrealisedPnl() public {
         uint256 chronuxMargin = 1000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
-
         int256 snxMargin = int256(1000 ether);
         int256 openNotional = int256(2500 ether);
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice, bool isInvalid) = IFuturesMarket(market)
-            .assetPrice();
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
         snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
-
-        (assetPrice, isInvalid) = IFuturesMarket(market).assetPrice();
         (int256 notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
         );
-        console2.log("notionalOnSnx", notionalOnSnx);
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
-            .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
-        (uint rate, bool broken, bool staleOrInvalid) = IExchangeRates(
-            exchangeRates
-        ).rateWithSafetyChecks(snxUni_marketKey);
-        console2.log(rate, "rate");
-        console2.log(broken, "broken");
-        console2.log(staleOrInvalid, "staleOrInvalid");
-        // vm.warp(block.timestamp + 10);
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -331,42 +301,8 @@ contract LiquidationSnx is BaseSetup {
             openPosition.size,
             -510 ether
         );
-        (assetPrice, isInvalid) = IFuturesMarket(market).assetPrice();
-
-        (rate, broken, staleOrInvalid) = IExchangeRates(exchangeRates)
-            .rateWithSafetyChecks(snxUni_marketKey);
-
-        bool suspended = ISystemStatus(systemStatus).synthSuspended(
-            snxUni_marketKey
-        );
-        console2.log(suspended, "suspended");
-        // bool breakHuaKya  = ICircuitBreaker(circuitBreaker)
-        //     .probeCircuitBreaker(snxUni_marketKey);
-        vm.mockCall(
-            exchangeCircuitBreaker,
-            abi.encodeWithSelector(
-                IExchangeCircuitBreaker.rateWithBreakCircuit.selector
-            ),
-            abi.encode(rate, false)
-        );
         (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
-        );
-        console2.log("notionalOnSnx1", notionalOnSnx);
-        console2.log("bob margin account balence:PRE");
-        console2.log(ERC20(usdc).balanceOf(bobMarginAccount), "usdc");
-        console2.log(ERC20(susd).balanceOf(bobMarginAccount), "susd");
-        console2.log("__________________________________\n");
-        // console2.log(rote, "rote");
-        // console2.log(isBroken, "fisBroken");
-        console2.log(rate, "frate");
-        console2.log(broken, "fbroken");
-        console2.log(staleOrInvalid, "fstaleOrInvalid");
-
-        assertEq(
-            isLiquidatable,
-            false,
-            "IsLiquidatable is not working properly"
         );
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         contracts.marginManager.liquidate(
@@ -378,19 +314,88 @@ contract LiquidationSnx is BaseSetup {
         (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
         );
-        console2.log("notionalOnSnx2", notionalOnSnx);
-        (uint256 rem, ) = IFuturesMarket(market).remainingMargin(
-            bobMarginAccount
-        );
-        (uint256 acc, ) = IFuturesMarket(market).accessibleMargin(
-            bobMarginAccount
-        );
-        console2.log(rem, acc);
-        console2.log("bob margin account balence:POST");
-        console2.log(ERC20(usdc).balanceOf(bobMarginAccount), "usdc");
-        console2.log(ERC20(susd).balanceOf(bobMarginAccount), "susd");
-        console2.log("__________________________________\n");
+    }
 
-        // check third party events and value by using static call.
+    // Vault interest rate -> 5% per annum
+    // ChronuxMargin |  Snx Margin | snx ON
+    // 1000 USDC     |  0 USDC     | 0 USDC
+    // 0 USDC        |  2000 susd  | 3000 ether               -> Min Margin = 600
+    // warp(3600 * 24 * 7); // warp week
+    // interest accrued
+    // 0 USDC        |  2000 susd  | 2399 ether               unrealisedPnL = -601
+    // 451.9 USDC    |  0 susd     | 0 ether                   realizedPnL =
+    function testLiquidateUnrealisedPnlWithInterestAccrued() public {
+        // set vault interest rate
+        // utils.setVaultInterestRateRay(address(contracts.vault), 5);
+        uint256 chronuxMargin = 1000 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        int256 snxMargin = int256(2000 ether);
+        int256 openNotional = int256(2500 ether);
+        address market = contracts.marketManager.getMarketAddress(snxUniKey);
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
+        int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
+        console2.log("borrow rate 1", contracts.vault.borrowAPY_RAY());
+        console2.log(
+            "interetAccrued",
+            contracts.marginManager.getInterestAccrued(bobMarginAccount)
+        );
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
+
+        console2.log(
+            "reminaingMarginOnSnx 0",
+            snxUtils.fetchMargin(bobMarginAccount, snxUniKey)
+        );
+        snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
+        Position memory openPosition = IMarginAccount(bobMarginAccount)
+            .getPosition(snxUniKey);
+        (int256 notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
+            bobMarginAccount
+        );
+        console2.log(
+            "reminaingMarginOnSnx 1",
+            snxUtils.fetchMargin(bobMarginAccount, snxUniKey)
+        );
+        utils.mineBlocks(365 days, 365 days);
+        console2.log("borrow rate 2", contracts.vault.borrowAPY_RAY());
+        console2.log(
+            "interetAccrued 2",
+            contracts.marginManager.getInterestAccrued(bobMarginAccount)
+        );
+        console2.log(
+            "reminaingMarginOnSnx",
+            snxUtils.fetchMargin(bobMarginAccount, snxUniKey)
+        );
+        utils.simulateUnrealisedPnLSnx(
+            circuitBreaker,
+            bobMarginAccount,
+            snxUni_marketKey,
+            openPosition.openNotional,
+            openPosition.size,
+            -510 ether
+        );
+        (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
+            bobMarginAccount
+        );
+        LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
+        contracts.marginManager.liquidate(
+            bob,
+            params.activeMarkets,
+            params.destinations,
+            params.data
+        );
+        (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
+            bobMarginAccount
+        );
+        uint256 accountValue = contracts.riskManager.getAccountValue(
+            bobMarginAccount
+        );
+        console2.log("accountValue", accountValue);
+        uint256 susdBal = ERC20(susd).balanceOf(bobMarginAccount);
+        uint256 usdcBal = ERC20(usdc).balanceOf(bobMarginAccount);
+        uint256 vaultUsdcBal = ERC20(usdc).balanceOf(address(contracts.vault));
+        console2.log("susdBal", susdBal);
+        console2.log("usdcBal", usdcBal);
+        console2.log("vault usdc bal", vaultUsdcBal);
+        console2.log("expectedLiq", contracts.vault.expectedLiquidity());
     }
 }

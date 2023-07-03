@@ -194,10 +194,10 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupVault(address token) internal {
-        uint256 optimalUse = 9000;
+        uint256 optimalUse = 60 * 10 ** 4;
         uint256 rBase = 0;
-        uint256 rSlope1 = 200;
-        uint256 rSlope2 = 1000;
+        uint256 rSlope1 = 2 * 10 ** 4;
+        uint256 rSlope2 = 10 * 10 ** 4;
         contracts.interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
@@ -212,7 +212,9 @@ contract BaseSetup is Test, IEvents {
             address(contracts.interestModel)
             // maxExpectedLiquidity
         );
+        contracts.vault.addLendingAddress(admin);
         contracts.vault.addLendingAddress(address(contracts.marginManager));
+        contracts.vault.addRepayingAddress(admin);
         contracts.vault.addRepayingAddress(address(contracts.marginManager));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("InterestModel"),
@@ -291,7 +293,11 @@ contract BaseSetup is Test, IEvents {
             vaultDepositAmount
         );
         contracts.vault.deposit(vaultDepositAmount, admin);
-        vm.stopPrank();
+        // console2.log("borrow rate 10", contracts.vault.borrowAPY_RAY());
+        // vm.warp(block.timestamp + 10 days);
+        // contracts.vault.borrow(admin, vaultDepositAmount);
+        // console2.log("borrow rate 11", contracts.vault.borrowAPY_RAY());
+        // vm.stopPrank();
 
         //  open Margin Accounts
         vm.prank(bob);

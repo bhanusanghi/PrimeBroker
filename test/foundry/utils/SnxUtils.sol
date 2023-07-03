@@ -189,7 +189,7 @@ contract SnxUtils is Test, IEvents {
         bytes32 marketKey
     ) public view returns (int256 margin) {
         address market = contracts.marketManager.getMarketAddress(marketKey);
-        (, , uint256 remainingMargin, , ) = IFuturesMarket(market).positions(
+        (uint256 remainingMargin, ) = IFuturesMarket(market).remainingMargin(
             marginAccount
         );
         margin = int256(remainingMargin);
