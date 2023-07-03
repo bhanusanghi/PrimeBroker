@@ -7,12 +7,16 @@ import "forge-std/console2.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
 // force update
 import {MockERC20} from "../../contracts/Utils/MockERC20.sol";
-
+import {WadRayMath, WAD, RAY} from "../../contracts/Libraries/WadRayMath.sol";
 import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterestRateModel.sol";
 import {Utils} from "./utils/Utils.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 contract VaultTest is Test {
+    using WadRayMath for uint256;
+    using Math for uint256;
     Vault public vault;
+
     LinearInterestRateModel public interestModel;
     MockERC20 public underlyingToken;
     // uint256 public maxExpectedLiquidity;
@@ -58,10 +62,10 @@ contract VaultTest is Test {
         utils = new Utils();
 
         // ======= setup vault ========
-        uint256 optimalUse = 9000;
-        uint256 rBase = 0;
-        uint256 rSlope1 = 200;
-        uint256 rSlope2 = 1000;
+        uint256 optimalUse = 950000;
+        uint256 rBase = 100000;
+        uint256 rSlope1 = 400000;
+        uint256 rSlope2 = 950000;
         interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
@@ -114,10 +118,7 @@ contract VaultTest is Test {
     function testVaultInitialisation() public {
         assertEq(vault.asset(), address(underlyingToken));
         assertEq(vault.name(), "GigaLP");
-        assertEq(
-            vault.getInterestRateModel(),
-            address(interestModel)
-        );
+        assertEq(vault.getInterestRateModel(), address(interestModel));
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.expectedLiquidity(), 0);
@@ -169,6 +170,45 @@ contract VaultTest is Test {
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.expectedLiquidity(), 0);
+        vm.stopPrank();
+    }
+
+    function testInterestRates() public {
+        uint256 depositAmount = 5000 ether;
+        uint256 borrowAmount = 4800 ether;
+        vm.startPrank(bob);
+        underlyingToken.approve(address(vault), depositAmount);
+        vault.deposit(depositAmount, bob);
+        uint256 bobShares = vault.balanceOf(bob);
+        uint256 borrowAPY = interestModel.calcBorrowRate(
+            vault.expectedLiquidity(),
+            vault.totalAssets()
+        );
+        vm.stopPrank();
+        vm.startPrank(admin);
+        vault.borrow(admin, borrowAmount);
+        vm.warp(block.timestamp + 365 days);
+        uint256 newborrowAPY = vault.borrowAPY_RAY();
+        uint256 interestAmount = ((depositAmount.mulDiv(96, 100)) *
+            newborrowAPY) / RAY;
+        uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+            vault.expectedLiquidity(),
+            vault.totalAssets()
+        );
+        console2.log(
+            "BorrowRate:",
+            borrowAPY,
+            newborrowAPY,
+            excpecteBorrowRate
+        );
+        console2.log(
+            "IR, wad:",
+            interestAmount,
+            borrowAPY.rayToWad(),
+            newborrowAPY.rayToWad()
+        );
+
+        assertEq(depositAmount, depositAmount + 1, "Bakchodi fat raha");
         vm.stopPrank();
     }
 
@@ -320,14 +360,8 @@ contract VaultTest is Test {
         assertEq(assetsRecvd, 2428);
         assertEq(vault.totalAssets(), 14573);
         assertEq(vault.totalSupply(), 8000);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            10929
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            3643
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 10929);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
     }
 
     function testOp8() external {
@@ -348,14 +382,8 @@ contract VaultTest is Test {
         assertEq(sharesBurned, 1608);
         assertEq(vault.totalAssets(), 14573 - 2928);
         assertEq(vault.totalSupply(), 8000 - 1608);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            8001
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            3643
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
     }
 
     function testOp9() external {
@@ -378,14 +406,8 @@ contract VaultTest is Test {
         assertEq(sharesBurned, 2000);
         assertEq(vault.totalAssets(), 14573 - 2928 - 3643);
         assertEq(vault.totalSupply(), 8000 - 1608 - 2000);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            8001
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            0
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
     }
 
     function testOp10() external {
@@ -410,13 +432,7 @@ contract VaultTest is Test {
         assertEq(assets, 8001);
         assertEq(vault.totalAssets(), 1);
         assertEq(vault.totalSupply(), 0);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            0
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            0
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 0);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
     }
 }

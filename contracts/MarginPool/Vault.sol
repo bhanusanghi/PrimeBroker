@@ -247,14 +247,15 @@ contract Vault is IVault, ERC4626 {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount, "Vault: Not enough assets");
         // update total borrowed
-        totalBorrowed = totalBorrowed.add(amount);
         // update expectedLiquidityLU
-        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.sub(amount);
-        // update interest rate;
-        _updateBorrowRate(0);
+        // expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.sub(amount);
+
         // transfer
 
         IERC20(asset()).transfer(borrower, amount);
+        // update interest rate;
+        _updateBorrowRate(0);
+        totalBorrowed = totalBorrowed.add(amount);
         emit Borrow(msg.sender, borrower, amount);
     }
 
@@ -266,11 +267,10 @@ contract Vault is IVault, ERC4626 {
         //repay
 
         // update total borrowed
-        totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // update expectedLiquidityLU
-        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated
-            .add(borrowedAmount)
-            .add(interest);
+        // expectedLiquidityLastUpdated = expectedLiquidityLastUpdated
+        //     .add(borrowedAmount)
+        //     .add(interest);
         // .add(profit);
         // .sub(loss);
 
@@ -287,6 +287,7 @@ contract Vault is IVault, ERC4626 {
             // .add(profit)
         );
         _updateBorrowRate(0);
+        totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // }
         //  else if (loss > 0) {
         //     SafeERC20.safeTransferFrom(
@@ -302,7 +303,12 @@ contract Vault is IVault, ERC4626 {
 
     // view functions
 
-    function getInterestRateModel() external view returns (address) {
+    function getInterestRateModel()
+        external
+        view
+        override(IVault)
+        returns (address)
+    {
         return address(interestRateModel);
     }
 
@@ -315,7 +321,7 @@ contract Vault is IVault, ERC4626 {
         uint256 cumulativeIndex_RAY,
         uint256 currentBorrowRate_RAY,
         uint256 timeDifference
-    ) public pure returns (uint256) {
+    ) public view returns (uint256) {
         //                                    /     currentBorrowRate * timeDifference \
         //  newCumIndex  = currentCumIndex * | 1 + ------------------------------------ |
         //                                    \              SECONDS_PER_YEAR          /
@@ -323,7 +329,6 @@ contract Vault is IVault, ERC4626 {
         uint256 linearAccumulated_RAY = RAY +
             (currentBorrowRate_RAY * timeDifference) /
             SECONDS_PER_YEAR; // T:[GM-2]
-
         return cumulativeIndex_RAY.rayMul(linearAccumulated_RAY); // T:[GM-2]
     }
 
@@ -339,6 +344,7 @@ contract Vault is IVault, ERC4626 {
     function calcLinearCumulative_RAY() public view override returns (uint256) {
         //solium-disable-next-line
         uint256 timeDifference = block.timestamp - timestampLastUpdated; // T:[PS-28]
+        console.log("timeDifference", timeDifference);
         return
             calcLinearIndex_RAY(
                 _cumulativeIndex_RAY,
@@ -386,17 +392,17 @@ contract Vault is IVault, ERC4626 {
     ///  - stores new cumulative index and timestamp when it was updated
     function _updateBorrowRate(uint256 loss) internal {
         // Update total expectedLiquidityLastUpdated
-
+        console.log("exLi", expectedLiquidity());
         expectedLiquidityLastUpdated = expectedLiquidity() - loss; // T:[PS-27]
-
         // Update cumulativeIndex
         _cumulativeIndex_RAY = calcLinearCumulative_RAY(); // T:[PS-27]
-
         // update borrow APY
+        console.log("_cumulativeIndex_RAY", _cumulativeIndex_RAY);
         borrowAPY_RAY = interestRateModel.calcBorrowRate(
             expectedLiquidityLastUpdated,
             totalAssets()
         ); // T:[PS-27]
+        console.log("borrowAPY_RAY", borrowAPY_RAY);
         timestampLastUpdated = block.timestamp; // T:[PS-27]
     }
 }
