@@ -185,8 +185,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             marginAccount,
             marketKey,
             destinations,
-            data,
-            _getInterestAccrued(marginAccount)
+            data
         );
     }
 
@@ -309,7 +308,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _verifyPostLiquidationTxs(marginAccount, result);
         _executePostLiquidationUpdates(marginAccount, result);
         uint256 vaultLiability = marginAccount.totalBorrowed() +
-            _getInterestAccrued(marginAccount);
+            _getInterestAccruedX18(marginAccount);
         bool hasBadDebt = riskManager.isTraderBankrupt(
             marginAccount,
             vaultLiability
@@ -382,21 +381,24 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     }
 
     // handles accounting and transfers requestedCredit
-    // amount with vault base decimals (6 in usdc)
+    // amount in 1e18 decimals
     function increaseDebt(
         IMarginAccount marginAccount,
         uint256 amount
-    ) internal returns (uint256 newBorrowedAmount) {
+    ) internal returns (uint256 newBorrowedAmountX18) {
         // @TODO Add acl check
         // @TODO add a check for max borrow power exceeding.
-
+        uint256 amountX18 = amount.convertTokenDecimals(
+            ERC20(vault.asset()).decimals(),
+            18
+        );
         (
             uint256 borrowedAmount,
             uint256 cumulativeIndexAtOpen,
             uint256 cumulativeIndexNow
         ) = _getMarginAccountDetails(marginAccount);
 
-        newBorrowedAmount = borrowedAmount + amount;
+        newBorrowedAmountX18 = borrowedAmount + amountX18;
 
         // TODO add this check later.
 
@@ -408,16 +410,21 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 newCumulativeIndex;
         // Computes new cumulative index which accrues previous debt
         newCumulativeIndex =
-            (cumulativeIndexNow * cumulativeIndexAtOpen * newBorrowedAmount) /
+            (cumulativeIndexNow *
+                cumulativeIndexAtOpen *
+                newBorrowedAmountX18) /
             (cumulativeIndexNow *
                 borrowedAmount +
-                amount *
+                amountX18 *
                 cumulativeIndexAtOpen);
 
         // Lends more money from the pool
         vault.borrow(address(marginAccount), amount);
-        // Set parameters for new margin account
-        marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
+        // set borrowed in X18 decimals
+        marginAccount.updateBorrowData(
+            newBorrowedAmountX18,
+            newCumulativeIndex
+        );
     }
 
     function decreaseDebt(
@@ -426,36 +433,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     ) public returns (uint256 newBorrowedAmount) {
         // add acl check
         (uint256 borrowedAmount, , ) = _getMarginAccountDetails(marginAccount);
-        uint256 interestAccrued = _getInterestAccrued(marginAccount);
+        uint256 interestAccrued = _getInterestAccruedX18(marginAccount);
 
         if (borrowedAmount == 0) return 0;
         newBorrowedAmount = borrowedAmount.sub(amount);
-        // hardcoded values . To be removed later.
-        uint256 feeInterest = 0;
-        uint256 PERCENTAGE_FACTOR = 1;
-
-        // Computes profit which comes from interest rate
-        uint256 profit = interestAccrued.mulDiv(feeInterest, PERCENTAGE_FACTOR);
-
         // Calls repaymarginAccount to update pool values
         vault.repay(address(marginAccount), amount, interestAccrued);
-        // , profit, 0);
 
         // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
         // to make precise calculation
         uint256 newCumulativeIndex = vault.calcLinearCumulative_RAY();
         //
         // Set parameters for new credit account
+        // set borrowed in X18 decimals
         marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
     }
 
-    function getInterestAccrued(
+    function getInterestAccruedX18(
         address marginAccount
     ) public view returns (uint256) {
-        return _getInterestAccrued(IMarginAccount(marginAccount));
+        return _getInterestAccruedX18(IMarginAccount(marginAccount));
     }
 
-    function _getInterestAccrued(
+    function _getInterestAccruedX18(
         IMarginAccount marginAccount
     ) internal view returns (uint256 interest) {
         (
@@ -489,62 +489,62 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         VerifyTradeResult memory verificationResult
     ) private {
-        // _getInterestAccrued(address(marginAccount))
+        // _getInterestAccruedX18(address(marginAccount))
         address tokenIn = vault.asset();
         uint256 tokenInBalance = IERC20(tokenIn).balanceOf(
             address(marginAccount)
         );
+        int256 tokenInPriceX18 = priceOracle.convertToUSD(1 ether, tokenIn);
+        // TODO - ADD following price oracle dollar value changes if needed
+        int256 marginDeltaAmount = verificationResult
+            .marginDelta
+            .convertTokenDecimals(
+                18,
+                ERC20(verificationResult.tokenOut).decimals()
+            );
         uint256 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
             address(marginAccount)
         );
-        if (tokenOutBalance < verificationResult.marginDelta.abs()) {
+
+        if (tokenOutBalance < marginDeltaAmount.abs()) {
             // TODO add oracle to get asset value.
-            uint256 diff = verificationResult.marginDelta.abs().sub(
-                tokenOutBalance
-            );
-            uint256 dollarValueOfTokenDifference = priceOracle
-                .convertToUSD(diff.toInt256(), verificationResult.tokenOut)
-                .abs()
+            uint256 tokenDiff = marginDeltaAmount.abs().sub(tokenOutBalance);
+            // The following is required if in case there is deviation of SUSD/USDC from 1$
+            // token diff is in tokenOut decimals
+            uint256 tokenDiffValue = priceOracle
+                .convertToUSD(tokenDiff.toInt256(), verificationResult.tokenOut)
+                .abs();
+            uint256 tokenDiffValueInTokenInDecimals = tokenDiffValue
                 .convertTokenDecimals(
                     ERC20(verificationResult.tokenOut).decimals(),
                     ERC20(tokenIn).decimals()
                 );
-
             if (tokenIn != verificationResult.tokenOut) {
-                uint256 slippageMoney = uint256(10).convertTokenDecimals(
+                uint256 slippageMoney = uint256(100).convertTokenDecimals(
                     0,
                     ERC20(tokenIn).decimals()
                 );
-                uint256 tokenSwapAmountIn = dollarValueOfTokenDifference +
-                    slippageMoney;
-                increaseDebt(
-                    marginAccount,
-                    slippageMoney // TODO - Account for slippage and remmove the excess 500 sent
-                );
-                if (dollarValueOfTokenDifference > tokenInBalance) {
+                uint256 tokenSwapAmountIn = ((tokenDiffValueInTokenInDecimals +
+                    slippageMoney) * 1 ether) / tokenInPriceX18.abs();
+                increaseDebt(marginAccount, slippageMoney);
+                if (tokenDiffValueInTokenInDecimals > tokenInBalance) {
                     increaseDebt(
                         marginAccount,
-                        tokenSwapAmountIn.sub(tokenInBalance) // this is the new credit
+                        tokenSwapAmountIn - tokenInBalance - slippageMoney // this is the new credit
                     );
+                    
                 }
-                tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
-                    address(marginAccount)
-                );
                 uint256 amountOut = marginAccount.swapTokens(
                     tokenIn,
                     verificationResult.tokenOut,
                     tokenSwapAmountIn,
-                    diff
+                    tokenDiff
                 );
-                require(amountOut >= diff, "RM: Bad Swap");
+                require(amountOut >= tokenDiff, "RM: Bad Swap");
             } else if (
-                tokenIn == verificationResult.tokenOut &&
-                dollarValueOfTokenDifference > 0
+                tokenIn == verificationResult.tokenOut && tokenDiffValue > 0
             ) {
-                increaseDebt(marginAccount, dollarValueOfTokenDifference);
-                tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
-                    address(marginAccount)
-                );
+                increaseDebt(marginAccount, tokenDiffValue);
             }
         }
     }

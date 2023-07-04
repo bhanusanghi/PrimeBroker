@@ -13,7 +13,6 @@ import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/Reentra
 import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
-import {Vault} from "../MarginPool/Vault.sol";
 import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
@@ -35,7 +34,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeCast for int256;
     using SignedMath for int256;
     IPriceOracle public priceOracle;
-    Vault public vault;
     modifier xyz() {
         _;
     }
@@ -61,10 +59,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function setCollateralManager(address _collateralManager) public {
         collateralManager = CollateralManager(_collateralManager);
-    }
-
-    function setVault(address _vault) external {
-        vault = Vault(_vault);
     }
 
     // important note ->
@@ -93,12 +87,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .decodeTxCalldata(marketKey, destinations, data);
         if (result.marginDelta != 0) {
             //idk unnecessary?
-            result.marginDeltaDollarValue = priceOracle
-                .convertToUSD(result.marginDelta, result.tokenOut)
-                .convertTokenDecimals(
-                    ERC20(result.tokenOut).decimals(),
-                    ERC20(vault.asset()).decimals()
-                );
+            result.marginDeltaDollarValue = priceOracle.convertToUSD(
+                result.marginDelta,
+                result.tokenOut
+            );
         }
     }
 
@@ -106,25 +98,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) public returns (VerifyTradeResult memory result) {
         result = _verifyTrade(marketKey, destinations, data);
-        // interest accrued is in vault decimals
-        // pnl is in vault decimals
-        // BP is in vault decimals
-        uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        ).mulDiv(100, initialMarginFactor);
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketKeys();
-        int256 totalNotional = IMarginAccount(marginAccount)
-        // .getTotalOpeningNotional(_whitelistedMarketNames);
-            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames)
-            .toInt256();
-        // Bp is in dollars vault asset decimals
-        // Position Size is in 18 decimals -> need to convert
-        // totalNotional is in 18 decimals
         _verifyFinalLeverage(
             address(marginAccount),
             result.position.openNotional
@@ -176,11 +152,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             keccak256("MarginManager")
         );
         uint256 interestAccrued = IMarginManager(marginManager)
-            .getInterestAccrued(marginAccount);
+            .getInterestAccruedX18(marginAccount);
         // unsettledRealizedPnL is in vault decimals
         // unrealizedPnL is in vault decimals
-        console.log("unrealizedPnL");
-        console.logInt(_getUnrealizedPnL(marginAccount));
         if (
             collateralManager
                 .totalCollateralValue(marginAccount)
@@ -233,7 +207,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return _getUnrealizedPnL(marginAccount);
     }
 
-    // returns in vault base decimals
+    // returns in X18 decimals
     function _getUnrealizedPnL(
         address marginAccount
     ) internal view returns (int256 totalUnrealizedPnL) {
@@ -282,23 +256,22 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
             .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
         return
-            (_totalCollateralValue.mul(100).div(initialMarginFactor))
-                .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
-                .sub(totalOpenNotional); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
+            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
+                totalOpenNotional
+            ); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
     }
 
     // @todo - later add the collateral weights to the calculations below.
     // Currently does not take into account the collateral weights.
     function getCollateralInMarkets(
         address _marginAccount
-    ) public view returns (uint256 totalCollateralValue) {
+    ) public view returns (uint256 totalCollateralValueX18) {
         // todo - can be moved into margin account and removed from here. See whats the better design.
         address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-
         for (uint256 i = 0; i < _riskManagers.length; i++) {
-            int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
+            int256 dollarMarginX18 = IProtocolRiskManager(_riskManagers[i])
                 .getDollarMarginInMarkets(_marginAccount);
-            totalCollateralValue = totalCollateralValue.add(dollarMargin.abs());
+            totalCollateralValueX18 += dollarMarginX18.abs();
         }
     }
 
@@ -404,8 +377,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
-            .div(100)
-            .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
+            .div(100);
 
         if (accountValue <= minimumMarginRequirement) {
             isLiquidatable = true;
@@ -417,7 +389,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // check if account is liquidatable
     }
 
-    // returns in vault asset decimals.
+    // returns in 18 decimals.
     function getMinimumMarginRequirement(
         address marginAccount
     ) public view returns (uint256) {
@@ -427,9 +399,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
-            .div(100)
-            .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
-
+            .div(100);
         return minimumMarginRequirement;
     }
 

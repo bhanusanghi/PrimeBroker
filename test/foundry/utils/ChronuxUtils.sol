@@ -2,6 +2,8 @@ pragma solidity ^0.8.10;
 import {Test} from "forge-std/Test.sol";
 import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegistry.sol";
 import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
+import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
+
 import {IMarginAccount} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -28,6 +30,8 @@ contract ChronuxUtils is Test, Constants, IEvents {
     Contracts contracts;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
+    using SignedMath for int256;
+    using SignedMath for uint256;
 
     constructor(Contracts memory _contracts) {
         contracts = _contracts;
@@ -50,16 +54,12 @@ contract ChronuxUtils is Test, Constants, IEvents {
             true,
             address(contracts.collateralManager)
         );
-        uint256 amountInVaultAssetDecimals = amount.convertTokenDecimals(
-            ERC20(token).decimals(),
-            ERC20(contracts.vault.asset()).decimals()
-        );
-        emit CollateralAdded(
-            marginAccount,
-            token,
-            amount,
-            amountInVaultAssetDecimals
-        );
+        uint256 collateralValue = contracts
+            .priceOracle
+            .convertToUSD(int256(amount), token)
+            .abs();
+        // TODO -> This wont work when depositing collateral second time in same test.
+        emit CollateralAdded(marginAccount, token, amount);
         contracts.collateralManager.addCollateral(token, amount);
         vm.stopPrank();
     }
@@ -162,7 +162,6 @@ contract ChronuxUtils is Test, Constants, IEvents {
         bytes32[] memory activePositionMarkets = getAllActiveMarketsForTrader(
             trader
         );
-        console2.log("activeMarketLengths", activePositionMarkets.length);
         uint256 resultLength = getResultArrayLength(activePositionMarkets);
         params.activeMarkets = new bytes32[](resultLength);
         params.destinations = new address[](resultLength);

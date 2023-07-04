@@ -344,7 +344,6 @@ contract Vault is IVault, ERC4626 {
     function calcLinearCumulative_RAY() public view override returns (uint256) {
         //solium-disable-next-line
         uint256 timeDifference = block.timestamp - timestampLastUpdated; // T:[PS-28]
-        console.log("timeDifference", timeDifference);
         return
             calcLinearIndex_RAY(
                 _cumulativeIndex_RAY,
@@ -392,17 +391,14 @@ contract Vault is IVault, ERC4626 {
     ///  - stores new cumulative index and timestamp when it was updated
     function _updateBorrowRate(uint256 loss) internal {
         // Update total expectedLiquidityLastUpdated
-        console.log("exLi", expectedLiquidity());
         expectedLiquidityLastUpdated = expectedLiquidity() - loss; // T:[PS-27]
         // Update cumulativeIndex
         _cumulativeIndex_RAY = calcLinearCumulative_RAY(); // T:[PS-27]
         // update borrow APY
-        console.log("_cumulativeIndex_RAY", _cumulativeIndex_RAY);
         borrowAPY_RAY = interestRateModel.calcBorrowRate(
             expectedLiquidityLastUpdated,
             totalAssets()
         ); // T:[PS-27]
-        console.log("borrowAPY_RAY", borrowAPY_RAY);
         timestampLastUpdated = block.timestamp; // T:[PS-27]
     }
 }

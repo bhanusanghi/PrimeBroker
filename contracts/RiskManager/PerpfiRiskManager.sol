@@ -11,6 +11,7 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
+import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {IMarketRegistry} from "../Interfaces/Perpfi/IMarketRegistry.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
@@ -45,7 +46,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     bytes4 public WITHDRAW_ALL_MARGIN = 0xfa09e630;
     bytes4 public CLOSE_POSITION = 0x00aa9a89;
     address public marginToken;
-    uint8 public vaultAssetDecimals; // @todo take it from init/ constructor
     uint8 public marginTokenDecimals;
     uint8 public positionDecimals;
     IContractRegistry contractRegistry;
@@ -63,7 +63,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address _marketRegistry,
         address _clearingHouse,
         address _perpVaultUsdc,
-        uint8 _vaultAssetDecimals,
+        // uint8 _vaultAssetDecimals,
         uint8 _positionDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
@@ -71,7 +71,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         marketRegistry = IMarketRegistry(_marketRegistry);
         clearingHouse = IClearingHouse(_clearingHouse);
         perpVaultUsdc = IVault(_perpVaultUsdc);
-        vaultAssetDecimals = _vaultAssetDecimals;
         positionDecimals = _positionDecimals;
         marginTokenDecimals = ERC20(_marginToken).decimals();
         marginToken = _marginToken;
@@ -118,11 +117,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     // This should effect the Buying Power of account.
     function getUnsettledAccounting(address marginAccount) external {}
 
+    // returns marginDelta and position size/notional in 18 decimals
     function decodeTxCalldata(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    ) public view returns (int256 marginDelta, Position memory position) {
+    ) public view returns (int256 marginDeltaX18, Position memory position) {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
            call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
@@ -145,9 +145,13 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (funSig == APPROVE_TRANSFER) {
                 //  @dev - TODO - FIND SPENDER AND COMPARE WITH WHITELISTED CONTRACTS
             } else if (funSig == ADD_MARGIN) {
-                marginDelta = abi.decode(data[i][36:], (int256));
+                marginDeltaX18 = abi
+                    .decode(data[i][36:], (int256))
+                    .convertTokenDecimals(marginTokenDecimals, 18); //change while enabling mutile margin tokens.
             } else if (funSig == WITHDRAW_MARGIN) {
-                marginDelta = -abi.decode(data[i][36:], (int256));
+                marginDeltaX18 = -abi
+                    .decode(data[i][36:], (int256))
+                    .convertTokenDecimals(marginTokenDecimals, 18); //change while enabling mutile margin tokens.
             } else if (funSig == OPEN_POSITION) {
                 (
                     address _baseToken,
@@ -191,8 +195,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     revert("impossible shit");
                 }
                 uint256 fee = uint256(marketRegistry.getFeeRatio(_baseToken));
-                // position.fee = position.openNotional.abs().mulDiv(fee, 10**5);
-                // this refers to position opening fee.
+                // TODO -Bhanu- check decimal standard.
                 position.orderFee = position.openNotional.abs().mulDiv(
                     fee,
                     10 ** 5 // todo - Ask ashish about this
@@ -217,14 +220,22 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
-        pnl = (unrealizedPnl.add(owedRealizedPnl).add(pendingFee.toInt256()))
-            .convertTokenDecimals(positionDecimals, vaultAssetDecimals);
+        pnl = (unrealizedPnl.add(owedRealizedPnl).add(pendingFee.toInt256()));
     }
 
+    // returns margin in 18 decimals
     function getDollarMarginInMarkets(
         address marginAccount
-    ) external view returns (int256 marginInMarkets) {
-        return perpVaultUsdc.getBalance(marginAccount);
+    ) external view returns (int256 marginInMarketsX18) {
+        int256 balX18 = int256(
+            perpVaultUsdc.getBalance(marginAccount).convertTokenDecimals(
+                marginTokenDecimals,
+                18
+            )
+        );
+        marginInMarketsX18 = IPriceOracle(
+            contractRegistry.getContractByName(keccak256("PriceOracle"))
+        ).convertToUSD(balX18, marginToken);
         // is in usdc so no need to convert decimals.
     }
 

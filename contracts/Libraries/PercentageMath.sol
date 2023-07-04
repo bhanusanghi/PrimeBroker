@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.10;
 
-uint256 constant PERCENTAGE_FACTOR = 1e6; //percentage plus two decimals
+uint256 constant PERCENTAGE_FACTOR = 1e4; //percentage plus two decimals
 uint256 constant HALF_PERCENT = PERCENTAGE_FACTOR / 2;
 
 /**

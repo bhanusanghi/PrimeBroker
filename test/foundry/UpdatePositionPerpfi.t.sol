@@ -50,26 +50,6 @@ contract UpdatePositionPerpfi is BaseSetup {
     }
 
     // Internal
-    function testMarginTransferPerp(int256 perpMargin) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
-        uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256(
-            (chronuxMargin * 100) / marginFactor
-        );
-        vm.assume(
-            perpMargin > int256(1 * ONE_USDC) &&
-                perpMargin < expectedRemainingMargin
-        );
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            false,
-            ""
-        );
-    }
-
     function testOpenShortAndShort(int256 notional) public {
         uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);

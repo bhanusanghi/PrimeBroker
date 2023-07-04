@@ -493,6 +493,11 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bool shouldFail,
         bytes memory reason
     ) public {
+        int256 marginX18 = margin.convertTokenDecimals(6, 18);
+        int256 marginX18Value = contracts.priceOracle.convertToUSD(
+            marginX18,
+            usdc
+        );
         vm.startPrank(trader);
         address marketAddress = contracts.marketManager.getMarketAddress(
             marketKey
@@ -516,10 +521,7 @@ contract PerpfiUtils is Test, Constants, IEvents {
             margin
         );
         // check event for position opened on our side.
-        int256 marginDollarValue = margin.convertTokenDecimals(
-            6,
-            ERC20(contracts.vault.asset()).decimals()
-        );
+
         if (shouldFail) {
             vm.expectRevert(reason);
             contracts.marginManager.openPosition(marketKey, destinations, data);
@@ -535,8 +537,8 @@ contract PerpfiUtils is Test, Constants, IEvents {
                 marginAccount,
                 marketKey,
                 usdc,
-                margin,
-                marginDollarValue
+                marginX18,
+                marginX18Value
             );
             vm.expectEmit(true, true, true, true, perpVault);
             if (margin > 0) {

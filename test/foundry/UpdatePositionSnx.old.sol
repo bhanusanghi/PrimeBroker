@@ -216,7 +216,7 @@ contract UpdatePositionSnx is BaseSetup {
     //         block.timestamp,
     //         circuitBreaker
     //     );
-    //     uint256 interestAccrued = contracts.marginManager.getInterestAccrued(
+    //     uint256 interestAccrued = contracts.marginManager.getInterestAccruedX18(
     //         bobMarginAccount
     //     );
     //     uint256 remainingBuyingPower = contracts
@@ -265,7 +265,7 @@ contract UpdatePositionSnx is BaseSetup {
     //         block.timestamp,
     //         circuitBreaker
     //     );
-    //     uint256 interestAccrued = contracts.marginManager.getInterestAccrued(
+    //     uint256 interestAccrued = contracts.marginManager.getInterestAccruedX18(
     //         bobMarginAccount
     //     );
     //     uint256 remainingBuyingPower = contracts
@@ -325,7 +325,7 @@ contract UpdatePositionSnx is BaseSetup {
     //         block.timestamp,
     //         circuitBreaker
     //     );
-    //     uint256 interestAccrued = contracts.marginManager.getInterestAccrued(
+    //     uint256 interestAccrued = contracts.marginManager.getInterestAccruedX18(
     //         bobMarginAccount
     //     );
     //     uint256 remainingBuyingPower = contracts

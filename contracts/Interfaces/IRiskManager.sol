@@ -28,8 +28,7 @@ interface IRiskManager {
         IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) external returns (VerifyTradeResult memory result);
 
     function liquidate(
@@ -68,8 +67,6 @@ interface IRiskManager {
     ) external view returns (Position memory marketPosition);
 
     function setCollateralManager(address _collateralManager) external;
-
-    function setVault(address _vault) external;
 
     function verifyClosePosition(
         IMarginAccount marginAcc,

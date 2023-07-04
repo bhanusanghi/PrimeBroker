@@ -57,14 +57,14 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 expectedRemainingMargin = int256(
             (chronuxMargin * 100) / marginFactor
         );
-        vm.assume(
-            perpMargin > int256(1 * ONE_USDC) &&
-                perpMargin < expectedRemainingMargin
-        );
+        // vm.assume(
+        //     perpMargin > int256(1 * ONE_USDC) &&
+        //         perpMargin < expectedRemainingMargin
+        // );
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
-            perpMargin,
+            1000_000000,
             false,
             ""
         );

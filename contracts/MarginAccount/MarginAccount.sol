@@ -181,26 +181,20 @@ contract MarginAccount is IMarginAccount {
     }
 
     /// @dev Updates borrowed amount. Restricted for current credit manager only
-    /// @param totalBorrowedAmount Amount which pool lent to credit account
+    /// @param totalBorrowedX18Amount Amount which pool lent to credit account
     function updateBorrowData(
-        uint256 totalBorrowedAmount,
+        uint256 totalBorrowedX18Amount,
         uint256 _cumulativeIndexAtOpen
     ) external override {
         // add acl check
-        totalBorrowed = totalBorrowedAmount;
+        totalBorrowed = totalBorrowedX18Amount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
     function updateDollarMarginInMarkets(
         int256 transferredMargin
     ) public override {
-        // require(
-        //     marginInMarket[market].add(transferredMargin) > 0,
-        //     "MA: Cannot have negative margin In protocol"
-        // );
-        totalDollarMarginInMarkets = totalDollarMarginInMarkets.add(
-            transferredMargin
-        );
+        totalDollarMarginInMarkets += transferredMargin;
     }
 
     function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
@@ -214,7 +208,6 @@ contract MarginAccount is IMarginAccount {
         uint256 minAmountOut
     ) public returns (uint256 amountOut) {
         // only marginManager.
-
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
@@ -226,7 +219,6 @@ contract MarginAccount is IMarginAccount {
             address(pool),
             tokenOut
         );
-
         IERC20(tokenIn).approve(address(pool), amountIn);
         amountOut = pool.exchange_underlying(
             tokenInIndex, // TODO - correct this

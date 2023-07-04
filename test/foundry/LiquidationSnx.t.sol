@@ -162,8 +162,6 @@ contract LiquidationSnx is BaseSetup {
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
-        console2.log("iminMarginRequirement", minMarginRequirement);
-        console2.log("iaccountValue", accountValue);
         int256 snxMargin = int256(2000 ether);
         int256 openNotional = int256(3000 ether);
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
@@ -179,8 +177,6 @@ contract LiquidationSnx is BaseSetup {
             .riskManager
             .getMinimumMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
-        console2.log("fminMarginRequirement", minMarginRequirement);
-        console2.log("faccountValue", accountValue);
     }
 
     // ChronuxMargin |  Snx Margin | snx ON
@@ -195,26 +191,18 @@ contract LiquidationSnx is BaseSetup {
         int256 openNotional = int256(3500 ether);
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        console2.log("AssetPrice", assetPrice);
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
 
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
-        console2.log("positionSize", positionSize);
-        console2.log("ActualpositionSize", openPosition.size);
-        console2.log("openNotional", openNotional);
-        console2.log("ActualopenNotional", openPosition.openNotional);
         uint256 minMarginRequirement = contracts
             .riskManager
             .getMinimumMarginRequirement(bobMarginAccount);
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
-        console2.log("iminMarginRequirement", minMarginRequirement);
-        console2.log("iaccountValue", accountValue);
-
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -224,13 +212,10 @@ contract LiquidationSnx is BaseSetup {
             -200 ether
         );
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        console2.log("finalAssetPrice", assetPrice);
         minMarginRequirement = contracts
             .riskManager
             .getMinimumMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
-        console2.log("fminMarginRequirement", minMarginRequirement);
-        console2.log("faccountValue", accountValue);
     }
 
     // ChronuxMargin |  Snx Margin | snx ON
@@ -334,37 +319,15 @@ contract LiquidationSnx is BaseSetup {
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
-        console2.log("borrow rate 1", contracts.vault.borrowAPY_RAY());
-        console2.log(
-            "interetAccrued",
-            contracts.marginManager.getInterestAccrued(bobMarginAccount)
-        );
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
-        console2.log(
-            "reminaingMarginOnSnx 0",
-            snxUtils.fetchMargin(bobMarginAccount, snxUniKey)
-        );
         snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
         (int256 notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
         );
-        console2.log(
-            "reminaingMarginOnSnx 1",
-            snxUtils.fetchMargin(bobMarginAccount, snxUniKey)
-        );
         utils.mineBlocks(365 days, 365 days);
-        console2.log("borrow rate 2", contracts.vault.borrowAPY_RAY());
-        console2.log(
-            "interetAccrued 2",
-            contracts.marginManager.getInterestAccrued(bobMarginAccount)
-        );
-        console2.log(
-            "reminaingMarginOnSnx",
-            snxUtils.fetchMargin(bobMarginAccount, snxUniKey)
-        );
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -389,13 +352,8 @@ contract LiquidationSnx is BaseSetup {
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
-        console2.log("accountValue", accountValue);
         uint256 susdBal = ERC20(susd).balanceOf(bobMarginAccount);
         uint256 usdcBal = ERC20(usdc).balanceOf(bobMarginAccount);
         uint256 vaultUsdcBal = ERC20(usdc).balanceOf(address(contracts.vault));
-        console2.log("susdBal", susdBal);
-        console2.log("usdcBal", usdcBal);
-        console2.log("vault usdc bal", vaultUsdcBal);
-        console2.log("expectedLiq", contracts.vault.expectedLiquidity());
     }
 }

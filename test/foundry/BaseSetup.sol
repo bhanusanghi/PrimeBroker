@@ -234,13 +234,11 @@ contract BaseSetup is Test, IEvents {
             perpMarketRegistry,
             perpClearingHouse,
             perpVault,
-            ERC20(contracts.vault.asset()).decimals(),
             18
         );
         contracts.snxRiskManager = new SNXRiskManager(
             susd,
             address(contracts.contractRegistry),
-            ERC20(contracts.vault.asset()).decimals(),
             18
         );
         contracts.contractRegistry.addContractToRegistry(
@@ -265,7 +263,6 @@ contract BaseSetup is Test, IEvents {
         contracts.riskManager.setCollateralManager(
             address(contracts.collateralManager)
         );
-        contracts.riskManager.setVault(address(contracts.vault));
         contracts.marginManager.setVault(address(contracts.vault));
         contracts.marginManager.SetRiskManager(address(contracts.riskManager));
         setupProtocolRiskManagers();
@@ -293,12 +290,7 @@ contract BaseSetup is Test, IEvents {
             vaultDepositAmount
         );
         contracts.vault.deposit(vaultDepositAmount, admin);
-        // console2.log("borrow rate 10", contracts.vault.borrowAPY_RAY());
-        // vm.warp(block.timestamp + 10 days);
-        // contracts.vault.borrow(admin, vaultDepositAmount);
-        // console2.log("borrow rate 11", contracts.vault.borrowAPY_RAY());
-        // vm.stopPrank();
-
+        vm.stopPrank();
         //  open Margin Accounts
         vm.prank(bob);
         bobMarginAccount = contracts.marginManager.openMarginAccount();
