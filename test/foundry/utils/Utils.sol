@@ -138,12 +138,14 @@ contract Utils is Test, IEvents {
         uint256 interval = IClearingHouseConfig(
             0xA4c817a425D3443BAf610CA614c8B11688a288Fb
         ).getTwapInterval();
-        console2.log("check selectors here");
-        console2.logBytes4(IBaseToken.getIndexPrice.selector);
-        console2.logBytes4(bytes4(keccak256("getPrice(uint256)")));
         vm.mockCall(
             aggregator,
             abi.encodeWithSelector(IPriceFeedV2.getPrice.selector),
+            abi.encode(price)
+        );
+        vm.mockCall(
+            aggregator,
+            abi.encodeWithSelector(IPriceFeedV2.cacheTwap.selector),
             abi.encode(price)
         );
         uint256 _price = IPriceFeedV2(aggregator).getPrice(interval);

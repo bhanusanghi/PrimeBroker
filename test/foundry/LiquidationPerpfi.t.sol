@@ -12,6 +12,8 @@ import {BaseSetup} from "./BaseSetup.sol";
 import {Utils} from "./utils/Utils.sol";
 import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
 import {ChronuxUtils, LiquidationParams} from "./utils/ChronuxUtils.sol";
+import {IClearingHouse} from "../../contracts/Interfaces/Perpfi/IClearingHouse.sol";
+import {IAccountBalance} from "../../contracts/Interfaces/Perpfi/IAccountBalance.sol";
 import {IMarginAccount, Position} from "../../contracts/Interfaces/IMarginAccount.sol";
 
 contract LiquidationPerpfi is BaseSetup {
@@ -144,7 +146,7 @@ contract LiquidationPerpfi is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
 
         // set aave price to 100
-        utils.setAssetPricePerpfi(perpAaveMarket, 100 ether);
+        utils.setAssetPricePerpfi(perpAaveMarket, 100 * (10 ** 8));
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
@@ -164,13 +166,27 @@ contract LiquidationPerpfi is BaseSetup {
         );
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(perpAaveKey);
-        utils.simulateUnrealisedPnLPerpfi(
-            perpAccountBalance,
-            bobMarginAccount,
-            perpAaveMarket,
-            openPosition.openNotional,
-            openPosition.size,
-            -1000 ether
+        // utils.simulateUnrealisedPnLPerpfi(
+        //     perpAccountBalance,
+        //     bobMarginAccount,
+        //     perpAaveMarket,
+        //     openPosition.openNotional,
+        //     openPosition.size,
+        //     -1000 ether
+        // );
+        console2.log("Before Liquidation", openPosition.openNotional);
+        console2.logInt(
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            )
+        );
+        utils.setAssetPricePerpfi(perpAaveMarket, 50 * (10 ** 8));
+        console2.logInt(
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            )
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
@@ -188,6 +204,14 @@ contract LiquidationPerpfi is BaseSetup {
             params.destinations,
             params.data
         );
+        console2.log("kek");
+        console2.logInt(
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            )
+        );
+        // assertEq(chronuxMargin, chronuxMargin + 1, "hehe");
         // check third party events and value by using static call.
     }
 
