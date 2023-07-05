@@ -69,7 +69,7 @@ contract Vault is IVault, ERC4626 {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint256 internal _totalBorrowed;
+    uint256 public totalBorrowed;
     // uint256 public maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
@@ -105,10 +105,6 @@ contract Vault is IVault, ERC4626 {
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
         // maxExpectedLiquidity = _maxExpectedLiquidity;
-    }
-
-    function totalBorrowed() external view override returns (uint256) {
-        return _totalBorrowed;
     }
 
     // function asset() public view override(ERC4626) returns (address) {
@@ -261,7 +257,7 @@ contract Vault is IVault, ERC4626 {
         IERC20(asset()).transfer(borrower, amount);
         // update interest rate;
         _updateBorrowRate(0);
-        _totalBorrowed = _totalBorrowed.add(amount);
+        totalBorrowed = totalBorrowed.add(amount);
         emit Borrow(msg.sender, borrower, amount);
     }
 
@@ -293,7 +289,7 @@ contract Vault is IVault, ERC4626 {
             // .add(profit)
         );
         _updateBorrowRate(0);
-        _totalBorrowed = _totalBorrowed.sub(borrowedAmount);
+        totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // }
         //  else if (loss > 0) {
         //     SafeERC20.safeTransferFrom(
@@ -371,7 +367,7 @@ contract Vault is IVault, ERC4626 {
         //  interestAccrued = totalBorrow *  ------------------------------------
         //                                             SECONDS_PER_YEAR
         //
-        uint256 interestAccrued = (_totalBorrowed *
+        uint256 interestAccrued = (totalBorrowed *
             borrowAPY_RAY *
             timeDifference) /
             RAY /
