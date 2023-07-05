@@ -85,6 +85,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         (result.marginDelta, result.position) = protocolRiskManager
             .decodeTxCalldata(marketKey, destinations, data);
+        console.log("marginDelta");
+        console.logInt(result.marginDelta);
         if (result.marginDelta != 0) {
             //idk unnecessary?
             result.marginDeltaDollarValue = priceOracle.convertToUSD(
@@ -254,7 +256,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
+            .getTotalOpeningAbsoluteNotional();
         return
             (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
                 totalOpenNotional
@@ -373,7 +375,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
+            .getTotalOpeningAbsoluteNotional();
 
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
@@ -396,7 +398,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames);
+            .getTotalOpeningAbsoluteNotional();
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
@@ -444,21 +446,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return accountValue < liability;
     }
 
-    function _getTotalNotional(
-        IMarginAccount marginAccount
-    ) internal view returns (uint256 totalOpenNotional) {
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketKeys();
-        totalOpenNotional = marginAccount.getTotalOpeningAbsoluteNotional(
-            _whitelistedMarketNames
-        );
-    }
-
     function _getLiquidationPenalty(
         IMarginAccount marginAccount,
         bool isFullyLiquidatable
     ) internal view returns (uint256 penalty) {
-        uint256 totalOpenNotional = _getTotalNotional(marginAccount);
+        uint256 totalOpenNotional = marginAccount
+            .getTotalOpeningAbsoluteNotional();
         uint256 penalty;
         if (isFullyLiquidatable) {
             penalty = totalOpenNotional.mul(liquidationPenalty).div(100);

@@ -241,7 +241,6 @@ contract Utils is Test, IEvents {
         // setAssetPricePerpfi(baseToken, newPrice.abs() * 1e 18);
         setAssetPricePerpfi(baseToken, newPrice.abs() * 1e8);
         uint256 updatedPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
-        console2.log("isBaseTokenClosed", IBaseToken(baseToken).isClosed());
         console2.log("currentPrice", currentPrice);
         console2.log("updatedPrice", updatedPrice);
         // console2.log("iMarkPrice", iMarkPrice);

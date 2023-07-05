@@ -34,8 +34,6 @@ contract MarginAccount is IMarginAccount {
     // perp.eth, Position
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
-    // dollar value in 6 decimal digits.
-    int256 public totalDollarMarginInMarkets;
 
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
      serves multiple purposes
@@ -77,25 +75,18 @@ contract MarginAccount is IMarginAccount {
         return existingPosition[marketKey];
     }
 
-    function getTotalOpeningAbsoluteNotional(
-        bytes32[] memory _allowedMarkets
-    ) public view override returns (uint256 totalNotional) {
-        uint256 len = _allowedMarkets.length;
+    function getTotalOpeningAbsoluteNotional()
+        public
+        view
+        override
+        returns (uint256 totalNotional)
+    {
+        bytes32[] memory marketKeys = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getAllMarketKeys();
+        uint256 len = marketKeys.length;
         for (uint256 i = 0; i < len; i++) {
-            totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].openNotional.abs()
-            );
-        }
-    }
-
-    function getTotalOpeningNotional(
-        bytes32[] memory _allowedMarkets
-    ) public view override returns (int256 totalNotional) {
-        uint256 len = _allowedMarkets.length;
-        for (uint256 i = 0; i < len; i++) {
-            totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].openNotional
-            );
+            totalNotional += positions[marketKeys[i]].openNotional.abs();
         }
     }
 
@@ -191,14 +182,18 @@ contract MarginAccount is IMarginAccount {
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
-    function updateDollarMarginInMarkets(
-        int256 transferredMargin
-    ) public override {
-        totalDollarMarginInMarkets += transferredMargin;
-    }
-
     function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
         unsettledRealizedPnL = _realizedPnL;
+    }
+
+    function setTokenAllowance(
+        address token,
+        address spender,
+        uint256 amount
+    ) public override {
+        // only marginManager
+        // TODO - add acl
+        IERC20(token).approve(spender, type(uint256).max);
     }
 
     function swapTokens(

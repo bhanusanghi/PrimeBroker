@@ -39,7 +39,7 @@ contract LiquidationSnx is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupSNXFixture();
+        setupPerpfiFixture();
         perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
@@ -298,6 +298,125 @@ contract LiquidationSnx is BaseSetup {
         );
         (notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
+        );
+    }
+
+    // ChronuxMargin |  Snx Margin | snx ON        | Perp Margin | perp ON
+    // 1000 USDC     |  0 USDC     | 0 USDC        |  0 USDC     | 0 USDC
+    // 0 USDC        |  1000 susd  | 2500 ether    |  0 susd     | 0 ether             Min Margin = 500
+    // 0 USDC        |  1000 susd  | 2500 ether    |  500 usdc   | 500 ether           Min Margin = 600
+    // 0 USDC        |  1000 susd  | 1990 ether    |  0 usdc     | 520 ether           unrealisedPnL = -510 + 20
+    // 451.9 USDC    |  0 susd     | 0 ether       |  0 usdc     | 0 ether             realizedPnL = -548.1
+    function testLiquidateUnrealisedPnlSnXPerpfi() public {
+        uint256 chronuxMargin = 1000 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        int256 snxMargin = int256(1000 ether);
+        int256 perpMargin = int256(1000 * 10 ** 6);
+        int256 openNotional = int256(2500 ether);
+        int256 openNotional2 = int256(500 ether);
+        address market = contracts.marketManager.getMarketAddress(snxUniKey);
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
+        int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+
+        snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
+        perpfiUtils.addAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            openNotional2,
+            false,
+            ""
+        );
+        Position memory snxPosition = IMarginAccount(bobMarginAccount)
+            .getPosition(snxUniKey);
+        Position memory perpPosition = IMarginAccount(bobMarginAccount)
+            .getPosition(perpAaveKey);
+        utils.simulateUnrealisedPnLSnx(
+            circuitBreaker,
+            bobMarginAccount,
+            snxUni_marketKey,
+            snxPosition.openNotional,
+            snxPosition.size,
+            -600 ether
+        );
+        utils.simulateUnrealisedPnLPerpfi(
+            perpAccountBalance,
+            bobMarginAccount,
+            perpAaveMarket,
+            perpPosition.openNotional,
+            perpPosition.size,
+            20 ether
+        );
+        LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
+        contracts.marginManager.liquidate(
+            bob,
+            params.activeMarkets,
+            params.destinations,
+            params.data
+        );
+
+        snxPosition = IMarginAccount(bobMarginAccount).getPosition(snxUniKey);
+        perpPosition = IMarginAccount(bobMarginAccount).getPosition(
+            perpAaveKey
+        );
+        assertEq(
+            IMarginAccount(bobMarginAccount).existingPosition(snxUniKey),
+            false
+        );
+        assertEq(
+            IMarginAccount(bobMarginAccount).existingPosition(perpAaveKey),
+            false
+        );
+        assertEq(snxPosition.size, 0, "position after liquidation is not zero");
+        assertEq(
+            perpPosition.size,
+            0,
+            "position after liquidation is not zero"
+        );
+        assertEq(
+            snxPosition.openNotional,
+            0,
+            "position after liquidation is not zero"
+        );
+        assertEq(
+            perpPosition.openNotional,
+            0,
+            "position after liquidation is not zero"
+        );
+        // TODO -> ADD repay
+        assertEq(
+            IMarginAccount(bobMarginAccount).totalBorrowed(),
+            0,
+            "totalBorrowed after liquidation is not zero"
+        );
+        assertEq(
+            contracts.riskManager.getCurrentDollarMarginInMarkets(
+                bobMarginAccount
+            ),
+            0,
+            "totalDollarMarginInMarkets after liquidation is not zero"
+        );
+        // assertEq(
+        //     IMarginAccount(bobMarginAccount).totalBorrowed(),
+        //     0,
+        //     "totalBorrowed after liquidation is not zero"
+        // );
+
+        assertEq(
+            IMarginAccount(bobMarginAccount).getTotalOpeningAbsoluteNotional(),
+            0,
+            "getTotalOpeningAbsoluteNotional after liquidation is not zero"
+        );
+        console2.log(
+            "remainingMargin",
+            contracts.collateralManager.getFreeCollateralValue(bobMarginAccount)
         );
     }
 

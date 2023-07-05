@@ -76,9 +76,16 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // TODO - approve marginAccount max asset to vault for repayment allowance.
         require(marginAccounts[msg.sender] == address(0x0));
         // TODO Uniswap router to be removed later.
-        MarginAccount acc = new MarginAccount(address(contractRegistry));
-        marginAccounts[msg.sender] = address(acc);
-        return address(acc);
+        MarginAccount newMarginAccount = new MarginAccount(
+            address(contractRegistry)
+        );
+        newMarginAccount.setTokenAllowance(
+            vault.asset(),
+            address(vault),
+            type(uint256).max
+        );
+        marginAccounts[msg.sender] = address(newMarginAccount);
+        return address(newMarginAccount);
         // acc.setparams
         // approve
     }
@@ -195,7 +202,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         bytes[] calldata data
     ) external {
         // TODO - Use Interface rather than class.
-
         IMarginAccount marginAccount = IMarginAccount(
             _getMarginAccount(msg.sender)
         );
@@ -207,7 +213,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             destinations,
             data
         );
-        if (verificationResult.marginDelta.abs() > 0) {
+        if (verificationResult.marginDelta > 0) {
             _prepareMarginTransfer(marginAccount, verificationResult);
 
             _updateMarginTransferData(
@@ -223,6 +229,46 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult,
             true
         );
+        // swap marign delta to token In if needed.
+        if (
+            verificationResult.marginDelta < 0 &&
+            vault.asset() != verificationResult.tokenOut
+        ) {
+            _swapBackToVaultAsset(
+                marginAccount,
+                verificationResult.marginDelta,
+                verificationResult.tokenOut
+            );
+        }
+        repayVaultDebt(marginAccount);
+    }
+
+    function _swapBackToVaultAsset(
+        IMarginAccount marginAccount,
+        int256 marginDelta,
+        address tokenOut
+    ) internal {}
+
+    // if(borrowedAmount + interestAccrued> 0){
+    //  if(marginDelta > borrowedAmount + interestAccrued){
+    // repay(marginDelta - (borrowedAmount + interestAccrued)) }
+    //  else repay marginDelta
+    // }
+    function repayVaultDebt(IMarginAccount marginAccount) public {
+        uint256 tokenInBalance = IERC20(vault.asset()).balanceOf(
+            address(marginAccount)
+        );
+        if (tokenInBalance == 0) revert("MM: Not enough balance in MA");
+        uint256 interestAccrued = _getInterestAccruedX18(marginAccount);
+        uint256 vaultLiabilityX18 = marginAccount.totalBorrowed() +
+            interestAccrued;
+        if (vaultLiabilityX18 == 0) return;
+        if (tokenInBalance < vaultLiabilityX18) {
+            // max repayment possible here is amount - interestAccrued
+            decreaseDebt(marginAccount, tokenInBalance - interestAccrued);
+        } else {
+            decreaseDebt(marginAccount, marginAccount.totalBorrowed());
+        }
     }
 
     function updatePosition(
@@ -242,7 +288,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             destinations,
             data
         );
-        if (verificationResult.marginDelta.abs() > 0) {
+        if (verificationResult.marginDelta > 0) {
             _prepareMarginTransfer(marginAccount, verificationResult);
             _updateMarginTransferData(
                 marginAccount,
@@ -349,12 +395,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     ) internal {
         // Make changes to stored positions.
         _syncPositions(address(marginAccount));
-        _updateUnsettledRealizedPnL(address(marginAccount));
+        // _updateUnsettledRealizedPnL(address(marginAccount));
         // Emit a liquidation event with relevant data.
-
-        // Update totalMarginInMarkets data.
-
-        //
     }
 
     /// @dev Gets margin account generic parameters
@@ -427,16 +469,24 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
+    // needs to be sent in vault asset decimals
     function decreaseDebt(
         IMarginAccount marginAccount,
         uint256 amount
-    ) public returns (uint256 newBorrowedAmount) {
+    ) public returns (uint256 newBorrowedAmountX18) {
         // add acl check
         (uint256 borrowedAmount, , ) = _getMarginAccountDetails(marginAccount);
-        uint256 interestAccrued = _getInterestAccruedX18(marginAccount);
-
         if (borrowedAmount == 0) return 0;
-        newBorrowedAmount = borrowedAmount.sub(amount);
+        uint256 interestAccruedX18 = _getInterestAccruedX18(marginAccount);
+        uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
+            18,
+            ERC20(vault.asset()).decimals()
+        );
+        uint256 amountX18 = amount.convertTokenDecimals(
+            ERC20(vault.asset()).decimals(),
+            18
+        );
+        newBorrowedAmountX18 = borrowedAmount.sub(amountX18);
         // Calls repaymarginAccount to update pool values
         vault.repay(address(marginAccount), amount, interestAccrued);
 
@@ -446,7 +496,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         //
         // Set parameters for new credit account
         // set borrowed in X18 decimals
-        marginAccount.updateBorrowData(newBorrowedAmount, newCumulativeIndex);
+        marginAccount.updateBorrowData(
+            newBorrowedAmountX18,
+            newCumulativeIndex
+        );
     }
 
     function getInterestAccruedX18(
@@ -469,28 +522,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             cumulativeIndexAtOpen) - borrowedAmount);
     }
 
-    // @notice this iterates through all the markets and finds the current Realized PnL and updates the totalUnRealizedPnL variable in our margin account.
-    function updateUnsettledRealizedPnL(address trader) external {
-        address marginAccount = _getMarginAccount(trader);
-        _updateUnsettledRealizedPnL(marginAccount);
-    }
-
-    function _updateUnsettledRealizedPnL(address marginAccount) internal {
-        int256 currentDollarMarginInMarket = IRiskManager(riskManager)
-            .getCurrentDollarMarginInMarkets(marginAccount);
-        int256 unsettledRealizedPnL = IMarginAccount(marginAccount)
-            .totalDollarMarginInMarkets() - currentDollarMarginInMarket;
-        IMarginAccount(marginAccount).updateUnsettledRealizedPnL(
-            unsettledRealizedPnL
-        );
-    }
-
     function _prepareMarginTransfer(
         IMarginAccount marginAccount,
         VerifyTradeResult memory verificationResult
     ) private {
-        // _getInterestAccruedX18(address(marginAccount))
         address tokenIn = vault.asset();
+
+        // _getInterestAccruedX18(address(marginAccount))
         uint256 tokenInBalance = IERC20(tokenIn).balanceOf(
             address(marginAccount)
         );
@@ -532,7 +570,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                         marginAccount,
                         tokenSwapAmountIn - tokenInBalance - slippageMoney // this is the new credit
                     );
-                    
                 }
                 uint256 amountOut = marginAccount.swapTokens(
                     tokenIn,
@@ -554,10 +591,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         bytes32 marketKey,
         VerifyTradeResult memory verificationResult
     ) internal {
-        // TODO - check if this is correct. Should this be done on response adapter??
-        marginAccount.updateDollarMarginInMarkets(
-            verificationResult.marginDeltaDollarValue
-        );
         emit MarginTransferred(
             address(marginAccount),
             marketKey,

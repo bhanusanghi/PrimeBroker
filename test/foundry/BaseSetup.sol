@@ -194,7 +194,7 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupVault(address token) internal {
-        uint256 optimalUse = 60 * 10 ** 4;
+        uint256 optimalUse = 80 * 10 ** 4;
         uint256 rBase = 0;
         uint256 rSlope1 = 2 * 10 ** 4;
         uint256 rSlope2 = 10 * 10 ** 4;

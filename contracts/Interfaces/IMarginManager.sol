@@ -63,6 +63,4 @@ interface IMarginManager {
         address[] calldata destinations,
         bytes[] calldata data
     ) external;
-
-    function updateUnsettledRealizedPnL(address trader) external;
 }
