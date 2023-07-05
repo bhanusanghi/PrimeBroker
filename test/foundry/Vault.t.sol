@@ -304,7 +304,8 @@ contract VaultTest is Test {
             "Borrow rate is not as expected"
         );
         borrow(alice, aliceBorrowAmount);
-
+        uint256 aliceInterestAmount = (aliceBorrowAmount *
+            vault.borrowAPY_RAY()) / RAY;
         vm.warp(block.timestamp + 1 days);
         vm.roll(block.number + 100);
         borrow(admin, adminBorrowAmount);
@@ -316,7 +317,7 @@ contract VaultTest is Test {
             "Vault accounting error"
         );
         uint256 beforeRepayBorrow_RAY = vault.borrowAPY_RAY();
-        repay(alice, aliceBorrowAmount, 100 ether); // Note this is not exact interest amount
+        repay(alice, aliceBorrowAmount, aliceInterestAmount);
         newborrowAPY = vault.borrowAPY_RAY();
         assertGt(
             beforeRepayBorrow_RAY,
