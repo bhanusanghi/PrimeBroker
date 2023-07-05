@@ -403,6 +403,11 @@ contract LiquidationSnx is BaseSetup {
             0,
             "totalDollarMarginInMarkets after liquidation is not zero"
         );
+        assertEq(
+            ERC20(susd).balanceOf(bobMarginAccount),
+            0,
+            "susd balance is not zero"
+        );
         // assertEq(
         //     IMarginAccount(bobMarginAccount).totalBorrowed(),
         //     0,
