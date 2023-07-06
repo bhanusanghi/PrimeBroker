@@ -23,6 +23,9 @@ import "forge-std/console2.sol";
 
 contract PerpfiUtils is Test, Constants, IEvents {
     using SettlementTokenMath for uint256;
+    using Math for uint256;
+    using Math for int256;
+    using SignedMath for int256;
     using SettlementTokenMath for int256;
     address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
     Contracts contracts;
@@ -52,7 +55,7 @@ contract PerpfiUtils is Test, Constants, IEvents {
         margin = int256(IVault(perpVault).getBalance(marginAccount));
     }
 
-    function verifyMargin(
+    function verifyMarginOnPerp(
         address marginAccount,
         bytes32 marketKey,
         int256 expectedMargin
@@ -509,7 +512,10 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes[] memory data = new bytes[](2);
         destinations[0] = usdc;
         destinations[1] = perpVault;
-
+        int256 currentMargin = fetchMargin(marginAccount, marketKey);
+        int256 freeCollateralPerp = int256(
+            IVault(perpVault).getFreeCollateral(marginAccount)
+        );
         data[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             perpVault,
@@ -520,8 +526,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
             usdc,
             margin
         );
-        // check event for position opened on our side.
-
         if (shouldFail) {
             vm.expectRevert(reason);
             contracts.marginManager.openPosition(marketKey, destinations, data);
@@ -540,14 +544,56 @@ contract PerpfiUtils is Test, Constants, IEvents {
                 marginX18,
                 marginX18Value
             );
-            vm.expectEmit(true, true, true, true, perpVault);
             if (margin > 0) {
-                emit Deposited(usdc, marginAccount, uint256(margin));
+                // vm.expectEmit(true, true, true, true, perpVault);
+                // emit Deposited(usdc, marginAccount, uint256(margin));
+                data[0] = abi.encodeWithSignature(
+                    "approve(address,uint256)",
+                    perpVault,
+                    margin
+                );
+                data[1] = abi.encodeWithSignature(
+                    "deposit(address,uint256)",
+                    usdc,
+                    margin
+                );
+                contracts.marginManager.openPosition(
+                    marketKey,
+                    destinations,
+                    data
+                );
+                verifyMarginOnPerp(
+                    marginAccount,
+                    marketKey,
+                    currentMargin + margin
+                );
+                // existing margin + delta not just margin.
             } else {
-                emit Withdrawn(usdc, marginAccount, uint256(margin));
+                // emit Withdrawn(usdc, marginAccount, uint256(margin));
+                destinations = new address[](1);
+                data = new bytes[](1);
+                destinations[0] = perpVault;
+                data[0] = abi.encodeWithSignature(
+                    "withdraw(address,uint256)",
+                    usdc,
+                    margin.abs()
+                );
+                console2.log("destinations.length", destinations.length);
+                contracts.marginManager.updatePosition(
+                    marketKey,
+                    destinations,
+                    data
+                );
+                console2.log("Idhar");
+                console2.log(freeCollateralPerp);
+                console2.logInt(margin);
+                console2.log(freeCollateralPerp + margin);
+                verifyMarginOnPerp(
+                    marginAccount,
+                    marketKey,
+                    freeCollateralPerp + margin
+                );
             }
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-            verifyMargin(marginAccount, marketKey, margin);
         }
         vm.stopPrank();
     }

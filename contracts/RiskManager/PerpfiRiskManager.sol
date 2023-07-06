@@ -201,6 +201,8 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     10 ** 5 // todo - Ask ashish about this
                 );
             } else {
+                console.log("failing funSig");
+                console.logBytes4(funSig);
                 revert("PRM: Unsupported Function call");
             }
         }

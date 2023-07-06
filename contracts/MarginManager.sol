@@ -216,12 +216,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         if (verificationResult.marginDelta > 0) {
             _prepareMarginTransfer(marginAccount, verificationResult);
-
-            _updateMarginTransferData(
-                marginAccount,
-                marketKey,
-                verificationResult
-            );
         }
         marginAccount.execMultiTx(destinations, data);
         _executePostMarketOrderUpdates(
@@ -230,6 +224,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult,
             true
         );
+        _updateMarginTransferData(marginAccount, marketKey, verificationResult);
         // swap marign delta to token In if needed.
         if (verificationResult.marginDelta < 0) {
             if (vault.asset() != verificationResult.tokenOut) {
@@ -287,8 +282,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 tokenInBalance = IERC20(vault.asset()).balanceOf(
             address(marginAccount)
         );
-        console.log("tokenInBalance", tokenInBalance);
-        if (tokenInBalance == 0) revert("MM: Not enough balance in MA");
+        if (tokenInBalance == 0)
+            revert("MM: Not enough balance in MA to repay vault debt");
         uint256 interestAccruedX18 = _getInterestAccruedX18(marginAccount);
         uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
             18,
@@ -332,11 +327,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         if (verificationResult.marginDelta > 0) {
             _prepareMarginTransfer(marginAccount, verificationResult);
-            _updateMarginTransferData(
-                marginAccount,
-                marketKey,
-                verificationResult
-            );
         }
         marginAccount.execMultiTx(destinations, data);
         _executePostMarketOrderUpdates(
@@ -345,6 +335,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult,
             false
         );
+        _updateMarginTransferData(marginAccount, marketKey, verificationResult);
         if (verificationResult.marginDelta < 0) {
             if (vault.asset() != verificationResult.tokenOut) {
                 _swapBackToVaultAsset(
@@ -379,10 +370,12 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // TO DO - repay interest and stuff.
         _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
         marginAccount.removePosition(marketKey);
-        if (vault.asset() != result.marginToken) {
-            _swapBackToVaultAsset(marginAccount, result.marginToken);
-        }
-        repayVaultDebt(marginAccount);
+
+        // Needed if we allow margin movement calls while closing position
+        // if (vault.asset() != result.marginToken) {
+        //     _swapBackToVaultAsset(marginAccount, result.marginToken);
+        // }
+        // repayVaultDebt(marginAccount);
     }
 
     function liquidate(
