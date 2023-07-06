@@ -204,25 +204,43 @@ contract LiquidationPerpfi is BaseSetup {
             params.destinations,
             params.data
         );
-        console2.log("kek");
+        openPosition = IMarginAccount(bobMarginAccount).getPosition(
+            perpAaveKey
+        );
+        console2.log("After Liquidation", openPosition.openNotional);
         console2.logInt(
             IAccountBalance(perpAccountBalance).getTotalPositionValue(
                 bobMarginAccount,
                 perpAaveMarket
             )
         );
-        // assertEq(chronuxMargin, chronuxMargin + 1, "hehe");
+        assertEq(
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            ),
+            openPosition.openNotional,
+            "Incorrect position value on chronux after liquidation"
+        );
+
+        assertEq(
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            ),
+            0,
+            "Position must be close/liquidated"
+        );
         // check third party events and value by using static call.
     }
 
     function testNoLiquidateLongPositionPerp() public {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
-
         // set aave price to 100
         utils.setAssetPricePerpfi(perpAaveMarket, 100 * 10 ** 8);
 
-        int256 perpMargin = int256(3000 * ONE_USDC);
-        int256 openNotional = int256(4000 ether);
+        int256 perpMargin = int256(2000 * ONE_USDC);
+        int256 openNotional = int256(2500 ether);
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
@@ -239,32 +257,38 @@ contract LiquidationPerpfi is BaseSetup {
         );
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(perpAaveKey);
-        uint256 newPrice = 55 * 10 ** 8;
-        // utils.simulateUnrealisedPnLPerpfi(
-        //     perpAccountBalance,
-        //     bobMarginAccount,
-        //     perpAaveMarket,
-        //     openPosition.openNotional,
-        //     openPosition.size,
-        //     -100 ether
-        // );
-        utils.setAssetPricePerpfi(perpAaveMarket, newPrice);
+        // utils.mineBlocks(365 days, 365 days);
+        utils.simulateUnrealisedPnLPerpfi(
+            perpAccountBalance,
+            bobMarginAccount,
+            perpAaveMarket,
+            openPosition.openNotional,
+            openPosition.size,
+            -450 ether
+        );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
             .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
 
         assertEq(
             isLiquidatable,
-            true,
+            false,
             "IsLiquidatable is not working properly"
         );
+        assertApproxEqAbs(
+            perpfiUtils.getAccountValue(bobMarginAccount),
+            perpMargin - int256(450 * ONE_USDC),
+            50 * ONE_USDC,
+            "Incorrect account value"
+        ); // Note: fee+funding is missing
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
+        vm.expectRevert("PRM: Account not liquidatable");
         contracts.marginManager.liquidate(
             bob,
             params.activeMarkets,
             params.destinations,
             params.data
         );
-        // check third party events and value by using static call.
+        // check fetchMargin third party events and value by using static call.
     }
 }

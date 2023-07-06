@@ -238,7 +238,6 @@ contract Utils is Test, IEvents {
         int256 newPrice = (openNotional + pnl) / positionSize;
         int256 initialPosValue = IAccountBalance(accountBalance)
             .getTotalPositionValue(trader, baseToken);
-        console2.log("Price", currentPrice, newPrice);
         setAssetPricePerpfi(baseToken, newPrice.abs() * 10 ** 8);
         uint256 updatedPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
         (, int256 finalPnL, ) = IAccountBalance(accountBalance)

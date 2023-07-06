@@ -52,6 +52,12 @@ contract PerpfiUtils is Test, Constants, IEvents {
         margin = int256(IVault(perpVault).getBalance(marginAccount));
     }
 
+    function getAccountValue(
+        address marginAccount
+    ) public returns (int256 accountValue) {
+        accountValue = int256(IVault(perpVault).getAccountValue(marginAccount));
+    }
+
     function verifyMargin(
         address marginAccount,
         bytes32 marketKey,
