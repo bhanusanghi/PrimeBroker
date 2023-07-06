@@ -14,6 +14,7 @@ import {RiskManager} from "./RiskManager/RiskManager.sol";
 import {MarginAccount} from "./MarginAccount/MarginAccount.sol";
 import {Vault} from "./MarginPool/Vault.sol";
 import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "./Interfaces/IRiskManager.sol";
+import {IProtocolRiskManager} from "./Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "./Interfaces/IMarginAccount.sol";
@@ -254,6 +255,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
+    function _swapBackToVaultAsset(IMarginAccount marginAccount) internal {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        address[] memory protocolRiskManagers = marketManager
+            .getUniqueRiskManagers();
+        for (uint i = 0; i < protocolRiskManagers.length; i++) {
+            address token = IProtocolRiskManager(protocolRiskManagers[i])
+                .getMarginToken();
+            if (token == vault.asset()) continue;
+            console.log("swapping back this token", token);
+            uint256 tokenBalance = IERC20(token).balanceOf(
+                address(marginAccount)
+            );
+            uint256 amountOut = marginAccount.swapTokens(
+                token,
+                vault.asset(),
+                tokenBalance,
+                0
+            );
+        }
+    }
+
     // if(borrowedAmount + interestAccrued> 0){
     //  if(marginDelta > borrowedAmount + interestAccrued){
     // repay(marginDelta - (borrowedAmount + interestAccrued)) }
@@ -263,16 +287,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 tokenInBalance = IERC20(vault.asset()).balanceOf(
             address(marginAccount)
         );
+        console.log("tokenInBalance", tokenInBalance);
         if (tokenInBalance == 0) revert("MM: Not enough balance in MA");
-        uint256 interestAccrued = _getInterestAccruedX18(marginAccount);
+        uint256 interestAccruedX18 = _getInterestAccruedX18(marginAccount);
+        uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
+            18,
+            ERC20(vault.asset()).decimals()
+        );
+        uint256 totalBorrowed = marginAccount
+            .totalBorrowed()
+            .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
         uint256 vaultLiabilityX18 = marginAccount.totalBorrowed() +
             interestAccrued;
-        if (vaultLiabilityX18 == 0) return;
-        if (tokenInBalance < vaultLiabilityX18) {
+        uint256 vaultLiability = vaultLiabilityX18.convertTokenDecimals(
+            18,
+            ERC20(vault.asset()).decimals()
+        );
+        console.log("vaultLiabilityX18", vaultLiabilityX18);
+        if (vaultLiability == 0) return;
+        if (tokenInBalance < vaultLiability) {
             // max repayment possible here is amount - interestAccrued
             decreaseDebt(marginAccount, tokenInBalance - interestAccrued);
         } else {
-            decreaseDebt(marginAccount, marginAccount.totalBorrowed());
+            decreaseDebt(marginAccount, totalBorrowed);
         }
     }
 
@@ -385,6 +422,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // pay interest
             // pay liquidator
         }
+        _swapBackToVaultAsset(marginAccount);
+        repayVaultDebt(marginAccount);
     }
 
     // @note - this function validates the following points

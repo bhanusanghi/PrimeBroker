@@ -421,7 +421,9 @@ contract LiquidationSnx is BaseSetup {
         );
         console2.log(
             "remainingMargin",
-            contracts.collateralManager.getFreeCollateralValue(bobMarginAccount)
+            contracts.collateralManager.getCollateralHeldInMarginAccount(
+                bobMarginAccount
+            )
         );
     }
 
