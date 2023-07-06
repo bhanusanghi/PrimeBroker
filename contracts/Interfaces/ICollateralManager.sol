@@ -37,4 +37,6 @@ interface ICollateralManager {
     function getCollateralHeldInMarginAccount(
         address _marginAccount
     ) external view returns (uint256 totalAmount);
+
+    function collateralWeight(address) external view returns (uint256);
 }

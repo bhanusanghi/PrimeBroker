@@ -85,8 +85,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
         (result.marginDelta, result.position) = protocolRiskManager
             .decodeTxCalldata(marketKey, destinations, data);
-        console.log("marginDelta");
-        console.logInt(result.marginDelta);
         if (result.marginDelta != 0) {
             //idk unnecessary?
             result.marginDeltaDollarValue = priceOracle.convertToUSD(
@@ -403,6 +401,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
+        console.log("minimumMarginRequirement", minimumMarginRequirement);
         return minimumMarginRequirement;
     }
 

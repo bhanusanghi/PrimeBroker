@@ -3,6 +3,7 @@ pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
@@ -243,5 +244,48 @@ contract OpenPositionPerpfi is BaseSetup {
         );
 
         // check third party events and value by using static call.
+    }
+
+    function testLongWithdrawCollateral() public {
+        int256 notional = 5000 ether;
+        uint256 chronuxMargin = 1500 * ONE_USDC;
+        int256 perpMargin = int256(1200 * ONE_USDC);
+        uint256 withdrawAmount = 250 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.addAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            notional,
+            false,
+            ""
+        );
+        uint256 _beforeBalance = IERC20(contracts.vault.asset()).balanceOf(
+            bobMarginAccount
+        );
+        uint256 _beforeBobBalance = IERC20(contracts.vault.asset()).balanceOf(
+            bob
+        );
+        vm.startPrank(bob);
+        contracts.collateralManager.withdrawCollateral(
+            contracts.vault.asset(),
+            withdrawAmount
+        );
+        vm.stopPrank();
+        assertEq(
+            IERC20(contracts.vault.asset()).balanceOf(bob),
+            _beforeBobBalance + withdrawAmount
+        );
+        assertEq(
+            IERC20(contracts.vault.asset()).balanceOf(bobMarginAccount),
+            _beforeBalance - withdrawAmount
+        );
     }
 }

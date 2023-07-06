@@ -97,13 +97,6 @@ contract CollateralManager is ICollateralManager {
         _decimals[_allowed] = ERC20(_allowed).decimals();
     }
 
-    // @TODO should return in usd value the amount of free collateral.
-    function getFreeCollateralValue(
-        address _marginAccount
-    ) external returns (uint256) {
-        return _getFreeCollateralValue(_marginAccount);
-    }
-
     function addCollateral(address _token, uint256 _amount) external {
         require(isAllowed[_token], "CM: Unsupported collateral"); //@note move it to margin manager
         IMarginAccount marginAccount = IMarginAccount(
@@ -132,22 +125,28 @@ contract CollateralManager is ICollateralManager {
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
-        uint256 freeCollateralValue = _getFreeCollateralValue(
+        uint256 freeCollateralValueX18 = _getFreeCollateralValue(
             address(marginAccount)
         );
+        console.log("freeCollateralValueX18", freeCollateralValueX18);
+        uint256 withdrawAmount = priceOracle
+            .convertToUSD(
+                _amount
+                    .convertTokenDecimals(ERC20(_token).decimals(), 18)
+                    .toInt256(),
+                _token
+            )
+            .toUint256()
+            .mulDiv(collateralWeight[_token], 100);
+        console.log("withdrawAmount", withdrawAmount);
         require(
-            priceOracle
-                .convertToUSD(_amount.toInt256(), _token)
-                .toUint256()
-                .mulDiv(collateralWeight[_token], 100) <= freeCollateralValue,
-            // priceOracle.convertToUSD(int256(_amount), _token).abs() <=
-            //     freeCollateralValue,
+            withdrawAmount <= freeCollateralValueX18,
             "CM: Withdrawing more than free collateral not allowed"
         );
         _balance[address(marginAccount)][_token] = _balance[
             address(marginAccount)
         ][_token].sub(_amount.toInt256());
-        marginAccount.transferTokens(_token, address(marginAccount), _amount);
+        marginAccount.transferTokens(_token, msg.sender, _amount);
     }
 
     // @todo - On update borrowing power changes. Handle that - not v0
@@ -170,11 +169,11 @@ contract CollateralManager is ICollateralManager {
     // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
     function _getFreeCollateralValue(
         address _marginAccount
-    ) internal returns (uint256 freeCollateral) {
+    ) internal returns (uint256 freeCollateralValueX18) {
         // free collateral
-        freeCollateral = _getCollateralHeldInMarginAccount(_marginAccount).sub(
-            marginManager.getInterestAccruedX18(_marginAccount)
-        );
+        freeCollateralValueX18 =
+            _totalCurrentCollateralValue(address(_marginAccount)) -
+            riskManager.getMinimumMarginRequirement(address(_marginAccount));
     }
 
     function totalCollateralValue(
@@ -247,5 +246,11 @@ contract CollateralManager is ICollateralManager {
 
     function getAllCollateralTokens() public view returns (address[] memory) {
         return allowedCollateral;
+    }
+
+    function getFreeCollateralValue(
+        address _marginAccount
+    ) external returns (uint256) {
+        return _getFreeCollateralValue(_marginAccount);
     }
 }
