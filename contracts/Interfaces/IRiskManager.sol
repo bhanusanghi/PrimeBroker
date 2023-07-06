@@ -11,6 +11,7 @@ struct VerifyCloseResult {
     // bool isValid;
     // int256 finalPnL; // will fill this after tx execution
     int256 closingPrice;
+    address marginToken;
     // int256 orderFee;
     // int256 fundingFee;
     // int256 positionSize;

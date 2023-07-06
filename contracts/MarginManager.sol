@@ -230,24 +230,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             true
         );
         // swap marign delta to token In if needed.
-        if (
-            verificationResult.marginDelta < 0 &&
-            vault.asset() != verificationResult.tokenOut
-        ) {
-            _swapBackToVaultAsset(
-                marginAccount,
-                verificationResult.marginDelta,
-                verificationResult.tokenOut
-            );
+        if (verificationResult.marginDelta < 0) {
+            if (vault.asset() != verificationResult.tokenOut) {
+                _swapBackToVaultAsset(
+                    marginAccount,
+                    verificationResult.tokenOut
+                );
+            }
+            repayVaultDebt(marginAccount);
         }
-        // repayVaultDebt(marginAccount);
     }
 
     function _swapBackToVaultAsset(
         IMarginAccount marginAccount,
-        int256 marginDelta,
-        address tokenOut
-    ) internal {}
+        address token
+    ) internal {
+        uint256 tokenBalance = IERC20(token).balanceOf(address(marginAccount));
+        uint256 amountOut = marginAccount.swapTokens(
+            token,
+            vault.asset(),
+            tokenBalance,
+            0
+        );
+    }
 
     // if(borrowedAmount + interestAccrued> 0){
     //  if(marginDelta > borrowedAmount + interestAccrued){
@@ -303,6 +308,15 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult,
             false
         );
+        if (verificationResult.marginDelta < 0) {
+            if (vault.asset() != verificationResult.tokenOut) {
+                _swapBackToVaultAsset(
+                    marginAccount,
+                    verificationResult.tokenOut
+                );
+            }
+            repayVaultDebt(marginAccount);
+        }
     }
 
     // In this call do we allow only closing of the position or do we also allow transferring back margin from the TPP?
@@ -328,6 +342,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // TO DO - repay interest and stuff.
         _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
         marginAccount.removePosition(marketKey);
+        if (vault.asset() != result.marginToken) {
+            _swapBackToVaultAsset(marginAccount, result.marginToken);
+        }
+        repayVaultDebt(marginAccount);
     }
 
     function liquidate(

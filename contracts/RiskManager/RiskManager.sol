@@ -128,6 +128,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             destinations,
             data
         );
+        result.marginToken = protocolRiskManager.getMarginToken();
     }
 
     function _verifyFinalLeverage(
