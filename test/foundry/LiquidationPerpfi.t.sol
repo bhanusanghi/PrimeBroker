@@ -49,7 +49,7 @@ contract LiquidationPerpfi is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
 
         // set aave price to 100
-        utils.setAssetPricePerpfi(perpAaveMarket, 100 ether);
+        utils.setAssetPricePerpfi(perpAaveMarket, 100 * (10 ** 8));
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
@@ -98,7 +98,7 @@ contract LiquidationPerpfi is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
 
         // set aave price to 100
-        utils.setAssetPricePerpfi(perpAaveMarket, 100 ether);
+        utils.setAssetPricePerpfi(perpAaveMarket, 100 * (10 ** 8));
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
@@ -166,14 +166,14 @@ contract LiquidationPerpfi is BaseSetup {
         );
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(perpAaveKey);
-        // utils.simulateUnrealisedPnLPerpfi(
-        //     perpAccountBalance,
-        //     bobMarginAccount,
-        //     perpAaveMarket,
-        //     openPosition.openNotional,
-        //     openPosition.size,
-        //     -1000 ether
-        // );
+        utils.simulateUnrealisedPnLPerpfi(
+            perpAccountBalance,
+            bobMarginAccount,
+            perpAaveMarket,
+            openPosition.openNotional,
+            openPosition.size,
+            -1000 ether
+        );
         console2.log("Before Liquidation", openPosition.openNotional);
         console2.logInt(
             IAccountBalance(perpAccountBalance).getTotalPositionValue(
@@ -181,7 +181,7 @@ contract LiquidationPerpfi is BaseSetup {
                 perpAaveMarket
             )
         );
-        utils.setAssetPricePerpfi(perpAaveMarket, 50 * (10 ** 8));
+        // utils.setAssetPricePerpfi(perpAaveMarket, 50 * (10 ** 8));
         console2.logInt(
             IAccountBalance(perpAccountBalance).getTotalPositionValue(
                 bobMarginAccount,
@@ -219,7 +219,7 @@ contract LiquidationPerpfi is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
 
         // set aave price to 100
-        utils.setAssetPricePerpfi(perpAaveMarket, 100 ether);
+        utils.setAssetPricePerpfi(perpAaveMarket, 100 * 10 ** 8);
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
@@ -240,6 +240,14 @@ contract LiquidationPerpfi is BaseSetup {
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(perpAaveKey);
         uint256 newPrice = 55 * 10 ** 8;
+        // utils.simulateUnrealisedPnLPerpfi(
+        //     perpAccountBalance,
+        //     bobMarginAccount,
+        //     perpAaveMarket,
+        //     openPosition.openNotional,
+        //     openPosition.size,
+        //     -100 ether
+        // );
         utils.setAssetPricePerpfi(perpAaveMarket, newPrice);
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager

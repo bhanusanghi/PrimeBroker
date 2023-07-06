@@ -240,7 +240,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 verificationResult.tokenOut
             );
         }
-        repayVaultDebt(marginAccount);
+        // repayVaultDebt(marginAccount);
     }
 
     function _swapBackToVaultAsset(

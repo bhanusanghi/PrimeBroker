@@ -238,18 +238,9 @@ contract Utils is Test, IEvents {
         int256 newPrice = (openNotional + pnl) / positionSize;
         int256 initialPosValue = IAccountBalance(accountBalance)
             .getTotalPositionValue(trader, baseToken);
-        // setMarkPrice(baseToken, newPrice.abs());
-        // setAavePrice(newPrice.abs() * 1e8);
-        // setAssetPricePerpfi(baseToken, newPrice.abs() * 1e 18);
-        setAssetPricePerpfi(baseToken, newPrice.abs() * 1e8);
+        console2.log("Price", currentPrice, newPrice);
+        setAssetPricePerpfi(baseToken, newPrice.abs() * 10 ** 8);
         uint256 updatedPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
-        console2.log("currentPrice", currentPrice);
-        console2.log("updatedPrice", updatedPrice);
-        // console2.log("iMarkPrice", iMarkPrice);
-        console2.log(
-            "updatedtMarkPrice",
-            getMarkPricePerp(perpMarketRegistry, baseToken)
-        );
         (, int256 finalPnL, ) = IAccountBalance(accountBalance)
             .getPnlAndPendingFee(trader);
         int256 finalPosValue = IAccountBalance(accountBalance)
@@ -259,14 +250,6 @@ contract Utils is Test, IEvents {
         console2.log("initialPnL", initialPnL);
         console2.log("finalPnL", finalPnL);
         console2.log("positionSize", positionSize);
-        // console2.log(
-        //     "initialNotional",
-        //     (int256(currentPrice) * positionSize) / 1 ether
-        // );
-        // console2.log(
-        //     "finalNotional",
-        //     (int256(updatedPrice) * positionSize) / 1 ether
-        // );
         console2.log("openNotional", openNotional);
     }
 
