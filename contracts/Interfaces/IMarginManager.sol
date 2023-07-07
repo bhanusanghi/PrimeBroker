@@ -37,7 +37,7 @@ interface IMarginManager {
 
     function openMarginAccount() external returns (address);
 
-    function closeMarginAccount() external;
+    function closeMarginAccount(address marginAccount) external;
 
     function openPosition(
         bytes32 marketKey,

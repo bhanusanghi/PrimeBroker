@@ -169,10 +169,7 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupRiskManager() internal {
-        contracts.riskManager = new RiskManager(
-            contracts.contractRegistry,
-            contracts.marketManager
-        );
+        contracts.riskManager = new RiskManager(contracts.contractRegistry);
         contracts.riskManager.setPriceOracle(address(contracts.priceOracle));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
@@ -260,9 +257,6 @@ contract BaseSetup is Test, IEvents {
         setupRiskManager();
         setupVault(vaultAsset);
         setupCollateralManager();
-        contracts.riskManager.setCollateralManager(
-            address(contracts.collateralManager)
-        );
         contracts.marginManager.setVault(address(contracts.vault));
         contracts.marginManager.SetRiskManager(address(contracts.riskManager));
         setupProtocolRiskManagers();

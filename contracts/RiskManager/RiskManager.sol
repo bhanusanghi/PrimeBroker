@@ -19,7 +19,7 @@ import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginManager} from "../Interfaces/IMarginManager.sol";
-import {CollateralManager} from "../CollateralManager.sol";
+import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import "hardhat/console.sol";
 
@@ -39,31 +39,29 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     modifier xyz() {
         _;
     }
-    IContractRegistry public contractRegistery;
-    CollateralManager public collateralManager;
-    IMarketManager public marketManager;
+    IContractRegistry public contractRegistry;
     uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
     uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
     uint256 public liquidationPenalty = 2; // lets say it is 2 percent for now.
 
-    constructor(
-        IContractRegistry _contractRegistery,
-        IMarketManager _marketManager
-    ) {
-        contractRegistery = _contractRegistery;
-        marketManager = _marketManager;
+    constructor(IContractRegistry _contractRegistry) {
+        contractRegistry = _contractRegistry;
+        // marketManager = _marketManager;
         _setupRole(REGISTRAR_ROLE, msg.sender);
+    }
+
+    modifier onlyMarginManager() {
+        require(
+            contractRegistry.getContractByName(keccak256("MarginManager")) ==
+                msg.sender,
+            "MarginAccount: Only margin manager"
+        );
+        _;
     }
 
     function setPriceOracle(address oracle) external onlyRole(REGISTRAR_ROLE) {
         // onlyOwner
         priceOracle = IPriceOracle(oracle);
-    }
-
-    function setCollateralManager(
-        address _collateralManager
-    ) public onlyRole(REGISTRAR_ROLE) {
-        collateralManager = CollateralManager(_collateralManager);
     }
 
     // important note ->
@@ -77,8 +75,10 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) internal returns (VerifyTradeResult memory result) {
-        address _protocolRiskManager;
-        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
         );
 
@@ -118,8 +118,10 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external returns (VerifyCloseResult memory result) {
-        address _protocolRiskManager;
-        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
         );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
@@ -154,11 +156,15 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function _getAbsTotalCollateralValue(
         address marginAccount
     ) internal view returns (uint256) {
-        address marginManager = contractRegistery.getContractByName(
-            keccak256("MarginManager")
+        IMarginManager marginManager = IMarginManager(
+            contractRegistry.getContractByName(keccak256("MarginManager"))
         );
-        uint256 interestAccrued = IMarginManager(marginManager)
-            .getInterestAccruedX18(marginAccount);
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
+        uint256 interestAccrued = marginManager.getInterestAccruedX18(
+            marginAccount
+        );
         // unsettledRealizedPnL is in vault decimals
         // unrealizedPnL is in vault decimals
         if (
@@ -194,8 +200,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function getCurrentDollarMarginInMarkets(
         address marginAccount
     ) external view override returns (int256 totalCurrentDollarMargin) {
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
+        );
+        address[] memory _riskManagers = IMarketManager(marketManager)
+            .getUniqueRiskManagers();
 
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
@@ -217,9 +226,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function _getUnrealizedPnL(
         address marginAccount
     ) internal view returns (int256 totalUnrealizedPnL) {
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
+        );
+        address[] memory _riskManagers = IMarketManager(marketManager)
+            .getUniqueRiskManagers();
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             // margin acc get bitmask
             int256 unrealizedPnL = IProtocolRiskManager(_riskManagers[i])
@@ -239,6 +250,9 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function _getRemainingMarginTransfer(
         address marginAccount
     ) private view returns (uint256) {
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
         uint256 totalCollateralInMarginAccount = collateralManager
             .getCollateralHeldInMarginAccount(marginAccount);
         uint256 availableBorrowLimit = getRemainingBorrowLimit(marginAccount);
@@ -254,6 +268,12 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function _getRemainingPositionOpenNotional(
         address marginAccount
     ) private view returns (uint256) {
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
@@ -272,8 +292,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function getCollateralInMarkets(
         address _marginAccount
     ) public view returns (uint256 totalCollateralValueX18) {
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
+        );
+        address[] memory _riskManagers = IMarketManager(marketManager)
+            .getUniqueRiskManagers();
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             int256 dollarMarginX18 = IProtocolRiskManager(_riskManagers[i])
                 .getDollarMarginInMarkets(_marginAccount);
@@ -321,9 +344,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address _marginAccount,
         bytes32 _marketKey
     ) public view returns (Position memory marketPosition) {
-        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
-            _marketKey
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
         );
+        address _protocolRiskManager = IMarketManager(marketManager)
+            .getRiskManagerByMarketName(_marketKey);
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             _protocolRiskManager
         );
@@ -340,7 +365,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         bytes32[] memory marketKeys,
         address[] memory destinations,
         bytes[] calldata data
-    ) public returns (VerifyLiquidationResult memory result) {
+    ) public onlyMarginManager returns (VerifyLiquidationResult memory result) {
         // check if account is liquidatable
         // restrict to only marginManager.
         (
@@ -371,7 +396,9 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         IMarginAccount marginAccount
     ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
         // Add conditions for partial liquidation.
-
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
         uint256 accountValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
@@ -399,6 +426,9 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function getMinimumMarginRequirement(
         address marginAccount
     ) public view returns (uint256) {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
@@ -501,6 +531,9 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address destination,
         bytes calldata data
     ) internal returns (VerifyLiquidationResult memory result) {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
         );

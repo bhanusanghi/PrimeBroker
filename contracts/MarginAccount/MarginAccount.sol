@@ -68,6 +68,15 @@ contract MarginAccount is IMarginAccount, AccessControl {
         );
         _;
     }
+    modifier onlyCollateralManager() {
+        require(
+            contractRegistry.getContractByName(
+                keccak256("CollateralManager")
+            ) == msg.sender,
+            "MarginAccount: Only risk manager"
+        );
+        _;
+    }
 
     function getPosition(
         bytes32 market
@@ -104,7 +113,7 @@ contract MarginAccount is IMarginAccount, AccessControl {
         address from,
         address token,
         uint256 amount
-    ) external override {
+    ) external override onlyCollateralManager {
         // acl - only collateral manager.
         // convert
         IERC20(token).safeTransferFrom(from, address(this), amount);
@@ -119,18 +128,20 @@ contract MarginAccount is IMarginAccount, AccessControl {
     //     IERC20(token).approve(protocol, type(uint256).max);
     // }
 
+    // Cannot be only MarginManager.
+    // Risk Manager also calls this.
     function transferTokens(
         address token,
         address to,
         uint256 amount
-    ) external onlyMarginManager {
+    ) external onlyCollateralManager {
         IERC20(token).safeTransfer(to, amount);
     }
 
     function executeTx(
         address destination,
         bytes memory data
-    ) external onlyMarginManager returns (bytes memory) {
+    ) external override onlyMarginManager returns (bytes memory) {
         bytes memory returnData = destination.functionCall(data);
         return returnData;
     }
@@ -185,11 +196,12 @@ contract MarginAccount is IMarginAccount, AccessControl {
         totalBorrowed = totalBorrowedX18Amount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
+
     function setTokenAllowance(
         address token,
         address spender,
         uint256 amount
-    ) public override {
+    ) public override onlyMarginManager {
         // only marginManager
         // TODO - add acl
         IERC20(token).approve(spender, type(uint256).max);
@@ -201,7 +213,6 @@ contract MarginAccount is IMarginAccount, AccessControl {
         uint256 amountIn,
         uint256 minAmountOut
     ) public onlyMarginManager returns (uint256 amountOut) {
-        // only marginManager.
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
