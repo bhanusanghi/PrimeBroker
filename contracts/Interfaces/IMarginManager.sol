@@ -8,8 +8,8 @@ interface IMarginManager {
         address indexed,
         bytes32 indexed,
         address indexed,
-        int256,
-        int256
+        int256 marginTokenAmountX18,
+        int256 marginValueX18
     );
 
     // marginAccount, protocol, assetOut, size, openNotional
@@ -25,7 +25,7 @@ interface IMarginManager {
         bytes32 indexed marketKey
     );
 
-    function getInterestAccrued(
+    function getInterestAccruedX18(
         address marginAccount
     ) external view returns (uint256);
 
@@ -58,11 +58,9 @@ interface IMarginManager {
     ) external;
 
     function liquidate(
-        bytes32 marketKey,
+        address trader,
+        bytes32[] calldata marketKeys,
         address[] calldata destinations,
         bytes[] calldata data
     ) external;
-
-    function updateUnsettledRealizedPnL(address trader) external;
-
 }

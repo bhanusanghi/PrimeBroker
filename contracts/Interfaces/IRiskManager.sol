@@ -11,10 +11,17 @@ struct VerifyCloseResult {
     // bool isValid;
     // int256 finalPnL; // will fill this after tx execution
     int256 closingPrice;
+    address marginToken;
     // int256 orderFee;
     // int256 fundingFee;
     // int256 positionSize;
     // int256 positionNotional;
+}
+struct VerifyLiquidationResult {
+    int256 marginDelta;
+    bool isFullLiquidation;
+    address liquidator;
+    address liquidationPenalty;
 }
 
 interface IRiskManager {
@@ -22,9 +29,15 @@ interface IRiskManager {
         IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) external returns (VerifyTradeResult memory result);
+
+    function liquidate(
+        IMarginAccount marginAccount,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external returns (VerifyLiquidationResult memory result);
 
     function initialMarginFactor() external returns (uint256);
 
@@ -35,21 +48,11 @@ interface IRiskManager {
     // This should affect the Trader's Margin directly.
     function getCurrentDollarMarginInMarkets(
         address marginAccount
-    ) external returns (int256);
+    ) external view returns (int256);
 
     function getUnrealizedPnL(
         address marginAccount
-    ) external returns (int256 totalUnrealizedPnL);
-
-    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
-    //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
-    // This should affect the Trader's Margin directly.
-    function settleRealizedAccounting(address marginAccount) external;
-
-    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
-    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
-    // This should effect the Buying Power of account.
-    function getUnsettledAccounting(address marginAccount) external;
+    ) external view returns (int256 totalUnrealizedPnL);
 
     function getRemainingMarginTransfer(
         address _marginAccount
@@ -66,14 +69,25 @@ interface IRiskManager {
 
     function setCollateralManager(address _collateralManager) external;
 
-    function setVault(address _vault) external;
-
     function verifyClosePosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data
+        address[] calldata destinations,
+        bytes[] calldata data
     ) external returns (VerifyCloseResult memory result);
+
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) external returns (VerifyLiquidationResult memory result);
+
+    function isTraderBankrupt(
+        IMarginAccount marginAccount,
+        uint256 vaultLiability
+    ) external view returns (bool isBankrupt);
 
     function getCollateralInMarkets(
         address _marginAccount
@@ -81,15 +95,19 @@ interface IRiskManager {
 
     function verifyBorrowLimit(address _marginAccount) external view;
 
-    function verifyLiquidation(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
-    ) external returns (VerifyTradeResult memory result);
-
     function getMaxBorrowLimit(
         address _marginAccount
+    ) external view returns (uint256);
+
+    function isAccountLiquidatable(
+        IMarginAccount marginAccount
+    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
+
+    function getMinimumMarginRequirement(
+        address marginAccount
+    ) external view returns (uint256);
+
+    function getAccountValue(
+        address marginAccount
     ) external view returns (uint256);
 }
