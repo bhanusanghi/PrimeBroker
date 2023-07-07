@@ -58,8 +58,6 @@ interface IVault {
     function calcLinearCumulative_RAY() external view returns (uint256);
 
     function getInterestRateModel() external view returns (address);
-
-    function totalBorrowed() external view returns (uint256);
 }
 
 // contract Vault is IVault, ERC4626 {
