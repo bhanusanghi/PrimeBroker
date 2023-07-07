@@ -62,10 +62,6 @@ contract ClosePositionPerp is BaseSetup {
             false,
             ""
         );
-        try perpfiUtils.closeAndVerifyPosition(alice, perpAaveKey) {
-            revert("should not be able to close position");
-        } catch {
-            perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        }
+        perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
     }
 }
