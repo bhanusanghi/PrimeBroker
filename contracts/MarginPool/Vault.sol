@@ -346,7 +346,6 @@ contract Vault is IVault, ERC4626 {
     function calcLinearCumulative_RAY() public view override returns (uint256) {
         //solium-disable-next-line
         uint256 timeDifference = block.timestamp - timestampLastUpdated; // T:[PS-28]
-        console.log("timeDifference", timeDifference);
         return
             calcLinearIndex_RAY(
                 _cumulativeIndex_RAY,
@@ -372,8 +371,21 @@ contract Vault is IVault, ERC4626 {
             timeDifference) /
             RAY /
             SECONDS_PER_YEAR; // T:[PS-29]
-
         return expectedLiquidityLastUpdated + interestAccrued; // T:[PS-29]
+    }
+
+    // @dev Returns time required for interest to be accrued
+    // only for test help
+    function interestToTime(
+        uint256 amount,
+        uint256 interest
+    ) public returns (uint256 time) {
+        uint256 x = (interest * RAY * SECONDS_PER_YEAR);
+        uint256 y = (amount * borrowAPY_RAY);
+        if (x != 0 && y != 0) {
+            time = x / y;
+            time += block.timestamp;
+        }
     }
 
     // Internal functions
@@ -394,17 +406,16 @@ contract Vault is IVault, ERC4626 {
     ///  - stores new cumulative index and timestamp when it was updated
     function _updateBorrowRate(uint256 loss) internal {
         // Update total expectedLiquidityLastUpdated
-        console.log("exLi", expectedLiquidity());
         expectedLiquidityLastUpdated = expectedLiquidity() - loss; // T:[PS-27]
         // Update cumulativeIndex
         _cumulativeIndex_RAY = calcLinearCumulative_RAY(); // T:[PS-27]
         // update borrow APY
-        console.log("_cumulativeIndex_RAY", _cumulativeIndex_RAY);
+        // console.log("_cumulativeIndex_RAY", _cumulativeIndex_RAY);
         borrowAPY_RAY = interestRateModel.calcBorrowRate(
             expectedLiquidityLastUpdated,
             totalAssets()
         ); // T:[PS-27]
-        console.log("borrowAPY_RAY", borrowAPY_RAY);
+        // console.log("borrowAPY_RAY", borrowAPY_RAY);
         timestampLastUpdated = block.timestamp; // T:[PS-27]
     }
 }

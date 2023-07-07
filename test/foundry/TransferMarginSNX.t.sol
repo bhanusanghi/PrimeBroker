@@ -84,7 +84,7 @@ contract TransferMarginSNX is BaseSetup {
                     18
                 )
         );
-      
+
         snxUtils.verifyExcessMarginRevert(
             bob,
             snxUniKey,
@@ -262,8 +262,6 @@ contract TransferMarginSNX is BaseSetup {
                 18
             ) + margin) * 9) / 10
         );
-        console2.log("maxTransferrableMargin");
-        console2.logInt(maxTransferrableMargin);
         snxUtils.updateAndVerifyMargin(
             bob,
             snxUniKey,
