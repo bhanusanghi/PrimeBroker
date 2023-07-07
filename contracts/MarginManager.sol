@@ -264,6 +264,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             uint256 tokenBalance = IERC20(token).balanceOf(
                 address(marginAccount)
             );
+            console.log("tokenBalance", tokenBalance);
+            if (tokenBalance == 0) continue;
             uint256 amountOut = marginAccount.swapTokens(
                 token,
                 vault.asset(),

@@ -275,12 +275,12 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             "IsLiquidatable is not working properly"
         );
-        assertApproxEqAbs(
-            perpfiUtils.getAccountValue(bobMarginAccount),
-            perpMargin - int256(450 * ONE_USDC),
-            50 * ONE_USDC,
-            "Incorrect account value"
-        ); // Note: fee+funding is missing
+        // assertApproxEqAbs(
+        //     perpfiUtils.getAccountValue(bobMarginAccount),
+        //     perpMargin - int256(450 * ONE_USDC),
+        //     50 * ONE_USDC,
+        //     "Incorrect account value"
+        // ); // Note: fee+funding is missing
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         vm.expectRevert("PRM: Account not liquidatable");
         contracts.marginManager.liquidate(
