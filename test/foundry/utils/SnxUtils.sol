@@ -189,7 +189,7 @@ contract SnxUtils is Test, IEvents {
         bytes32 marketKey
     ) public view returns (int256 margin) {
         address market = contracts.marketManager.getMarketAddress(marketKey);
-        (, , uint256 remainingMargin, , ) = IFuturesMarket(market).positions(
+        (uint256 remainingMargin, ) = IFuturesMarket(market).remainingMargin(
             marginAccount
         );
         margin = int256(remainingMargin);
@@ -241,16 +241,12 @@ contract SnxUtils is Test, IEvents {
                 true, // there is a diff of 1 wei in the value due to rounding.
                 address(contracts.marginManager)
             );
-            int256 marginDollarValue = deltaMargin.convertTokenDecimals(
-                18,
-                ERC20(contracts.vault.asset()).decimals()
-            );
             emit MarginTransferred(
                 marginAccount,
                 marketKey,
                 susd,
                 deltaMargin,
-                marginDollarValue
+                deltaMargin
             );
             contracts.marginManager.openPosition(marketKey, destinations, data);
             verifyMargin(

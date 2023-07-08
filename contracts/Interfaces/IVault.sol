@@ -31,13 +31,14 @@ interface IVault {
         uint256 loss
     );
 
-    function borrow(uint256 amount, address borrower) external;
+    function borrow(address borrower, uint256 amount) external;
 
     function repay(
+        address borrower,
         uint256 amount,
-        uint256 interestAccrued,
-        uint256 loss,
-        uint256 profit
+        uint256 interestAccrued
+        // uint256 loss,
+        // uint256 profit
     ) external;
 
     // view/getters
@@ -46,5 +47,8 @@ interface IVault {
     function calcLinearCumulative_RAY() external view returns (uint256);
 
     function asset() external view returns (address);
-    // setters
+
+    function _cumulativeIndex_RAY() external view returns (uint256);
+
+    function getInterestRateModel() external view returns (address);
 }

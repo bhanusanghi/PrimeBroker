@@ -43,21 +43,10 @@ interface IMarginAccount {
         bytes32 marketKey
     ) external view returns (Position memory);
 
-    function totalDollarMarginInMarkets() external view returns (int256);
-
-    function getTotalOpeningNotional(
-        bytes32[] memory _allowedMarkets
-    ) external view returns (int256 totalNotional);
-
     function existingPosition(bytes32 marketKey) external view returns (bool);
-
-    function updateDollarMarginInMarkets(int256 transferredMargin) external;
 
     // function updateMarginInMarket(address market, int256 transferredMargin)
     //     external;
-
-    function updateUnsettledRealizedPnL(int256 _realizedPnL) external;
-
     function execMultiTx(
         address[] calldata destinations,
         bytes[] memory dataArray
@@ -69,11 +58,10 @@ interface IMarginAccount {
 
     function removePosition(bytes32 market) external;
 
-    function getTotalOpeningAbsoluteNotional(
-        bytes32[] memory _allowedMarkets
-    ) external view returns (uint256 totalNotional);
-
-    function unsettledRealizedPnL() external view returns (int256);
+    function getTotalOpeningAbsoluteNotional()
+        external
+        view
+        returns (uint256 totalNotional);
 
     function swapTokens(
         address tokenIn,
@@ -83,4 +71,10 @@ interface IMarginAccount {
     ) external returns (uint256 amountOut);
 
     function isActivePosition(bytes32 market) external view returns (bool);
+
+    function setTokenAllowance(
+        address token,
+        address spender,
+        uint256 amount
+    ) external;
 }

@@ -1,0 +1,509 @@
+{
+  "chainId": 420,
+  "collaterals": [
+    {
+      "address": "0x3DB9224ae32D8f1c825fCA9138bb21d4983F42c6",
+      "decimals": 6,
+      "name": "Test Tether",
+      "priceFeedAddress": "0x7539E08d3e5867C06aFC11A7d31C23364A6300A4",
+      "symbol": "TestUSDT"
+    },
+    {
+      "address": "0x648FD1C74213F3B7Bb14B2D7C38bF062C8dfB4F9",
+      "decimals": 8,
+      "name": "Test Wrapped BTC",
+      "priceFeedAddress": "0x48234EE3de52395AED8f8ACBaa0A50D226e91f23",
+      "symbol": "TestWBTC"
+    },
+    {
+      "address": "0x4200000000000000000000000000000000000006",
+      "decimals": 18,
+      "name": "Wrapped Ether",
+      "priceFeedAddress": "0x985852b1B17d8389f8D85D3edaFC0aCbBfc2bfB5",
+      "symbol": "WETH"
+    },
+    {
+      "address": "0x320B88D360660F81615930f41028aE6359F825Ce",
+      "decimals": 18,
+      "name": "Frax",
+      "priceFeedAddress": "0x7539E08d3e5867C06aFC11A7d31C23364A6300A4",
+      "symbol": "FRAX"
+    },
+    {
+      "address": "0x9E16Fc70FAb64414C59E7423d494f8E9Ba5632A5",
+      "decimals": 6,
+      "name": "USDT",
+      "priceFeedAddress": "0x7539E08d3e5867C06aFC11A7d31C23364A6300A4",
+      "symbol": "USDT"
+    }
+  ],
+  "contracts": {
+    "AAVEUSDChainlinkPriceFeedV3": {
+      "address": "0x22fcF7d2bDb26bA452c7265884aa362AD6E3d775",
+      "createdBlockNumber": 8924574,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "AAVEUSDMarketPriceFeedDispatcher": {
+      "address": "0x115A1B79B95755Cdab5F42319Da96D7fa8485F3c",
+      "createdBlockNumber": 8924587,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "APEUSDChainlinkPriceFeedV3": {
+      "address": "0x655e0c50c1f2C231aEadfA95ae4706dA45B4e6c7",
+      "createdBlockNumber": 8924598,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "APEUSDMarketPriceFeedDispatcher": {
+      "address": "0xFe9f16536dF21736eCf2C7889d238D6De9472fC4",
+      "createdBlockNumber": 8924611,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "AVAXUSDChainlinkPriceFeedV3": {
+      "address": "0x664e31F34a448181432e0DbBb3dE93eCf0A485a0",
+      "createdBlockNumber": 8924621,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "AVAXUSDMarketPriceFeedDispatcher": {
+      "address": "0xd5Ba780bE92036889d1dAd121c0a8EfF7E14E33b",
+      "createdBlockNumber": 8924635,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "AccountBalance": {
+      "address": "0xF59f28F21ad8905a7C797BeE2aeABccb53A5650a",
+      "createdBlockNumber": 1573184,
+      "name": "contracts/AccountBalance.sol:AccountBalance"
+    },
+    "BTCUSDChainlinkPriceFeed": {
+      "address": "0x33dF4B30FC3dcBEe5A1AF28B5969eAe1B3AA04f1",
+      "createdBlockNumber": 1573319,
+      "name": "contracts/ChainlinkPriceFeed.sol:ChainlinkPriceFeed"
+    },
+    "BTCUSDChainlinkPriceFeedV1R1": {
+      "address": "0x48234EE3de52395AED8f8ACBaa0A50D226e91f23",
+      "createdBlockNumber": 5163618,
+      "name": "contracts/ChainlinkPriceFeedV1R1.sol:ChainlinkPriceFeedV1R1"
+    },
+    "BTCUSDChainlinkPriceFeedV3": {
+      "address": "0x1e0F89914266A54BE57CE2E197CA383428C383F9",
+      "createdBlockNumber": 8924645,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "BTCUSDMarketPriceFeedDispatcher": {
+      "address": "0x9547dE3C54cd73326ea2E5B71C202430315CD986",
+      "createdBlockNumber": 8924658,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "ClearingHouse": {
+      "address": "0xaD2663386fe55e920c81D55Fc342fC50F91D86Ca",
+      "createdBlockNumber": 1573208,
+      "name": "contracts/ClearingHouse.sol:ClearingHouse"
+    },
+    "ClearingHouseConfig": {
+      "address": "0xE37366F712Ee3C8147ca974c42135C70d3BFF307",
+      "createdBlockNumber": 1573114,
+      "name": "contracts/ClearingHouseConfig.sol:ClearingHouseConfig"
+    },
+    "CollateralManager": {
+      "address": "0xD010D8d9FaE384F854DF9d8358F279B0743CF95c",
+      "createdBlockNumber": 1574932,
+      "name": "contracts/CollateralManager.sol:CollateralManager"
+    },
+    "DAIUSDChainlinkPriceFeedV3": {
+      "address": "0xd911BF9e999AAd1f136373F6647ec62eeDB7C7d6",
+      "createdBlockNumber": 8925435,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "DAIUSDMarketPriceFeedDispatcher": {
+      "address": "0x7DED3E79e2e25b7F19A1BaAe7185284467081ff6",
+      "createdBlockNumber": 8925448,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "DOGE2USDChainlinkPriceFeedV2": {
+      "address": "0x2Ca59474bDc3E7b1b2e42A38b513090CBAAe599E",
+      "createdBlockNumber": 3488204,
+      "name": "contracts/ChainlinkPriceFeedV2.sol:ChainlinkPriceFeedV2"
+    },
+    "DOGE3USDChainlinkPriceFeedV3": {
+      "address": "0xF752f4e1b1A641D33e1ec564A207209032336F2f",
+      "createdBlockNumber": 8924668,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "DOGE3USDMarketPriceFeedDispatcher": {
+      "address": "0x784D95d5325ce586BF8CDc096753f915793E867b",
+      "createdBlockNumber": 8924682,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "DOGEUSDChainlinkPriceFeedV3": {
+      "address": "0xc2B1ed6fc4D2251E009193221157976E7caCEE6d",
+      "createdBlockNumber": 8924692,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "DOGEUSDMarketPriceFeedDispatcher": {
+      "address": "0x045680E3DFba21Ba190040652a0eBdfb63E3f95d",
+      "createdBlockNumber": 8924705,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "DelegateApproval": {
+      "address": "0x39A7d8BF822C0f98c56370eaeA171081dC5F56C9",
+      "createdBlockNumber": 1575011,
+      "name": "contracts/DelegateApproval.sol:DelegateApproval"
+    },
+    "ETHUSDChainlinkPriceFeed": {
+      "address": "0x458b5c9dAe0e61e03B1c3648aA054C3fC6D5619c",
+      "createdBlockNumber": 1573321,
+      "name": "contracts/ChainlinkPriceFeed.sol:ChainlinkPriceFeed"
+    },
+    "ETHUSDChainlinkPriceFeedV1R1": {
+      "address": "0x985852b1B17d8389f8D85D3edaFC0aCbBfc2bfB5",
+      "createdBlockNumber": 5163124,
+      "name": "contracts/ChainlinkPriceFeedV1R1.sol:ChainlinkPriceFeedV1R1"
+    },
+    "ETHUSDChainlinkPriceFeedV3": {
+      "address": "0xb382eD031C57D59965f61618e6dB9F7B512d7150",
+      "createdBlockNumber": 8924715,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "ETHUSDMarketPriceFeedDispatcher": {
+      "address": "0x3d42a6955edd3AbC2c46A899C1a0041240cDe025",
+      "createdBlockNumber": 8925329,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "Exchange": {
+      "address": "0x72F75fF6891aB0a58e373Eed0eed5e7939270751",
+      "createdBlockNumber": 1573176,
+      "name": "contracts/Exchange.sol:Exchange"
+    },
+    "InsuranceFund": {
+      "address": "0x05475a2119E2E94d7511CAB215F98589D4557B89",
+      "createdBlockNumber": 1573154,
+      "name": "contracts/InsuranceFund.sol:InsuranceFund"
+    },
+    "LINKUSDChainlinkPriceFeedV3": {
+      "address": "0x3772fAB7cdf1f3370f606ECbCA8A1c400917703B",
+      "createdBlockNumber": 8925341,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "LINKUSDMarketPriceFeedDispatcher": {
+      "address": "0xB211D557e4A2fF8920C62EeDE3E6c1B4D0512d3e",
+      "createdBlockNumber": 8925355,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "MATICUSDChainlinkPriceFeedV3": {
+      "address": "0x2Af7e359E840b74B8Ea119E85241E1D7bB22F5A1",
+      "createdBlockNumber": 8925365,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "MATICUSDMarketPriceFeedDispatcher": {
+      "address": "0xCB36D88374526FedE718FaA11BFC91885b6Fb776",
+      "createdBlockNumber": 8925378,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "MarketRegistry": {
+      "address": "0xE3376C2067115c86020339BC6a3879B4778f5b15",
+      "createdBlockNumber": 1573135,
+      "name": "contracts/MarketRegistry.sol:MarketRegistry"
+    },
+    "OrderBook": {
+      "address": "0x5A0f117A3A718DC827Afa08DA6BB88B91a06186a",
+      "createdBlockNumber": 1573165,
+      "name": "contracts/OrderBook.sol:OrderBook"
+    },
+    "PriceFeedUpdater": {
+      "address": "0x76B21C3D690804dDf55dcc9450db73C33860476b",
+      "createdBlockNumber": 9096120,
+      "name": "contracts/PriceFeedUpdater.sol:PriceFeedUpdater"
+    },
+    "QuoteToken": {
+      "address": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "createdBlockNumber": 1573122,
+      "name": "contracts/QuoteToken.sol:QuoteToken"
+    },
+    "SOLUSDChainlinkPriceFeedV3": {
+      "address": "0x4F3E5668B49D39c22D1323b82A575147e1CBf4F0",
+      "createdBlockNumber": 8925388,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "SOLUSDMarketPriceFeedDispatcher": {
+      "address": "0x355bf63c7c9D7AAAcc0f82240C9401DEEEa567FE",
+      "createdBlockNumber": 8925401,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "UNIUSDChainlinkPriceFeedV3": {
+      "address": "0x582cCeE62ac5383B0b0171c03140d5188AA71e4d",
+      "createdBlockNumber": 8925412,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "UNIUSDMarketPriceFeedDispatcher": {
+      "address": "0xA5D5eb764baed5a5f9594E92A4A9DDF1bfb283FE",
+      "createdBlockNumber": 8925425,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "USDTUSDChainlinkPriceFeed": {
+      "address": "0x7539E08d3e5867C06aFC11A7d31C23364A6300A4",
+      "createdBlockNumber": 1573324,
+      "name": "contracts/ChainlinkPriceFeed.sol:ChainlinkPriceFeed"
+    },
+    "USDTUSDChainlinkPriceFeedV3": {
+      "address": "0x444A292e10ACE20A6C399a63824d3f01A262fD48",
+      "createdBlockNumber": 8925459,
+      "name": "contracts/ChainlinkPriceFeedV3.sol:ChainlinkPriceFeedV3"
+    },
+    "USDTUSDMarketPriceFeedDispatcher": {
+      "address": "0x3292562A2932AC04392f9Be8C038a214D3c3D788",
+      "createdBlockNumber": 8925472,
+      "name": "contracts/PriceFeedDispatcher.sol:PriceFeedDispatcher"
+    },
+    "Vault": {
+      "address": "0x253D7430118Be0B961A5e938d003C6d690d7ce99",
+      "createdBlockNumber": 1573199,
+      "name": "contracts/Vault.sol:Vault"
+    },
+    "vAAVE": {
+      "address": "0x8aDaDACfdBd44070Ab2C131B5c229ef1108a0A5b",
+      "createdBlockNumber": 1573501,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vAAVEvUSDUniswapV3PriceFeed": {
+      "address": "0xC58a0cBBBc161A387A0d6FC6611dd4696F77f4cA",
+      "createdBlockNumber": 6113745,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vAPE": {
+      "address": "0xc5e41879045be3714Bb53b8678F911A8465637c5",
+      "createdBlockNumber": 1573513,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vAPEvUSDUniswapV3PriceFeed": {
+      "address": "0x75289a3E0D04320f32A5a751cA6613982bFf486e",
+      "createdBlockNumber": 6113752,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vAVAX": {
+      "address": "0x204Ff742d3861c5F5003EB89c852348F11A81d7c",
+      "createdBlockNumber": 1573524,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vAVAXvUSDUniswapV3PriceFeed": {
+      "address": "0xbD21D227d989A1Ee1BC717F1658474c487A06993",
+      "createdBlockNumber": 6113758,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vBTC": {
+      "address": "0x0F7786d5669aF06A92f6aE468Fd9c2D839e5e5FA",
+      "createdBlockNumber": 1573536,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vBTCvUSDUniswapV3PriceFeed": {
+      "address": "0x4431F3FEAF8bD82bDee0688f75Da6Fd0e8c357ea",
+      "createdBlockNumber": 6113764,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vDAI": {
+      "address": "0xbF36B0CF7c0D8655316D3cb4Bd901fa684ddCE12",
+      "createdBlockNumber": 8224432,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vDAIvUSDUniswapV3PriceFeed": {
+      "address": "0x44e0C2d68119E3670eb6d5cE24C7fa4179BdDCC0",
+      "createdBlockNumber": 8228494,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vDOGE": {
+      "address": "0xCD357f38313E10F7B015f8be248fFe3963b8Bb67",
+      "createdBlockNumber": 3487585,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vDOGE2": {
+      "address": "0x3131E84A7F7F3448321c569826727EE061992b8b",
+      "createdBlockNumber": 3487265,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vDOGE3": {
+      "address": "0x7Ef6FA5Cf6d70B349A3cac2B24Ab381c8549040c",
+      "createdBlockNumber": 5727244,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vDOGE3vUSDUniswapV3PriceFeed": {
+      "address": "0x7025DE890a35ec6F9AffB13FCF0F697e9a7fF694",
+      "createdBlockNumber": 6113771,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vDOGEvUSDUniswapV3PriceFeed": {
+      "address": "0x238Ea8E68b8EFD13E2Fe64ebb8129798BD15193E",
+      "createdBlockNumber": 6113777,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vETH": {
+      "address": "0x60A233b9b94c67e94e0a269429Fb40004D4BA494",
+      "createdBlockNumber": 1573545,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vETHvUSDUniswapV3PriceFeed": {
+      "address": "0x51705d391e0d01fA684366407704De0856E4dBaB",
+      "createdBlockNumber": 6113783,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vLINK": {
+      "address": "0x2c3F47dde4978bC3459401Ec7e9371834465d9d3",
+      "createdBlockNumber": 1573555,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vLINKvUSDUniswapV3PriceFeed": {
+      "address": "0xAD7a96b2b974a0E6860aF8E263a98f7BEa4E059F",
+      "createdBlockNumber": 6113789,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vMATIC": {
+      "address": "0x77c2136c7f88645aE48cfFDCAa1A30bb8b7639F0",
+      "createdBlockNumber": 1573582,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vMATICvUSDUniswapV3PriceFeed": {
+      "address": "0x2942219FCE864d26b48DC86F0A9322E2364A9d26",
+      "createdBlockNumber": 6113795,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vSOL": {
+      "address": "0xF02E22DaB456DA50D9824165bBAC5aE1738dCae3",
+      "createdBlockNumber": 1573592,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vSOLvUSDUniswapV3PriceFeed": {
+      "address": "0x165A5b300Bfd95F5A003591e42C42DB1c54f44a4",
+      "createdBlockNumber": 6113801,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vUNI": {
+      "address": "0x36ac509E004D2AC5632465206aC7E3eF23B8113f",
+      "createdBlockNumber": 3894908,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vUNIvUSDUniswapV3PriceFeed": {
+      "address": "0xfdDE7D93230200CD54ba2a35981a8e826cd1489f",
+      "createdBlockNumber": 6113807,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    },
+    "vUSDT": {
+      "address": "0x74Bb66f2De6D27f928FC13ddDA48483d1b06Be21",
+      "createdBlockNumber": 8229875,
+      "name": "contracts/BaseToken.sol:BaseToken"
+    },
+    "vUSDTvUSDUniswapV3PriceFeed": {
+      "address": "0xC954B6cfF381266184933be0A1d4aF460feda324",
+      "createdBlockNumber": 8231066,
+      "name": "contracts/UniswapV3PriceFeed.sol:UniswapV3PriceFeed"
+    }
+  },
+  "externalContracts": {
+    "DefaultProxyAdmin": "0xFAa56A59Fe9e3802b77d512201Dd49f8F8762Fbf",
+    "FRAX": "0x320B88D360660F81615930f41028aE6359F825Ce",
+    "TestUSDT": "0x3DB9224ae32D8f1c825fCA9138bb21d4983F42c6",
+    "TestUST": "0x75eB27F52C7145E7Be1ed4CbeCe1874E06A7A46A",
+    "TestWBTC": "0x648FD1C74213F3B7Bb14B2D7C38bF062C8dfB4F9",
+    "USDC": "0xe5e0DE0ABfEc2FFFaC167121E51d7D8f57C8D9bC",
+    "USDT": "0x9E16Fc70FAb64414C59E7423d494f8E9Ba5632A5",
+    "UniswapV3Factory": "0xB656dA17129e7EB733A557f4EBc57B76CFbB5d10",
+    "WETH9": "0x4200000000000000000000000000000000000006"
+  },
+  "network": "optimism-goerli",
+  "pools": [
+    {
+      "address": "0xa85c0cEc7867F5075283b7571dc5fFa239BEC554",
+      "baseAddress": "0x8aDaDACfdBd44070Ab2C131B5c229ef1108a0A5b",
+      "baseSymbol": "vAAVE",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x09ea17864cFD4A43735c6157b90287BD067c9b0D",
+      "baseAddress": "0xc5e41879045be3714Bb53b8678F911A8465637c5",
+      "baseSymbol": "vAPE",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x378Ed6f1b4F88ed8538fa1Ef28F08907EC63984D",
+      "baseAddress": "0x204Ff742d3861c5F5003EB89c852348F11A81d7c",
+      "baseSymbol": "vAVAX",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x2d2F692A9Be098F593B738A78aEf1f1D1cdb395e",
+      "baseAddress": "0x0F7786d5669aF06A92f6aE468Fd9c2D839e5e5FA",
+      "baseSymbol": "vBTC",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x0D053E0Da823ca2B22A354EaCC882AD6eBf31a1e",
+      "baseAddress": "0xbF36B0CF7c0D8655316D3cb4Bd901fa684ddCE12",
+      "baseSymbol": "vDAI",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0xdC05a586BbadeE42D3F665936b50066D2e17D44b",
+      "baseAddress": "0x3131E84A7F7F3448321c569826727EE061992b8b",
+      "baseSymbol": "vDOGE2",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0xEd658e15D95baDC8EBBa51c51654C263E78311c5",
+      "baseAddress": "0x7Ef6FA5Cf6d70B349A3cac2B24Ab381c8549040c",
+      "baseSymbol": "vDOGE3",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0xD29979037cbE85727bFCE00D7E2f961470377b0B",
+      "baseAddress": "0xCD357f38313E10F7B015f8be248fFe3963b8Bb67",
+      "baseSymbol": "vDOGE",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0xf294fb6F5b9Ef157B22Cc6E86276E106298f40De",
+      "baseAddress": "0x60A233b9b94c67e94e0a269429Fb40004D4BA494",
+      "baseSymbol": "vETH",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x7269eb0A9F2Fd410f8b166149cCB05AE979b3E9e",
+      "baseAddress": "0x2c3F47dde4978bC3459401Ec7e9371834465d9d3",
+      "baseSymbol": "vLINK",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0xE7BFA907610a51b3322e3e99346b9464682c1319",
+      "baseAddress": "0x77c2136c7f88645aE48cfFDCAa1A30bb8b7639F0",
+      "baseSymbol": "vMATIC",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0xb1D70667B35aF5772db4b6fAab831D1e042a8A06",
+      "baseAddress": "0xF02E22DaB456DA50D9824165bBAC5aE1738dCae3",
+      "baseSymbol": "vSOL",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x1b800CaF5CbEb71a69Bda8EF014A8445131176ad",
+      "baseAddress": "0x36ac509E004D2AC5632465206aC7E3eF23B8113f",
+      "baseSymbol": "vUNI",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    },
+    {
+      "address": "0x08A68e8e109543D4B0f34D3f8048829dC2484c57",
+      "baseAddress": "0x74Bb66f2De6D27f928FC13ddDA48483d1b06Be21",
+      "baseSymbol": "vUSDT",
+      "quoteAddress": "0xF1c771713B94d57A1fbb22ddc67920458C455b41",
+      "quoteSymbol": "vUSD"
+    }
+  ]
+}

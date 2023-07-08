@@ -11,6 +11,7 @@ struct VerifyCloseResult {
     // bool isValid;
     // int256 finalPnL; // will fill this after tx execution
     int256 closingPrice;
+    address marginToken;
     // int256 orderFee;
     // int256 fundingFee;
     // int256 positionSize;
@@ -28,8 +29,7 @@ interface IRiskManager {
         IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) external returns (VerifyTradeResult memory result);
 
     function liquidate(
@@ -67,10 +67,6 @@ interface IRiskManager {
         bytes32 _marketKey
     ) external view returns (Position memory marketPosition);
 
-    function setCollateralManager(address _collateralManager) external;
-
-    function setVault(address _vault) external;
-
     function verifyClosePosition(
         IMarginAccount marginAcc,
         bytes32 marketKey,
@@ -104,4 +100,12 @@ interface IRiskManager {
     function isAccountLiquidatable(
         IMarginAccount marginAccount
     ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
+
+    function getMinimumMarginRequirement(
+        address marginAccount
+    ) external view returns (uint256);
+
+    function getAccountValue(
+        address marginAccount
+    ) external view returns (uint256);
 }

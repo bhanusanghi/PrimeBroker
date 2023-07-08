@@ -103,8 +103,7 @@ interface IEvents {
     event CollateralAdded(
         address indexed,
         address indexed,
-        uint256 indexed,
-        uint256
+        uint256 indexed tokenAmount
     );
     // ============= Margin Manager Events =============
     event MarginTransferred(

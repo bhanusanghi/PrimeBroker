@@ -15,7 +15,9 @@ import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
-contract MarginAccount is IMarginAccount {
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
+
+contract MarginAccount is IMarginAccount, AccessControl {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -34,8 +36,6 @@ contract MarginAccount is IMarginAccount {
     // perp.eth, Position
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
-    // dollar value in 6 decimal digits.
-    int256 public totalDollarMarginInMarkets;
 
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
      serves multiple purposes
@@ -61,6 +61,23 @@ contract MarginAccount is IMarginAccount {
         // marketManager = IMarketManager(_marketManager);
     }
 
+    modifier onlyMarginManager() {
+        require(
+            marginManager == msg.sender,
+            "MarginAccount: Only margin manager"
+        );
+        _;
+    }
+    modifier onlyCollateralManager() {
+        require(
+            contractRegistry.getContractByName(
+                keccak256("CollateralManager")
+            ) == msg.sender,
+            "MarginAccount: Only risk manager"
+        );
+        _;
+    }
+
     function getPosition(
         bytes32 market
     ) public view override returns (Position memory position) {
@@ -77,25 +94,18 @@ contract MarginAccount is IMarginAccount {
         return existingPosition[marketKey];
     }
 
-    function getTotalOpeningAbsoluteNotional(
-        bytes32[] memory _allowedMarkets
-    ) public view override returns (uint256 totalNotional) {
-        uint256 len = _allowedMarkets.length;
+    function getTotalOpeningAbsoluteNotional()
+        public
+        view
+        override
+        returns (uint256 totalNotional)
+    {
+        bytes32[] memory marketKeys = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getAllMarketKeys();
+        uint256 len = marketKeys.length;
         for (uint256 i = 0; i < len; i++) {
-            totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].openNotional.abs()
-            );
-        }
-    }
-
-    function getTotalOpeningNotional(
-        bytes32[] memory _allowedMarkets
-    ) public view override returns (int256 totalNotional) {
-        uint256 len = _allowedMarkets.length;
-        for (uint256 i = 0; i < len; i++) {
-            totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].openNotional
-            );
+            totalNotional += positions[marketKeys[i]].openNotional.abs();
         }
     }
 
@@ -103,7 +113,7 @@ contract MarginAccount is IMarginAccount {
         address from,
         address token,
         uint256 amount
-    ) external override {
+    ) external override onlyCollateralManager {
         // acl - only collateral manager.
         // convert
         IERC20(token).safeTransferFrom(from, address(this), amount);
@@ -118,44 +128,40 @@ contract MarginAccount is IMarginAccount {
     //     IERC20(token).approve(protocol, type(uint256).max);
     // }
 
+    // Cannot be only MarginManager.
+    // Risk Manager also calls this.
     function transferTokens(
         address token,
         address to,
-        uint256 amount // onlyMarginManager
-    ) external {
+        uint256 amount
+    ) external onlyCollateralManager {
         IERC20(token).safeTransfer(to, amount);
     }
 
     function executeTx(
         address destination,
         bytes memory data
-    ) external returns (bytes memory) {
-        // onlyMarginManager
+    ) external override onlyMarginManager returns (bytes memory) {
         bytes memory returnData = destination.functionCall(data);
-        // make post trade chnges
-        // add new position in array, update leverage int, ext
         return returnData;
     }
 
     function execMultiTx(
         address[] calldata destinations,
         bytes[] memory dataArray
-    ) external override returns (bytes memory returnData) {
-        // onlyMarginManager
+    ) external override onlyMarginManager returns (bytes memory returnData) {
         uint8 len = destinations.length.toUint8();
         for (uint8 i = 0; i < len; i++) {
+            if (destinations[i] == address(0)) continue;
             returnData = destinations[i].functionCall(dataArray[i]);
         }
-        // add new position in array, update leverage int, ext
         return returnData;
     }
 
     function addPosition(
         bytes32 market,
         Position memory position
-    ) public override {
-        // only riskmanagger
-
+    ) external override onlyMarginManager {
         require(!existingPosition[market], "Existing position");
         positions[market] = position;
         existingPosition[market] = true;
@@ -164,8 +170,7 @@ contract MarginAccount is IMarginAccount {
     function updatePosition(
         bytes32 marketKey,
         Position memory position
-    ) public override {
-        // only riskmanagger
+    ) external override onlyMarginManager {
         // require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
         positions[marketKey].protocol = positions[marketKey].protocol; //@note @0xAshish rewriting it as of now will remove it later
         positions[marketKey].openNotional = position.openNotional;
@@ -173,37 +178,33 @@ contract MarginAccount is IMarginAccount {
         positions[marketKey].orderFee = position.orderFee;
     }
 
-    function removePosition(bytes32 marketKey) public override {
+    function removePosition(
+        bytes32 marketKey
+    ) public override onlyMarginManager {
         // only riskmanagger
         existingPosition[marketKey] = false;
         delete positions[marketKey];
     }
 
     /// @dev Updates borrowed amount. Restricted for current credit manager only
-    /// @param totalBorrowedAmount Amount which pool lent to credit account
+    /// @param totalBorrowedX18Amount Amount which pool lent to credit account
     function updateBorrowData(
-        uint256 totalBorrowedAmount,
+        uint256 totalBorrowedX18Amount,
         uint256 _cumulativeIndexAtOpen
-    ) external override {
+    ) external override onlyMarginManager {
         // add acl check
-        totalBorrowed = totalBorrowedAmount;
+        totalBorrowed = totalBorrowedX18Amount;
         cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
     }
 
-    function updateDollarMarginInMarkets(
-        int256 transferredMargin
-    ) public override {
-        // require(
-        //     marginInMarket[market].add(transferredMargin) > 0,
-        //     "MA: Cannot have negative margin In protocol"
-        // );
-        totalDollarMarginInMarkets = totalDollarMarginInMarkets.add(
-            transferredMargin
-        );
-    }
-
-    function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
-        unsettledRealizedPnL = _realizedPnL;
+    function setTokenAllowance(
+        address token,
+        address spender,
+        uint256 amount
+    ) public override onlyMarginManager {
+        // only marginManager
+        // TODO - add acl
+        IERC20(token).approve(spender, type(uint256).max);
     }
 
     function swapTokens(
@@ -211,9 +212,7 @@ contract MarginAccount is IMarginAccount {
         address tokenOut,
         uint256 amountIn,
         uint256 minAmountOut
-    ) public returns (uint256 amountOut) {
-        // only marginManager.
-
+    ) public onlyMarginManager returns (uint256 amountOut) {
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
@@ -225,7 +224,6 @@ contract MarginAccount is IMarginAccount {
             address(pool),
             tokenOut
         );
-
         IERC20(tokenIn).approve(address(pool), amountIn);
         amountOut = pool.exchange_underlying(
             tokenInIndex, // TODO - correct this

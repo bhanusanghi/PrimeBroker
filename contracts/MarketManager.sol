@@ -1,6 +1,7 @@
 pragma solidity ^0.8.10;
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
+import "hardhat/console.sol";
 
 contract MarketManager is IMarketManager, AccessControl {
     // TODO - move to single acl point.
@@ -42,10 +43,10 @@ contract MarketManager is IMarketManager, AccessControl {
             "MM: Market already exists"
         );
         require(_market != address(0), "MM: Adding Zero Address as Market");
-        require(
-            _baseToken != address(0),
-            "MM: Adding Zero Address as Base token"
-        );
+        // require(
+        //     _baseToken != address(0),
+        //     "MM: Adding Zero Address as Base token"
+        // );
         require(
             _marginToken != address(0),
             "MM: Adding Zero Address as Margin token"

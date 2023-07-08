@@ -19,11 +19,10 @@ library PercentageMath {
      * @param percentage The percentage of the value to be calculated
      * @return The percentage of value
      **/
-    function percentMul(uint256 value, uint256 percentage)
-        internal
-        pure
-        returns (uint256)
-    {
+    function percentMul(
+        uint256 value,
+        uint256 percentage
+    ) internal pure returns (uint256) {
         if (value == 0 || percentage == 0) {
             return 0; // T:[PM-1]
         }
@@ -42,11 +41,10 @@ library PercentageMath {
      * @param percentage The percentage of the value to be calculated
      * @return The value divided the percentage
      **/
-    function percentDiv(uint256 value, uint256 percentage)
-        internal
-        pure
-        returns (uint256)
-    {
+    function percentDiv(
+        uint256 value,
+        uint256 percentage
+    ) internal pure returns (uint256) {
         // require(percentage != 0, Errors.MATH_DIVISION_BY_ZERO); // T:[PM-2]
         uint256 halfPercentage = percentage / 2; // T:[PM-2]
 

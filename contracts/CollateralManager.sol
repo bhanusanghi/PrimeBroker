@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.10;
-
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
@@ -17,8 +17,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 
-// @TODO - Add ACL checks.
-contract CollateralManager is ICollateralManager {
+contract CollateralManager is ICollateralManager, AccessControl {
     using SafeMath for uint256;
     using SafeMath for int256;
     using Math for uint256;
@@ -27,6 +26,8 @@ contract CollateralManager is ICollateralManager {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
+
     // TODO - Move all these to Contract Registry.
     MarginManager public marginManager;
     IRiskManager public riskManager;
@@ -41,10 +42,9 @@ contract CollateralManager is ICollateralManager {
     mapping(address => mapping(address => int256)) internal _balance;
     // mapping(address => mapping(address => uint256)) internal _balance;
     event CollateralAdded(
-        address indexed,
-        address indexed,
-        uint256 indexed,
-        uint256
+        address indexed marginAccount,
+        address indexed marginToken,
+        uint256 indexed tokenAmount
     );
 
     constructor(
@@ -57,6 +57,7 @@ contract CollateralManager is ICollateralManager {
         riskManager = IRiskManager(_riskManager);
         priceOracle = IPriceOracle(_priceOracle);
         vault = IVault(_vault);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
     function updateCollateralAmount(uint256 amount) external {
@@ -66,7 +67,7 @@ contract CollateralManager is ICollateralManager {
     function addAllowedCollaterals(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
-    ) public {
+    ) public onlyRole(REGISTRAR_ROLE) {
         require(
             _allowed.length == _collateralWeights.length,
             "CM: No array parity"
@@ -89,20 +90,13 @@ contract CollateralManager is ICollateralManager {
     function addAllowedCollateral(
         address _allowed,
         uint256 _collateralWeight
-    ) public {
+    ) public onlyRole(REGISTRAR_ROLE) {
         require(_allowed != address(0), "CM: Zero Address");
         require(isAllowed[_allowed] == false, "CM: Collateral already added");
         allowedCollateral.push(_allowed);
         collateralWeight[_allowed] = _collateralWeight;
         isAllowed[_allowed] = true;
         _decimals[_allowed] = ERC20(_allowed).decimals();
-    }
-
-    // @TODO should return in usd value the amount of free collateral.
-    function getFreeCollateralValue(
-        address _marginAccount
-    ) external returns (uint256) {
-        return _getFreeCollateralValue(_marginAccount);
     }
 
     function addCollateral(address _token, uint256 _amount) external {
@@ -119,12 +113,7 @@ contract CollateralManager is ICollateralManager {
             address(marginAccount)
         ][_token].add(_amount.toInt256());
         // ][_token].add(_amount);
-        emit CollateralAdded(
-            address(marginAccount),
-            _token,
-            _amount,
-            _depositedCollateralValue(address(marginAccount))
-        );
+        emit CollateralAdded(address(marginAccount), _token, _amount);
     }
 
     // Should be accessed by Margin Manager only??
@@ -138,30 +127,35 @@ contract CollateralManager is ICollateralManager {
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
-        uint256 freeCollateralValue = _getFreeCollateralValue(
+        uint256 freeCollateralValueX18 = _getFreeCollateralValue(
             address(marginAccount)
         );
+        console.log("freeCollateralValueX18", freeCollateralValueX18);
+        uint256 withdrawAmount = priceOracle
+            .convertToUSD(
+                _amount
+                    .convertTokenDecimals(ERC20(_token).decimals(), 18)
+                    .toInt256(),
+                _token
+            )
+            .toUint256()
+            .mulDiv(collateralWeight[_token], 100);
+        console.log("withdrawAmount", withdrawAmount);
         require(
-            priceOracle
-                .convertToUSD(_amount.toInt256(), _token)
-                .toUint256()
-                .mulDiv(collateralWeight[_token], 100) <= freeCollateralValue,
-            // priceOracle.convertToUSD(int256(_amount), _token).abs() <=
-            //     freeCollateralValue,
+            withdrawAmount <= freeCollateralValueX18,
             "CM: Withdrawing more than free collateral not allowed"
         );
         _balance[address(marginAccount)][_token] = _balance[
             address(marginAccount)
         ][_token].sub(_amount.toInt256());
-        marginAccount.transferTokens(_token, address(marginAccount), _amount);
+        marginAccount.transferTokens(_token, msg.sender, _amount);
     }
 
     // @todo - On update borrowing power changes. Handle that - not v0
     function updateCollateralWeight(
         address _token,
         uint256 _collateralWeight
-    ) external {
-        // onlyOwner
+    ) external onlyRole(REGISTRAR_ROLE) {
         require(isAllowed[_token], "CM: Collateral not found");
         collateralWeight[_token] = _collateralWeight;
     }
@@ -176,11 +170,11 @@ contract CollateralManager is ICollateralManager {
     // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
     function _getFreeCollateralValue(
         address _marginAccount
-    ) internal returns (uint256 freeCollateral) {
+    ) internal returns (uint256 freeCollateralValueX18) {
         // free collateral
-        freeCollateral = _getCollateralHeldInMarginAccount(_marginAccount).sub(
-            marginManager.getInterestAccrued(_marginAccount)
-        );
+        freeCollateralValueX18 =
+            _totalCurrentCollateralValue(address(_marginAccount)) -
+            riskManager.getMinimumMarginRequirement(address(_marginAccount));
     }
 
     function totalCollateralValue(
@@ -190,7 +184,7 @@ contract CollateralManager is ICollateralManager {
         return _totalCurrentCollateralValue(_marginAccount);
     }
 
-    // sends usdc value with 6 decimals. (Vault base decimals)
+    // sends result in 18 decimals.
     function _depositedCollateralValue(
         address _marginAccount
     ) internal view returns (uint256 totalAmount) {
@@ -205,28 +199,27 @@ contract CollateralManager is ICollateralManager {
                     .abs()
             ).mulDiv(collateralWeight[token], 100);
             totalAmount = totalAmount.add(
-                tokenDollarValue.convertTokenDecimals(
-                    _decimals[token],
-                    ERC20(address(vault.asset())).decimals()
-                )
+                tokenDollarValue.convertTokenDecimals(_decimals[token], 18)
             );
         }
     }
 
+    // sends result in 18 decimals.
     function _getCollateralHeldInMarginAccount(
         address _marginAccount
-    ) internal view returns (uint256 totalAmount) {
+    ) internal view returns (uint256 totalAmountX18) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
-            uint256 tokenAmount = IERC20(token).balanceOf(_marginAccount);
-            totalAmount = totalAmount.add(
-                tokenAmount
-                    .mulDiv(collateralWeight[token], 100)
-                    .convertTokenDecimals(
-                        _decimals[token],
-                        ERC20(address(vault.asset())).decimals()
-                    )
-            );
+            uint256 tokenAmountX18 = IERC20(token)
+                .balanceOf(_marginAccount)
+                .convertTokenDecimals(ERC20(token).decimals(), 18);
+            uint256 tokenAmountValueX18 = priceOracle
+                .convertToUSD(
+                    int256(tokenAmountX18.mulDiv(collateralWeight[token], 100)),
+                    token
+                )
+                .abs();
+            totalAmountX18 += tokenAmountValueX18;
         }
     }
 
@@ -238,22 +231,27 @@ contract CollateralManager is ICollateralManager {
 
     function _totalCurrentCollateralValue(
         address _marginAccount
-    ) internal view returns (uint256 totalAmount) {
-        uint256 collateralHeldInMarginAccount = _getCollateralHeldInMarginAccount(
+    ) internal view returns (uint256 totalAmountX18) {
+        uint256 collateralHeldInMarginAccountX18 = _getCollateralHeldInMarginAccount(
                 _marginAccount
             );
-        uint256 totalCollateralInMarkets = riskManager.getCollateralInMarkets(
-            _marginAccount
-        );
-        uint256 totalBorrowed = IMarginAccount(_marginAccount).totalBorrowed();
-        totalAmount =
-            collateralHeldInMarginAccount +
-            totalCollateralInMarkets -
-            totalBorrowed;
-        // console.log("totalAmount", totalAmount);
+        uint256 totalCollateralInMarketsX18 = riskManager
+            .getCollateralInMarkets(_marginAccount);
+        uint256 totalBorrowedX18 = IMarginAccount(_marginAccount)
+            .totalBorrowed();
+        totalAmountX18 =
+            collateralHeldInMarginAccountX18 +
+            totalCollateralInMarketsX18 -
+            totalBorrowedX18;
     }
 
     function getAllCollateralTokens() public view returns (address[] memory) {
         return allowedCollateral;
+    }
+
+    function getFreeCollateralValue(
+        address _marginAccount
+    ) external returns (uint256) {
+        return _getFreeCollateralValue(_marginAccount);
     }
 }

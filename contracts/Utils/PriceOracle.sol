@@ -9,7 +9,6 @@ import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 
-
 contract PriceOracle is IPriceOracle {
     using Math for uint256;
     using SafeMath for uint256;
@@ -23,9 +22,10 @@ contract PriceOracle is IPriceOracle {
     //@dev needs to initialize with usdc price feed
     constructor() {}
 
-    function addPriceFeed(address _token, address _priceFeedAggregator)
-        external
-    {
+    function addPriceFeed(
+        address _token,
+        address _priceFeedAggregator
+    ) external {
         // add acl check
         require(_token != address(0), "PO: Zero Token Address not allowed");
         require(
@@ -35,9 +35,10 @@ contract PriceOracle is IPriceOracle {
         tokenPriceFeed[_token] = _priceFeedAggregator;
     }
 
-    function updatePriceFeed(address _token, address _priceFeedAggregator)
-        external
-    {
+    function updatePriceFeed(
+        address _token,
+        address _priceFeedAggregator
+    ) external {
         // add acl check
         require(_token != address(0), "PO: Zero Token Address not allowed");
         require(
@@ -51,7 +52,7 @@ contract PriceOracle is IPriceOracle {
         tokenPriceFeed[_token] = _priceFeedAggregator;
     }
 
-    function eed(address _token) external {
+    function deletedPriceFeed(address _token) external {
         // add acl check
         require(_token != address(0), "PO: Zero Token Address not allowed");
         require(
@@ -62,21 +63,28 @@ contract PriceOracle is IPriceOracle {
     }
 
     // Value sent back with same token decimals sent in amount param.
-    function convertToUSD(int256 amount, address token)
-        external
-        view
-        returns (int256 value)
-    {
+    function convertToUSD(
+        int256 amount,
+        address token
+    ) public view returns (int256 value) {
         (int256 price, uint256 decimals) = _getTokenPrice(token);
-        value = int256(amount.abs().mulDiv(price.abs(), 10**decimals));
+        value = int256(amount.abs().mulDiv(price.abs(), 10 ** decimals));
         if (amount < 0) value = -value;
     }
 
-    function convertFromUSD(uint256 amount, address token)
-        external
-        view
-        returns (uint256)
-    {
+    // // Value sent back with same token decimals sent in amount param.
+    // function convertToUSD(
+    //     uint256 amount,
+    //     address token
+    // ) public view returns (uint256 value) {
+    //     (int256 price, uint256 decimals) = _getTokenPrice(token);
+    //     value = amount.mulDiv(price.abs(), 10 ** decimals);
+    // }
+
+    function convertFromUSD(
+        uint256 amount,
+        address token
+    ) public view returns (uint256) {
         require(false, "Not implemented");
     }
 
@@ -84,7 +92,7 @@ contract PriceOracle is IPriceOracle {
         uint256 amount,
         address tokenFrom,
         address tokenTo
-    ) external view returns (uint256) {
+    ) public view returns (uint256) {
         require(false, "Not implemented");
     }
 
@@ -101,11 +109,9 @@ contract PriceOracle is IPriceOracle {
         return tokenPriceFeed[token];
     }
 
-    function _getTokenPrice(address token)
-        internal
-        view
-        returns (int256, uint256)
-    {
+    function _getTokenPrice(
+        address token
+    ) internal view returns (int256, uint256) {
         require(
             tokenPriceFeed[token] != address(0),
             "PO: Token feed not available"
