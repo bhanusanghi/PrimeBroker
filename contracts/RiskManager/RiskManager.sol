@@ -35,7 +35,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     using SafeCast for int256;
     using SignedMath for int256;
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
-    IPriceOracle public priceOracle;
+    // IPriceOracle public priceOracle;
     modifier xyz() {
         _;
     }
@@ -59,18 +59,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         _;
     }
 
-    function setPriceOracle(address oracle) external onlyRole(REGISTRAR_ROLE) {
-        // onlyOwner
-        priceOracle = IPriceOracle(oracle);
-    }
-
-    // important note ->
-    // To be able to provide more leverage on our protocol (Risk increases) to avoid bad debt we need to
-    // - Track TotalDeployedMargin
-    // - When opening positions make sure
-    // TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
-
-    function _verifyTrade(
+    function _decodeTradeData(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
@@ -78,24 +67,16 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
-        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
-            marketKey
+        IProtocolRiskManager _protocolRiskManager = IProtocolRiskManager(
+            marketManager.getRiskManagerByMarketName(marketKey)
         );
-
-        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
-        );
-
         result.tokenOut = protocolRiskManager.getMarginToken();
-
         (result.marginDelta, result.position) = protocolRiskManager
             .decodeTxCalldata(marketKey, destinations, data);
         if (result.marginDelta != 0) {
-            //idk unnecessary?
-            result.marginDeltaDollarValue = priceOracle.convertToUSD(
-                result.marginDelta,
-                result.tokenOut
-            );
+            result.marginDeltaDollarValue = IPriceOracle(
+                contractRegistry.getContractByName(keccak256("PriceOracle"))
+            ).convertToUSD(result.marginDelta, result.tokenOut);
         }
     }
 
@@ -105,7 +86,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(marketKey, destinations, data);
+        result = _decodeTradeData(marketKey, destinations, data);
         _verifyFinalLeverage(
             address(marginAccount),
             result.position.openNotional
@@ -165,25 +146,14 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         uint256 interestAccrued = marginManager.getInterestAccruedX18(
             marginAccount
         );
-        // unsettledRealizedPnL is in vault decimals
-        // unrealizedPnL is in vault decimals
-        if (
-            collateralManager
-                .totalCollateralValue(marginAccount)
-                .sub(interestAccrued)
-                .toInt256()
-                .add(_getUnrealizedPnL(marginAccount)) < 0
-        ) {
-            return 0;
-        }
         return
-            collateralManager
-                .totalCollateralValue(marginAccount)
-                .sub(interestAccrued)
-                .toInt256()
-                .add(_getUnrealizedPnL(marginAccount))
-                .abs();
-        // .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
+            uint256(
+                collateralManager
+                    .totalCollateralValue(marginAccount)
+                    .sub(interestAccrued)
+                    .toInt256()
+                    .add(_getUnrealizedPnL(marginAccount))
+            );
     }
 
     function getTotalBuyingPower(
@@ -195,8 +165,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         );
     }
 
-    // @note This finds and returns delta margin across all markets.
-
     function getCurrentDollarMarginInMarkets(
         address marginAccount
     ) external view override returns (int256 totalCurrentDollarMargin) {
@@ -205,17 +173,14 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         );
         address[] memory _riskManagers = IMarketManager(marketManager)
             .getUniqueRiskManagers();
-
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
                 .getDollarMarginInMarkets(marginAccount);
-            totalCurrentDollarMargin = totalCurrentDollarMargin.add(
-                dollarMargin
-            );
+            totalCurrentDollarMargin += dollarMargin;
         }
     }
 
-    // returns in vault base decimals
+    // Integration testing -> check unrealisedPnL vals
     function getUnrealizedPnL(
         address marginAccount
     ) external view override returns (int256 totalUnrealizedPnL) {
@@ -245,8 +210,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         return _getRemainingMarginTransfer(_marginAccount);
     }
 
-    // Remaining transferrable margin will be
-    // totalCollateralInMarginAccount + availableBorrowLimit
     function _getRemainingMarginTransfer(
         address marginAccount
     ) private view returns (uint256) {
@@ -268,17 +231,9 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function _getRemainingPositionOpenNotional(
         address marginAccount
     ) private view returns (uint256) {
-        ICollateralManager collateralManager = ICollateralManager(
-            contractRegistry.getContractByName(keccak256("CollateralManager"))
-        );
-        IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
-        );
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketKeys();
         uint256 totalOpenNotional = IMarginAccount(marginAccount)
             .getTotalOpeningAbsoluteNotional();
         return

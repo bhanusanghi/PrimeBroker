@@ -219,4 +219,14 @@ contract CollateralManagerTest is BaseSetup {
         contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
         vm.stopPrank();
     }
+
+    // Unit tests 
+    1. Add Allowed collateral
+    2. Withdraw collateral
+    3. totalCurrentCollateralValue 
+    4. getCollateralHeldInMarginAccount
+
+    // Accounting tests 
+    1. Free Collateral Value
+    2. Total Collateral Value
 }
