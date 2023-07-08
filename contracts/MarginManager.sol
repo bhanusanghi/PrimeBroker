@@ -251,7 +251,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     verificationResult.tokenOut
                 );
             }
-            repayVaultDebt(marginAccount);
+            _repayVaultDebt(marginAccount);
         }
     }
 
@@ -301,6 +301,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     function repayVaultDebt(
         IMarginAccount marginAccount
     ) public onlyMarginAccountOwnerOrContractOwner(address(marginAccount)) {
+        _repayVaultDebt(marginAccount);
+    }
+
+    function _repayVaultDebt(IMarginAccount marginAccount) internal {
         uint256 tokenInBalance = IERC20(vault.asset()).balanceOf(
             address(marginAccount)
         );
@@ -365,7 +369,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                     verificationResult.tokenOut
                 );
             }
-            repayVaultDebt(marginAccount);
+            _repayVaultDebt(marginAccount);
         }
     }
 
@@ -438,7 +442,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // pay liquidator
         }
         _swapBackToVaultAsset(marginAccount);
-        repayVaultDebt(marginAccount);
+        _repayVaultDebt(marginAccount);
     }
 
     // @note - this function validates the following points

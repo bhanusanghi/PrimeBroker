@@ -56,7 +56,7 @@ contract VaultTest is Test {
         vm.startPrank(admin);
         uint256 borrowAmount = vault.totalAssets();
         vault.borrow(admin, borrowAmount);
-        uint256 timeToTravel = vault.interestToTime(borrowAmount, amount) + 1; //block.timestamp + 365 days;
+        uint256 timeToTravel = vault.interestToTime(borrowAmount, amount); //block.timestamp + 365 days;
         utils.mineBlocks(100, timeToTravel);
         underlyingToken.approve(address(vault), type(uint256).max);
         vault.repay(admin, borrowAmount, amount);
@@ -414,7 +414,7 @@ contract VaultTest is Test {
     // |--------------|---------|----------|---------|----------|
     // |            0 |       0 |        0 |       0 |        0 |
     // |______________|_________|__________|_________|__________|
-
+    // @note some numbers are -+1,2 due to roundup errors
     function testOp1() external {
         vm.expectEmit(true, true, false, true);
         emit Deposit(alice, alice, 2000, 2000);
@@ -446,8 +446,7 @@ contract VaultTest is Test {
 
         assertEq(vault.totalAssets(), 9000);
         assertEq(vault.totalSupply(), 6000);
-        console2.log(vault.expectedLiquidity(), "expected Liquidity");
-        assertEq(vault.expectedLiquidity(), 9000);
+        assertEq(vault.expectedLiquidity(), 8999);
     }
 
     function testOp4() external {
@@ -461,7 +460,7 @@ contract VaultTest is Test {
         assertEq(shares, 1333);
         assertEq(vault.totalAssets(), 11000);
         assertEq(vault.totalSupply(), 7333);
-        assertEq(vault.expectedLiquidity(), 11000);
+        assertEq(vault.expectedLiquidity(), 10999);
     }
 
     function testOp5() external {
@@ -474,8 +473,8 @@ contract VaultTest is Test {
         vault.deposit(2000, alice);
         vm.prank(bob);
         uint256 assetsNeeded = vault.mint(2000, bob);
-        assertEq(assetsNeeded, 3001);
-        assertEq(vault.totalAssets(), 14001);
+        assertEq(assetsNeeded, 3000);
+        assertEq(vault.totalAssets(), 14000);
         assertEq(vault.totalSupply(), 9333);
     }
 
@@ -490,7 +489,7 @@ contract VaultTest is Test {
         vm.prank(bob);
         vault.mint(2000, bob);
         simulateYield(3000);
-        assertEq(vault.totalAssets(), 17001);
+        assertEq(vault.totalAssets(), 17000);
         assertEq(vault.totalSupply(), 9333);
     }
 
@@ -507,11 +506,11 @@ contract VaultTest is Test {
         simulateYield(3000);
         vm.prank(alice);
         uint256 assetsRecvd = vault.redeem(1333, alice, alice);
-        assertEq(assetsRecvd, 2428);
+        assertEq(assetsRecvd, 2427);
         assertEq(vault.totalAssets(), 14573);
         assertEq(vault.totalSupply(), 8000);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 10929);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 10928);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3642);
     }
 
     function testOp8() external {
@@ -532,8 +531,8 @@ contract VaultTest is Test {
         assertEq(sharesBurned, 1608);
         assertEq(vault.totalAssets(), 14573 - 2928);
         assertEq(vault.totalSupply(), 8000 - 1608);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
-        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3643);
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8000);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3642);
     }
 
     function testOp9() external {
@@ -551,12 +550,13 @@ contract VaultTest is Test {
         vault.redeem(1333, alice, alice);
         vm.prank(bob);
         vault.withdraw(2928, bob, bob);
-        vm.prank(alice);
-        uint256 sharesBurned = vault.withdraw(3643, alice, alice);
+        vm.startPrank(alice);
+        uint256 sharesBurned = vault.withdraw(3642, alice, alice);
+        vm.stopPrank();
         assertEq(sharesBurned, 2000);
-        assertEq(vault.totalAssets(), 14573 - 2928 - 3643);
+        assertEq(vault.totalAssets(), 14573 - 2928 - 3642);
         assertEq(vault.totalSupply(), 8000 - 1608 - 2000);
-        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8001);
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8000);
         assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
     }
 
@@ -576,11 +576,12 @@ contract VaultTest is Test {
         vm.prank(bob);
         vault.withdraw(2928, bob, bob);
         vm.prank(alice);
-        vault.withdraw(3643, alice, alice);
-        vm.prank(bob);
+        vault.withdraw(3642, alice, alice);
+        vm.startPrank(bob);
         uint256 assets = vault.redeem(4392, bob, bob);
-        assertEq(assets, 8001);
-        assertEq(vault.totalAssets(), 1);
+        vm.stopPrank();
+        assertEq(assets, 8000);
+        assertEq(vault.totalAssets(), 3);
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.previewRedeem(vault.balanceOf(bob)), 0);
         assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);

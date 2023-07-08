@@ -382,7 +382,6 @@ contract Vault is IVault, ERC4626 {
         uint256 y = (amount * borrowAPY_RAY);
         if (x != 0 && y != 0) {
             time = x / y;
-            time += block.timestamp;
         }
     }
 
