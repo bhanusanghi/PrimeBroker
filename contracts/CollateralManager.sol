@@ -41,11 +41,8 @@ contract CollateralManager is ICollateralManager, AccessControl {
     mapping(address => bool) public isAllowed;
     mapping(address => mapping(address => int256)) internal _balance;
     // mapping(address => mapping(address => uint256)) internal _balance;
-    event CollateralAdded(
-        address indexed marginAccount,
-        address indexed marginToken,
-        uint256 indexed tokenAmount
-    );
+    event CollateralAdded(address indexed marginAccount, address indexed token, uint256 indexed amount);
+    event CollateralWithdrawn(address indexed marginAccount, address indexed token, uint256 indexed amount);
 
     constructor(
         address _marginManager,
@@ -149,6 +146,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
             address(marginAccount)
         ][_token].sub(_amount.toInt256());
         marginAccount.transferTokens(_token, msg.sender, _amount);
+        emit CollateralWithdrawn(address(marginAccount), _token, _amount);
     }
 
     // @todo - On update borrowing power changes. Handle that - not v0
@@ -170,7 +168,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
     // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
     function _getFreeCollateralValue(
         address _marginAccount
-    ) internal returns (uint256 freeCollateralValueX18) {
+    ) internal view returns (uint256 freeCollateralValueX18) {
         // free collateral
         freeCollateralValueX18 =
             _totalCurrentCollateralValue(address(_marginAccount)) -
@@ -251,7 +249,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
 
     function getFreeCollateralValue(
         address _marginAccount
-    ) external returns (uint256) {
+    ) external view returns (uint256) {
         return _getFreeCollateralValue(_marginAccount);
     }
 }
