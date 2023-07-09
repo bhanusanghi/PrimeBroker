@@ -137,8 +137,8 @@ contract BaseDeployer {
     }
 
     function setupRiskManager() internal {
-        riskManager = new RiskManager(contractRegistry, marketManager);
-//        riskManager.setPriceOracle(address(priceOracle));
+        riskManager = new RiskManager(contractRegistry);
+        riskManager.setPriceOracle(address(priceOracle));
         contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(riskManager)
@@ -159,10 +159,10 @@ contract BaseDeployer {
     }
 
     function setupVault(address token) internal {
-        uint256 optimalUse = 9000;
+        uint256 optimalUse = 80 * 10 ** 4;
         uint256 rBase = 0;
-        uint256 rSlope1 = 200;
-        uint256 rSlope2 = 1000;
+        uint256 rSlope1 = 2 * 10 ** 4;
+        uint256 rSlope2 = 10 * 10 ** 4;
         interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
@@ -179,7 +179,14 @@ contract BaseDeployer {
         );
         vault.addLendingAddress(address(marginManager));
         vault.addRepayingAddress(address(marginManager));
-        contractRegistry.addContractToRegistry(keccak256("Vault"), address(vault));
+        contractRegistry.addContractToRegistry(
+            keccak256("InterestModel"),
+            address(interestModel)
+        );
+        contractRegistry.addContractToRegistry(
+            keccak256("Vault"),
+            address(vault)
+        );
     }
 
     function setupProtocolRiskManagers() internal {
@@ -190,13 +197,11 @@ contract BaseDeployer {
             perpMarketRegistry,
             perpClearingHouse,
             perpVault,
-            ERC20(vault.asset()).decimals(),
             18
         );
         snxRiskManager = new SNXRiskManager(
             susd,
             address(contractRegistry),
-            ERC20(vault.asset()).decimals(),
             18
         );
         contractRegistry.addContractToRegistry(

@@ -31,11 +31,11 @@ contract ProtocolDeploy is Script, BaseDeployer {
         setupMarginManager();
         setupRiskManager();
         setupVault(usdc);
-//        setupVault(susd);
+        // setupVault(susd);
         setupCollateralManager();
 
-        riskManager.setCollateralManager(address(collateralManager));
-        riskManager.setVault(address(vault));
+        // riskManager.setCollateralManager(address(collateralManager));
+        // riskManager.setVault(address(vault));
         marginManager.setVault(address(vault));
         marginManager.SetRiskManager(address(riskManager));
         setupProtocolRiskManagers();
