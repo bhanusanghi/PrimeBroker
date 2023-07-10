@@ -1,4 +1,6 @@
 pragma solidity ^0.8.10;
+
+import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -23,7 +25,7 @@ import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import "hardhat/console.sol";
 
-contract MarginManager is IMarginManager, ReentrancyGuard {
+contract MarginManager is IMarginManager, ReentrancyGuard, AccessControl {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using Math for uint256;
@@ -43,8 +45,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     uint256 public liquidationPenalty;
     mapping(address => address) public marginAccounts;
     mapping(address => address) public marginAccountOwners;
+    address[] private traders;
     mapping(address => bool) public allowedUnderlyingTokens;
     mapping(address => uint256) public collatralRatio; // non-zero means allowed
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     modifier nonZeroAddress(address _address) {
         require(_address != address(0));
@@ -75,6 +79,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         contractRegistry = _contractRegistry;
         // marketManager = _marketManager;
         priceOracle = _priceOracle;
+        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
     function SetRiskManager(
@@ -103,9 +108,22 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             type(uint256).max
         );
         marginAccounts[msg.sender] = address(newMarginAccount);
+        emit MarginAccountOpened(msg.sender, address(newMarginAccount));
         return address(newMarginAccount);
         // acc.setparams
         // approve
+    }
+
+    // TODO: remove while deploying on mainnet
+    function drainAllMarginAccounts() public onlyRole(REGISTRAR_ROLE) {
+        for(uint256 i = 0; i < traders.length; i += 1) {
+            IMarginAccount(marginAccounts[traders[i]])
+                .transferTokens(
+                    vault.asset(),
+                    _msgSender(),
+                    IERC20(vault.asset()).balanceOf(marginAccounts[traders[i]])
+                );
+        }
     }
 
     function closeMarginAccount(
