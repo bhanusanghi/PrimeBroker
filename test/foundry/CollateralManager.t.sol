@@ -220,6 +220,7 @@ contract CollateralManagerTest is BaseSetup {
         vm.stopPrank();
     }
 
+    /*
     // Unit tests 
     1. Add Allowed collateral
     2. Withdraw collateral
@@ -229,4 +230,5 @@ contract CollateralManagerTest is BaseSetup {
     // Accounting tests 
     1. Free Collateral Value
     2. Total Collateral Value
+    */
 }
