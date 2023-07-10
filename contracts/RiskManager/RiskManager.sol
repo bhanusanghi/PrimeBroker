@@ -138,14 +138,13 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         uint256 interestAccrued = marginManager.getInterestAccruedX18(
             marginAccount
         );
-        uint256 totalCollateralValue = collateralManager.totalCollateralValue(
+        int256 totalCollateralValue = (collateralManager.totalCollateralValue(
             marginAccount
-        ) - interestAccrued;
-        int256 unrealizedPnL = _getUnrealizedPnL(marginAccount);
-        if (unrealizedPnL < 0 && unrealizedPnL.abs() > totalCollateralValue) {
+        ) - interestAccrued).toInt256() + _getUnrealizedPnL(marginAccount);
+        if (totalCollateralValue < 0) {
             return 0;
         }
-        return uint256(totalCollateralValue.toInt256() + unrealizedPnL);
+        return uint256(totalCollateralValue);
     }
 
     function getTotalBuyingPower(
