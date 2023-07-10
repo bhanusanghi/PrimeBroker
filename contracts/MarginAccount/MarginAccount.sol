@@ -26,30 +26,12 @@ contract MarginAccount is IMarginAccount, AccessControl {
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-
-    // address public baseToken; //usdt/c
     address public marginManager;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
-    // address public underlyingToken;
-    // perp.eth, Position
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
-
-    /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
-     serves multiple purposes
-     1. Affects buyingPower correctly
-     2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
-     3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
-    */
-    int256 public unsettledRealizedPnL;
-
-    // constructor(address underlyingToken) {
-    //     marginManager = msg.sender;
-    //     underlyingToken = underlyingToken;
-    // }
-
     IContractRegistry contractRegistry;
 
     constructor(
@@ -57,8 +39,6 @@ contract MarginAccount is IMarginAccount, AccessControl {
     ) {
         marginManager = msg.sender;
         contractRegistry = IContractRegistry(_contractRegistry);
-        // TODO- Market manager is not related to accounts.
-        // marketManager = IMarketManager(_marketManager);
     }
 
     modifier onlyMarginManager() {
@@ -82,10 +62,6 @@ contract MarginAccount is IMarginAccount, AccessControl {
         bytes32 market
     ) public view override returns (Position memory position) {
         position = positions[market];
-        // require(
-        //     position.size != 0 || position.openNotional != 0,
-        //     "Position doesn't exist"
-        // );
     }
 
     function isActivePosition(
@@ -114,10 +90,7 @@ contract MarginAccount is IMarginAccount, AccessControl {
         address token,
         uint256 amount
     ) external override onlyCollateralManager {
-        // acl - only collateral manager.
-        // convert
         IERC20(token).safeTransferFrom(from, address(this), amount);
-        // update in collatral manager
     }
 
     // function approveToProtocol(
@@ -233,3 +206,10 @@ contract MarginAccount is IMarginAccount, AccessControl {
         );
     }
 }
+
+/*
+ Unit Testing
+    1. Swap Token, failure cases
+Feature Testing 
+    - NA -
+*/
