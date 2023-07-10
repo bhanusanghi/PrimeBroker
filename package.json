@@ -14,7 +14,8 @@
     "coverage": "hardhat coverage",
     "compile": "hardhat compile --show-stack-traces",
     "build": "npm run typechain && hardhat compile",
-    "lint-contracts": "solhint 'contracts/**/*.sol'"
+    "lint-contracts": "solhint 'contracts/**/*.sol'",
+    "prepare": "husky install .husky"
   },
   "devDependencies": {
     "@eth-optimism/smock": "1.1.4",
@@ -76,6 +77,7 @@
     "@perp/curie-contract": "^2.2.3",
     "@uniswap/v3-core": "https://github.com/Uniswap/uniswap-v3-core/tarball/v1.0.0",
     "@uniswap/v3-periphery": "^1.4.2",
+    "husky": "8.0.1",
     "dotenv": "^16.0.2"
   }
 }
