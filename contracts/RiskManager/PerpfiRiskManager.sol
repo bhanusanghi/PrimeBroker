@@ -24,7 +24,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IUniswapV3Pool} from "../Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../Interfaces/Perpfi/IVault.sol";
-import {VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
+import {VerifyCloseResult, VerifyTradeResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "hardhat/console.sol";
@@ -54,6 +54,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
     IVault public perpVaultUsdc;
+    IPriceOracle public priceOracle;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
@@ -63,6 +64,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address _marketRegistry,
         address _clearingHouse,
         address _perpVaultUsdc,
+        address _priceOracle,
         // uint8 _vaultAssetDecimals,
         uint8 _positionDecimals
     ) {
@@ -74,6 +76,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         positionDecimals = _positionDecimals;
         marginTokenDecimals = ERC20(_marginToken).decimals();
         marginToken = _marginToken;
+        priceOracle = IPriceOracle(_priceOracle);
     }
 
     //@note: use _init :pointup
@@ -83,6 +86,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     ) external {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
+    }
+
+    function setPriceOracle(address _priceOracle) external override {
+        priceOracle = IPriceOracle(_priceOracle);
     }
 
     // function updateExchangeAddress(address _perpExchange) external {
@@ -122,7 +129,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    ) public view returns (int256 marginDeltaX18, Position memory position) {
+    ) public view returns (VerifyTradeResult memory result) {
         /**  market key : 32bytes
           : for this assuming single position => transfer margin and/or open close
            call data for modifyPositionWithTracking(sizeDelta, TRACKING_CODE)
@@ -145,14 +152,15 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (funSig == APPROVE_TRANSFER) {
                 //  @dev - TODO - FIND SPENDER AND COMPARE WITH WHITELISTED CONTRACTS
             } else if (funSig == ADD_MARGIN) {
-                marginDeltaX18 = abi
+                result.marginDelta = abi
                     .decode(data[i][36:], (int256))
                     .convertTokenDecimals(marginTokenDecimals, 18); //change while enabling mutile margin tokens.
             } else if (funSig == WITHDRAW_MARGIN) {
-                marginDeltaX18 = -abi
+                result.marginDelta = -abi
                     .decode(data[i][36:], (int256))
                     .convertTokenDecimals(marginTokenDecimals, 18); //change while enabling mutile margin tokens.
             } else if (funSig == OPEN_POSITION) {
+                Position memory position;
                 (
                     address _baseToken,
                     bool isShort, //isBaseToQuote
@@ -200,11 +208,19 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                     fee,
                     10 ** 5 // todo - Ask ashish about this
                 );
+                result.position = position;
             } else {
                 console.log("failing funSig");
                 console.logBytes4(funSig);
                 revert("PRM: Unsupported Function call");
             }
+        }
+        result.tokenOut = marginToken;
+        if (result.marginDelta != 0) {
+            result.marginDeltaDollarValue = priceOracle.convertToUSD(
+                result.marginDelta,
+                result.tokenOut
+            );
         }
     }
 

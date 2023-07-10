@@ -11,7 +11,6 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
@@ -21,7 +20,7 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginManager} from "../Interfaces/IMarginManager.sol";
 import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
-import "hardhat/console.sol";
+import "forge-std/console2.sol";
 
 contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -35,7 +34,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     using SafeCast for int256;
     using SignedMath for int256;
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
-    // IPriceOracle public priceOracle;
     modifier xyz() {
         _;
     }
@@ -70,14 +68,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         IProtocolRiskManager _protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
         );
-        result.tokenOut = protocolRiskManager.getMarginToken();
-        (result.marginDelta, result.position) = protocolRiskManager
-            .decodeTxCalldata(marketKey, destinations, data);
-        if (result.marginDelta != 0) {
-            result.marginDeltaDollarValue = IPriceOracle(
-                contractRegistry.getContractByName(keccak256("PriceOracle"))
-            ).convertToUSD(result.marginDelta, result.tokenOut);
-        }
+        result = IProtocolRiskManager(_protocolRiskManager).decodeTxCalldata(
+            marketKey,
+            destinations,
+            data
+        );
     }
 
     function verifyTrade(
@@ -105,16 +100,13 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
         );
-        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
-        );
-        protocolRiskManager.decodeClosePositionCalldata(
-            marginAcc,
-            marketKey,
-            destinations,
-            data
-        );
-        result.marginToken = protocolRiskManager.getMarginToken();
+        result = IProtocolRiskManager(_protocolRiskManager)
+            .decodeClosePositionCalldata(
+                marginAcc,
+                marketKey,
+                destinations,
+                data
+            );
     }
 
     function _verifyFinalLeverage(
@@ -146,14 +138,13 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         uint256 interestAccrued = marginManager.getInterestAccruedX18(
             marginAccount
         );
-        return
-            uint256(
-                collateralManager
-                    .totalCollateralValue(marginAccount)
-                    .sub(interestAccrued)
-                    .toInt256()
-                    .add(_getUnrealizedPnL(marginAccount))
-            );
+        int256 totalCollateralValue = (collateralManager.totalCollateralValue(
+            marginAccount
+        ) - interestAccrued).toInt256() + _getUnrealizedPnL(marginAccount);
+        if (totalCollateralValue < 0) {
+            return 0;
+        }
+        return uint256(totalCollateralValue);
     }
 
     function getTotalBuyingPower(
@@ -366,7 +357,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
-
         if (accountValue <= minimumMarginRequirement) {
             isLiquidatable = true;
         } else {
@@ -391,7 +381,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
-        console.log("minimumMarginRequirement", minimumMarginRequirement);
+        console2.log("minimumMarginRequirement", minimumMarginRequirement);
         return minimumMarginRequirement;
     }
 

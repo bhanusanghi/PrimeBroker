@@ -170,7 +170,6 @@ contract BaseSetup is Test, IEvents {
 
     function setupRiskManager() internal {
         contracts.riskManager = new RiskManager(contracts.contractRegistry);
-        contracts.riskManager.setPriceOracle(address(contracts.priceOracle));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(contracts.riskManager)
@@ -231,11 +230,13 @@ contract BaseSetup is Test, IEvents {
             perpMarketRegistry,
             perpClearingHouse,
             perpVault,
+            address(contracts.priceOracle),
             18
         );
         contracts.snxRiskManager = new SNXRiskManager(
             susd,
             address(contracts.contractRegistry),
+            address(contracts.priceOracle),
             18
         );
         contracts.contractRegistry.addContractToRegistry(

@@ -15,7 +15,7 @@ import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
-import {IRiskManager, VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyCloseResult, VerifyTradeResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import "hardhat/console.sol";
 
 contract SNXRiskManager is IProtocolRiskManager {
@@ -35,21 +35,28 @@ contract SNXRiskManager is IProtocolRiskManager {
     // uint8 public marginTokenDecimals;
     uint8 public positionDecimals;
     IContractRegistry contractRegistry;
+    IPriceOracle public priceOracle;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
         address _marginToken,
         address _contractRegistry,
+        address _priceOracle,
         uint8 _positionDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
         positionDecimals = _positionDecimals;
         marginToken = _marginToken;
+        priceOracle = IPriceOracle(_priceOracle);
         // marginTokenDecimals = ERC20(_marginToken).decimals();
     }
 
     function getMarginToken() external view returns (address) {
         return marginToken;
+    }
+
+    function setPriceOracle(address _priceOracle) external override {
+        priceOracle = IPriceOracle(_priceOracle);
     }
 
     function toggleAddressWhitelisting(
@@ -103,8 +110,9 @@ contract SNXRiskManager is IProtocolRiskManager {
     )
         public
         view
-        returns (int256 marginDelta, Position memory position)
-    // uint256 fee
+        returns (
+            VerifyTradeResult memory result // uint256 fee
+        )
     {
         uint256 len = data.length; // limit to 2
         // use marketKey
@@ -117,10 +125,11 @@ contract SNXRiskManager is IProtocolRiskManager {
             );
             bytes4 funSig = bytes4(data[i]);
             if (funSig == TRANSFER_MARGIN) {
-                marginDelta = marginDelta.add(
+                result.marginDelta = result.marginDelta.add(
                     abi.decode(data[i][4:], (int256))
                 );
             } else if (funSig == OP) {
+                Position memory position;
                 //TODO - check Is this a standard of 18 decimals
                 int256 positionDelta = abi.decode(data[i][4:], (int256));
                 // asset price is recvd with 18 decimals.
@@ -139,10 +148,18 @@ contract SNXRiskManager is IProtocolRiskManager {
                 // this refers to position opening fee.
                 (position.orderFee, ) = IFuturesMarket(destinations[i])
                     .orderFee(positionDelta);
+                result.position = position;
             } else {
                 // Unsupported Function call
                 revert("PRM: Unsupported Function call");
             }
+        }
+        result.tokenOut = marginToken;
+        if (result.marginDelta != 0) {
+            result.marginDeltaDollarValue = priceOracle.convertToUSD(
+                result.marginDelta,
+                result.tokenOut
+            );
         }
     }
 

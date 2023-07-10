@@ -1,24 +1,19 @@
 pragma solidity ^0.8.10;
 import {Position, IMarginAccount} from "./IMarginAccount.sol";
-import {VerifyCloseResult, VerifyLiquidationResult} from "./IRiskManager.sol";
+import {VerifyCloseResult, VerifyTradeResult, VerifyLiquidationResult} from "./IRiskManager.sol";
 
 interface IProtocolRiskManager {
     // mapping(bytes4=>string) public abiStrings;
     // bytes4[] public supportedFunctions;
 
     // function getPositionPnL(address marginAccount) external returns (int256);
+    function setPriceOracle(address oracle) external;
 
     function decodeTxCalldata(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    )
-        external
-        returns (
-            int256 amount,
-            Position memory deltaPosition
-            // uint256 fee
-        );
+    ) external returns (VerifyTradeResult memory result);
 
     function decodeClosePositionCalldata(
         IMarginAccount marginAcc,
