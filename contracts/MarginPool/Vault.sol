@@ -189,8 +189,9 @@ contract Vault is IVault, ERC4626, AccessControl {
     }
 
     // TODO: remove while deploying on mainnet
-    function drain() public onlyRole(REGISTRAR_ROLE) {
-        IERC20(asset()).transfer(_msgSender(), IERC20(asset()).balanceOf(address(this)));
+    function drain(address _token) public onlyRole(REGISTRAR_ROLE) {
+        require(IERC20(_token).balanceOf(address(this)) > 0, "insufficient vault balance!");
+        IERC20(_token).transfer(_msgSender(), IERC20(_token).balanceOf(address(this)));
     }
 
     /**

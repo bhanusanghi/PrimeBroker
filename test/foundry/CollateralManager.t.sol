@@ -161,7 +161,6 @@ contract CollateralManagerTest is BaseSetup {
         int256 notional = int256(4500 ether);
         int256 perpMargin = int256(2000 * ONE_USDC);
 
-        console2.log("dekho m idhar hai");
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
@@ -170,7 +169,6 @@ contract CollateralManagerTest is BaseSetup {
             ""
         );
 
-        console2.log("dekho m idhar hai");
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -185,7 +183,6 @@ contract CollateralManagerTest is BaseSetup {
             600 ether
         );
         perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        console2.log("dekho m idhar hai");
         uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(
             bobMarginAccount
         );
@@ -220,7 +217,11 @@ contract CollateralManagerTest is BaseSetup {
         vm.stopPrank();
     }
 
+<<<<<<< HEAD
     /*
+=======
+    /* 
+>>>>>>> f4098e6 (feat: drain function test cases)
     // Unit tests 
     1. Add Allowed collateral
     2. Withdraw collateral
