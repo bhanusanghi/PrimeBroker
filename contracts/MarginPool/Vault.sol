@@ -16,17 +16,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "hardhat/console.sol";
 
 interface IVault {
-    // events
-
-    // Emits each time when Interest Rate model was changed
     event InterestRateModelUpdated(address indexed newInterestRateModel);
-
-    // Emits each time when new credit Manager was connected
-    event NewCreditManagerConnected(address indexed creditManager);
-
-    // Emits each time when borrow forbidden for credit manager
-    event BorrowForbidden(address indexed creditManager);
-
     // Emits each time when Credit Manager borrows money from pool
     event Borrow(
         address indexed creditManager,
@@ -189,9 +179,11 @@ contract Vault is IVault, ERC4626, AccessControl {
     }
 
     // TODO: remove while deploying on mainnet
-    function drain(address _token) public onlyRole(REGISTRAR_ROLE) {
-        require(IERC20(_token).balanceOf(address(this)) > 0, "insufficient vault balance!");
-        IERC20(_token).transfer(_msgSender(), IERC20(_token).balanceOf(address(this)));
+    function drain() public onlyRole(REGISTRAR_ROLE) {
+        IERC20(asset()).transfer(
+            _msgSender(),
+            IERC20(asset()).balanceOf(address(this))
+        );
     }
 
     /**

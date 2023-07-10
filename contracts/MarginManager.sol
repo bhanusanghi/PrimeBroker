@@ -107,8 +107,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         marginAccountOwners[address(newMarginAccount)] = msg.sender;
         emit MarginAccountOpened(msg.sender, address(newMarginAccount));
         return address(newMarginAccount);
-        // acc.setparams
-        // approve
     }
 
     // TODO: remove while deploying on mainnet
@@ -164,7 +162,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
         if (verificationResult.position.size.abs() > 0) {
             // check if enough margin to open this position ??
-
             if (isOpen) {
                 marginAccount.addPosition(
                     marketKey,
@@ -271,18 +268,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         }
     }
 
-    // function _swapBackToVaultAsset(
-    //     IMarginAccount marginAccount,
-    //     address token
-    // ) private {
-    //     uint256 amountOut = marginAccount.swapTokens(
-    //         token,
-    //         vault.asset(),
-    //         tokenBalance,
-    //         0
-    //     );
-    // }
-
     function swapAsset(
         IMarginAccount marginAccount,
         address tokenIn,
@@ -291,19 +276,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 minAmountOut
     ) public onlyMarginAccountOwner(msg.sender) returns (uint256 amountOut) {
         // check tokenOut is allowed.
-        bool isValidTokenOut = false;
         ICollateralManager collateralManager = ICollateralManager(
             contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
-        address[] memory allowedCollaterals = collateralManager
-            .getAllCollateralTokens();
-        for (uint i = 0; i < allowedCollaterals.length; i++) {
-            if (allowedCollaterals[i] == tokenOut) {
-                isValidTokenOut = true;
-                break;
-            }
-        }
-        if (isValidTokenOut == false) revert("MM: Invalid tokenOut");
+        require(
+            collateralManager.isAllowedCollateral(tokenOut),
+            "MM: Invalid tokenOut"
+        );
         // swap
         amountOut = _swapAsset(
             marginAccount,

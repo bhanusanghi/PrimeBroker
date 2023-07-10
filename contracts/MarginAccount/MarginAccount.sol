@@ -195,17 +195,6 @@ contract MarginAccount is IMarginAccount {
         delete positions[marketKey];
     }
 
-    /// @dev Updates borrowed amount. Restricted for current credit manager only
-    /// @param totalBorrowedX18Amount Amount which pool lent to credit account
-    function updateBorrowData(
-        uint256 totalBorrowedX18Amount,
-        uint256 _cumulativeIndexAtOpen
-    ) external override onlyMarginManager {
-        // add acl check
-        totalBorrowed = totalBorrowedX18Amount;
-        cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
-    }
-
     function setTokenAllowance(
         address token,
         address spender,

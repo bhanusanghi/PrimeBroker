@@ -379,7 +379,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
-        console2.log("minimumMarginRequirement", minimumMarginRequirement);
         return minimumMarginRequirement;
     }
 

@@ -37,7 +37,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
     uint8 private constant baseDecimals = 6; // @todo get from vault in initialize func
     // address=> decimals for allowed tokens so we don't have to make external calls
     mapping(address => uint8) private _decimals;
-    mapping(address => bool) public isAllowed;
+    mapping(address => bool) public isAllowedCollateral;
     mapping(address => mapping(address => int256)) internal _balance;
     // mapping(address => mapping(address => uint256)) internal _balance;
     event CollateralAdded(
@@ -81,12 +81,12 @@ contract CollateralManager is ICollateralManager, AccessControl {
             // @todo use mapping instead
             // Needed otherwise borrowing power can be inflated by pushing same collateral multiple times.
             require(
-                isAllowed[_allowed[i]] == false,
+                isAllowedCollateral[_allowed[i]] == false,
                 "CM: Collateral already added"
             );
             allowedCollateral.push(_allowed[i]);
             collateralWeight[_allowed[i]] = _collateralWeights[i];
-            isAllowed[_allowed[i]] = true;
+            isAllowedCollateral[_allowed[i]] = true;
             _decimals[_allowed[i]] = IERC20Metadata(_allowed[i]).decimals();
         }
     }
@@ -96,15 +96,18 @@ contract CollateralManager is ICollateralManager, AccessControl {
         uint256 _collateralWeight
     ) public onlyRole(REGISTRAR_ROLE) {
         require(_allowed != address(0), "CM: Zero Address");
-        require(isAllowed[_allowed] == false, "CM: Collateral already added");
+        require(
+            isAllowedCollateral[_allowed] == false,
+            "CM: Collateral already added"
+        );
         allowedCollateral.push(_allowed);
         collateralWeight[_allowed] = _collateralWeight;
-        isAllowed[_allowed] = true;
+        isAllowedCollateral[_allowed] = true;
         _decimals[_allowed] = IERC20Metadata(_allowed).decimals();
     }
 
     function addCollateral(address _token, uint256 _amount) external {
-        require(isAllowed[_token], "CM: Unsupported collateral"); //@note move it to margin manager
+        require(isAllowedCollateral[_token], "CM: Unsupported collateral"); //@note move it to margin manager
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
@@ -113,10 +116,6 @@ contract CollateralManager is ICollateralManager, AccessControl {
             _token,
             _amount
         );
-        _balance[address(marginAccount)][_token] = _balance[
-            address(marginAccount)
-        ][_token].add(_amount.toInt256());
-        // ][_token].add(_amount);
         emit CollateralAdded(address(marginAccount), _token, _amount);
     }
 
@@ -127,7 +126,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
         //
         // check if _amount is allowed to be taken out.
         // If yes transfer and manage accounting.
-        require(isAllowed[_token], "CM: Unsupported collateral");
+        require(isAllowedCollateral[_token], "CM: Unsupported collateral");
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
@@ -149,9 +148,6 @@ contract CollateralManager is ICollateralManager, AccessControl {
             withdrawAmount <= freeCollateralValueX18,
             "CM: Withdrawing more than free collateral not allowed"
         );
-        _balance[address(marginAccount)][_token] = _balance[
-            address(marginAccount)
-        ][_token].sub(_amount.toInt256());
         marginAccount.transferTokens(_token, msg.sender, _amount);
         emit CollateralWithdrawn(address(marginAccount), _token, _amount);
     }
@@ -161,15 +157,8 @@ contract CollateralManager is ICollateralManager, AccessControl {
         address _token,
         uint256 _collateralWeight
     ) external onlyRole(REGISTRAR_ROLE) {
-        require(isAllowed[_token], "CM: Collateral not found");
+        require(isAllowedCollateral[_token], "CM: Collateral not found");
         collateralWeight[_token] = _collateralWeight;
-    }
-
-    function getTokenBalance(
-        address _marginAccount,
-        address _asset
-    ) external view returns (int256) {
-        return _balance[_marginAccount][_asset];
     }
 
     // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability

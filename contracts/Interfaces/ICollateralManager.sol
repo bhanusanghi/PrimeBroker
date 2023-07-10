@@ -29,11 +29,6 @@ interface ICollateralManager {
         address _marginAccount
     ) external returns (uint256);
 
-    function getTokenBalance(
-        address _marginAccount,
-        address _asset
-    ) external view returns (int256);
-
     function getCollateralHeldInMarginAccount(
         address _marginAccount
     ) external view returns (uint256 totalAmount);
@@ -41,4 +36,6 @@ interface ICollateralManager {
     function collateralWeight(address) external view returns (uint256);
 
     function getAllCollateralTokens() external view returns (address[] memory);
+
+    function isAllowedCollateral(address) external view returns (bool);
 }

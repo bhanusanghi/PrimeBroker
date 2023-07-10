@@ -15,13 +15,6 @@ interface IMarginAccount {
 
     function cumulativeIndexAtOpen() external view returns (uint256);
 
-    function updateBorrowData(
-        uint256 _totalBorrowed,
-        uint256 _cumulativeIndexAtOpen
-    ) external;
-
-    // function baseToken() external returns (address);
-
     function addCollateral(
         address from,
         address token,
