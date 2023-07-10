@@ -39,10 +39,6 @@ interface IMarginManager {
         bytes32 indexed marketKey
     );
 
-    function getInterestAccruedX18(
-        address marginAccount
-    ) external view returns (uint256);
-
     function getMarginAccount(address trader) external view returns (address);
 
     function SetRiskManager(address _riskmgr) external;

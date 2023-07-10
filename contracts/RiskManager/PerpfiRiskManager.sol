@@ -1,7 +1,7 @@
 pragma solidity ^0.8.10;
 
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
@@ -74,7 +74,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         clearingHouse = IClearingHouse(_clearingHouse);
         perpVaultUsdc = IVault(_perpVaultUsdc);
         positionDecimals = _positionDecimals;
-        marginTokenDecimals = ERC20(_marginToken).decimals();
+        marginTokenDecimals = IERC20Metadata(_marginToken).decimals();
         marginToken = _marginToken;
         priceOracle = IPriceOracle(_priceOracle);
     }

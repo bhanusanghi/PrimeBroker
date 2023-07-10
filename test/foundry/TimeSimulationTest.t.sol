@@ -46,7 +46,7 @@ contract TimeSimulationTest is BaseSetup {
 
   VARIABLES DEPENDENT ON TIME ->
   1. AccruedFunding
-  2. UnrealizedPnL
+  2. AssetPrice Change
   3. Vault Interest
 
 

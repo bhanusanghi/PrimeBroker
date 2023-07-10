@@ -65,7 +65,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
-        IProtocolRiskManager _protocolRiskManager = IProtocolRiskManager(
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
         );
         result = IProtocolRiskManager(_protocolRiskManager).decodeTxCalldata(
@@ -290,13 +290,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         address _marginAccount,
         bytes32 _marketKey
     ) public view returns (Position memory marketPosition) {
-        address marketManager = contractRegistry.getContractByName(
-            keccak256("MarketManager")
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
         );
-        address _protocolRiskManager = IMarketManager(marketManager)
-            .getRiskManagerByMarketName(_marketKey);
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
+            marketManager.getRiskManagerByMarketName(_marketKey)
         );
         marketPosition = protocolRiskManager.getMarketPosition(
             _marginAccount,

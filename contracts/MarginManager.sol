@@ -13,15 +13,17 @@ import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/Enum
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import {RiskManager} from "./RiskManager/RiskManager.sol";
 import {MarginAccount} from "./MarginAccount/MarginAccount.sol";
-import {Vault} from "./MarginPool/Vault.sol";
 import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "./Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "./Interfaces/IProtocolRiskManager.sol";
+import {IVault} from "./Interfaces/IVault.sol";
 import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "./Interfaces/IMarginAccount.sol";
 import {IMarginManager} from "./Interfaces/IMarginManager.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
+import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "hardhat/console.sol";
 
 contract MarginManager is IMarginManager, ReentrancyGuard {
@@ -34,14 +36,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     using SettlementTokenMath for int256;
     using SignedMath for int256;
     using SignedSafeMath for int256;
+    IVault public vault;
     IRiskManager public riskManager;
     IContractRegistry public contractRegistry;
     // IMarketManager public marketManager;
-    IPriceOracle public priceOracle;
-
-    Vault public vault;
     // address public riskManager;
-    uint256 public liquidationPenalty;
     mapping(address => address) public marginAccounts;
     mapping(address => address) public marginAccountOwners;
     // address[] private traders;
@@ -59,11 +58,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _;
     }
 
-    modifier onlyMarginAccountOwnerOrContractOwner(address marginAccount) {
+    modifier onlyMarginAccountOwner(address marginAccount) {
         require(
-            msg.sender == marginAccountOwners[marginAccount] ||
-                msg.sender == owner,
-            "MM: Unauthorized, only margin account owner or contract owner allowed"
+            msg.sender == marginAccountOwners[marginAccount],
+            "MM: Unauthorized, only margin account owner allowed"
         );
         _;
     }
@@ -88,7 +86,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     function setVault(
         address _vault
     ) external nonZeroAddress(_vault) onlyOwner {
-        vault = Vault(_vault);
+        vault = IVault(_vault);
     }
 
     // function set(address p){}
@@ -113,9 +111,20 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // approve
     }
 
+    // TODO: remove while deploying on mainnet
+    function drainAllMarginAccounts() public onlyRole(REGISTRAR_ROLE) {
+        for (uint256 i = 0; i < traders.length; i += 1) {
+            IMarginAccount(marginAccounts[traders[i]]).transferTokens(
+                vault.asset(),
+                _msgSender(),
+                IERC20(vault.asset()).balanceOf(marginAccounts[traders[i]])
+            );
+        }
+    }
+
     function closeMarginAccount(
         address marginAccount
-    ) external onlyMarginAccountOwnerOrContractOwner(marginAccount) {
+    ) external onlyMarginAccountOwner(marginAccount) {
         /**
          * TBD
         close positions
@@ -237,9 +246,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             destinations,
             data
         );
-        if (verificationResult.marginDelta > 0) {
-            _prepareMarginTransfer(marginAccount, verificationResult);
-        }
         marginAccount.execMultiTx(destinations, data);
         _executePostMarketOrderUpdates(
             marginAccount,
@@ -247,55 +253,111 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult,
             true
         );
-        _updateMarginTransferData(marginAccount, marketKey, verificationResult);
+        _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
         // swap marign delta to token In if needed.
         if (verificationResult.marginDelta < 0) {
             if (vault.asset() != verificationResult.tokenOut) {
-                _swapBackToVaultAsset(
+                uint256 tokenBalance = IERC20(verificationResult.tokenOut)
+                    .balanceOf(address(marginAccount));
+                _swapAsset(
                     marginAccount,
-                    verificationResult.tokenOut
+                    verificationResult.tokenOut,
+                    vault.asset(),
+                    tokenBalance,
+                    0
                 );
             }
-            _repayVaultDebt(marginAccount);
+            _repayMaxVaultDebt(marginAccount);
         }
     }
 
-    function _swapBackToVaultAsset(
+    // function _swapBackToVaultAsset(
+    //     IMarginAccount marginAccount,
+    //     address token
+    // ) private {
+    //     uint256 amountOut = marginAccount.swapTokens(
+    //         token,
+    //         vault.asset(),
+    //         tokenBalance,
+    //         0
+    //     );
+    // }
+
+    function swapAsset(
         IMarginAccount marginAccount,
-        address token
-    ) private {
-        uint256 tokenBalance = IERC20(token).balanceOf(address(marginAccount));
-        uint256 amountOut = marginAccount.swapTokens(
-            token,
-            vault.asset(),
-            tokenBalance,
-            0
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) public onlyMarginAccountOwner(msg.sender) returns (uint256 amountOut) {
+        // check tokenOut is allowed.
+        bool isValidTokenOut = false;
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
+        address[] memory allowedCollaterals = collateralManager
+            .getAllCollateralTokens();
+        for (uint i = 0; i < allowedCollaterals.length; i++) {
+            if (allowedCollaterals[i] == tokenOut) {
+                isValidTokenOut = true;
+                break;
+            }
+        }
+        if (isValidTokenOut == false) revert("MM: Invalid tokenOut");
+        // swap
+        amountOut = _swapAsset(
+            marginAccount,
+            tokenIn,
+            tokenOut,
+            amountIn,
+            minAmountOut
+        );
+        // check if health factor is good enough now.
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            marginAccount
+        );
+        if (isLiquidatable) revert("MM: Liquidatable account");
     }
 
-    function _swapBackToVaultAsset(IMarginAccount marginAccount) private {
-        IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+    function _swapAsset(
+        IMarginAccount marginAccount,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) private returns (uint256 amountOut) {
+        amountOut = marginAccount.swapTokens(tokenIn, tokenOut, amountIn, 0);
+    }
+
+    function _swapAllTokensToVaultAsset(IMarginAccount marginAccount) private {
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
-        address[] memory protocolRiskManagers = marketManager
-            .getUniqueRiskManagers();
-        for (uint i = 0; i < protocolRiskManagers.length; i++) {
-            address token = IProtocolRiskManager(protocolRiskManagers[i])
-                .getMarginToken();
+        address[] memory allowedCollaterals = collateralManager
+            .getAllCollateralTokens();
+
+        for (uint i = 0; i < allowedCollaterals.length; i++) {
+            address token = allowedCollaterals[i];
             if (token == vault.asset()) continue;
-            console.log("swapping back this token", token);
             uint256 tokenBalance = IERC20(token).balanceOf(
                 address(marginAccount)
             );
-            console.log("tokenBalance", tokenBalance);
             if (tokenBalance == 0) continue;
-            uint256 amountOut = marginAccount.swapTokens(
-                token,
-                vault.asset(),
-                tokenBalance,
-                0
-            );
+            _swapAsset(marginAccount, token, vault.asset(), tokenBalance, 0);
         }
+    }
+
+    // makes sense to call this function after forceSwapBackToVaultAsset
+    function forceRepayVaultDebt(
+        IMarginAccount marginAccount
+    ) public onlyOwner {
+        _repayMaxVaultDebt(marginAccount);
+    }
+
+    function forceSwapBackToVaultAsset(
+        IMarginAccount marginAccount
+    ) public onlyOwner {
+        _swapAllTokensToVaultAsset(marginAccount);
     }
 
     // if(borrowedAmount + interestAccrued> 0){
@@ -303,39 +365,27 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // repay(marginDelta - (borrowedAmount + interestAccrued)) }
     //  else repay marginDelta
     // }
-    function repayVaultDebt(
-        IMarginAccount marginAccount
-    ) public onlyMarginAccountOwnerOrContractOwner(address(marginAccount)) {
-        _repayVaultDebt(marginAccount);
-    }
-
-    function _repayVaultDebt(IMarginAccount marginAccount) internal {
-        uint256 tokenInBalance = IERC20(vault.asset()).balanceOf(
+    function _repayMaxVaultDebt(IMarginAccount marginAccount) private {
+        uint256 vaultAssetBalance = IERC20(vault.asset()).balanceOf(
             address(marginAccount)
         );
-        if (tokenInBalance == 0)
+        if (vaultAssetBalance == 0)
             revert("MM: Not enough balance in MA to repay vault debt");
-        uint256 interestAccruedX18 = _getInterestAccruedX18(marginAccount);
-        uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
+        uint256 interestAccrued = marginAccount
+            .getInterestAccruedX18()
+            .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
+        uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
+        uint256 totalBorrowed = totalBorrowedX18.convertTokenDecimals(
             18,
-            ERC20(vault.asset()).decimals()
+            IERC20Metadata(vault.asset()).decimals()
         );
-        uint256 totalBorrowed = marginAccount
-            .totalBorrowed()
-            .convertTokenDecimals(18, ERC20(vault.asset()).decimals());
-        uint256 vaultLiabilityX18 = marginAccount.totalBorrowed() +
-            interestAccrued;
-        uint256 vaultLiability = vaultLiabilityX18.convertTokenDecimals(
-            18,
-            ERC20(vault.asset()).decimals()
-        );
-        console.log("vaultLiabilityX18", vaultLiabilityX18);
+        uint256 vaultLiability = totalBorrowed + interestAccrued;
         if (vaultLiability == 0) return;
-        if (tokenInBalance < vaultLiability) {
+        if (vaultAssetBalance < vaultLiability) {
             // max repayment possible here is amount - interestAccrued
-            _decreaseDebt(marginAccount, tokenInBalance - interestAccrued);
+            _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
         } else {
-            _decreaseDebt(marginAccount, totalBorrowed);
+            _repayVault(marginAccount, totalBorrowed);
         }
     }
 
@@ -356,9 +406,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             destinations,
             data
         );
-        if (verificationResult.marginDelta > 0) {
-            _prepareMarginTransfer(marginAccount, verificationResult);
-        }
         marginAccount.execMultiTx(destinations, data);
         _executePostMarketOrderUpdates(
             marginAccount,
@@ -366,15 +413,20 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             verificationResult,
             false
         );
-        _updateMarginTransferData(marginAccount, marketKey, verificationResult);
+        _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
         if (verificationResult.marginDelta < 0) {
             if (vault.asset() != verificationResult.tokenOut) {
-                _swapBackToVaultAsset(
+                uint256 tokenBalance = IERC20(verificationResult.tokenOut)
+                    .balanceOf(address(marginAccount));
+                _swapAsset(
                     marginAccount,
-                    verificationResult.tokenOut
+                    verificationResult.tokenOut,
+                    vault.asset(),
+                    tokenBalance,
+                    0
                 );
             }
-            _repayVaultDebt(marginAccount);
+            _repayMaxVaultDebt(marginAccount);
         }
     }
 
@@ -401,12 +453,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // TO DO - repay interest and stuff.
         _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
         marginAccount.removePosition(marketKey);
-
-        // Needed if we allow margin movement calls while closing position
-        // if (vault.asset() != result.marginToken) {
-        //     _swapBackToVaultAsset(marginAccount, result.marginToken);
-        // }
-        // repayVaultDebt(marginAccount);
     }
 
     function liquidate(
@@ -433,7 +479,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _verifyPostLiquidationTxs(marginAccount, result);
         _executePostLiquidationUpdates(marginAccount, result);
         uint256 vaultLiability = marginAccount.totalBorrowed() +
-            _getInterestAccruedX18(marginAccount);
+            marginAccount.getInterestAccruedX18();
         bool hasBadDebt = riskManager.isTraderBankrupt(
             marginAccount,
             vaultLiability
@@ -446,8 +492,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // pay interest
             // pay liquidator
         }
-        _swapBackToVaultAsset(marginAccount);
-        _repayVaultDebt(marginAccount);
+        _swapAllTokensToVaultAsset(marginAccount);
+        _repayMaxVaultDebt(marginAccount);
     }
 
     // @note - this function validates the following points
@@ -503,171 +549,46 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             : 1; // @todo hackey fix fix it with safeMath and setting open index while opening acc
     }
 
-    // handles accounting and transfers requestedCredit
-    // amount in 1e18 decimals
-    function _increaseDebt(
+    // amount in vault asset decimals
+    function borrowFromVault(
+        address trader,
+        uint256 amount
+    ) external onlyMarginAccountOwner(msg.sender) {
+        IMarginAccount marginAccount = IMarginAccount(
+            _getMarginAccount(trader)
+        );
+        _borrowFromVault(marginAccount, amount);
+    }
+
+    // amount in vault asset decimals
+    function repayVault(
+        address trader,
+        uint256 amount
+    ) external onlyMarginAccountOwner(msg.sender) {
+        IMarginAccount marginAccount = IMarginAccount(
+            _getMarginAccount(trader)
+        );
+        _repayVault(marginAccount, amount);
+    }
+
+    function _borrowFromVault(
         IMarginAccount marginAccount,
         uint256 amount
-    ) private returns (uint256 newBorrowedAmountX18) {
-        // @TODO Add acl check
-        // @TODO add a check for max borrow power exceeding.
-        uint256 amountX18 = amount.convertTokenDecimals(
-            ERC20(vault.asset()).decimals(),
-            18
-        );
-        (
-            uint256 borrowedAmount,
-            uint256 cumulativeIndexAtOpen,
-            uint256 cumulativeIndexNow
-        ) = _getMarginAccountDetails(marginAccount);
-
-        newBorrowedAmountX18 = borrowedAmount + amountX18;
-
-        // TODO add this check later.
-
-        // if (
-        //     newBorrowedAmount < minBorrowedAmount ||
-        //     newBorrowedAmount > maxBorrowedAmount
-        // ) revert BorrowAmountOutOfLimitsException(); // F:[CM-17]
-
-        uint256 newCumulativeIndex;
-        // Computes new cumulative index which accrues previous debt
-        newCumulativeIndex =
-            (cumulativeIndexNow *
-                cumulativeIndexAtOpen *
-                newBorrowedAmountX18) /
-            (cumulativeIndexNow *
-                borrowedAmount +
-                amountX18 *
-                cumulativeIndexAtOpen);
-
-        // Lends more money from the pool
-        vault.borrow(address(marginAccount), amount);
-        // set borrowed in X18 decimals
-        marginAccount.updateBorrowData(
-            newBorrowedAmountX18,
-            newCumulativeIndex
-        );
-    }
-
-    // needs to be sent in vault asset decimals
-    function _decreaseDebt(
-        IMarginAccount marginAccount,
-        uint256 amount
-    ) private returns (uint256 newBorrowedAmountX18) {
-        // add acl check
-        (uint256 borrowedAmount, , ) = _getMarginAccountDetails(marginAccount);
-        if (borrowedAmount == 0) return 0;
-        uint256 interestAccruedX18 = _getInterestAccruedX18(marginAccount);
-        uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
-            18,
-            ERC20(vault.asset()).decimals()
-        );
-        uint256 amountX18 = amount.convertTokenDecimals(
-            ERC20(vault.asset()).decimals(),
-            18
-        );
-        newBorrowedAmountX18 = borrowedAmount.sub(amountX18);
-        // Calls repaymarginAccount to update pool values
-        vault.repay(address(marginAccount), amount, interestAccrued);
-
-        // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
-        // to make precise calculation
-        uint256 newCumulativeIndex = vault.calcLinearCumulative_RAY();
-        //
-        // Set parameters for new credit account
-        // set borrowed in X18 decimals
-        marginAccount.updateBorrowData(
-            newBorrowedAmountX18,
-            newCumulativeIndex
-        );
-    }
-
-    function getInterestAccruedX18(
-        address marginAccount
-    ) public view returns (uint256) {
-        return _getInterestAccruedX18(IMarginAccount(marginAccount));
-    }
-
-    function _getInterestAccruedX18(
-        IMarginAccount marginAccount
-    ) private view returns (uint256 interest) {
-        (
-            uint256 borrowedAmount,
-            uint256 cumulativeIndexAtOpen,
-            uint256 cumulativeIndexNow
-        ) = _getMarginAccountDetails(marginAccount);
-        if (borrowedAmount == 0) return 0;
-        // Computes interest rate accrued at the moment
-        interest = (((borrowedAmount * cumulativeIndexNow) /
-            cumulativeIndexAtOpen) - borrowedAmount);
-    }
-
-    function _prepareMarginTransfer(
-        IMarginAccount marginAccount,
-        VerifyTradeResult memory verificationResult
     ) private {
-        address tokenIn = vault.asset();
-
-        // _getInterestAccruedX18(address(marginAccount))
-        uint256 tokenInBalance = IERC20(tokenIn).balanceOf(
-            address(marginAccount)
-        );
-        int256 tokenInPriceX18 = priceOracle.convertToUSD(1 ether, tokenIn);
-        // TODO - ADD following price oracle dollar value changes if needed
-        int256 marginDeltaAmount = verificationResult
-            .marginDelta
-            .convertTokenDecimals(
-                18,
-                ERC20(verificationResult.tokenOut).decimals()
-            );
-        uint256 tokenOutBalance = IERC20(verificationResult.tokenOut).balanceOf(
-            address(marginAccount)
-        );
-
-        if (tokenOutBalance < marginDeltaAmount.abs()) {
-            // TODO add oracle to get asset value.
-            uint256 tokenDiff = marginDeltaAmount.abs().sub(tokenOutBalance);
-            // The following is required if in case there is deviation of SUSD/USDC from 1$
-            // token diff is in tokenOut decimals
-            uint256 tokenDiffValue = priceOracle
-                .convertToUSD(tokenDiff.toInt256(), verificationResult.tokenOut)
-                .abs();
-            uint256 tokenDiffValueInTokenInDecimals = tokenDiffValue
-                .convertTokenDecimals(
-                    ERC20(verificationResult.tokenOut).decimals(),
-                    ERC20(tokenIn).decimals()
-                );
-            if (tokenIn != verificationResult.tokenOut) {
-                uint256 slippageMoney = uint256(100).convertTokenDecimals(
-                    0,
-                    ERC20(tokenIn).decimals()
-                );
-                uint256 tokenSwapAmountIn = ((tokenDiffValueInTokenInDecimals +
-                    slippageMoney) * 1 ether) / tokenInPriceX18.abs();
-                _increaseDebt(marginAccount, slippageMoney);
-                if (tokenDiffValueInTokenInDecimals > tokenInBalance) {
-                    _increaseDebt(
-                        marginAccount,
-                        tokenSwapAmountIn - tokenInBalance - slippageMoney // this is the new credit
-                    );
-                }
-                uint256 amountOut = marginAccount.swapTokens(
-                    tokenIn,
-                    verificationResult.tokenOut,
-                    tokenSwapAmountIn,
-                    tokenDiff
-                );
-                require(amountOut >= tokenDiff, "RM: Bad Swap");
-            } else if (
-                tokenIn == verificationResult.tokenOut && tokenDiffValue > 0
-            ) {
-                _increaseDebt(marginAccount, tokenDiffValue);
-            }
-        }
+        marginAccount.increaseDebt(amount);
+        riskManager.verifyBorrowLimit(address(marginAccount));
+        vault.borrow(address(marginAccount), amount);
     }
 
-    function _updateMarginTransferData(
+    function _repayVault(IMarginAccount marginAccount, uint256 amount) private {
+        uint256 interestAccrued = marginAccount
+            .getInterestAccruedX18()
+            .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
+        vault.repay(address(marginAccount), amount, interestAccrued);
+        marginAccount.decreaseDebt(amount);
+    }
+
+    function _emitMarginTransferEvent(
         IMarginAccount marginAccount,
         bytes32 marketKey,
         VerifyTradeResult memory verificationResult

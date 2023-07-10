@@ -79,4 +79,10 @@ interface IMarginAccount {
         address spender,
         uint256 amount
     ) external;
+
+    function getInterestAccruedX18() external view returns (uint256);
+
+    function increaseDebt(uint256 amount) external;
+
+    function decreaseDebt(uint256 amount) external;
 }

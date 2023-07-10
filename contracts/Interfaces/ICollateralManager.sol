@@ -39,4 +39,6 @@ interface ICollateralManager {
     ) external view returns (uint256 totalAmount);
 
     function collateralWeight(address) external view returns (uint256);
+
+    function getAllCollateralTokens() external view returns (address[] memory);
 }

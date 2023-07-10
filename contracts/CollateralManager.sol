@@ -7,14 +7,13 @@ import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
 import {IVault} from "./Interfaces/IVault.sol";
 import {MarginManager} from "./MarginManager.sol";
 import {IRiskManager} from "./Interfaces/IRiskManager.sol";
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 
 contract CollateralManager is ICollateralManager, AccessControl {
@@ -41,8 +40,16 @@ contract CollateralManager is ICollateralManager, AccessControl {
     mapping(address => bool) public isAllowed;
     mapping(address => mapping(address => int256)) internal _balance;
     // mapping(address => mapping(address => uint256)) internal _balance;
-    event CollateralAdded(address indexed marginAccount, address indexed token, uint256 indexed amount);
-    event CollateralWithdrawn(address indexed marginAccount, address indexed token, uint256 indexed amount);
+    event CollateralAdded(
+        address indexed marginAccount,
+        address indexed token,
+        uint256 indexed amount
+    );
+    event CollateralWithdrawn(
+        address indexed marginAccount,
+        address indexed token,
+        uint256 indexed amount
+    );
 
     constructor(
         address _marginManager,
@@ -80,7 +87,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
             allowedCollateral.push(_allowed[i]);
             collateralWeight[_allowed[i]] = _collateralWeights[i];
             isAllowed[_allowed[i]] = true;
-            _decimals[_allowed[i]] = ERC20(_allowed[i]).decimals();
+            _decimals[_allowed[i]] = IERC20Metadata(_allowed[i]).decimals();
         }
     }
 
@@ -93,7 +100,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
         allowedCollateral.push(_allowed);
         collateralWeight[_allowed] = _collateralWeight;
         isAllowed[_allowed] = true;
-        _decimals[_allowed] = ERC20(_allowed).decimals();
+        _decimals[_allowed] = IERC20Metadata(_allowed).decimals();
     }
 
     function addCollateral(address _token, uint256 _amount) external {
@@ -131,7 +138,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
         uint256 withdrawAmount = priceOracle
             .convertToUSD(
                 _amount
-                    .convertTokenDecimals(ERC20(_token).decimals(), 18)
+                    .convertTokenDecimals(IERC20Metadata(_token).decimals(), 18)
                     .toInt256(),
                 _token
             )
@@ -208,9 +215,9 @@ contract CollateralManager is ICollateralManager, AccessControl {
     ) internal view returns (uint256 totalAmountX18) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
             address token = allowedCollateral[i];
-            uint256 tokenAmountX18 = IERC20(token)
+            uint256 tokenAmountX18 = IERC20Metadata(token)
                 .balanceOf(_marginAccount)
-                .convertTokenDecimals(ERC20(token).decimals(), 18);
+                .convertTokenDecimals(IERC20Metadata(token).decimals(), 18);
             uint256 tokenAmountValueX18 = priceOracle
                 .convertToUSD(
                     int256(tokenAmountX18.mulDiv(collateralWeight[token], 100)),

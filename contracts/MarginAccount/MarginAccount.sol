@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
@@ -14,13 +14,14 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
-import "hardhat/console.sol";
+import {IVault} from "../Interfaces/IVault.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract MarginAccount is IMarginAccount {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
-    using SafeMath for uint256;
+    using SettlementTokenMath for uint256;
     using SafeCast for uint256;
     using SignedMath for int256;
     using SignedMath for uint256;
@@ -156,8 +157,14 @@ contract MarginAccount is IMarginAccount {
     }
 
     function drain(address _token) external onlyOwner {
-        require(IERC20(_token).balanceOf(address(this)) > 0, "insufficent margin account balance!");
-        IERC20(_token).safeTransfer(msg.sender, IERC20(_token).balanceOf(address(this)));
+        require(
+            IERC20(_token).balanceOf(address(this)) > 0,
+            "insufficent margin account balance!"
+        );
+        IERC20(_token).safeTransfer(
+            msg.sender,
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 
     function addPosition(
@@ -215,9 +222,13 @@ contract MarginAccount is IMarginAccount {
         uint256 amountIn,
         uint256 minAmountOut
     ) public onlyMarginManager returns (uint256 amountOut) {
+        if (tokenIn == tokenOut) revert("MarginAccount: Same token");
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
+        if (address(pool) == address(0)) {
+            revert("MarginAccount: Pool not found");
+        }
         int128 tokenInIndex = contractRegistry.getCurvePoolTokenIndex(
             address(pool),
             tokenIn
@@ -226,6 +237,9 @@ contract MarginAccount is IMarginAccount {
             address(pool),
             tokenOut
         );
+        // @dev imp notice -
+        // IF the token is not found in the pool, it still would return the index as 0
+        // Need to have a pre check on the tokens allowed to swap before calling swap here.
         IERC20(tokenIn).approve(address(pool), amountIn);
         amountOut = pool.exchange_underlying(
             tokenInIndex, // TODO - correct this
@@ -233,6 +247,59 @@ contract MarginAccount is IMarginAccount {
             amountIn,
             minAmountOut
         );
+    }
+
+    // amount in vault decimals
+    function increaseDebt(uint256 amount) public onlyMarginManager {
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
+        uint256 amountX18 = amount.convertTokenDecimals(
+            IERC20Metadata(vault.asset()).decimals(),
+            18
+        );
+        uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
+        uint256 prevBorrowedAmount = totalBorrowed;
+        totalBorrowed += amountX18;
+        // Computes new cumulative index which accrues previous debt
+        cumulativeIndexAtOpen =
+            (cumulativeIndexNow * cumulativeIndexAtOpen * totalBorrowed) /
+            (cumulativeIndexNow *
+                prevBorrowedAmount +
+                amountX18 *
+                cumulativeIndexAtOpen);
+    }
+
+    // needs to be sent in vault asset decimals
+    function decreaseDebt(uint256 amount) public onlyMarginManager {
+        require(
+            totalBorrowed >= amount,
+            "MarginAccount: Decrease debt amount exceeds total debt"
+        );
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
+        uint256 amountX18 = amount.convertTokenDecimals(
+            IERC20Metadata(vault.asset()).decimals(),
+            18
+        );
+        totalBorrowed = totalBorrowed.sub(amountX18);
+        // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
+        cumulativeIndexAtOpen = vault.calcLinearCumulative_RAY();
+    }
+
+    function getInterestAccruedX18() public view returns (uint256) {
+        return _getInterestAccruedX18();
+    }
+
+    function _getInterestAccruedX18() private view returns (uint256 interest) {
+        if (totalBorrowed == 0) return 0;
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
+        uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY();
+        interest = (((totalBorrowed * cumulativeIndexNow) /
+            cumulativeIndexAtOpen) - totalBorrowed);
     }
 }
 
