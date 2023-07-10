@@ -1,13 +1,22 @@
 pragma solidity ^0.8.10;
 
 interface IMarginManager {
-    event MarginAccountOpened(address indexed, address indexed);
-    event MarginAccountLiquidated(address indexed, address indexed);
-    event MarginAccountClosed(address indexed, address indexed);
+    event MarginAccountOpened(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountLiquidated(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountClosed(
+        address indexed trader,
+        address indexed marginAccount
+    );
     event MarginTransferred(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
+        address indexed marginAccount,
+        bytes32 indexed marketKey,
+        address indexed tokenOut,
         int256 marginTokenAmountX18,
         int256 marginValueX18
     );
@@ -19,7 +28,12 @@ interface IMarginManager {
         int256 size,
         int256 openNotional
     );
-    event PositionUpdated(address indexed, bytes32 indexed, int256, int256);
+    event PositionUpdated(
+        address indexed marginAccount,
+        bytes32 indexed marketKey,
+        int256 size,
+        int256 openNotional
+    );
     event PositionClosed(
         address indexed marginAccount,
         bytes32 indexed marketKey
