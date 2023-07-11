@@ -68,22 +68,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         IProtocolRiskManager _protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
         );
-<<<<<<< HEAD
         result = IProtocolRiskManager(_protocolRiskManager).decodeTxCalldata(
             marketKey,
             destinations,
             data
         );
-=======
-        result.tokenOut = _protocolRiskManager.getMarginToken();
-        (result.marginDelta, result.position) = _protocolRiskManager
-            .decodeTxCalldata(marketKey, destinations, data);
-        if (result.marginDelta != 0) {
-            result.marginDeltaDollarValue = IPriceOracle(
-                contractRegistry.getContractByName(keccak256("PriceOracle"))
-            ).convertToUSD(result.marginDelta, result.tokenOut);
-        }
->>>>>>> f4098e6 (feat: drain function test cases)
     }
 
     function verifyTrade(

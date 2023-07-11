@@ -217,11 +217,7 @@ contract CollateralManagerTest is BaseSetup {
         vm.stopPrank();
     }
 
-<<<<<<< HEAD
     /*
-=======
-    /* 
->>>>>>> f4098e6 (feat: drain function test cases)
     // Unit tests 
     1. Add Allowed collateral
     2. Withdraw collateral

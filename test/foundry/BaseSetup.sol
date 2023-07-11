@@ -170,10 +170,7 @@ contract BaseSetup is Test, IEvents {
 
     function setupRiskManager() internal {
         contracts.riskManager = new RiskManager(contracts.contractRegistry);
-<<<<<<< HEAD
-=======
         // contracts.riskManager.setPriceOracle(address(contracts.priceOracle));
->>>>>>> f4098e6 (feat: drain function test cases)
         contracts.contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(contracts.riskManager)
