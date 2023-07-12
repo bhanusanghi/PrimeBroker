@@ -15,7 +15,8 @@
     "compile": "hardhat compile --show-stack-traces",
     "build": "npm run typechain && hardhat compile",
     "lint-contracts": "solhint 'contracts/**/*.sol'",
-    "prepare": "husky install .husky"
+    "prepare": "husky install .husky",
+    "postinstall": "npm run prepare"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
