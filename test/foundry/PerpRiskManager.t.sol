@@ -37,12 +37,12 @@ contract PerpRiskManagerTest is BaseSetup {
         // need to be done in this order only.
         utils = new Utils();
         setupPerpfiFixture();
-        snxUtils = new SnxUtils(contracts);
-        perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
+        snxUtils = new SnxUtils(contracts);
+        perpfiUtils = new PerpfiUtils(contractsÏ);
     }
 
-  /*
+    /*
     Integration testing ->
     getUnrealizedPnL
     getCurrentDollarMarginInMarkets

@@ -32,8 +32,8 @@ contract ClosePositionSnx is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupSNXFixture();
-        snxUtils = new SnxUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
+        snxUtils = new SnxUtils(contracts);
     }
 
     function testClosingSNXPosition(int256 positionSize) public {

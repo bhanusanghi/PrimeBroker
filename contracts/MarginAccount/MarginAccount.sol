@@ -51,19 +51,12 @@ contract MarginAccount is IMarginAccount {
     IContractRegistry contractRegistry;
 
     constructor(
-        address _contractRegistry, //  address _marketManager
-        address _owner
+        address _marginManager, //  address _marketManager
+        address _contractRegistry //  address _marketManager
     ) {
-        marginManager = msg.sender;
+        marginManager = _marginManager;
         contractRegistry = IContractRegistry(_contractRegistry);
-        owner = _owner;
-        // TODO- Market manager is not related to accounts.
-        // marketManager = IMarketManager(_marketManager);
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "MM: Unauthorized, only owner allowed");
-        _;
+        cumulativeIndexAtOpen = 1;
     }
 
     modifier onlyMarginManager() {

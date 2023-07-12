@@ -20,7 +20,7 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginManager} from "../Interfaces/IMarginManager.sol";
 import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
-import "forge-std/console2.sol";
+import "hardhat/console.sol";
 
 contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -52,7 +52,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         require(
             contractRegistry.getContractByName(keccak256("MarginManager")) ==
                 msg.sender,
-            "MarginAccount: Only margin manager"
+            "RiskManager: Only margin manager"
         );
         _;
     }

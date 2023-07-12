@@ -10,6 +10,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ContractRegistry} from "../../contracts/Utils/ContractRegistry.sol";
 import {CollateralManager} from "../../contracts/CollateralManager.sol";
 import {MarketManager} from "../../contracts/MarketManager.sol";
+import {MarginAccountFactory} from "../../contracts/MarginAccount/MarginAccountFactory.sol";
 import {RiskManager} from "../../contracts/RiskManager/RiskManager.sol";
 import {SNXRiskManager} from "../../contracts/RiskManager/SNXRiskManager.sol";
 import {PerpfiRiskManager} from "../../contracts/RiskManager/PerpfiRiskManager.sol";
@@ -169,10 +170,7 @@ contract BaseSetup is Test, IEvents {
 
     function setupMarginManager() internal {
         vm.startPrank(deployerAdmin);
-        contracts.marginManager = new MarginManager(
-            contracts.contractRegistry,
-            contracts.priceOracle
-        );
+        contracts.marginManager = new MarginManager(contracts.contractRegistry);
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarginManager"),
             address(contracts.marginManager)
@@ -203,6 +201,17 @@ contract BaseSetup is Test, IEvents {
             address(contracts.collateralManager)
         );
         vm.stopPrank();
+    }
+
+    function setupMarginAccountFactory() internal {
+        contracts.marginAccountFactory = new MarginAccountFactory(
+            address(contracts.marginManager),
+            address(contracts.contractRegistry)
+        );
+        contracts.contractRegistry.addContractToRegistry(
+            keccak256("MarginAccountFactory"),
+            address(contracts.marginAccountFactory)
+        );
     }
 
     function setupVault(address token) internal {
@@ -275,6 +284,7 @@ contract BaseSetup is Test, IEvents {
         setupPriceOracle();
         setupMarketManager();
         setupMarginManager();
+        setupMarginAccountFactory();
         setupRiskManager();
         setupVault(vaultAsset);
         setupCollateralManager();

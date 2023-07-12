@@ -34,7 +34,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
 
     constructor(Contracts memory _contracts) {
         contracts = _contracts;
-        // add any contracts for perp here.
     }
 
     // @notice Returns the price of th UniV3Pool.
@@ -494,6 +493,32 @@ contract PerpfiUtils is Test, Constants, IEvents {
         vm.stopPrank();
     }
 
+    function borrowAssets(address trader, uint256 amount) public {
+        contracts.marginManager.borrowFromVault(amount);
+    }
+
+    function repayAssets(address trader, uint256 amount) public {
+        contracts.marginManager.repayVault(amount);
+    }
+
+    function prepareMarginTransfer(
+        address trader,
+        bytes32 marketKey,
+        uint256 deltaMarginX18
+    ) public {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        uint256 tokenBalanceUsdcX18 = IERC20(usdc)
+            .balanceOf(marginAccount)
+            .convertTokenDecimals(6, 18);
+        //TODO- Will work till susd == usdc == 1 use exchange quote price later.
+        if (deltaMarginX18 > tokenBalanceUsdcX18) {
+            uint256 borrowNeedX18 = deltaMarginX18 - tokenBalanceUsdcX18;
+            borrowAssets(trader, borrowNeedX18.convertTokenDecimals(18, 6));
+        }
+    }
+
     // send margin in 6 decimals.
     function updateAndVerifyMargin(
         address trader,
@@ -551,8 +576,7 @@ contract PerpfiUtils is Test, Constants, IEvents {
                 marginX18Value
             );
             if (margin > 0) {
-                // vm.expectEmit(true, true, true, true, perpVault);
-                // emit Deposited(usdc, marginAccount, uint256(margin));
+                prepareMarginTransfer(trader, marketKey, uint256(marginX18));
                 data[0] = abi.encodeWithSignature(
                     "approve(address,uint256)",
                     perpVault,

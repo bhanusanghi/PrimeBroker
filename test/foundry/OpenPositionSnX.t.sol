@@ -34,9 +34,9 @@ contract OpenPositionSnX is BaseSetup {
         vm.selectFork(forkId);
         // need to be done in this order only.
         utils = new Utils();
-        setupSNXFixture();
-        snxUtils = new SnxUtils(contracts);
+        setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
+        snxUtils = new SnxUtils(contracts);
     }
 
     function testBobAddsPositionOnInvalidMarket() public {
@@ -83,7 +83,7 @@ contract OpenPositionSnX is BaseSetup {
     function testBobOpensPositionWithExcessLeverageSingleAttempt(
         int128 positionSize
     ) public {
-        uint256 chronuxMargin = 1000 ether;
+        uint256 chronuxMargin = 1000 * ONE_USDC;
         uint256 imf = contracts.riskManager.initialMarginFactor();
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
 
@@ -115,9 +115,9 @@ contract OpenPositionSnX is BaseSetup {
     // max BP = 200k
 
     function testBobOpensLongPositionWithLeverage(int256 positionSize) public {
-        uint256 chronuxMargin = 1500 ether;
+        uint256 chronuxMargin = 1500 * ONE_USDC;
         uint256 imf = contracts.riskManager.initialMarginFactor();
-        chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 3000 ether, false, "");
         int256 remainingNotional = int256(
             contracts.riskManager.getRemainingPositionOpenNotional(
@@ -133,9 +133,9 @@ contract OpenPositionSnX is BaseSetup {
     }
 
     function testBobOpensShortPositionWithLeverage(int256 positionSize) public {
-        uint256 chronuxMargin = 1000 ether;
+        uint256 chronuxMargin = 1000 * ONE_USDC;
         uint256 imf = contracts.riskManager.initialMarginFactor();
-        chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, 1000 ether);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 2000 ether, false, "");
         int256 remainingNotional = int256(
             contracts.riskManager.getRemainingPositionOpenNotional(

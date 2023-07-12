@@ -40,7 +40,6 @@ contract LiquidationSnx is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupPerpfiFixture();
-        perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
     }

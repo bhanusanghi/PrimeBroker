@@ -8,6 +8,7 @@ import {Vault} from "../contracts/MarginPool/Vault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 // force update
 import {ContractRegistry} from "../contracts/Utils/ContractRegistry.sol";
+import {MarginAccountFactory} from "../../contracts/MarginAccount/MarginAccountFactory.sol";
 import {CollateralManager} from "../contracts/CollateralManager.sol";
 import {MarketManager} from "../contracts/MarketManager.sol";
 import {RiskManager} from "../contracts/RiskManager/RiskManager.sol";
@@ -128,9 +129,17 @@ contract BaseDeployer {
 
     function setupMarginManager() internal {
         marginManager = new MarginManager(contractRegistry, priceOracle);
-        contractRegistry.addContractToRegistry(
-            keccak256("MarginManager"),
-            address(marginManager)
+        contractRegistry.addContractToRegistry(keccak256("MarginManager"));
+    }
+
+    function setupMarginAccountFactory() internal {
+        contracts.marginAccountFactory = new MarginAccountFactory(
+            address(contracts.marginManager),
+            address(contracts.contractRegistry)
+        );
+        contracts.contractRegistry.addContractToRegistry(
+            keccak256("MarginAccountFactory"),
+            address(contracts.marginAccountFactory)
         );
     }
 

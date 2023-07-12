@@ -23,13 +23,13 @@ import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
-// import {Contracts, OpenPositionParams, PositionData, PerpTradingData, MarginAccountData, SNXTradingData, } from "../IEvents.sol";
-
 contract SnxUtils is Test, IEvents {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
+    using SignedMath for int256;
     Contracts contracts;
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
+    address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
 
     constructor(Contracts memory _contracts) {
         contracts = _contracts;
@@ -60,6 +60,29 @@ contract SnxUtils is Test, IEvents {
         );
         assertEq(positionChronux.size, expectedPositionSize);
         assertEq(positionChronux.size, snxPositionSize);
+    }
+
+    function borrowAssets(address trader, uint256 amount) public {
+        contracts.marginManager.borrowFromVault(amount);
+    }
+
+    function repayAssets(address trader, uint256 amount) public {
+        contracts.marginManager.repayVault(amount);
+    }
+
+    function swapAssets(
+        address trader,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) public returns (uint256 amountOut) {
+        amountOut = contracts.marginManager.swapAsset(
+            tokenIn,
+            tokenOut,
+            amountIn,
+            minAmountOut
+        );
     }
 
     function addAndVerifyPosition(
@@ -204,11 +227,42 @@ contract SnxUtils is Test, IEvents {
         assertEq(margin, expectedMargin);
     }
 
+    // call with an active trader prank
+    function prepareMarginTransfer(
+        address trader,
+        bytes32 marketKey,
+        uint256 deltaMarginX18
+    ) public {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        uint256 tokenBalanceSusdX18 = IERC20(susd).balanceOf(marginAccount);
+        uint256 tokenBalanceUsdcX18 = IERC20(usdc)
+            .balanceOf(marginAccount)
+            .convertTokenDecimals(6, 18);
+        //TODO- Will work till susd == usdc == 1 use exchange quote price later.
+        if (deltaMarginX18 > tokenBalanceSusdX18) {
+            uint256 susdDiffX18 = deltaMarginX18 - tokenBalanceSusdX18;
+            uint256 borrowNeedX18 = susdDiffX18 -
+                tokenBalanceUsdcX18 +
+                100 ether;
+            borrowAssets(trader, borrowNeedX18.convertTokenDecimals(18, 6));
+            uint256 tokenOut = swapAssets(
+                trader,
+                usdc,
+                susd,
+                (susdDiffX18 + 100 ether).convertTokenDecimals(18, 6),
+                susdDiffX18
+            );
+            console2.log("Token out from swap", tokenOut);
+        }
+    }
+
     // send margin in 18 decimals.
     function updateAndVerifyMargin(
         address trader,
         bytes32 marketKey,
-        int256 deltaMargin,
+        int256 deltaMarginX18,
         bool shouldFail,
         bytes memory reason
     ) public {
@@ -223,7 +277,7 @@ contract SnxUtils is Test, IEvents {
 
         bytes memory transferMarginData = abi.encodeWithSignature(
             "transferMargin(int256)",
-            deltaMargin
+            deltaMarginX18
         );
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
@@ -234,6 +288,9 @@ contract SnxUtils is Test, IEvents {
             vm.expectRevert(reason);
             contracts.marginManager.openPosition(marketKey, destinations, data);
         } else {
+            if (deltaMarginX18 > 0) {
+                prepareMarginTransfer(trader, marketKey, deltaMarginX18.abs());
+            }
             vm.expectEmit(
                 true,
                 true,
@@ -245,14 +302,14 @@ contract SnxUtils is Test, IEvents {
                 marginAccount,
                 marketKey,
                 susd,
-                deltaMargin,
-                deltaMargin
+                deltaMarginX18,
+                deltaMarginX18
             );
             contracts.marginManager.openPosition(marketKey, destinations, data);
             verifyMargin(
                 marginAccount,
                 marketKey,
-                deltaMargin + existingMargin
+                deltaMarginX18 + existingMargin
             );
         }
         vm.stopPrank();
