@@ -254,7 +254,6 @@ contract SnxUtils is Test, IEvents {
                 (susdDiffX18 + 100 ether).convertTokenDecimals(18, 6),
                 susdDiffX18
             );
-            console2.log("Token out from swap", tokenOut);
         }
     }
 

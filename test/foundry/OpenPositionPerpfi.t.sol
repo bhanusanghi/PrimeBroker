@@ -47,7 +47,7 @@ contract OpenPositionPerpfi is BaseSetup {
         utils = new Utils();
         setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
-        perpfiUtils = new PerpfiUtils(contractsÏ);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     // Internal
@@ -82,13 +82,9 @@ contract OpenPositionPerpfi is BaseSetup {
             perpMargin > expectedRemainingMargin &&
                 perpMargin < 2 * expectedRemainingMargin
         );
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            true,
-            "Borrow limit exceeded"
-        );
+        vm.prank(bob);
+        vm.expectRevert("Borrow limit exceeded");
+        contracts.marginManager.borrowFromVault(uint256(perpMargin));
     }
 
     function testOpenPositionPerpExtraLeverageRevert(int256 notional) public {

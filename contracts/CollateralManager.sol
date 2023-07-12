@@ -133,7 +133,6 @@ contract CollateralManager is ICollateralManager, AccessControl {
         uint256 freeCollateralValueX18 = _getFreeCollateralValue(
             address(marginAccount)
         );
-        console.log("freeCollateralValueX18", freeCollateralValueX18);
         uint256 withdrawAmount = priceOracle
             .convertToUSD(
                 _amount
@@ -143,7 +142,6 @@ contract CollateralManager is ICollateralManager, AccessControl {
             )
             .toUint256()
             .mulDiv(collateralWeight[_token], 100);
-        console.log("withdrawAmount", withdrawAmount);
         require(
             withdrawAmount <= freeCollateralValueX18,
             "CM: Withdrawing more than free collateral not allowed"

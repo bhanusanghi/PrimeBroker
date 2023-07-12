@@ -72,11 +72,10 @@ contract TransferMarginSNX is BaseSetup {
         int256 remainingMargin = int256(
             contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
-
-        snxUtils.verifyExcessMarginRevert(
-            bob,
-            snxUniKey,
-            remainingMargin + 1 ether
+        vm.prank(bob);
+        vm.expectRevert("Borrow limit exceeded");
+        contracts.marginManager.borrowFromVault(
+            uint256(remainingMargin + 1 ether).convertTokenDecimals(18, 6)
         );
     }
 
@@ -165,8 +164,11 @@ contract TransferMarginSNX is BaseSetup {
         );
         int256 snxMargin1 = remainingTransferrableMargin / 2;
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin1, false, "");
-        int256 snxMargin2 = (remainingTransferrableMargin / 2) + 1 ether;
-        snxUtils.verifyExcessMarginRevert(bob, snxUniKey, snxMargin2);
+        vm.prank(bob);
+        vm.expectRevert("Borrow limit exceeded");
+        contracts.marginManager.borrowFromVault(
+            uint256(snxMargin1 + 1 ether).convertTokenDecimals(18, 6)
+        );
     }
 
     // function testBobTransfersExcessMarginMultipleDataInSingleAttempt(

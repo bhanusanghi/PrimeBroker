@@ -33,7 +33,7 @@ contract ClosePositionPerp is BaseSetup {
         utils = new Utils();
         setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
-        perpfiUtils = new PerpfiUtils(contractsÏ);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     function testClosingPosition(int notional) public {

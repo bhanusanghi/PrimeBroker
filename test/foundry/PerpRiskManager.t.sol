@@ -39,7 +39,7 @@ contract PerpRiskManagerTest is BaseSetup {
         setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
-        perpfiUtils = new PerpfiUtils(contractsÏ);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     /*

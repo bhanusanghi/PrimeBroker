@@ -608,16 +608,11 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     usdc,
                     margin.abs()
                 );
-                console2.log("destinations.length", destinations.length);
                 contracts.marginManager.updatePosition(
                     marketKey,
                     destinations,
                     data
                 );
-                console2.log("Idhar");
-                console2.log(freeCollateralPerp);
-                console2.logInt(margin);
-                console2.log(freeCollateralPerp + margin);
                 verifyMarginOnPerp(
                     marginAccount,
                     marketKey,

@@ -39,7 +39,7 @@ contract CollateralManagerTest is BaseSetup {
         utils = new Utils();
         setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
-        perpfiUtils = new PerpfiUtils(contractsÏ);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     function testAddCollateral(uint256 _depositAmt) public {

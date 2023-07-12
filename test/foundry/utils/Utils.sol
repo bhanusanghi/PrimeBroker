@@ -133,7 +133,6 @@ contract Utils is Test, IEvents {
     }
 
     function setAssetPricePerpfi(address baseToken, uint256 price) public {
-        console2.log("setAssetPricePerpfi", price);
         address aggregator = IBaseToken(baseToken).getPriceFeed();
         uint256 interval = IClearingHouseConfig(
             0xA4c817a425D3443BAf610CA614c8B11688a288Fb
@@ -149,7 +148,6 @@ contract Utils is Test, IEvents {
             abi.encode(price)
         );
         uint256 _price = IPriceFeedV2(aggregator).getPrice(interval);
-        console2.log("price", _price, "interval", interval);
     }
 
     function sqrt(uint y) internal pure returns (uint z) {
@@ -244,12 +242,6 @@ contract Utils is Test, IEvents {
             .getPnlAndPendingFee(trader);
         int256 finalPosValue = IAccountBalance(accountBalance)
             .getTotalPositionValue(trader, baseToken);
-        console2.log("iPosValue", initialPosValue);
-        console2.log("finalPosValue", finalPosValue);
-        console2.log("initialPnL", initialPnL);
-        console2.log("finalPnL", finalPnL);
-        console2.log("positionSize", positionSize);
-        console2.log("openNotional", openNotional);
     }
 
     // function simulateUnrealisedPnLPerpfi(

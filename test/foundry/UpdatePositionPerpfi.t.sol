@@ -46,7 +46,7 @@ contract UpdatePositionPerpfi is BaseSetup {
         utils = new Utils();
         setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
-        perpfiUtils = new PerpfiUtils(contractsÏ);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     // Internal

@@ -42,6 +42,7 @@ contract LiquidationSnx is BaseSetup {
         setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     // ChronuxMargin |  Snx Margin | snx ON
@@ -417,12 +418,6 @@ contract LiquidationSnx is BaseSetup {
             IMarginAccount(bobMarginAccount).getTotalOpeningAbsoluteNotional(),
             0,
             "getTotalOpeningAbsoluteNotional after liquidation is not zero"
-        );
-        console2.log(
-            "remainingMargin",
-            contracts.collateralManager.getCollateralHeldInMarginAccount(
-                bobMarginAccount
-            )
         );
     }
 
