@@ -141,7 +141,6 @@ contract BaseDeployer {
 
     function setupRiskManager() internal {
         riskManager = new RiskManager(contractRegistry);
-        // riskManager.setPriceOracle(address(priceOracle));
         contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(riskManager)

@@ -72,6 +72,7 @@ contract BaseSetup is Test, IEvents {
     address public bob;
     address internal charlie;
     address internal david;
+    address internal deployerAdmin;
 
     // ============= Forked Addresses =============
 
@@ -117,7 +118,10 @@ contract BaseSetup is Test, IEvents {
     // ============= Setup Functions =============
 
     function setupUsers() internal {
-        users = utils.createUsers(5);
+        users = utils.createUsers(6);
+        deployerAdmin = users[5];
+        vm.label(deployerAdmin, "deployerAdmin");
+        vm.deal(deployerAdmin, 1000 ether);
         admin = users[0];
         vm.label(admin, "Admin");
         vm.deal(admin, 1000 ether);
@@ -136,18 +140,23 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupContractRegistry() internal {
+        vm.startPrank(deployerAdmin);
         contracts.contractRegistry = new ContractRegistry();
+        vm.stopPrank();
     }
 
     function setupMarketManager() internal {
+        vm.startPrank(deployerAdmin);
         contracts.marketManager = new MarketManager();
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarketManager"),
             address(contracts.marketManager)
         );
+        vm.stopPrank();
     }
 
     function setupPriceOracle() internal {
+        vm.startPrank(deployerAdmin);
         contracts.priceOracle = new PriceOracle();
         contracts.priceOracle.addPriceFeed(susd, sUsdPriceFeed);
         contracts.priceOracle.addPriceFeed(usdc, usdcPriceFeed);
@@ -155,9 +164,11 @@ contract BaseSetup is Test, IEvents {
             keccak256("PriceOracle"),
             address(contracts.priceOracle)
         );
+        vm.stopPrank();
     }
 
     function setupMarginManager() internal {
+        vm.startPrank(deployerAdmin);
         contracts.marginManager = new MarginManager(
             contracts.contractRegistry,
             contracts.priceOracle
@@ -166,18 +177,21 @@ contract BaseSetup is Test, IEvents {
             keccak256("MarginManager"),
             address(contracts.marginManager)
         );
+        vm.stopPrank();
     }
 
     function setupRiskManager() internal {
+        vm.startPrank(deployerAdmin);
         contracts.riskManager = new RiskManager(contracts.contractRegistry);
-        // contracts.riskManager.setPriceOracle(address(contracts.priceOracle));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(contracts.riskManager)
         );
+        vm.stopPrank();
     }
 
     function setupCollateralManager() internal {
+        vm.startPrank(deployerAdmin);
         contracts.collateralManager = new CollateralManager(
             address(contracts.marginManager),
             address(contracts.riskManager),
@@ -188,6 +202,7 @@ contract BaseSetup is Test, IEvents {
             keccak256("CollateralManager"),
             address(contracts.collateralManager)
         );
+        vm.stopPrank();
     }
 
     function setupVault(address token) internal {
@@ -195,6 +210,7 @@ contract BaseSetup is Test, IEvents {
         uint256 rBase = 0;
         uint256 rSlope1 = 2 * 10 ** 4;
         uint256 rSlope2 = 10 * 10 ** 4;
+        vm.startPrank(deployerAdmin);
         contracts.interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
@@ -221,9 +237,11 @@ contract BaseSetup is Test, IEvents {
             keccak256("Vault"),
             address(contracts.vault)
         );
+        vm.stopPrank();
     }
 
     function setupProtocolRiskManagers() internal {
+        vm.startPrank(deployerAdmin);
         contracts.perpfiRiskManager = new PerpfiRiskManager(
             usdc,
             address(contracts.contractRegistry),
@@ -248,6 +266,7 @@ contract BaseSetup is Test, IEvents {
             keccak256("SnxRiskManager"),
             address(contracts.snxRiskManager)
         );
+        vm.stopPrank();
     }
 
     function _setupCommonFixture(address vaultAsset) internal {
@@ -259,11 +278,15 @@ contract BaseSetup is Test, IEvents {
         setupRiskManager();
         setupVault(vaultAsset);
         setupCollateralManager();
+        vm.startPrank(deployerAdmin);
         contracts.marginManager.setVault(address(contracts.vault));
         contracts.marginManager.SetRiskManager(address(contracts.riskManager));
+        vm.stopPrank();
         setupProtocolRiskManagers();
+        vm.startPrank(deployerAdmin);
         contracts.collateralManager.addAllowedCollateral(usdc, 100);
         contracts.collateralManager.addAllowedCollateral(susd, 100);
+        vm.stopPrank();
 
         // Fund admin traders
         vm.startPrank(usdcWhaleContract);
@@ -324,6 +347,7 @@ contract BaseSetup is Test, IEvents {
         _setupCommonFixture(usdc);
         // =============================== Get Market Addresses from SNX using Keys ===============================
         // =============================== Add Markets to Market Manager and setup Whitelist ===============================
+        vm.startPrank(deployerAdmin);
         contracts.marketManager.addMarket(
             snxUniKey,
             uniFuturesMarket,
@@ -366,6 +390,7 @@ contract BaseSetup is Test, IEvents {
             usdc,
             2
         );
+        vm.stopPrank();
     }
 
     function setupPerpfiFixture() internal {
@@ -379,6 +404,7 @@ contract BaseSetup is Test, IEvents {
             .marketForKey(snxEth_marketKey);
         vm.label(ethFuturesMarket, "ETH futures Market");
 
+        vm.startPrank(deployerAdmin);
         contracts.marketManager.addMarket(
             perpAaveKey,
             perpClearingHouse,
@@ -437,6 +463,7 @@ contract BaseSetup is Test, IEvents {
             usdc,
             2
         );
+        vm.stopPrank();
     }
 
     function makeSusdAndUsdcEqualToOne() internal {

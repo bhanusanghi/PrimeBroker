@@ -113,18 +113,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // approve
     }
 
-    // // TODO: remove while deploying on mainnet
-    // function drainAllMarginAccounts() public onlyOwner {
-    //     for(uint256 i = 0; i < traders.length; i += 1) {
-    //         IMarginAccount(marginAccounts[traders[i]])
-    //             .transferTokens(
-    //                 vault.asset(),
-    //                 msg.sender,
-    //                 IERC20(vault.asset()).balanceOf(marginAccounts[traders[i]])
-    //             );
-    //     }
-    // }
-
     function closeMarginAccount(
         address marginAccount
     ) external onlyMarginAccountOwnerOrContractOwner(marginAccount) {

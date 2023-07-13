@@ -51,7 +51,9 @@ contract CollateralManagerTest is BaseSetup {
         uint256 _depositAmt = 10_000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
         vm.assume(_wf <= CENT && _wf > 0);
+        vm.startPrank(deployerAdmin);
         contracts.collateralManager.updateCollateralWeight(usdc, _wf);
+        vm.stopPrank();
         assertEq(
             contracts
                 .collateralManager

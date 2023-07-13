@@ -14,20 +14,8 @@ import {Utils} from "./utils/Utils.sol";
 import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
 import {ChronuxUtils} from "./utils/ChronuxUtils.sol";
 import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
+import {Strings} from "openzeppelin-contracts/contracts/utils/Strings.sol";
 
-/**
- * setup
- * Open position
- * margin and leverage min max fuzzy
- * fee
- * update
- * multiple markets
- * liquidate perpfi
- * liquidate on GB
- * close positions
- * pnl
- * pnl with ranges and multiple positions
- */
 contract DrainFunds is BaseSetup {
     using SafeMath for uint256;
     using Math for uint256;
@@ -60,13 +48,30 @@ contract DrainFunds is BaseSetup {
             amount
         );
         vm.stopPrank();
-        uint256 adminBalance = IERC20(susd).balanceOf(address(this));
+        vm.startPrank(deployerAdmin);
+        uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
         IMarginAccount(bobMarginAccount).drain(susd);
         assertEq(
-            IERC20(susd).balanceOf(address(this)),
+            IERC20(susd).balanceOf(deployerAdmin),
             adminBalance + amount
         );
+        vm.stopPrank();
+    }
+
+    function testRejectDrainMarginAccountNonAdmin() public {
+        vm.startPrank(bob);
+        uint256 amount = 200 ether;
+        IERC20(susd).transfer(bobMarginAccount, amount);
+        assertEq(
+            IERC20(susd).balanceOf(bobMarginAccount),
+            amount
+        );
+        vm.stopPrank();
+        vm.startPrank(alice);
+        vm.expectRevert("MM: Unauthorized, only owner allowed");
+        IMarginAccount(bobMarginAccount).drain(susd);
+        vm.stopPrank();
     }
 
     function testERC20DrainVault() public {
@@ -78,12 +83,47 @@ contract DrainFunds is BaseSetup {
             amount
         );
         vm.stopPrank();
-        uint256 adminBalance = IERC20(susd).balanceOf(address(this));
+        vm.startPrank(deployerAdmin);
+        uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
         contracts.vault.drain(susd);
         assertEq(
-            IERC20(susd).balanceOf(address(this)),
+            IERC20(susd).balanceOf(deployerAdmin),
             adminBalance + amount
         );
+        vm.stopPrank();
+    }
+
+    function testRejectDrainNonAdminUser() public {
+        vm.startPrank(bob);
+        uint256 amount = 200 ether;
+        IERC20(susd).transfer(address(contracts.vault), amount);
+        assertEq(
+            IERC20(susd).balanceOf(address(contracts.vault)),
+            amount
+        );
+        uint256 adminBalance = IERC20(susd).balanceOf(bob);
+
+        console2.log("role hash: ");
+        console2.log(
+            string.concat(
+                "AccessControl: account ",
+                Strings.toHexString(bob),
+                " is missing role ",
+                Strings.toHexString(uint256(keccak256("REGISTRAR_ROLE")), 32)
+            )
+        );
+        vm.expectRevert(
+            bytes(
+                string.concat(
+                    "AccessControl: account ",
+                    Strings.toHexString(bob),
+                    " is missing role ",
+                    Strings.toHexString(uint256(keccak256("REGISTRAR_ROLE")), 32)
+                )
+            )
+        );
+        contracts.vault.drain(susd);
+        vm.stopPrank();
     }
 }
