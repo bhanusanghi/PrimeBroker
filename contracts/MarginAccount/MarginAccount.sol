@@ -14,10 +14,9 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import "hardhat/console.sol";
 
-import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
-
-contract MarginAccount is IMarginAccount, AccessControl {
+contract MarginAccount is IMarginAccount {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -32,13 +31,38 @@ contract MarginAccount is IMarginAccount, AccessControl {
     uint256 public cumulativeIndexAtOpen;
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
+
+    /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
+     serves multiple purposes
+     1. Affects buyingPower correctly
+     2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
+     3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
+    */
+    int256 public unsettledRealizedPnL;
+
+    address owner;
+
+    // constructor(address underlyingToken) {
+    //     marginManager = msg.sender;
+    //     underlyingToken = underlyingToken;
+    // }
+
     IContractRegistry contractRegistry;
 
     constructor(
-        address _contractRegistry //  address _marketManager
+        address _contractRegistry, //  address _marketManager
+        address _owner
     ) {
         marginManager = msg.sender;
         contractRegistry = IContractRegistry(_contractRegistry);
+        owner = _owner;
+        // TODO- Market manager is not related to accounts.
+        // marketManager = IMarketManager(_marketManager);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "MM: Unauthorized, only owner allowed");
+        _;
     }
 
     modifier onlyMarginManager() {
@@ -53,7 +77,7 @@ contract MarginAccount is IMarginAccount, AccessControl {
             contractRegistry.getContractByName(
                 keccak256("CollateralManager")
             ) == msg.sender,
-            "MarginAccount: Only risk manager"
+            "MarginAccount: Only collateral manager"
         );
         _;
     }
@@ -129,6 +153,11 @@ contract MarginAccount is IMarginAccount, AccessControl {
             returnData = destinations[i].functionCall(dataArray[i]);
         }
         return returnData;
+    }
+
+    function drain(address _token) external onlyOwner {
+        require(IERC20(_token).balanceOf(address(this)) > 0, "insufficent margin account balance!");
+        IERC20(_token).safeTransfer(msg.sender, IERC20(_token).balanceOf(address(this)));
     }
 
     function addPosition(

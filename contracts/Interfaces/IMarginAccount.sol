@@ -34,6 +34,8 @@ interface IMarginAccount {
         uint256 amount // onlyMarginManager
     ) external;
 
+    function drain(address _token) external;
+
     function executeTx(
         address destination,
         bytes memory data

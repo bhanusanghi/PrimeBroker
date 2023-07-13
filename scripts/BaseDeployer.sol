@@ -122,7 +122,10 @@ contract BaseDeployer {
         priceOracle = new PriceOracle();
         priceOracle.addPriceFeed(susd, sUsdPriceFeed);
         priceOracle.addPriceFeed(usdc, usdcPriceFeed);
-        contractRegistry.addContractToRegistry("PriceOracle", address(priceOracle));
+        contractRegistry.addContractToRegistry(
+            keccak256("PriceOracle"),
+            address(priceOracle)
+        );
     }
 
     function setupMarginManager() internal {
@@ -138,7 +141,6 @@ contract BaseDeployer {
 
     function setupRiskManager() internal {
         riskManager = new RiskManager(contractRegistry);
-        riskManager.setPriceOracle(address(priceOracle));
         contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(riskManager)

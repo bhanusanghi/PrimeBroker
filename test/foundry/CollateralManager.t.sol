@@ -51,7 +51,9 @@ contract CollateralManagerTest is BaseSetup {
         uint256 _depositAmt = 10_000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
         vm.assume(_wf <= CENT && _wf > 0);
+        vm.startPrank(deployerAdmin);
         contracts.collateralManager.updateCollateralWeight(usdc, _wf);
+        vm.stopPrank();
         assertEq(
             contracts
                 .collateralManager
@@ -161,7 +163,6 @@ contract CollateralManagerTest is BaseSetup {
         int256 notional = int256(4500 ether);
         int256 perpMargin = int256(2000 * ONE_USDC);
 
-        console2.log("dekho m idhar hai");
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
@@ -170,7 +171,6 @@ contract CollateralManagerTest is BaseSetup {
             ""
         );
 
-        console2.log("dekho m idhar hai");
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -185,7 +185,6 @@ contract CollateralManagerTest is BaseSetup {
             600 ether
         );
         perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        console2.log("dekho m idhar hai");
         uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(
             bobMarginAccount
         );
