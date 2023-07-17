@@ -88,13 +88,15 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     }
 
     // TODO: remove while deploying on mainnet
-    function drainAllMarginAccounts() public onlyOwner {
+    function drainAllMarginAccounts(address _token) external onlyOwner {
         for (uint256 i = 0; i < traders.length; i += 1) {
-            IMarginAccount(marginAccounts[traders[i]]).transferTokens(
-                vault.asset(),
-                owner,
-                IERC20(vault.asset()).balanceOf(marginAccounts[traders[i]])
-            );
+            if (IERC20(_token).balanceOf(marginAccounts[traders[i]]) > 0) {
+                IMarginAccount(marginAccounts[traders[i]]).transferTokens(
+                    _token,
+                    owner,
+                    IERC20(_token).balanceOf(marginAccounts[traders[i]])
+                );
+            }
         }
     }
 

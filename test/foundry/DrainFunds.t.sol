@@ -39,40 +39,39 @@ contract DrainFunds is BaseSetup {
         chronuxUtils = new ChronuxUtils(contracts);
     }
 
-    // function testERC20DrainMarginAccount() public {
-    //     vm.startPrank(bob);
-    //     uint256 amount = 200 ether;
-    //     IERC20(susd).transfer(bobMarginAccount, amount);
-    //     assertEq(
-    //         IERC20(susd).balanceOf(bobMarginAccount),
-    //         amount
-    //     );
-    //     vm.stopPrank();
-    //     vm.startPrank(deployerAdmin);
-    //     uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
+    function testERC20DrainMarginAccount() public {
+        vm.startPrank(bob);
+        uint256 amount = 200 ether;
+        IERC20(susd).transfer(bobMarginAccount, amount);
+        assertEq(
+            IERC20(susd).balanceOf(bobMarginAccount),
+            amount
+        );
+        vm.stopPrank();
+        vm.startPrank(alice);
+        IERC20(susd).transfer(aliceMarginAccount, amount);
+        assertEq(
+            IERC20(susd).balanceOf(aliceMarginAccount),
+            amount
+        );
+        vm.stopPrank();
+        vm.startPrank(deployerAdmin);
+        uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
-    //     IMarginAccount(bobMarginAccount).drain(susd);
-    //     assertEq(
-    //         IERC20(susd).balanceOf(deployerAdmin),
-    //         adminBalance + amount
-    //     );
-    //     vm.stopPrank();
-    // }
+        contracts.marginManager.drainAllMarginAccounts(susd);
+        assertEq(
+            IERC20(susd).balanceOf(deployerAdmin),
+            adminBalance + (amount * 2)
+        );
+        vm.stopPrank();
+    }
 
-    // function testRejectDrainMarginAccountNonAdmin() public {
-    //     vm.startPrank(bob);
-    //     uint256 amount = 200 ether;
-    //     IERC20(susd).transfer(bobMarginAccount, amount);
-    //     assertEq(
-    //         IERC20(susd).balanceOf(bobMarginAccount),
-    //         amount
-    //     );
-    //     vm.stopPrank();
-    //     vm.startPrank(alice);
-    //     vm.expectRevert("MM: Unauthorized, only owner allowed");
-    //     IMarginAccount(bobMarginAccount).drain(susd);
-    //     vm.stopPrank();
-    // }
+    function testRejectDrainMarginAccountNonAdmin() public {
+        vm.startPrank(alice);
+        vm.expectRevert("MM: Unauthorized, only owner allowed");
+        contracts.marginManager.drainAllMarginAccounts(susd);
+        vm.stopPrank();
+    }
 
     function testERC20DrainVault() public {
         vm.startPrank(bob);
