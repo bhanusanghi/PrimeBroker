@@ -1,11 +1,9 @@
 pragma solidity ^0.8.10;
-import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
 import "hardhat/console.sol";
 
-contract MarketManager is IMarketManager, AccessControl {
+contract MarketManager is IMarketManager {
     // TODO - move to single acl point.
-    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
     // snx.eth, snx.btc=>address, perp.eth=>address
     mapping(bytes32 => address) public marketRegistry; // external protocols
     mapping(bytes32 => address) public marketRiskManagerRegistry;
@@ -23,12 +21,22 @@ contract MarketManager is IMarketManager, AccessControl {
     // There save all this stuff in a marketRegistry mapping with keccak256 keys just like in contractRegistry to make this work ez.
     mapping(bytes32 => address) public marketBaseToken;
     mapping(bytes32 => address) public marketMarginToken;
+    address owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "MM: Only Owner");
+        _;
+    }
 
     /**
      add maping for market to fee and maybe other hot params which can cached here 
      */
     constructor() {
-        _setupRole(REGISTRAR_ROLE, msg.sender);
+        owner = msg.sender;
+    }
+
+    function updateOwner(address _owner) external onlyOwner {
+        owner = _owner;
     }
 
     function addMarket(
@@ -37,7 +45,7 @@ contract MarketManager is IMarketManager, AccessControl {
         address _riskManager,
         address _baseToken,
         address _marginToken
-    ) external onlyRole(REGISTRAR_ROLE) {
+    ) external onlyOwner {
         require(
             marketRegistry[_marketKey] == address(0),
             "MM: Market already exists"
@@ -107,7 +115,7 @@ contract MarketManager is IMarketManager, AccessControl {
         address _riskManager,
         address _baseToken,
         address _marginToken
-    ) external onlyRole(REGISTRAR_ROLE) {
+    ) external onlyOwner {
         require(
             marketRegistry[_marketKey] != address(0),
             "MM: Market doesn't exist"
@@ -119,9 +127,7 @@ contract MarketManager is IMarketManager, AccessControl {
     }
 
     // TODO - Handle closing of all remaining positions in this market etc.
-    function removeMarket(
-        bytes32 marketName
-    ) external onlyRole(REGISTRAR_ROLE) {
+    function removeMarket(bytes32 marketName) external onlyOwner {
         require(
             marketRegistry[marketName] != address(0),
             "MM: Market doesn't exist"

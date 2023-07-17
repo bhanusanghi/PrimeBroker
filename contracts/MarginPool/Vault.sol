@@ -8,7 +8,6 @@ import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {SECONDS_PER_YEAR} from "../Libraries/Constants.sol";
 import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -52,7 +51,7 @@ interface IVault {
 }
 
 // contract Vault is IVault, ERC4626 {
-contract Vault is IVault, ERC4626, AccessControl {
+contract Vault is IVault, ERC4626 {
     using SafeMath for uint256;
     using Math for uint256;
     using WadRayMath for uint256;
@@ -75,7 +74,12 @@ contract Vault is IVault, ERC4626, AccessControl {
     // used to calculate next timestamp values quickly
     uint256 expectedLiquidityLastUpdated;
     uint256 timestampLastUpdated;
-    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
+    address owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Vault: Only Owner");
+        _;
+    }
 
     constructor(
         address _asset,
@@ -94,8 +98,12 @@ contract Vault is IVault, ERC4626, AccessControl {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
+        owner = msg.sender;
         // maxExpectedLiquidity = _maxExpectedLiquidity;
+    }
+
+    function updateOwner(address _owner) external onlyOwner {
+        owner = _owner;
     }
 
     // function asset() public view override(ERC4626) returns (address) {
@@ -179,10 +187,10 @@ contract Vault is IVault, ERC4626, AccessControl {
     }
 
     // TODO: remove while deploying on mainnet
-    function drain() public onlyRole(REGISTRAR_ROLE) {
-        IERC20(asset()).transfer(
+    function drain(address _token) public onlyOwner {
+        IERC20(_token).transfer(
             _msgSender(),
-            IERC20(asset()).balanceOf(address(this))
+            IERC20(_token).balanceOf(address(this))
         );
     }
 

@@ -204,6 +204,7 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupMarginAccountFactory() internal {
+        vm.startPrank(deployerAdmin);
         contracts.marginAccountFactory = new MarginAccountFactory(
             address(contracts.marginManager),
             address(contracts.contractRegistry)
@@ -212,6 +213,7 @@ contract BaseSetup is Test, IEvents {
             keccak256("MarginAccountFactory"),
             address(contracts.marginAccountFactory)
         );
+        vm.stopPrank();
     }
 
     function setupVault(address token) internal {

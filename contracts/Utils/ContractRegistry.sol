@@ -1,28 +1,36 @@
 pragma solidity ^0.8.10;
-import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
-contract ContractRegistry is IContractRegistry, AccessControl {
-    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
+contract ContractRegistry is IContractRegistry {
     mapping(bytes32 => address) public contractRegistry;
     // mapping(address tokenIn => mapping(address tokenOut => address pool)) curvePools;
     mapping(address => mapping(address => address)) public curvePools;
     mapping(address => mapping(address => int128)) public curvePoolTokenIndex;
+    address owner;
 
     constructor() {
-        _setupRole(REGISTRAR_ROLE, msg.sender);
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "CR: Only Owner");
+        _;
+    }
+
+    function updateOwner(address _owner) external onlyOwner {
+        owner = _owner;
     }
 
     function addContractToRegistry(
         bytes32 contractName,
         address contractAddress
-    ) external onlyRole(REGISTRAR_ROLE) {
+    ) external onlyOwner {
         contractRegistry[contractName] = contractAddress;
     }
 
     function removeContractFromRegistry(
         bytes32 contractName
-    ) external onlyRole(REGISTRAR_ROLE) {
+    ) external onlyOwner {
         contractRegistry[contractName] = address(0);
     }
 

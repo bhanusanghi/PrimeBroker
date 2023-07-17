@@ -1,6 +1,5 @@
 pragma solidity ^0.8.10;
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
-import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -17,12 +16,12 @@ import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationRes
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
-import {IMarginManager} from "../Interfaces/IMarginManager.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import "hardhat/console.sol";
 
-contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
+contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address payable;
     using SafeMath for uint256;
@@ -33,7 +32,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     using SignedSafeMath for int256;
     using SafeCast for int256;
     using SignedMath for int256;
-    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
     modifier xyz() {
         _;
     }
@@ -45,7 +43,6 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     constructor(IContractRegistry _contractRegistry) {
         contractRegistry = _contractRegistry;
         // marketManager = _marketManager;
-        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
     modifier onlyMarginManager() {
@@ -68,7 +65,7 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
         );
-        result = IProtocolRiskManager(_protocolRiskManager).decodeTxCalldata(
+        result = protocolRiskManager.decodeTxCalldata(
             marketKey,
             destinations,
             data
@@ -129,15 +126,11 @@ contract RiskManager is IRiskManager, AccessControl, ReentrancyGuard {
     function _getAbsTotalCollateralValue(
         address marginAccount
     ) internal view returns (uint256) {
-        IMarginManager marginManager = IMarginManager(
-            contractRegistry.getContractByName(keccak256("MarginManager"))
-        );
         ICollateralManager collateralManager = ICollateralManager(
             contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
-        uint256 interestAccrued = marginManager.getInterestAccruedX18(
-            marginAccount
-        );
+        uint256 interestAccrued = IMarginAccount(marginAccount)
+            .getInterestAccruedX18();
         int256 totalCollateralValue = (collateralManager.totalCollateralValue(
             marginAccount
         ) - interestAccrued).toInt256() + _getUnrealizedPnL(marginAccount);

@@ -149,17 +149,6 @@ contract MarginAccount is IMarginAccount {
         return returnData;
     }
 
-    function drain(address _token) external onlyOwner {
-        require(
-            IERC20(_token).balanceOf(address(this)) > 0,
-            "insufficent margin account balance!"
-        );
-        IERC20(_token).safeTransfer(
-            msg.sender,
-            IERC20(_token).balanceOf(address(this))
-        );
-    }
-
     function addPosition(
         bytes32 market,
         Position memory position

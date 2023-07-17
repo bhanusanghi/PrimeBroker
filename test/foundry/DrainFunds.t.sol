@@ -39,58 +39,52 @@ contract DrainFunds is BaseSetup {
         chronuxUtils = new ChronuxUtils(contracts);
     }
 
-    function testERC20DrainMarginAccount() public {
-        vm.startPrank(bob);
-        uint256 amount = 200 ether;
-        IERC20(susd).transfer(bobMarginAccount, amount);
-        assertEq(
-            IERC20(susd).balanceOf(bobMarginAccount),
-            amount
-        );
-        vm.stopPrank();
-        vm.startPrank(deployerAdmin);
-        uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
+    // function testERC20DrainMarginAccount() public {
+    //     vm.startPrank(bob);
+    //     uint256 amount = 200 ether;
+    //     IERC20(susd).transfer(bobMarginAccount, amount);
+    //     assertEq(
+    //         IERC20(susd).balanceOf(bobMarginAccount),
+    //         amount
+    //     );
+    //     vm.stopPrank();
+    //     vm.startPrank(deployerAdmin);
+    //     uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
-        IMarginAccount(bobMarginAccount).drain(susd);
-        assertEq(
-            IERC20(susd).balanceOf(deployerAdmin),
-            adminBalance + amount
-        );
-        vm.stopPrank();
-    }
+    //     IMarginAccount(bobMarginAccount).drain(susd);
+    //     assertEq(
+    //         IERC20(susd).balanceOf(deployerAdmin),
+    //         adminBalance + amount
+    //     );
+    //     vm.stopPrank();
+    // }
 
-    function testRejectDrainMarginAccountNonAdmin() public {
-        vm.startPrank(bob);
-        uint256 amount = 200 ether;
-        IERC20(susd).transfer(bobMarginAccount, amount);
-        assertEq(
-            IERC20(susd).balanceOf(bobMarginAccount),
-            amount
-        );
-        vm.stopPrank();
-        vm.startPrank(alice);
-        vm.expectRevert("MM: Unauthorized, only owner allowed");
-        IMarginAccount(bobMarginAccount).drain(susd);
-        vm.stopPrank();
-    }
+    // function testRejectDrainMarginAccountNonAdmin() public {
+    //     vm.startPrank(bob);
+    //     uint256 amount = 200 ether;
+    //     IERC20(susd).transfer(bobMarginAccount, amount);
+    //     assertEq(
+    //         IERC20(susd).balanceOf(bobMarginAccount),
+    //         amount
+    //     );
+    //     vm.stopPrank();
+    //     vm.startPrank(alice);
+    //     vm.expectRevert("MM: Unauthorized, only owner allowed");
+    //     IMarginAccount(bobMarginAccount).drain(susd);
+    //     vm.stopPrank();
+    // }
 
     function testERC20DrainVault() public {
         vm.startPrank(bob);
         uint256 amount = 200 ether;
         IERC20(susd).transfer(address(contracts.vault), amount);
-        assertEq(
-            IERC20(susd).balanceOf(address(contracts.vault)),
-            amount
-        );
+        assertEq(IERC20(susd).balanceOf(address(contracts.vault)), amount);
         vm.stopPrank();
         vm.startPrank(deployerAdmin);
         uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
         contracts.vault.drain(susd);
-        assertEq(
-            IERC20(susd).balanceOf(deployerAdmin),
-            adminBalance + amount
-        );
+        assertEq(IERC20(susd).balanceOf(deployerAdmin), adminBalance + amount);
         vm.stopPrank();
     }
 
@@ -98,31 +92,9 @@ contract DrainFunds is BaseSetup {
         vm.startPrank(bob);
         uint256 amount = 200 ether;
         IERC20(susd).transfer(address(contracts.vault), amount);
-        assertEq(
-            IERC20(susd).balanceOf(address(contracts.vault)),
-            amount
-        );
+        assertEq(IERC20(susd).balanceOf(address(contracts.vault)), amount);
         uint256 adminBalance = IERC20(susd).balanceOf(bob);
-
-        console2.log("role hash: ");
-        console2.log(
-            string.concat(
-                "AccessControl: account ",
-                Strings.toHexString(bob),
-                " is missing role ",
-                Strings.toHexString(uint256(keccak256("REGISTRAR_ROLE")), 32)
-            )
-        );
-        vm.expectRevert(
-            bytes(
-                string.concat(
-                    "AccessControl: account ",
-                    Strings.toHexString(bob),
-                    " is missing role ",
-                    Strings.toHexString(uint256(keccak256("REGISTRAR_ROLE")), 32)
-                )
-            )
-        );
+        vm.expectRevert();
         contracts.vault.drain(susd);
         vm.stopPrank();
     }

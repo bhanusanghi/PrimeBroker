@@ -17,9 +17,7 @@ import {IMarginAccount, Position} from "./Interfaces/IMarginAccount.sol";
 import {IMarginManager} from "./Interfaces/IMarginManager.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccountFactory} from "./Interfaces/IMarginAccountFactory.sol";
-
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "hardhat/console.sol";
 
 contract MarginManager is IMarginManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -36,7 +34,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // IMarketManager public marketManager;
     // address public riskManager;
     mapping(address => address) public marginAccounts;
-    // address[] private traders;
+    address[] private traders;
     modifier nonZeroAddress(address _address) {
         require(_address != address(0));
         _;
@@ -84,6 +82,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             address(vault),
             type(uint256).max
         );
+        traders.push(msg.sender);
         emit MarginAccountOpened(msg.sender, newMarginAccountAddress);
         return newMarginAccountAddress;
     }
@@ -230,21 +229,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             true
         );
         _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
-        // swap marign delta to token In if needed.
-        // if (verificationResult.marginDelta < 0) {
-        //     if (vault.asset() != verificationResult.tokenOut) {
-        //         uint256 tokenBalance = IERC20(verificationResult.tokenOut)
-        //             .balanceOf(address(marginAccount));
-        //         _swapAsset(
-        //             marginAccount,
-        //             verificationResult.tokenOut,
-        //             vault.asset(),
-        //             tokenBalance,
-        //             0
-        //         );
-        //     }
-        //     _repayMaxVaultDebt(marginAccount);
-        // }
     }
 
     function swapAsset(
@@ -312,18 +296,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         }
     }
 
-    // function forceRepayVaultDebt(
-    //     IMarginAccount marginAccount
-    // ) public onlyOwner {
-    //     _repayMaxVaultDebt(marginAccount);
-    // }
-
-    // function forceSwapBackToVaultAsset(
-    //     IMarginAccount marginAccount
-    // ) public onlyOwner {
-    //     _swapAllTokensToVaultAsset(marginAccount);
-    // }
-
     // Logic ->
     // if(borrowedAmount + interestAccrued> 0){
     //  if(marginDelta > borrowedAmount + interestAccrued){
@@ -379,20 +351,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             false
         );
         _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
-        // if (verificationResult.marginDelta < 0) {
-        //     if (vault.asset() != verificationResult.tokenOut) {
-        //         uint256 tokenBalance = IERC20(verificationResult.tokenOut)
-        //             .balanceOf(address(marginAccount));
-        //         _swapAsset(
-        //             marginAccount,
-        //             verificationResult.tokenOut,
-        //             vault.asset(),
-        //             tokenBalance,
-        //             0
-        //         );
-        //     }
-        //     _repayMaxVaultDebt(marginAccount);
-        // }
     }
 
     // In this call do we allow only closing of the position or do we also allow transferring back margin from the TPP?
@@ -487,29 +445,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _syncPositions(address(marginAccount));
         // _updateUnsettledRealizedPnL(address(marginAccount));
         // Emit a liquidation event with relevant data.
-    }
-
-    /// @dev Gets margin account generic parameters
-    /// @param _marginAccount Credit account address
-    /// @return borrowedAmount Amount which pool lent to credit account
-    /// @return cumulativeIndexAtOpen Cumulative index at open. Used for interest calculation
-    function _requireAndGetMarginAccountDetails(
-        IMarginAccount _marginAccount
-    )
-        private
-        view
-        returns (
-            uint256 borrowedAmount,
-            uint256 cumulativeIndexAtOpen,
-            uint256 cumulativeIndexNow
-        )
-    {
-        borrowedAmount = _marginAccount.totalBorrowed();
-        cumulativeIndexAtOpen = _marginAccount.cumulativeIndexAtOpen(); // F:[CM-45]
-        cumulativeIndexNow = vault.calcLinearCumulative_RAY(); // F:[CM-45]
-        cumulativeIndexAtOpen = cumulativeIndexAtOpen > 0
-            ? cumulativeIndexAtOpen
-            : 1; // @todo hackey fix fix it with safeMath and setting open index while opening acc
     }
 
     // amount in vault asset decimals

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.10;
-import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccount} from "./Interfaces/IMarginAccount.sol";
 import {IPriceOracle} from "./Interfaces/IPriceOracle.sol";
@@ -16,7 +15,7 @@ import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "hardhat/console.sol";
 
-contract CollateralManager is ICollateralManager, AccessControl {
+contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
     using SafeMath for int256;
     using Math for uint256;
@@ -25,8 +24,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
-    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
-
+    address owner;
     // TODO - Move all these to Contract Registry.
     MarginManager public marginManager;
     IRiskManager public riskManager;
@@ -51,6 +49,11 @@ contract CollateralManager is ICollateralManager, AccessControl {
         uint256 indexed amount
     );
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "CM: Only Owner");
+        _;
+    }
+
     constructor(
         address _marginManager,
         address _riskManager,
@@ -61,7 +64,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
         riskManager = IRiskManager(_riskManager);
         priceOracle = IPriceOracle(_priceOracle);
         vault = IVault(_vault);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
+        owner = msg.sender;
     }
 
     function updateCollateralAmount(uint256 amount) external {
@@ -71,7 +74,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
     function addAllowedCollaterals(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
-    ) public onlyRole(REGISTRAR_ROLE) {
+    ) public onlyOwner {
         require(
             _allowed.length == _collateralWeights.length,
             "CM: No array parity"
@@ -94,7 +97,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
     function addAllowedCollateral(
         address _allowed,
         uint256 _collateralWeight
-    ) public onlyRole(REGISTRAR_ROLE) {
+    ) public onlyOwner {
         require(_allowed != address(0), "CM: Zero Address");
         require(
             isAllowedCollateral[_allowed] == false,
@@ -154,7 +157,7 @@ contract CollateralManager is ICollateralManager, AccessControl {
     function updateCollateralWeight(
         address _token,
         uint256 _collateralWeight
-    ) external onlyRole(REGISTRAR_ROLE) {
+    ) external onlyOwner {
         require(isAllowedCollateral[_token], "CM: Collateral not found");
         collateralWeight[_token] = _collateralWeight;
     }
