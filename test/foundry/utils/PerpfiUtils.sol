@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
 import {Test} from "forge-std/Test.sol";
+import {FixedPoint96} from "../../../contracts/Libraries/FixedPoint96.sol";
+import {FullMath} from "../../../contracts/Libraries/FullMath.sol";
 import {IMarketRegistry} from "../../../contracts/Interfaces/Perpfi/IMarketRegistry.sol";
 import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
 import {IMarginAccount} from "../../../contracts/Interfaces/IMarginAccount.sol";
@@ -16,6 +18,7 @@ import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol"
 import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IUniswapV3Pool} from "../../../contracts/Interfaces/IUniswapV3Pool.sol";
 import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
+import {IExchange} from "../../../contracts/Interfaces/Perpfi/IExchange.sol";
 import {IAccountBalance} from "../../../contracts/Interfaces/Perpfi/IAccountBalance.sol";
 import {Constants} from "./Constants.sol";
 import {IEvents} from "../IEvents.sol";
@@ -36,15 +39,41 @@ contract PerpfiUtils is Test, Constants, IEvents {
         contracts = _contracts;
     }
 
+    function formatSqrtPriceX96ToPriceX96(
+        uint160 sqrtPriceX96
+    ) internal pure returns (uint256) {
+        return FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96);
+    }
+
+    function formatX10_18ToX96(
+        uint256 valueX10_18
+    ) internal pure returns (uint256) {
+        return FullMath.mulDiv(valueX10_18, FixedPoint96.Q96, 1 ether);
+    }
+
+    function formatX96ToX10_18(
+        uint256 valueX96
+    ) internal pure returns (uint256) {
+        return FullMath.mulDiv(valueX96, 1 ether, FixedPoint96.Q96);
+    }
+
     // @notice Returns the price of th UniV3Pool.
     function getMarkPrice(
+        address exchange,
         address perpMarketRegistry,
         address _baseToken
     ) public view returns (uint256 token0Price) {
-        (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
-            IMarketRegistry(perpMarketRegistry).getPool(_baseToken)
-        ).slot0();
-        token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
+        uint160 val = IExchange(exchange).getSqrtMarkTwapX96(_baseToken, 0);
+        return
+            formatX96ToX10_18(
+                formatSqrtPriceX96ToPriceX96(
+                    IExchange(exchange).getSqrtMarkTwapX96(_baseToken, 0)
+                )
+            );
+        // (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
+        //     IMarketRegistry(perpMarketRegistry).getPool(_baseToken)
+        // ).slot0();
+        // token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
     function fetchMargin(
@@ -652,5 +681,13 @@ contract PerpfiUtils is Test, Constants, IEvents {
         contracts.marginManager.closePosition(marketKey, destinations, data);
         verifyPositionNotional(marginAccount, marketKey, 0);
         vm.stopPrank();
+    }
+
+    function withdrawAllMargin(address trader, address token) public {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        vm.startPrank(marginAccount);
+        IVault(perpVault).withdrawAll(token);
     }
 }

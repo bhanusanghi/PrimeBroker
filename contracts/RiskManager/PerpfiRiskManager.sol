@@ -137,7 +137,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            sizeDelta  : 64 bytes
            32 bytes tracking code, or we can append hehe
         */
-
+        address configuredBaseToken = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketBaseToken(marketKey);
         address market = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketAddress(marketKey);
@@ -163,7 +165,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                 Position memory position;
                 (
                     address _baseToken,
-                    bool isShort, //isBaseToQuote
+                    bool isBaseToQuote,
                     bool isExactInput,
                     int256 _amount,
                     ,
@@ -183,20 +185,24 @@ contract PerpfiRiskManager is IProtocolRiskManager {
                             bytes32
                         )
                     );
+                require(
+                    configuredBaseToken == _baseToken,
+                    "PRM: Invalid Base Token"
+                );
                 int256 markPrice = getMarkPrice(_baseToken).toInt256();
                 //@TODO - take usd value here not amount.
-                if (isShort && isExactInput) {
+                if (isBaseToQuote && isExactInput) {
                     position.size = -_amount;
                     position.openNotional = -(_amount * markPrice);
-                } else if (isShort && !isExactInput) {
+                } else if (isBaseToQuote && !isExactInput) {
                     // Since USDC is used in Perp.
                     position.size = -(_amount) / markPrice;
                     position.openNotional = -_amount;
-                } else if (!isShort && isExactInput) {
+                } else if (!isBaseToQuote && isExactInput) {
                     // Since USDC is used in Perp.
                     position.size = (_amount) / markPrice;
                     position.openNotional = _amount;
-                } else if (!isShort && !isExactInput) {
+                } else if (!isBaseToQuote && !isExactInput) {
                     position.size = _amount;
                     position.openNotional = (_amount * markPrice);
                 } else {
@@ -238,6 +244,12 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
+        // console.log("owedRealizedPnl");
+        // console.logInt(owedRealizedPnl);
+        // console.log("unrealizedPnl");
+        // console.logInt(unrealizedPnl);
+        // console.log("pendingFee");
+        // console.log(pendingFee);
         pnl = (unrealizedPnl.add(owedRealizedPnl).add(pendingFee.toInt256()));
     }
 
@@ -305,7 +317,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     }
 
     function decodeClosePositionCalldata(
-        IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
@@ -320,7 +331,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         );
         bytes4 funSig = bytes4(data[0]);
         if (funSig != CLOSE_POSITION) {
-            revert("PRM: Invalid Tx Data in close call");
+            revert("PRM: Unsupported Function call");
         }
         address configuredBaseToken = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
@@ -336,7 +347,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     }
 
     function decodeAndVerifyLiquidationCalldata(
-        IMarginAccount marginAcc,
         bool isFullyLiquidatable,
         bytes32 marketKey,
         address destination,
@@ -363,7 +373,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         } else if (funSig == WITHDRAW_ALL_MARGIN) {
             // result.marginDelta = -abi.decode(data[36:], (int256));
         } else {
-            revert("PRM: Invalid Tx Data in liquidate call");
+            revert("PRM: Unsupported Function call");
         }
     }
 }

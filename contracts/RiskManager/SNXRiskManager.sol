@@ -235,7 +235,6 @@ contract SNXRiskManager is IProtocolRiskManager {
     }
 
     function decodeClosePositionCalldata(
-        IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
@@ -258,7 +257,6 @@ contract SNXRiskManager is IProtocolRiskManager {
     }
 
     function decodeAndVerifyLiquidationCalldata(
-        IMarginAccount marginAcc,
         bool isFullyLiquidatable,
         bytes32 marketKey,
         address destination,

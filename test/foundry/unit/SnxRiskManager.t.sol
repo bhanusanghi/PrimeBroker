@@ -2,17 +2,17 @@ pragma solidity ^0.8.10;
 
 import "forge-std/console2.sol";
 
-import {Utils} from "./utils/Utils.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
-import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
+import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {BaseSetup} from "./BaseSetup.sol";
-import {SnxUtils} from "./utils/SnxUtils.sol";
-import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
-import {ChronuxUtils} from "./utils/ChronuxUtils.sol";
-import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
+import {BaseSetup} from "../BaseSetup.sol";
+import {SnxUtils} from "../utils/SnxUtils.sol";
+import {PerpfiUtils} from "../utils/PerpfiUtils.sol";
+import {ChronuxUtils} from "../utils/ChronuxUtils.sol";
+import {IFuturesMarket} from "../../../contracts/Interfaces/SNX/IFuturesMarket.sol";
+import {Utils} from "../utils/Utils.sol";
 
 contract SnxRiskManagerTest is BaseSetup {
     using SafeMath for uint256;

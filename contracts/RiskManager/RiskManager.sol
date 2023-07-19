@@ -98,12 +98,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             marketKey
         );
         result = IProtocolRiskManager(_protocolRiskManager)
-            .decodeClosePositionCalldata(
-                marginAcc,
-                marketKey,
-                destinations,
-                data
-            );
+            .decodeClosePositionCalldata(marketKey, destinations, data);
     }
 
     // function _verifyFinalLeverage(
@@ -251,7 +246,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address _marginAccount
     ) internal view returns (uint256 maxBorrowLimit) {
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
-            address(_marginAccount)
+            _marginAccount
         );
         maxBorrowLimit = _totalCollateralValue.mulDiv(
             100 - initialMarginFactor,
@@ -501,7 +496,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
 
         result = protocolRiskManager.decodeAndVerifyLiquidationCalldata(
-            marginAcc,
             isFullyLiquidatable,
             marketKey,
             destination,
