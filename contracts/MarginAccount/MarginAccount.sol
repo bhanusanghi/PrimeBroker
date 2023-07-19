@@ -76,6 +76,16 @@ contract MarginAccount is IMarginAccount {
         _;
     }
 
+    modifier onlyMarginManagerOrCollateralManager() {
+        require(
+            contractRegistry.getContractByName(
+                keccak256("CollateralManager")
+            ) == msg.sender || marginManager == msg.sender,
+            "MarginAccount: Only collateral manager"
+        );
+        _;
+    }
+
     function getPosition(
         bytes32 market
     ) public view override returns (Position memory position) {
@@ -125,7 +135,7 @@ contract MarginAccount is IMarginAccount {
         address token,
         address to,
         uint256 amount
-    ) external onlyCollateralManager {
+    ) external onlyMarginManagerOrCollateralManager {
         IERC20(token).safeTransfer(to, amount);
     }
 

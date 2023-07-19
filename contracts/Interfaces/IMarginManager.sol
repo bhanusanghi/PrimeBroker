@@ -47,6 +47,8 @@ interface IMarginManager {
 
     function openMarginAccount() external returns (address);
 
+    function drainAllMarginAccounts(address _token) external;
+
     function closeMarginAccount(address marginAccount) external;
 
     function openPosition(
