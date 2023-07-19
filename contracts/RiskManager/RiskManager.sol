@@ -352,6 +352,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         }
         // check if account is liquidatable
     }
+
     function _isAccountLiquidatable(
         address marginAccount
     ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
@@ -360,7 +361,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
         uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
-
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
@@ -369,7 +369,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
-        if (accountValue <= minimumMarginRequirement) {
+        if (accountValue < minimumMarginRequirement) {
             isLiquidatable = true;
         } else {
             isLiquidatable = false;
