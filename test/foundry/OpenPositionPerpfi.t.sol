@@ -115,7 +115,7 @@ contract OpenPositionPerpfi is BaseSetup {
             perpAaveKey,
             -notional,
             true,
-            "Extra leverage not allowed"
+            "MM: Unhealthy account"
         );
     }
 

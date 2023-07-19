@@ -197,11 +197,14 @@ contract SNXRiskManager is IProtocolRiskManager {
         ).getMarketsForRiskManager(address(this));
         for (uint256 i = 0; i < allMarkets.length; i++) {
             IFuturesMarket market = IFuturesMarket(allMarkets[i]);
-            (int256 _notional, bool isInvalid) = market.notionalValue(
+            (, , , uint128 lastPrice, int128 size) = market.positions(
                 marginAccount
             );
+            uint256 _notional = int256(size).abs().mul(lastPrice).div(
+                1 ether // check if needed.
+            );
             // require(isValid, "PRM: Could not fetch accrued funding from SNX");
-            openNotional += _notional.abs();
+            openNotional += _notional;
         }
     }
 

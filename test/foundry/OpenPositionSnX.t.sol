@@ -77,36 +77,35 @@ contract OpenPositionSnX is BaseSetup {
         contracts.marginManager.openPosition(snxUniKey, destinations, data);
     }
 
-    // liquiMargin = 50k
-    // snxMargin = 100k
-    // max BP = 200k
     function testBobOpensPositionWithExcessLeverageSingleAttempt(
         int128 positionSize
     ) public {
         uint256 chronuxMargin = 1000 * ONE_USDC;
         uint256 imf = contracts.riskManager.initialMarginFactor();
-        chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
-
-        chronuxUtils.verifyRemainingPositionNotional(
-            bob,
-            int256((chronuxMargin * 100) / imf)
-        );
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, 1000 ether, false, "");
         int256 remainingNotional = int256(
             contracts.riskManager.getRemainingPositionOpenNotional(
                 bobMarginAccount
             )
         );
-        // /assetPrice.convertTokenDecimals(18, 0)).add(1 ether);
+        console2.log("remainingNotional");
+        console2.log(remainingNotional);
+        address market = contracts.marketManager.getMarketAddress(snxUniKey);
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
+        console2.log("assetPrice", assetPrice);
+        int256 maxPositionSize = (remainingNotional * 1 ether) /
+            int256(assetPrice);
         vm.assume(
-            positionSize > remainingNotional &&
-                positionSize < 2 * remainingNotional
+            positionSize > maxPositionSize && positionSize < 2 * maxPositionSize
         );
+        // /assetPrice.convertTokenDecimals(18, 0)).add(1 ether);
         snxUtils.addAndVerifyPosition(
             bob,
             snxUniKey,
             positionSize,
             true,
-            bytes("Extra leverage not allowed")
+            bytes("MM: Unhealthy account")
         );
     }
 
