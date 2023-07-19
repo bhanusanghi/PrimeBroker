@@ -98,20 +98,20 @@ contract MarginAccount is IMarginAccount {
         return existingPosition[marketKey];
     }
 
-    function getTotalOpeningAbsoluteNotional()
-        public
-        view
-        override
-        returns (uint256 totalNotional)
-    {
-        bytes32[] memory marketKeys = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
-        ).getAllMarketKeys();
-        uint256 len = marketKeys.length;
-        for (uint256 i = 0; i < len; i++) {
-            totalNotional += positions[marketKeys[i]].openNotional.abs();
-        }
-    }
+    // function getTotalOpeningAbsoluteNotional()
+    //     public
+    //     view
+    //     override
+    //     returns (uint256 totalNotional)
+    // {
+    //     bytes32[] memory marketKeys = IMarketManager(
+    //         contractRegistry.getContractByName(keccak256("MarketManager"))
+    //     ).getAllMarketKeys();
+    //     uint256 len = marketKeys.length;
+    //     for (uint256 i = 0; i < len; i++) {
+    //         totalNotional += positions[marketKeys[i]].openNotional.abs();
+    //     }
+    // }
 
     function addCollateral(
         address from,

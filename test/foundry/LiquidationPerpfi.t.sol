@@ -79,7 +79,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,
@@ -128,7 +128,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
         assertEq(
             isLiquidatable,
             false,
@@ -176,7 +176,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,
@@ -247,7 +247,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,

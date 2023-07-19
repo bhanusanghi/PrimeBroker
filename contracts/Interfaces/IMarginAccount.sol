@@ -51,10 +51,10 @@ interface IMarginAccount {
 
     function removePosition(bytes32 market) external;
 
-    function getTotalOpeningAbsoluteNotional()
-        external
-        view
-        returns (uint256 totalNotional);
+    // function getTotalOpeningAbsoluteNotional()
+    //     external
+    //     view
+    //     returns (uint256 totalNotional);
 
     function swapTokens(
         address tokenIn,

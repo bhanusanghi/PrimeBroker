@@ -79,10 +79,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data
     ) public returns (VerifyTradeResult memory result) {
         result = _decodeTradeData(marketKey, destinations, data);
-        _verifyFinalLeverage(
-            address(marginAccount),
-            result.position.openNotional
-        );
+        // _verifyFinalLeverage(
+        //     address(marginAccount),
+        //     result.position.openNotional
+        // );
     }
 
     function verifyClosePosition(
@@ -106,16 +106,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             );
     }
 
-    function _verifyFinalLeverage(
-        address marginAccount,
-        int256 positionOpenNotional
-    ) internal {
-        require(
-            getRemainingPositionOpenNotional(marginAccount) >=
-                positionOpenNotional.abs(),
-            "Extra leverage not allowed"
-        );
-    }
+    // function _verifyFinalLeverage(
+    //     address marginAccount,
+    //     int256 positionOpenNotional
+    // ) internal {
+    //     require(
+    //         getRemainingPositionOpenNotional(marginAccount) >=
+    //             positionOpenNotional.abs(),
+    //         "Extra leverage not allowed"
+    //     );
+    // }
 
     // @TODO - should be able to get buying power from account directly.
     // total free buying power
@@ -218,8 +218,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
-        uint256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningAbsoluteNotional();
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
         return
             (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
                 totalOpenNotional
@@ -308,7 +309,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         (
             bool isAccountLiquidatable,
             bool isFullyLiquidatable
-        ) = _isAccountLiquidatable(marginAccount);
+        ) = _isAccountLiquidatable(address(marginAccount));
         require(isAccountLiquidatable, "PRM: Account not liquidatable");
         result.liquidator = msg.sender;
         // TODO - add this result.liquidationPenalty =
@@ -322,32 +323,63 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function isAccountLiquidatable(
-        IMarginAccount marginAccount
+        address marginAccount
     ) external view returns (bool isLiquidatable, bool isFullyLiquidatable) {
         // check if account is liquidatable
         return _isAccountLiquidatable(marginAccount);
         // return _isAccountLiquidatable(marginAccount);
     }
 
+    function isAccountHealthy(
+        address marginAccount
+    ) external view returns (bool isHealthy) {
+        return _isAccountHealthy(marginAccount);
+        // check like is liquidatable but with IMR
+    }
+
+    function _isAccountHealthy(
+        address marginAccount
+    ) internal view returns (bool isHealthy) {
+        // Add conditions for partial liquidation.
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
+
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketKeys();
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        uint256 minimumMarginRequirement = totalOpenNotional
+            .mul(initialMarginFactor)
+            .div(100);
+        if (accountValue >= minimumMarginRequirement) {
+            isHealthy = true;
+        }
+        // check if account is liquidatable
+    }
+
     function _isAccountLiquidatable(
-        IMarginAccount marginAccount
+        address marginAccount
     ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
         // Add conditions for partial liquidation.
         IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
-        uint256 accountValue = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        );
+        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
 
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
-        uint256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningAbsoluteNotional();
-
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
+        console.log("totalOpenNotional", totalOpenNotional);
+        console.log("minimumMarginRequirement", minimumMarginRequirement);
+        console.log("accountValue", accountValue);
         if (accountValue <= minimumMarginRequirement) {
             isLiquidatable = true;
         } else {
@@ -359,7 +391,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     // returns in 18 decimals.
-    function getMinimumMarginRequirement(
+    function getMinimumMaintenanceMarginRequirement(
         address marginAccount
     ) public view returns (uint256) {
         IMarketManager marketManager = IMarketManager(
@@ -367,8 +399,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
         bytes32[] memory _whitelistedMarketNames = marketManager
             .getAllMarketKeys();
-        uint256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningAbsoluteNotional();
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(maintanaceMarginFactor)
             .div(100);
@@ -382,7 +415,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function isTraderBankrupt(
-        IMarginAccount marginAccount,
+        address marginAccount,
         uint256 vaultLiability
     ) public view returns (bool isBankrupt) {
         // check if account is liquidatable
@@ -392,7 +425,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         ) = _isAccountLiquidatable(marginAccount);
         if (!isAccountLiquidatable) return false;
         uint256 penalty = _getLiquidationPenalty(
-            marginAccount,
+            address(marginAccount),
             isFullyLiquidatable
         );
         return _isTraderBankrupt(marginAccount, vaultLiability, penalty);
@@ -405,23 +438,22 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // liquidationPenalty is totalNotional * liquidationPenaltyFactor
     // vaultLiability = borrowed + interest
     function _isTraderBankrupt(
-        IMarginAccount marginAccount,
+        address marginAccount,
         uint256 vaultLiability,
         uint256 penalty
     ) internal view returns (bool) {
         uint256 liability = vaultLiability + penalty;
-        uint256 accountValue = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        );
+        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
         return accountValue < liability;
     }
 
     function _getLiquidationPenalty(
-        IMarginAccount marginAccount,
+        address marginAccount,
         bool isFullyLiquidatable
     ) internal view returns (uint256 penalty) {
-        uint256 totalOpenNotional = marginAccount
-            .getTotalOpeningAbsoluteNotional();
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
         uint256 penalty;
         if (isFullyLiquidatable) {
             penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
@@ -480,5 +512,23 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             destination,
             data
         );
+    }
+
+    function getTotalAbsOpenNotionalFromMarkets(
+        address marginAccount
+    ) public view returns (uint256 totalAbsOpenNotional) {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        address[] memory protocolRiskManagers = marketManager
+            .getUniqueRiskManagers();
+        for (uint256 i = 0; i < protocolRiskManagers.length; i++) {
+            IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+                protocolRiskManagers[i]
+            );
+            totalAbsOpenNotional += protocolRiskManager.getTotalAbsOpenNotional(
+                marginAccount
+            );
+        }
     }
 }

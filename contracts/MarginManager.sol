@@ -169,6 +169,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         if (verificationResult.marginDelta > 0) {
             riskManager.verifyBorrowLimit(address(marginAccount));
         }
+        if (!riskManager.isAccountHealthy(address(marginAccount)))
+            revert("MM: Unhealthy account");
     }
 
     // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values.
@@ -189,21 +191,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             "MM: Invalid close position call"
         );
         riskManager.verifyBorrowLimit(address(marginAccount));
-    }
-
-    function _verifyTrade(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        address[] calldata destinations,
-        bytes[] calldata data
-    ) private returns (VerifyTradeResult memory verificationResult) {
-        // _updateUnsettledRealizedPnL(address(marginAccount));
-        verificationResult = riskManager.verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data
-        );
+        if (!riskManager.isAccountHealthy(address(marginAccount)))
+            revert("MM: Unhealthy account");
     }
 
     function openPosition(
@@ -215,9 +204,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
         _syncPositions(address(marginAccount));
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _verifyTrade(
+        VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             marginAccount,
             marketKey,
             destinations,
@@ -243,6 +236,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
         ICollateralManager collateralManager = ICollateralManager(
             contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
@@ -259,10 +256,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             minAmountOut
         );
         // check if health factor is good enough now.
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
-            marginAccount
-        );
-        if (isLiquidatable) revert("MM: Liquidatable account");
+        if (!riskManager.isAccountHealthy(address(marginAccount)))
+            revert("MM: Unhealthy account");
     }
 
     function _swapAsset(
@@ -272,6 +267,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 amountIn,
         uint256 minAmountOut
     ) private returns (uint256 amountOut) {
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
         amountOut = marginAccount.swapTokens(
             tokenIn,
             tokenOut,
@@ -337,9 +336,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
         // Add check for an existing position.
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = _verifyTrade(
+        VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             marginAccount,
             marketKey,
             destinations,
@@ -364,8 +367,12 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        // @note fee is assumed to be in usdc value
         _syncPositions(address(marginAccount));
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
+        // @note fee is assumed to be in usdc value
         // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
             marginAccount,
@@ -406,7 +413,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 vaultLiability = marginAccount.totalBorrowed() +
             marginAccount.getInterestAccruedX18();
         bool hasBadDebt = riskManager.isTraderBankrupt(
-            marginAccount,
+            address(marginAccount),
             vaultLiability
         );
         if (!hasBadDebt) {
@@ -501,8 +508,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _syncPositions(marginAccount);
     }
 
-    // this function fetches the current market position and checks if the value is not same as stored position data.
-    // Mention wht is the motivation to do this ??
+    // only used to update data of closed positions when liquidated on TPP. Think about getting rid of this asap.
     function _syncPositions(address marginAccount) private {
         IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
@@ -517,25 +523,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // @note - compa
             Position memory storedPosition = IMarginAccount(marginAccount)
                 .getPosition(marketKey);
-            if (storedPosition.size == 0 && storedPosition.openNotional == 0)
-                continue;
             if (
-                storedPosition.size != marketPosition.size ||
-                storedPosition.openNotional != marketPosition.openNotional
-            ) {
-                storedPosition.size = marketPosition.size;
-                storedPosition.openNotional = marketPosition.openNotional;
-                if (
-                    storedPosition.size == 0 && storedPosition.openNotional == 0
-                ) IMarginAccount(marginAccount).removePosition(marketKey);
-                else {
-                    IMarginAccount(marginAccount).updatePosition(
-                        marketKey,
-                        storedPosition
-                    );
-                }
-            }
-            // emit PositionSynced(marginAccount, marketKey, marketPosition);
+                storedPosition.openNotional != 0 &&
+                marketPosition.openNotional == 0
+            ) IMarginAccount(marginAccount).removePosition(marketKey);
         }
+        // emit PositionSynced(marginAccount, marketKey, marketPosition);
     }
 }

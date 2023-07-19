@@ -257,6 +257,21 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         // is in usdc so no need to convert decimals.
     }
 
+    function getTotalAbsOpenNotional(
+        address marginAccount
+    ) public view returns (uint256 openNotional) {
+        address[] memory activeBaseTokens = accountBalance.getBaseTokens(
+            marginAccount
+        );
+        for (uint256 i = 0; i < activeBaseTokens.length; i++) {
+            openNotional = openNotional.add(
+                accountBalance
+                    .getTakerOpenNotional(marginAccount, activeBaseTokens[i])
+                    .abs()
+            );
+        }
+    }
+
     function getMarginToken() external view returns (address) {
         return marginToken;
     }

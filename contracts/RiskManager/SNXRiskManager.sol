@@ -181,13 +181,28 @@ contract SNXRiskManager is IProtocolRiskManager {
         uint256 len = allMarkets.length;
         for (uint256 i = 0; i < len; i++) {
             IFuturesMarket market = IFuturesMarket(allMarkets[i]);
-            (int256 _funding, bool isValid) = market.accruedFunding(
+            (int256 _funding, bool isInvalid) = market.accruedFunding(
+                marginAccount
+            );
+            // require(isInvalid, "PRM: Could not fetch accrued funding from SNX");
+            totalAccruedFunding += _funding;
+        }
+    }
+
+    function getTotalAbsOpenNotional(
+        address marginAccount
+    ) public view returns (uint256 openNotional) {
+        address[] memory allMarkets = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        ).getMarketsForRiskManager(address(this));
+        for (uint256 i = 0; i < allMarkets.length; i++) {
+            IFuturesMarket market = IFuturesMarket(allMarkets[i]);
+            (int256 _notional, bool isInvalid) = market.notionalValue(
                 marginAccount
             );
             // require(isValid, "PRM: Could not fetch accrued funding from SNX");
-            totalAccruedFunding += _funding;
+            openNotional += _notional.abs();
         }
-        totalAccruedFunding = totalAccruedFunding;
     }
 
     // returns value in vault decimals

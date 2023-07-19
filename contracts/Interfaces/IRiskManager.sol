@@ -81,7 +81,7 @@ interface IRiskManager {
     ) external returns (VerifyLiquidationResult memory result);
 
     function isTraderBankrupt(
-        IMarginAccount marginAccount,
+        address marginAccount,
         uint256 vaultLiability
     ) external view returns (bool isBankrupt);
 
@@ -96,10 +96,14 @@ interface IRiskManager {
     ) external view returns (uint256);
 
     function isAccountLiquidatable(
-        IMarginAccount marginAccount
+        address marginAccount
     ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
 
-    function getMinimumMarginRequirement(
+    function isAccountHealthy(
+        address marginAccount
+    ) external view returns (bool isHealthy);
+
+    function getMinimumMaintenanceMarginRequirement(
         address marginAccount
     ) external view returns (uint256);
 
