@@ -166,9 +166,9 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 );
             }
         }
-        if (verificationResult.marginDelta > 0) {
-            riskManager.verifyBorrowLimit(address(marginAccount));
-        }
+        // if (verificationResult.marginDelta > 0) {
+        //     riskManager.verifyBorrowLimit(address(marginAccount));
+        // }
         if (!riskManager.isAccountHealthy(address(marginAccount)))
             revert("MM: Unhealthy account");
     }
@@ -476,9 +476,9 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         uint256 amount
     ) private {
+        riskManager.verifyBorrowLimit(address(marginAccount));
         marginAccount.increaseDebt(amount);
         vault.borrow(address(marginAccount), amount);
-        riskManager.verifyBorrowLimit(address(marginAccount));
     }
 
     function _repayVault(IMarginAccount marginAccount, uint256 amount) private {

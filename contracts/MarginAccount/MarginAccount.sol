@@ -80,7 +80,9 @@ contract MarginAccount is IMarginAccount {
         require(
             contractRegistry.getContractByName(
                 keccak256("CollateralManager")
-            ) == msg.sender || marginManager == msg.sender,
+            ) ==
+                msg.sender ||
+                marginManager == msg.sender,
             "MarginAccount: Only collateral manager"
         );
         _;
@@ -240,6 +242,7 @@ contract MarginAccount is IMarginAccount {
             18
         );
         uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
+        // the fuck is this ?
         uint256 prevBorrowedAmount = totalBorrowed;
         totalBorrowed += amountX18;
         // Computes new cumulative index which accrues previous debt
