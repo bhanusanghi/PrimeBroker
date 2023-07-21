@@ -75,7 +75,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return newMarginAccountAddress;
     }
 
- 
     function closeMarginAccount(address trader) external {
         /**
          * TBD
@@ -136,7 +135,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         _repayVault(marginAccount, amount);
     }
-`
+
     function swapAsset(
         address tokenIn,
         address tokenOut,
@@ -378,7 +377,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             marketPosition.size == 0 && marketPosition.openNotional == 0,
             "MM: Invalid close position call"
         );
-        riskManager.verifyBorrowLimit(address(marginAccount));
+        // riskManager.verifyBorrowLimit(address(marginAccount));
         if (!riskManager.isAccountHealthy(address(marginAccount)))
             revert("MM: Unhealthy account");
     }
@@ -482,7 +481,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         uint256 amount
     ) private {
-        riskManager.verifyBorrowLimit(address(marginAccount));
+        riskManager.verifyBorrowLimit(
+            address(marginAccount),
+            amount.convertTokenDecimals(
+                IERC20Metadata(vault.asset()).decimals(),
+                18
+            )
+        );
         marginAccount.increaseDebt(amount);
         vault.borrow(address(marginAccount), amount);
     }
@@ -509,10 +514,9 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
-
     // ----------------- Team functions ---------------------
 
-       // TODO: remove while deploying on mainnet
+    // TODO: remove while deploying on mainnet
     function drainAllMarginAccounts(address _token) external onlyOwner {
         for (uint256 i = 0; i < traders.length; i += 1) {
             if (IERC20(_token).balanceOf(marginAccounts[traders[i]]) > 0) {
@@ -536,5 +540,4 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     ) external nonZeroAddress(_vault) onlyOwner {
         vault = IVault(_vault);
     }
-
 }

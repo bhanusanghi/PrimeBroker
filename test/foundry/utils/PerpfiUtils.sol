@@ -515,7 +515,7 @@ contract PerpfiUtils is Test, Constants, IEvents {
         //TODO- Will work till susd == usdc == 1 use exchange quote price later.
         if (deltaMarginX18 > tokenBalanceUsdcX18) {
             uint256 borrowNeedX18 = deltaMarginX18 - tokenBalanceUsdcX18;
-            borrowAssets(trader, borrowNeedX18.convertTokenDecimals(18, 6));
+            borrowAssets(borrowNeedX18.convertTokenDecimals(18, 6));
         }
     }
 

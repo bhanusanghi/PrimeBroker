@@ -205,7 +205,7 @@ contract CollateralManager is ICollateralManager {
             address token = allowedCollateral[i];
             uint256 tokenAmountX18 = IERC20Metadata(token)
                 .balanceOf(_marginAccount)
-                .convertTokenDecimals(_decimals[_token], 18);
+                .convertTokenDecimals(_decimals[token], 18);
             uint256 tokenAmountValueX18 = priceOracle
                 .convertToUSD(
                     int256(tokenAmountX18.mulDiv(collateralWeight[token], 100)),

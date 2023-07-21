@@ -89,7 +89,10 @@ interface IRiskManager {
         address _marginAccount
     ) external view returns (uint256 totalCollateralValue);
 
-    function verifyBorrowLimit(address _marginAccount) external view;
+    function verifyBorrowLimit(
+        address _marginAccount,
+        uint256 newBorrowAmountX18
+    ) external view;
 
     function getMaxBorrowLimit(
         address _marginAccount

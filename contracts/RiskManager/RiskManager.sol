@@ -273,11 +273,17 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             IMarginAccount(_marginAccount).totalBorrowed();
     }
 
-    function verifyBorrowLimit(address _marginAccount) external view {
+    function verifyBorrowLimit(
+        address _marginAccount,
+        uint256 newBorrowAmountX18
+    ) external view {
         // Get margin account borrowed amount.
         uint256 maxBorrowLimit = _getMaxBorrowLimit(_marginAccount);
         uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
-        require(borrowedAmount <= maxBorrowLimit, "Borrow limit exceeded");
+        require(
+            borrowedAmount + newBorrowAmountX18 <= maxBorrowLimit,
+            "Borrow limit exceeded"
+        );
     }
 
     function getMarketPosition(
