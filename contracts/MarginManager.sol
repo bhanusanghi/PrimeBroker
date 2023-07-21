@@ -51,18 +51,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         contractRegistry = _contractRegistry;
     }
 
-    function SetRiskManager(
-        address _riskmgr
-    ) external nonZeroAddress(_riskmgr) onlyOwner {
-        riskManager = IRiskManager(_riskmgr);
-    }
-
-    function setVault(
-        address _vault
-    ) external nonZeroAddress(_vault) onlyOwner {
-        vault = IVault(_vault);
-    }
-
     // Add recycle accounts functionality
     function openMarginAccount() external returns (address) {
         require(
@@ -87,19 +75,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return newMarginAccountAddress;
     }
 
-    // TODO: remove while deploying on mainnet
-    function drainAllMarginAccounts(address _token) external onlyOwner {
-        for (uint256 i = 0; i < traders.length; i += 1) {
-            if (IERC20(_token).balanceOf(marginAccounts[traders[i]]) > 0) {
-                IMarginAccount(marginAccounts[traders[i]]).transferTokens(
-                    _token,
-                    owner,
-                    IERC20(_token).balanceOf(marginAccounts[traders[i]])
-                );
-            }
-        }
-    }
-
+ 
     function closeMarginAccount(address trader) external {
         /**
          * TBD
@@ -112,87 +88,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
     function getMarginAccount(address trader) external view returns (address) {
         return _requireAndGetMarginAccount(trader);
-    }
-
-    function _requireAndGetMarginAccount(
-        address trader
-    ) private view returns (address) {
-        require(
-            marginAccounts[trader] != address(0),
-            "MM: Invalid margin account"
-        );
-        return marginAccounts[trader];
-    }
-
-    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values..
-    function _executePostMarketOrderUpdates(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        VerifyTradeResult memory verificationResult,
-        bool isOpen
-    ) private {
-        // check slippage based on verification result and actual market position.
-        Position memory marketPosition = riskManager.getMarketPosition(
-            address(marginAccount),
-            marketKey
-        );
-        // merge verification result and marketPosition.
-        verificationResult.position.size = marketPosition.size;
-        verificationResult.position.openNotional = marketPosition.openNotional;
-
-        if (verificationResult.position.size.abs() > 0) {
-            // check if enough margin to open this position ??
-            if (isOpen) {
-                marginAccount.addPosition(
-                    marketKey,
-                    verificationResult.position
-                );
-                emit PositionAdded(
-                    address(marginAccount),
-                    marketKey,
-                    verificationResult.position.size,
-                    verificationResult.position.openNotional
-                );
-            } else {
-                marginAccount.updatePosition(
-                    marketKey,
-                    verificationResult.position
-                );
-                emit PositionUpdated(
-                    address(marginAccount),
-                    marketKey,
-                    verificationResult.position.size,
-                    verificationResult.position.openNotional
-                );
-            }
-        }
-        // if (verificationResult.marginDelta > 0) {
-        //     riskManager.verifyBorrowLimit(address(marginAccount));
-        // }
-        if (!riskManager.isAccountHealthy(address(marginAccount)))
-            revert("MM: Unhealthy account");
-    }
-
-    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values.
-    // TO DO - verify repaid interest.
-    function _executePostPositionCloseUpdates(
-        IMarginAccount marginAccount,
-        bytes32 marketKey
-    ) private {
-        // check slippage based on verification result and actual market position.
-        // update position size and notional.
-
-        Position memory marketPosition = riskManager.getMarketPosition(
-            address(marginAccount),
-            marketKey
-        );
-        require(
-            marketPosition.size == 0 && marketPosition.openNotional == 0,
-            "MM: Invalid close position call"
-        );
-        riskManager.verifyBorrowLimit(address(marginAccount));
-        if (!riskManager.isAccountHealthy(address(marginAccount)))
-            revert("MM: Unhealthy account");
     }
 
     function openPosition(
@@ -226,6 +121,22 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
     }
 
+    // amount in vault asset decimals
+    function borrowFromVault(uint256 amount) external {
+        IMarginAccount marginAccount = IMarginAccount(
+            _requireAndGetMarginAccount(msg.sender)
+        );
+        _borrowFromVault(marginAccount, amount);
+    }
+
+    // amount in vault asset decimals
+    function repayVault(uint256 amount) external {
+        IMarginAccount marginAccount = IMarginAccount(
+            _requireAndGetMarginAccount(msg.sender)
+        );
+        _repayVault(marginAccount, amount);
+    }
+`
     function swapAsset(
         address tokenIn,
         address tokenOut,
@@ -258,73 +169,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // check if health factor is good enough now.
         if (!riskManager.isAccountHealthy(address(marginAccount)))
             revert("MM: Unhealthy account");
-    }
-
-    function _swapAsset(
-        IMarginAccount marginAccount,
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 minAmountOut
-    ) private returns (uint256 amountOut) {
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
-        amountOut = marginAccount.swapTokens(
-            tokenIn,
-            tokenOut,
-            amountIn,
-            minAmountOut
-        );
-    }
-
-    function _swapAllTokensToVaultAsset(IMarginAccount marginAccount) private {
-        ICollateralManager collateralManager = ICollateralManager(
-            contractRegistry.getContractByName(keccak256("CollateralManager"))
-        );
-        address[] memory allowedCollaterals = collateralManager
-            .getAllCollateralTokens();
-
-        for (uint i = 0; i < allowedCollaterals.length; i++) {
-            address token = allowedCollaterals[i];
-            if (token == vault.asset()) continue;
-            uint256 tokenBalance = IERC20(token).balanceOf(
-                address(marginAccount)
-            );
-            if (tokenBalance == 0) continue;
-            _swapAsset(marginAccount, token, vault.asset(), tokenBalance, 0);
-        }
-    }
-
-    // Logic ->
-    // if(borrowedAmount + interestAccrued> 0){
-    //  if(marginDelta > borrowedAmount + interestAccrued){
-    // repay(marginDelta - (borrowedAmount + interestAccrued)) }
-    //  else repay marginDelta
-    // }
-    function _repayMaxVaultDebt(IMarginAccount marginAccount) private {
-        uint256 vaultAssetBalance = IERC20(vault.asset()).balanceOf(
-            address(marginAccount)
-        );
-        if (vaultAssetBalance == 0)
-            revert("MM: Not enough balance in MA to repay vault debt");
-        uint256 interestAccrued = marginAccount
-            .getInterestAccruedX18()
-            .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
-        uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
-        uint256 totalBorrowed = totalBorrowedX18.convertTokenDecimals(
-            18,
-            IERC20Metadata(vault.asset()).decimals()
-        );
-        uint256 vaultLiability = totalBorrowed + interestAccrued;
-        if (vaultLiability == 0) return;
-        if (vaultAssetBalance < vaultLiability) {
-            // max repayment possible here is amount - interestAccrued
-            _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
-        } else {
-            _repayVault(marginAccount, totalBorrowed);
-        }
     }
 
     function updatePosition(
@@ -408,7 +252,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         marginAccount.execMultiTx(destinations, data);
 
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
-        _verifyPostLiquidationTxs(marginAccount, result);
+        _verifyPostLiquidation(marginAccount, result);
         _executePostLiquidationUpdates(marginAccount, result);
         uint256 vaultLiability = marginAccount.totalBorrowed() +
             marginAccount.getInterestAccruedX18();
@@ -416,6 +260,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             address(marginAccount),
             vaultLiability
         );
+        _swapAllTokensToVaultAsset(marginAccount);
         if (!hasBadDebt) {
             // pay money to liquidator based on config.
             // pay interest
@@ -424,26 +269,185 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             // pay interest
             // pay liquidator
         }
-        _swapAllTokensToVaultAsset(marginAccount);
         _repayMaxVaultDebt(marginAccount);
     }
 
-    // @note - this function validates the following points
-    // 1. All positions are closed i.e Margin in all markets is 0.
-    // 2. All margin is transferred back to Chronux by assessing if Delta margin is equal to amount of tokens transferred back to Chronux.
-    function _verifyPostLiquidationTxs(
+    function syncPositions(address trader) public {
+        address marginAccount = _requireAndGetMarginAccount(trader);
+        _syncPositions(marginAccount);
+    }
+
+    // ---------------- Internal and private functions --------------------
+
+    // only used to update data of closed positions when liquidated on TPP. Think about getting rid of this asap.
+    function _syncPositions(address marginAccount) private {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
+        for (uint256 i = 0; i < marketKeys.length; i++) {
+            bytes32 marketKey = marketKeys[i];
+            Position memory marketPosition = riskManager.getMarketPosition(
+                marginAccount,
+                marketKey
+            );
+            // @note - compa
+            Position memory storedPosition = IMarginAccount(marginAccount)
+                .getPosition(marketKey);
+            if (
+                storedPosition.openNotional != 0 &&
+                marketPosition.openNotional == 0
+            ) IMarginAccount(marginAccount).removePosition(marketKey);
+        }
+        // emit PositionSynced(marginAccount, marketKey, marketPosition);
+    }
+
+    function _requireAndGetMarginAccount(
+        address trader
+    ) private view returns (address) {
+        require(
+            marginAccounts[trader] != address(0),
+            "MM: Invalid margin account"
+        );
+        return marginAccounts[trader];
+    }
+
+    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values..
+    function _executePostMarketOrderUpdates(
         IMarginAccount marginAccount,
-        VerifyLiquidationResult memory result
+        bytes32 marketKey,
+        VerifyTradeResult memory verificationResult,
+        bool isOpen
     ) private {
-        // check if all margin is transferred back to Chronux.
-        int256 marginInMarkets = riskManager.getCurrentDollarMarginInMarkets(
-            address(marginAccount)
+        // check slippage based on verification result and actual market position.
+        Position memory marketPosition = riskManager.getMarketPosition(
+            address(marginAccount),
+            marketKey
+        );
+        // merge verification result and marketPosition.
+        verificationResult.position.size = marketPosition.size;
+        verificationResult.position.openNotional = marketPosition.openNotional;
+
+        if (verificationResult.position.size.abs() > 0) {
+            // check if enough margin to open this position ??
+            if (isOpen) {
+                marginAccount.addPosition(
+                    marketKey,
+                    verificationResult.position
+                );
+                emit PositionAdded(
+                    address(marginAccount),
+                    marketKey,
+                    verificationResult.position.size,
+                    verificationResult.position.openNotional
+                );
+            } else {
+                marginAccount.updatePosition(
+                    marketKey,
+                    verificationResult.position
+                );
+                emit PositionUpdated(
+                    address(marginAccount),
+                    marketKey,
+                    verificationResult.position.size,
+                    verificationResult.position.openNotional
+                );
+            }
+        }
+        // if (verificationResult.marginDelta > 0) {
+        //     riskManager.verifyBorrowLimit(address(marginAccount));
+        // }
+        if (!riskManager.isAccountHealthy(address(marginAccount)))
+            revert("MM: Unhealthy account");
+    }
+
+    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values.
+    // TO DO - verify repaid interest.
+    function _executePostPositionCloseUpdates(
+        IMarginAccount marginAccount,
+        bytes32 marketKey
+    ) private {
+        // check slippage based on verification result and actual market position.
+        // update position size and notional.
+
+        Position memory marketPosition = riskManager.getMarketPosition(
+            address(marginAccount),
+            marketKey
         );
         require(
-            marginInMarkets == 0,
-            "MM: Complete Mmrgin not transferred back to Chronux"
+            marketPosition.size == 0 && marketPosition.openNotional == 0,
+            "MM: Invalid close position call"
         );
-        // When margin in market is 0 it implies all positions are also closed.
+        riskManager.verifyBorrowLimit(address(marginAccount));
+        if (!riskManager.isAccountHealthy(address(marginAccount)))
+            revert("MM: Unhealthy account");
+    }
+
+    function _swapAsset(
+        IMarginAccount marginAccount,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) private returns (uint256 amountOut) {
+        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
+        amountOut = marginAccount.swapTokens(
+            tokenIn,
+            tokenOut,
+            amountIn,
+            minAmountOut
+        );
+    }
+
+    function _swapAllTokensToVaultAsset(IMarginAccount marginAccount) private {
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
+        address[] memory allowedCollaterals = collateralManager
+            .getAllCollateralTokens();
+
+        for (uint i = 0; i < allowedCollaterals.length; i++) {
+            address token = allowedCollaterals[i];
+            if (token == vault.asset()) continue;
+            uint256 tokenBalance = IERC20(token).balanceOf(
+                address(marginAccount)
+            );
+            if (tokenBalance == 0) continue;
+            _swapAsset(marginAccount, token, vault.asset(), tokenBalance, 0);
+        }
+    }
+
+    // Logic ->
+    // if(borrowedAmount + interestAccrued> 0){
+    //  if(marginDelta > borrowedAmount + interestAccrued){
+    // repay(marginDelta - (borrowedAmount + interestAccrued)) }
+    //  else repay marginDelta
+    // }
+    function _repayMaxVaultDebt(IMarginAccount marginAccount) private {
+        uint256 vaultAssetBalance = IERC20(vault.asset()).balanceOf(
+            address(marginAccount)
+        );
+        if (vaultAssetBalance == 0)
+            revert("MM: Not enough balance in MA to repay vault debt");
+        uint256 interestAccrued = marginAccount
+            .getInterestAccruedX18()
+            .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
+        uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
+        uint256 totalBorrowed = totalBorrowedX18.convertTokenDecimals(
+            18,
+            IERC20Metadata(vault.asset()).decimals()
+        );
+        uint256 vaultLiability = totalBorrowed + interestAccrued;
+        if (vaultLiability == 0) return;
+        if (vaultAssetBalance < vaultLiability) {
+            // max repayment possible here is amount - interestAccrued
+            _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
+        } else {
+            _repayVault(marginAccount, totalBorrowed);
+        }
     }
 
     function _executePostLiquidationUpdates(
@@ -456,20 +460,22 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // Emit a liquidation event with relevant data.
     }
 
-    // amount in vault asset decimals
-    function borrowFromVault(uint256 amount) external {
-        IMarginAccount marginAccount = IMarginAccount(
-            _requireAndGetMarginAccount(msg.sender)
+    // @note - this function validates the following points
+    // 1. All positions are closed i.e Margin in all markets is 0.
+    // 2. All margin is transferred back to Chronux by assessing if Delta margin is equal to amount of tokens transferred back to Chronux.
+    function _verifyPostLiquidation(
+        IMarginAccount marginAccount,
+        VerifyLiquidationResult memory result
+    ) private {
+        // check if all margin is transferred back to Chronux.
+        int256 marginInMarkets = riskManager.getCurrentDollarMarginInMarkets(
+            address(marginAccount)
         );
-        _borrowFromVault(marginAccount, amount);
-    }
-
-    // amount in vault asset decimals
-    function repayVault(uint256 amount) external {
-        IMarginAccount marginAccount = IMarginAccount(
-            _requireAndGetMarginAccount(msg.sender)
+        require(
+            marginInMarkets == 0,
+            "MM: Complete Mmrgin not transferred back to Chronux"
         );
-        _repayVault(marginAccount, amount);
+        // When margin in market is 0 it implies all positions are also closed.
     }
 
     function _borrowFromVault(
@@ -503,31 +509,32 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
-    function syncPositions(address trader) public {
-        address marginAccount = _requireAndGetMarginAccount(trader);
-        _syncPositions(marginAccount);
+
+    // ----------------- Team functions ---------------------
+
+       // TODO: remove while deploying on mainnet
+    function drainAllMarginAccounts(address _token) external onlyOwner {
+        for (uint256 i = 0; i < traders.length; i += 1) {
+            if (IERC20(_token).balanceOf(marginAccounts[traders[i]]) > 0) {
+                IMarginAccount(marginAccounts[traders[i]]).transferTokens(
+                    _token,
+                    owner,
+                    IERC20(_token).balanceOf(marginAccounts[traders[i]])
+                );
+            }
+        }
     }
 
-    // only used to update data of closed positions when liquidated on TPP. Think about getting rid of this asap.
-    function _syncPositions(address marginAccount) private {
-        IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
-        );
-        bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
-        for (uint256 i = 0; i < marketKeys.length; i++) {
-            bytes32 marketKey = marketKeys[i];
-            Position memory marketPosition = riskManager.getMarketPosition(
-                marginAccount,
-                marketKey
-            );
-            // @note - compa
-            Position memory storedPosition = IMarginAccount(marginAccount)
-                .getPosition(marketKey);
-            if (
-                storedPosition.openNotional != 0 &&
-                marketPosition.openNotional == 0
-            ) IMarginAccount(marginAccount).removePosition(marketKey);
-        }
-        // emit PositionSynced(marginAccount, marketKey, marketPosition);
+    function SetRiskManager(
+        address _riskmgr
+    ) external nonZeroAddress(_riskmgr) onlyOwner {
+        riskManager = IRiskManager(_riskmgr);
     }
+
+    function setVault(
+        address _vault
+    ) external nonZeroAddress(_vault) onlyOwner {
+        vault = IVault(_vault);
+    }
+
 }

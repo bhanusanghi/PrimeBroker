@@ -138,9 +138,7 @@ contract CollateralManager is ICollateralManager {
         );
         uint256 withdrawAmount = priceOracle
             .convertToUSD(
-                _amount
-                    .convertTokenDecimals(IERC20Metadata(_token).decimals(), 18)
-                    .toInt256(),
+                _amount.convertTokenDecimals(_decimals[_token], 18).toInt256(),
                 _token
             )
             .toUint256()
@@ -207,7 +205,7 @@ contract CollateralManager is ICollateralManager {
             address token = allowedCollateral[i];
             uint256 tokenAmountX18 = IERC20Metadata(token)
                 .balanceOf(_marginAccount)
-                .convertTokenDecimals(IERC20Metadata(token).decimals(), 18);
+                .convertTokenDecimals(_decimals[_token], 18);
             uint256 tokenAmountValueX18 = priceOracle
                 .convertToUSD(
                     int256(tokenAmountX18.mulDiv(collateralWeight[token], 100)),

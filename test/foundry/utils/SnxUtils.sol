@@ -62,16 +62,15 @@ contract SnxUtils is Test, IEvents {
         assertEq(positionChronux.size, snxPositionSize);
     }
 
-    function borrowAssets(address trader, uint256 amount) public {
+    function borrowAssets(uint256 amount) public {
         contracts.marginManager.borrowFromVault(amount);
     }
 
-    function repayAssets(address trader, uint256 amount) public {
+    function repayAssets(uint256 amount) public {
         contracts.marginManager.repayVault(amount);
     }
 
     function swapAssets(
-        address trader,
         address tokenIn,
         address tokenOut,
         uint256 amountIn,

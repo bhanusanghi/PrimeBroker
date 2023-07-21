@@ -493,11 +493,11 @@ contract PerpfiUtils is Test, Constants, IEvents {
         vm.stopPrank();
     }
 
-    function borrowAssets(address trader, uint256 amount) public {
+    function borrowAssets(uint256 amount) public {
         contracts.marginManager.borrowFromVault(amount);
     }
 
-    function repayAssets(address trader, uint256 amount) public {
+    function repayAssets(uint256 amount) public {
         contracts.marginManager.repayVault(amount);
     }
 
