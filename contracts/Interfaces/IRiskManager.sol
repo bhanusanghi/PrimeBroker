@@ -32,7 +32,7 @@ interface IRiskManager {
         bytes[] memory data
     ) external returns (VerifyTradeResult memory result);
 
-    function liquidate(
+    function verifyLiquidation(
         IMarginAccount marginAccount,
         bytes32[] memory marketKeys,
         address[] memory destinations,
@@ -52,10 +52,6 @@ interface IRiskManager {
         address marginAccount
     ) external view returns (int256 totalUnrealizedPnL);
 
-    function getRemainingMarginTransfer(
-        address _marginAccount
-    ) external view returns (uint256);
-
     function getRemainingPositionOpenNotional(
         address _marginAccount
     ) external view returns (uint256);
@@ -66,7 +62,6 @@ interface IRiskManager {
     ) external view returns (Position memory marketPosition);
 
     function verifyClosePosition(
-        IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] calldata destinations,
         bytes[] calldata data
@@ -84,10 +79,6 @@ interface IRiskManager {
         address marginAccount,
         uint256 vaultLiability
     ) external view returns (bool isBankrupt);
-
-    function getCollateralInMarkets(
-        address _marginAccount
-    ) external view returns (uint256 totalCollateralValue);
 
     function verifyBorrowLimit(
         address _marginAccount,
@@ -112,5 +103,9 @@ interface IRiskManager {
 
     function getAccountValue(
         address marginAccount
+    ) external view returns (uint256);
+
+    function getRemainingBorrowLimit(
+        address _marginAccount
     ) external view returns (uint256);
 }

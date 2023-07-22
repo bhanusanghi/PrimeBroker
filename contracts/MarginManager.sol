@@ -218,7 +218,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // @note fee is assumed to be in usdc value
         // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
-            marginAccount,
             marketKey,
             destinations,
             data
@@ -241,7 +240,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         _syncPositions(address(marginAccount));
         // verifies if account is liquidatable, verifies tx calldata, and returns the amount of margin to be transferred.
-        VerifyLiquidationResult memory result = riskManager.liquidate(
+        VerifyLiquidationResult memory result = riskManager.verifyLiquidation(
             marginAccount,
             marketKeys,
             destinations,

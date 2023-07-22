@@ -229,7 +229,8 @@ contract CollateralManager is ICollateralManager {
                 _marginAccount
             );
         uint256 totalCollateralInMarketsX18 = riskManager
-            .getCollateralInMarkets(_marginAccount);
+            .getCurrentDollarMarginInMarkets(_marginAccount)
+            .abs();
         // This will fail if invalid margin account is passed.
         (bool success, bytes memory returnData) = _marginAccount.staticcall(
             abi.encodeWithSelector(IMarginAccount.totalBorrowed.selector)
