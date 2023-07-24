@@ -97,7 +97,7 @@ interface IRiskManager {
         address marginAccount
     ) external view returns (bool isHealthy);
 
-    function getMinimumMaintenanceMarginRequirement(
+    function getMaintenanceMarginRequirement(
         address marginAccount
     ) external view returns (uint256);
 

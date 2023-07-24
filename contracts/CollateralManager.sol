@@ -167,7 +167,7 @@ contract CollateralManager is ICollateralManager {
         // free collateral
         freeCollateralValueX18 =
             _totalCurrentCollateralValue(address(_marginAccount)) -
-            riskManager.getMinimumMaintenanceMarginRequirement(_marginAccount);
+            riskManager.getMaintenanceMarginRequirement(_marginAccount);
     }
 
     function totalCollateralValue(

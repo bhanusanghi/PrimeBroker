@@ -102,3 +102,25 @@ getMarketPosition_RiskManager_UnitTest.t.sol
         ├── When user had no valid position
         │   └── It should return position
         ├── When position is liquidated on TPP
+
+verifyLiquidation_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── When invalid liqudiation
+    │   └── It should revert
+    ├── When valid liquidation
+        └── It should revert
+    
+isAccountLiquidatable_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── When no collateral
+    ├── When collateral
+        ├── When no openNotional
+        ├── When trader has openPositions
+            ├── When trader has enough account value
+            ├── When trader does not have enough account value
+            
+

@@ -210,7 +210,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     // returns in 18 decimals.
-    function getMinimumMaintenanceMarginRequirement(
+    function getMaintenanceMarginRequirement(
         address marginAccount
     ) public view returns (uint256) {
         IMarketManager marketManager = IMarketManager(
