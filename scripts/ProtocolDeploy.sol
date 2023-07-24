@@ -29,6 +29,7 @@ contract ProtocolDeploy is Script, BaseDeployer {
         setupPriceOracle();
         setupMarketManager();
         setupMarginManager();
+        setupMarginAccountFactory();
         setupRiskManager();
         setupVault(usdc);
         // setupVault(susd);
@@ -44,12 +45,15 @@ contract ProtocolDeploy is Script, BaseDeployer {
 
         address snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("FuturesMarketManager"));
-        address uniFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
-            .marketForKey(snxUni_marketKey);
-        address ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
-            .marketForKey(snxEth_marketKey);
-        address maticFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
-            .marketForKey(snxMatic_marketKey);
+        address uniFuturesMarket = IFuturesMarketManager(
+            snxFuturesMarketManager
+        ).marketForKey(snxUni_marketKey);
+        address ethFuturesMarket = IFuturesMarketManager(
+            snxFuturesMarketManager
+        ).marketForKey(snxEth_marketKey);
+        address maticFuturesMarket = IFuturesMarketManager(
+            snxFuturesMarketManager
+        ).marketForKey(snxMatic_marketKey);
 
         marketManager.addMarket(
             snxUniKey,
@@ -84,10 +88,7 @@ contract ProtocolDeploy is Script, BaseDeployer {
             usdc
         );
 
-        perpfiRiskManager.toggleAddressWhitelisting(
-            perpClearingHouse,
-            true
-        );
+        perpfiRiskManager.toggleAddressWhitelisting(perpClearingHouse, true);
         perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
         perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
 
@@ -107,9 +108,18 @@ contract ProtocolDeploy is Script, BaseDeployer {
         console.log("MarketManager address: ", address(marketManager), "\n");
         console.log("MarginManager address: ", address(marginManager), "\n");
         console.log("RiskManager address: ", address(riskManager), "\n");
-        console.log("CollateralManager address: ", address(collateralManager), "\n");
+        console.log(
+            "CollateralManager address: ",
+            address(collateralManager),
+            "\n"
+        );
         console.log("PerpfiRM address: ", address(perpfiRiskManager), "\n");
         console.log("snxRM address: ", address(snxRiskManager), "\n");
+        console.log(
+            "Contract account Factory address: ",
+            address(snxRiskManager),
+            "\n"
+        );
         vm.stopBroadcast();
     }
 }

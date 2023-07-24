@@ -37,16 +37,16 @@ contract TimeSimulationTest is BaseSetup {
         // need to be done in this order only.
         utils = new Utils();
         setupPerpfiFixture();
+        chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
-        chronuxUtils = new ChronuxUtils(contracts);
     }
 
-/*
+    /*
 
   VARIABLES DEPENDENT ON TIME ->
   1. AccruedFunding
-  2. UnrealizedPnL
+  2. AssetPrice Change
   3. Vault Interest
 
 

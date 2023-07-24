@@ -50,4 +50,8 @@ interface IProtocolRiskManager {
         address marginAccount,
         bytes32 marketKey
     ) external view returns (Position memory position);
+
+    function getTotalAbsOpenNotional(
+        address marginAccount
+    ) external view returns (uint256 openNotional);
 }

@@ -37,12 +37,12 @@ contract RiskManagerTest is BaseSetup {
         // need to be done in this order only.
         utils = new Utils();
         setupPerpfiFixture();
+        chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
-        chronuxUtils = new ChronuxUtils(contracts);
     }
 
-  /*
+    /*
     Unit Testing ->
     verifyTrade with wrong data
     verifyClosePosition with wrong data

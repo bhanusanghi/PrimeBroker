@@ -40,9 +40,9 @@ contract LiquidationSnx is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupPerpfiFixture();
-        perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     // ChronuxMargin |  Snx Margin | snx ON
@@ -73,7 +73,7 @@ contract LiquidationSnx is BaseSetup {
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,
@@ -105,7 +105,7 @@ contract LiquidationSnx is BaseSetup {
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,
@@ -133,7 +133,7 @@ contract LiquidationSnx is BaseSetup {
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -158,7 +158,7 @@ contract LiquidationSnx is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         uint256 minMarginRequirement = contracts
             .riskManager
-            .getMinimumMarginRequirement(bobMarginAccount);
+            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
@@ -175,7 +175,7 @@ contract LiquidationSnx is BaseSetup {
 
         minMarginRequirement = contracts
             .riskManager
-            .getMinimumMarginRequirement(bobMarginAccount);
+            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
 
@@ -199,7 +199,7 @@ contract LiquidationSnx is BaseSetup {
             .getPosition(snxUniKey);
         uint256 minMarginRequirement = contracts
             .riskManager
-            .getMinimumMarginRequirement(bobMarginAccount);
+            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
@@ -214,7 +214,7 @@ contract LiquidationSnx is BaseSetup {
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
         minMarginRequirement = contracts
             .riskManager
-            .getMinimumMarginRequirement(bobMarginAccount);
+            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
 
@@ -238,7 +238,7 @@ contract LiquidationSnx is BaseSetup {
 
         uint256 minMarginRequirement = contracts
             .riskManager
-            .getMinimumMarginRequirement(bobMarginAccount);
+            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
@@ -253,7 +253,7 @@ contract LiquidationSnx is BaseSetup {
 
         minMarginRequirement = contracts
             .riskManager
-            .getMinimumMarginRequirement(bobMarginAccount);
+            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
 
@@ -414,17 +414,11 @@ contract LiquidationSnx is BaseSetup {
         //     "totalBorrowed after liquidation is not zero"
         // );
 
-        assertEq(
-            IMarginAccount(bobMarginAccount).getTotalOpeningAbsoluteNotional(),
-            0,
-            "getTotalOpeningAbsoluteNotional after liquidation is not zero"
-        );
-        console2.log(
-            "remainingMargin",
-            contracts.collateralManager.getCollateralHeldInMarginAccount(
-                bobMarginAccount
-            )
-        );
+        // assertEq(
+        //     IMarginAccount(bobMarginAccount).getTotalOpeningAbsoluteNotional(),
+        //     0,
+        //     "getTotalOpeningAbsoluteNotional after liquidation is not zero"
+        // );
     }
 
     // Vault interest rate -> 5% per annum

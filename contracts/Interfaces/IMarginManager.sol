@@ -39,10 +39,6 @@ interface IMarginManager {
         bytes32 indexed marketKey
     );
 
-    function getInterestAccruedX18(
-        address marginAccount
-    ) external view returns (uint256);
-
     function getMarginAccount(address trader) external view returns (address);
 
     function SetRiskManager(address _riskmgr) external;
@@ -50,6 +46,8 @@ interface IMarginManager {
     function setVault(address _vault) external;
 
     function openMarginAccount() external returns (address);
+
+    function drainAllMarginAccounts(address _token) external;
 
     function closeMarginAccount(address marginAccount) external;
 
@@ -77,4 +75,15 @@ interface IMarginManager {
         address[] calldata destinations,
         bytes[] calldata data
     ) external;
+
+    function borrowFromVault(uint256 amount) external;
+
+    function repayVault(uint256 amount) external;
+
+    function swapAsset(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) external returns (uint256 amountOut);
 }

@@ -15,13 +15,6 @@ interface IMarginAccount {
 
     function cumulativeIndexAtOpen() external view returns (uint256);
 
-    function updateBorrowData(
-        uint256 _totalBorrowed,
-        uint256 _cumulativeIndexAtOpen
-    ) external;
-
-    // function baseToken() external returns (address);
-
     function addCollateral(
         address from,
         address token,
@@ -33,8 +26,6 @@ interface IMarginAccount {
         address to,
         uint256 amount // onlyMarginManager
     ) external;
-
-    function drain(address _token) external;
 
     function executeTx(
         address destination,
@@ -60,10 +51,10 @@ interface IMarginAccount {
 
     function removePosition(bytes32 market) external;
 
-    function getTotalOpeningAbsoluteNotional()
-        external
-        view
-        returns (uint256 totalNotional);
+    // function getTotalOpeningAbsoluteNotional()
+    //     external
+    //     view
+    //     returns (uint256 totalNotional);
 
     function swapTokens(
         address tokenIn,
@@ -79,4 +70,10 @@ interface IMarginAccount {
         address spender,
         uint256 amount
     ) external;
+
+    function getInterestAccruedX18() external view returns (uint256);
+
+    function increaseDebt(uint256 amount) external;
+
+    function decreaseDebt(uint256 amount) external;
 }

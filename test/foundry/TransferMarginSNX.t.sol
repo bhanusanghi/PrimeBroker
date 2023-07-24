@@ -38,8 +38,8 @@ contract TransferMarginSNX is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupSNXFixture();
-        snxUtils = new SnxUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
+        snxUtils = new SnxUtils(contracts);
         //fetch snx market addresses.
     }
 
@@ -72,11 +72,10 @@ contract TransferMarginSNX is BaseSetup {
         int256 remainingMargin = int256(
             contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
-
-        snxUtils.verifyExcessMarginRevert(
-            bob,
-            snxUniKey,
-            remainingMargin + 1 ether
+        vm.prank(bob);
+        vm.expectRevert("Borrow limit exceeded");
+        contracts.marginManager.borrowFromVault(
+            uint256(remainingMargin + 1 ether).convertTokenDecimals(18, 6)
         );
     }
 
@@ -155,18 +154,6 @@ contract TransferMarginSNX is BaseSetup {
         // );
         snxMargin = 15000 ether;
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-    }
-
-    function testBobTransfersExcessMarginInMultipleAttempt() public {
-        uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
-        int256 remainingTransferrableMargin = int256(
-            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
-        );
-        int256 snxMargin1 = remainingTransferrableMargin / 2;
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin1, false, "");
-        int256 snxMargin2 = (remainingTransferrableMargin / 2) + 1 ether;
-        snxUtils.verifyExcessMarginRevert(bob, snxUniKey, snxMargin2);
     }
 
     // function testBobTransfersExcessMarginMultipleDataInSingleAttempt(

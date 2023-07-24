@@ -35,8 +35,8 @@ contract LiquidationPerpfi is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupPerpfiFixture();
-        perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     // UnrealisedPnL = -1000$
@@ -79,7 +79,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,
@@ -128,7 +128,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
         assertEq(
             isLiquidatable,
             false,
@@ -174,23 +174,9 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -1000 ether
         );
-        console2.log("Before Liquidation", openPosition.openNotional);
-        console2.logInt(
-            IAccountBalance(perpAccountBalance).getTotalPositionValue(
-                bobMarginAccount,
-                perpAaveMarket
-            )
-        );
-        // utils.setAssetPricePerpfi(perpAaveMarket, 50 * (10 ** 8));
-        console2.logInt(
-            IAccountBalance(perpAccountBalance).getTotalPositionValue(
-                bobMarginAccount,
-                perpAaveMarket
-            )
-        );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,
@@ -206,13 +192,6 @@ contract LiquidationPerpfi is BaseSetup {
         );
         openPosition = IMarginAccount(bobMarginAccount).getPosition(
             perpAaveKey
-        );
-        console2.log("After Liquidation", openPosition.openNotional);
-        console2.logInt(
-            IAccountBalance(perpAccountBalance).getTotalPositionValue(
-                bobMarginAccount,
-                perpAaveMarket
-            )
         );
         assertEq(
             IAccountBalance(perpAccountBalance).getTotalPositionValue(
@@ -268,7 +247,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         (bool isLiquidatable, bool isFullyLiquidatable) = contracts
             .riskManager
-            .isAccountLiquidatable(IMarginAccount(bobMarginAccount));
+            .isAccountLiquidatable(bobMarginAccount);
 
         assertEq(
             isLiquidatable,

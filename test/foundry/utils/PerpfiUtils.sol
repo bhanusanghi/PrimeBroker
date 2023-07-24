@@ -21,6 +21,8 @@ import {Constants} from "./Constants.sol";
 import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
+// This is useless force push comment, please remove after use
+
 contract PerpfiUtils is Test, Constants, IEvents {
     using SettlementTokenMath for uint256;
     using Math for uint256;
@@ -34,7 +36,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
 
     constructor(Contracts memory _contracts) {
         contracts = _contracts;
-        // add any contracts for perp here.
     }
 
     // @notice Returns the price of th UniV3Pool.
@@ -494,6 +495,32 @@ contract PerpfiUtils is Test, Constants, IEvents {
         vm.stopPrank();
     }
 
+    function borrowAssets(uint256 amount) public {
+        contracts.marginManager.borrowFromVault(amount);
+    }
+
+    function repayAssets(uint256 amount) public {
+        contracts.marginManager.repayVault(amount);
+    }
+
+    function prepareMarginTransfer(
+        address trader,
+        bytes32 marketKey,
+        uint256 deltaMarginX18
+    ) public {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        uint256 tokenBalanceUsdcX18 = IERC20(usdc)
+            .balanceOf(marginAccount)
+            .convertTokenDecimals(6, 18);
+        //TODO- Will work till susd == usdc == 1 use exchange quote price later.
+        if (deltaMarginX18 > tokenBalanceUsdcX18) {
+            uint256 borrowNeedX18 = deltaMarginX18 - tokenBalanceUsdcX18;
+            borrowAssets(borrowNeedX18.convertTokenDecimals(18, 6));
+        }
+    }
+
     // send margin in 6 decimals.
     function updateAndVerifyMargin(
         address trader,
@@ -536,23 +563,8 @@ contract PerpfiUtils is Test, Constants, IEvents {
             vm.expectRevert(reason);
             contracts.marginManager.openPosition(marketKey, destinations, data);
         } else {
-            vm.expectEmit(
-                true,
-                true,
-                true,
-                true,
-                address(contracts.marginManager)
-            );
-            emit MarginTransferred(
-                marginAccount,
-                marketKey,
-                usdc,
-                marginX18,
-                marginX18Value
-            );
             if (margin > 0) {
-                // vm.expectEmit(true, true, true, true, perpVault);
-                // emit Deposited(usdc, marginAccount, uint256(margin));
+                prepareMarginTransfer(trader, marketKey, uint256(marginX18));
                 data[0] = abi.encodeWithSignature(
                     "approve(address,uint256)",
                     perpVault,
@@ -562,6 +574,20 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     "deposit(address,uint256)",
                     usdc,
                     margin
+                );
+                vm.expectEmit(
+                    true,
+                    true,
+                    true,
+                    true,
+                    address(contracts.marginManager)
+                );
+                emit MarginTransferred(
+                    marginAccount,
+                    marketKey,
+                    usdc,
+                    marginX18,
+                    marginX18Value
                 );
                 contracts.marginManager.openPosition(
                     marketKey,
@@ -584,16 +610,25 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     usdc,
                     margin.abs()
                 );
-                console2.log("destinations.length", destinations.length);
+                vm.expectEmit(
+                    true,
+                    true,
+                    true,
+                    true,
+                    address(contracts.marginManager)
+                );
+                emit MarginTransferred(
+                    marginAccount,
+                    marketKey,
+                    usdc,
+                    marginX18,
+                    marginX18Value
+                );
                 contracts.marginManager.updatePosition(
                     marketKey,
                     destinations,
                     data
                 );
-                console2.log("Idhar");
-                console2.log(freeCollateralPerp);
-                console2.logInt(margin);
-                console2.log(freeCollateralPerp + margin);
                 verifyMarginOnPerp(
                     marginAccount,
                     marketKey,
