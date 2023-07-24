@@ -29,17 +29,19 @@ getTotalBuyingPower_RiskManager_UnitTest.t.sol
         ├── When trader has no unrealisedPnL accrued
         │   └── It should get accounted
         ├── When trader has unrealisedPnL accrued
+            ├── positive pnl
         │   └── It should get accounted
         ├── When trader has unrealisedPnL and interest accrued
         │   └── It should get accounted
         ├── When totalCollateralValue is negative
-            └── It should get accounted
+            └── It should return 0
         
 getCurrentDollarMarginInMarkets_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should return 0
 ├── When trader has 0 collateral in TPPs
 ├── When trader has collateral in TPPs
+    ├── When trader has collateral in single TPP
     ├── When trader has collateral in multiple TPPs
 
         
@@ -60,13 +62,19 @@ getCollateralInMarkets_RiskManager_UnitTest.t.sol
     ├── When multiple markets exist
 
 
-
 getMaxBorrowLimit_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should return 0
 ├── When valid marginAccount
     ├── When tcv is 0
+    │   └── It should return 0
     ├── When tcv is not 0
+        ├── When already borrowed some amount
+        │   └── It should return maxBorrowLimit = tcv * maxBorrowLimitPercent 
+        ├── when borrowing fresh
+        │   └── It should return maxBorrowLimit = tcv * maxBorrowLimitPercent
+
+// pnl and all should already be covered in absCollateralValue tests
 
 
 verifyBorrowLimit_RiskManager_UnitTest.t.sol

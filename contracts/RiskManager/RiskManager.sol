@@ -132,6 +132,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return _getMaxBorrowLimit(_marginAccount);
     }
 
+    // TODO: USELESS_FUNCTION remove this
     function getRemainingBorrowLimit(
         address _marginAccount
     ) public view override returns (uint256) {
@@ -415,15 +416,23 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         ICollateralManager collateralManager = ICollateralManager(
             contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
-        uint256 interestAccrued = IMarginAccount(marginAccount)
-            .getInterestAccruedX18();
-        int256 totalCollateralValue = (collateralManager.totalCollateralValue(
-            marginAccount
-        ) - interestAccrued).toInt256() + _getUnrealizedPnL(marginAccount);
-        if (totalCollateralValue < 0) {
+        (bool success, bytes memory returnData) = marginAccount.staticcall(
+            abi.encodeWithSignature("getInterestAccruedX18()")
+        );
+        if (!success || returnData.length == 0) {
             return 0;
+        } else {
+            uint256 interestAccrued = abi.decode(returnData, (uint256));
+            int256 totalCollateralValue = collateralManager
+                .totalCollateralValue(marginAccount)
+                .toInt256() -
+                interestAccrued.toInt256() +
+                _getUnrealizedPnL(marginAccount);
+            if (totalCollateralValue < 0) {
+                return 0;
+            }
+            return uint256(totalCollateralValue);
         }
-        return uint256(totalCollateralValue);
     }
 
     // This function gets the total account value.

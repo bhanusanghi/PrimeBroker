@@ -235,7 +235,7 @@ contract CollateralManager is ICollateralManager {
         (bool success, bytes memory returnData) = _marginAccount.staticcall(
             abi.encodeWithSelector(IMarginAccount.totalBorrowed.selector)
         );
-        if (!success) {
+        if (!success || returnData.length == 0) {
             totalAmountX18 =
                 collateralHeldInMarginAccountX18 +
                 totalCollateralInMarketsX18;

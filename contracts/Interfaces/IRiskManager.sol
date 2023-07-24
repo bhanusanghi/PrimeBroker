@@ -108,4 +108,8 @@ interface IRiskManager {
     function getRemainingBorrowLimit(
         address _marginAccount
     ) external view returns (uint256);
+
+    function getTotalBuyingPower(
+        address marginAccount
+    ) external view returns (uint256);
 }

@@ -67,6 +67,12 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier hasCollateralOnTPPs() {
         _;
     }
+    modifier multipleTPPs() {
+        _;
+    }
+    modifier multipleMarkets() {
+        _;
+    }
     modifier noCollateralOnTPPs() {
         _;
     }
@@ -77,6 +83,18 @@ contract RiskManager_UnitTest is BaseSetup {
         _;
     }
     modifier liquidatedOnTPP() {
+        _;
+    }
+    modifier negativePnL() {
+        _;
+    }
+    modifier positivePnL() {
+        _;
+    }
+    modifier freshBorrow() {
+        _;
+    }
+    modifier previouslyBorrowed() {
         _;
     }
 
