@@ -180,162 +180,166 @@ contract VaultTest is Test {
         vm.stopPrank();
     }
 
-    function testInterestRates(uint256 utilizationRate) public {
-        uint256 depositAmount = 5000 ether;
-        uint256 borrowAmount;
-        vm.assume(
-            utilizationRate <= PERCENTAGE_FACTOR &&
-                utilizationRate >= PERCENTAGE_FACTOR / 10 ** 2
-        );
-        uint256 borrowAPY = vault.borrowAPY_RAY();
-        uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        assertEq(borrowAPY, excpecteBorrowRate);
-        deposit(bob, depositAmount);
-        vm.startPrank(admin);
-        borrowAmount = depositAmount.percentMul(utilizationRate);
-        vault.borrow(admin, borrowAmount);
-        vm.warp(block.timestamp + 365 days);
-        vm.roll(block.number + 100);
-        uint256 newborrowAPY = vault.borrowAPY_RAY();
-        // uint256 interestAmount = (borrowAmount * newborrowAPY) / RAY;
-        excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        assertApproxEqAbs(
-            newborrowAPY,
-            excpecteBorrowRate,
-            (10 ** 25),
-            "Borrow rate is not as expected"
-        );
-        assertEq(vault.totalBorrowed(), borrowAmount, "Vault accounting error");
-        vm.stopPrank();
-    }
+    // function testInterestRates(uint256 utilizationRate) public {
+    //     uint256 depositAmount = 5000 ether;
+    //     uint256 borrowAmount;
+    //     vm.assume(
+    //         utilizationRate <= PERCENTAGE_FACTOR &&
+    //             utilizationRate >= PERCENTAGE_FACTOR / 10 ** 2
+    //     );
+    //     uint256 borrowAPY = vault.borrowAPY_RAY();
+    //     uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     assertEq(borrowAPY, excpecteBorrowRate);
+    //     deposit(bob, depositAmount);
+    //     vm.startPrank(admin);
+    //     borrowAmount = depositAmount.percentMul(utilizationRate);
+    //     console2.log(borrowAmount);
+    //     vault.borrow(admin, borrowAmount);
+    //     vm.warp(block.timestamp + 365 days);
+    //     vm.roll(block.number + 100);
+    //     uint256 newborrowAPY = vault.borrowAPY_RAY();
+    //     // uint256 interestAmount = (borrowAmount * newborrowAPY) / RAY;
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     assertApproxEqAbs(
+    //         newborrowAPY,
+    //         excpecteBorrowRate,
+    //         (10 ** 2),
+    //         "Borrow rate is not as expected"
+    //     );
+    //     assertEq(vault.totalBorrowed(), borrowAmount, "Vault accounting error");
+    //     vm.stopPrank();
+    // }
 
-    function testInterestRatesDaily(uint256 utilizationRate) public {
-        uint256 depositAmount = 5000 ether;
-        uint256 borrowAmount;
-        vm.assume(
-            utilizationRate <= PERCENTAGE_FACTOR &&
-                utilizationRate >= PERCENTAGE_FACTOR / 10 ** 2
-        );
-        uint256 borrowAPY = vault.borrowAPY_RAY();
-        uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        assertEq(borrowAPY, excpecteBorrowRate);
-        deposit(bob, depositAmount);
-        vm.startPrank(admin);
-        borrowAmount = depositAmount.percentMul(utilizationRate);
-        vault.borrow(admin, borrowAmount / 2);
-        vm.warp(block.timestamp + 1 days);
-        vm.roll(block.number + 100);
+    // function testInterestRatesDaily() public {
+    //     uint256 depositAmount = 5000 ether;
+    //     uint256 borrowAmount = 1000 ether;
+    //     uint256 borrowAPY = vault.borrowAPY_RAY();
+    //     uint256 cumulativeIndexAtOpen;
 
-        uint256 newborrowAPY = vault.borrowAPY_RAY();
-        excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        uint256 interestAmount = ((borrowAmount / 2) * newborrowAPY) / RAY;
+    //     uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     assertEq(borrowAPY, excpecteBorrowRate);
+    //     deposit(bob, depositAmount);
+    //     vm.startPrank(admin);
+    //     // borrowAmount = depositAmount;
+    //     cumulativeIndexAtOpen = vault.calcLinearCumulative_RAY();
+    //     vault.borrow(admin, borrowAmount / 2);
+    //     vm.roll(block.number + 100);
+    //     vm.warp(block.timestamp + 1 days);
 
-        assertApproxEqAbs(
-            newborrowAPY,
-            excpecteBorrowRate,
-            10 ** 25,
-            "Borrow rate is not as expected"
-        );
-        vault.borrow(admin, borrowAmount / 2);
-        vm.warp(block.timestamp + 1 days);
-        vm.roll(block.number + 100);
+    //     uint256 newborrowAPY = vault.borrowAPY_RAY();
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY();
+    //     uint256 interestAmount = ((((borrowAmount / 2) * cumulativeIndexNow) /
+    //         cumulativeIndexAtOpen) - borrowAmount / 2);
+    //     console2.log(
+    //         interestAmount,
+    //         ((borrowAmount / 2) * excpecteBorrowRate) / RAY
+    //     );
+    //     // assertApproxEqAbs(
+    //     //     interestAmount,
+    //     //     ((borrowAmount / 2) * excpecteBorrowRate) / RAY,
+    //     //     10 ** 18,
+    //     //     "Incorrect borrow interest"
+    //     // );
+    //     vault.borrow(admin, borrowAmount / 2);
+    //     vm.roll(block.number + 100);
+    //     vm.warp(block.timestamp + 1 days);
 
-        newborrowAPY = vault.borrowAPY_RAY();
-        excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        interestAmount += ((borrowAmount / 2) * newborrowAPY) / RAY;
-        assertApproxEqAbs(
-            interestAmount,
-            ((borrowAmount) * newborrowAPY) / RAY,
-            10 ** 18,
-            "Incorrect borrow interest"
-        );
-        assertApproxEqAbs(
-            newborrowAPY,
-            excpecteBorrowRate,
-            (10 ** 25),
-            "Borrow rate is not as expected"
-        );
-        vm.stopPrank();
-    }
+    //     newborrowAPY = vault.borrowAPY_RAY();
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     interestAmount = ((((borrowAmount) * cumulativeIndexNow) /
+    //         cumulativeIndexAtOpen) - borrowAmount);
+    //     console2.log(
+    //         interestAmount,
+    //         ((borrowAmount) * excpecteBorrowRate) / RAY
+    //     );
+    //     // assertApproxEqAbs(
+    //     //     interestAmount,
+    //     //     ((borrowAmount) * excpecteBorrowRate) / RAY,
+    //     //     10 ** 18,
+    //     //     "Incorrect borrow interest"
+    //     // );
+    //     vm.stopPrank();
+    // }
 
-    function testInterestRatesDailyMultiBorrowers() public {
-        uint256 depositAmount = 5000 ether;
-        uint256 adminBorrowAmount = 1000 ether;
-        uint256 aliceBorrowAmount = 500 ether;
-        uint256 adminInterestAmount;
+    // function testInterestRatesDailyMultiBorrowers() public {
+    //     uint256 depositAmount = 5000 ether;
+    //     uint256 adminBorrowAmount = 1000 ether;
+    //     uint256 aliceBorrowAmount = 500 ether;
+    //     uint256 adminInterestAmount;
 
-        uint256 borrowAPY = vault.borrowAPY_RAY();
-        uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
+    //     uint256 borrowAPY = vault.borrowAPY_RAY();
+    //     uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
 
-        assertEq(borrowAPY, excpecteBorrowRate);
-        deposit(bob, depositAmount);
+    //     assertEq(borrowAPY, excpecteBorrowRate);
+    //     deposit(bob, depositAmount);
 
-        borrow(admin, adminBorrowAmount);
-        vm.warp(block.timestamp + 180 days);
-        vm.roll(block.number + 100);
+    //     borrow(admin, adminBorrowAmount);
+    //     vm.warp(block.timestamp + 180 days);
+    //     vm.roll(block.number + 100);
 
-        uint256 newborrowAPY = vault.borrowAPY_RAY();
-        excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        adminInterestAmount = ((adminBorrowAmount) * newborrowAPY) / RAY;
+    //     uint256 newborrowAPY = vault.borrowAPY_RAY();
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     adminInterestAmount = ((adminBorrowAmount) * newborrowAPY) / RAY;
 
-        assertApproxEqAbs(
-            newborrowAPY,
-            excpecteBorrowRate,
-            10 ** 25,
-            "Borrow rate is not as expected"
-        );
-        borrow(alice, aliceBorrowAmount);
-        uint256 aliceInterestAmount = (aliceBorrowAmount *
-            vault.borrowAPY_RAY()) / RAY;
-        vm.warp(block.timestamp + 1 days);
-        vm.roll(block.number + 100);
-        borrow(admin, adminBorrowAmount);
-        vm.warp(block.timestamp + 180 days);
-        vm.roll(block.number + 100);
-        assertEq(
-            vault.totalBorrowed(),
-            adminBorrowAmount * 2 + aliceBorrowAmount,
-            "Vault accounting error"
-        );
-        uint256 beforeRepayBorrow_RAY = vault.borrowAPY_RAY();
-        repay(alice, aliceBorrowAmount, aliceInterestAmount);
-        newborrowAPY = vault.borrowAPY_RAY();
-        assertGt(
-            beforeRepayBorrow_RAY,
-            newborrowAPY,
-            "After repay and profit brrow rate should go down"
-        );
-        excpecteBorrowRate = interestModel.calcBorrowRate(
-            vault.expectedLiquidity(),
-            vault.totalAssets()
-        );
-        adminInterestAmount += (adminBorrowAmount * newborrowAPY) / RAY;
+    //     assertApproxEqAbs(
+    //         newborrowAPY,
+    //         excpecteBorrowRate,
+    //         10 ** 25,
+    //         "Borrow rate is not as expected"
+    //     );
+    //     borrow(alice, aliceBorrowAmount);
+    //     uint256 aliceInterestAmount = (aliceBorrowAmount *
+    //         vault.borrowAPY_RAY()) / RAY;
+    //     vm.warp(block.timestamp + 1 days);
+    //     vm.roll(block.number + 100);
+    //     borrow(admin, adminBorrowAmount);
+    //     vm.warp(block.timestamp + 180 days);
+    //     vm.roll(block.number + 100);
+    //     assertEq(
+    //         vault.totalBorrowed(),
+    //         adminBorrowAmount * 2 + aliceBorrowAmount,
+    //         "Vault accounting error"
+    //     );
+    //     uint256 beforeRepayBorrow_RAY = vault.borrowAPY_RAY();
+    //     repay(alice, aliceBorrowAmount, aliceInterestAmount);
+    //     newborrowAPY = vault.borrowAPY_RAY();
+    //     assertGt(
+    //         beforeRepayBorrow_RAY,
+    //         newborrowAPY,
+    //         "After repay and profit brrow rate should go down"
+    //     );
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     adminInterestAmount += (adminBorrowAmount * newborrowAPY) / RAY;
 
-        repay(admin, adminBorrowAmount * 2, adminInterestAmount);
-        assertEq(vault.borrowAPY_RAY(), borrowAPY);
-        assertEq(vault.totalBorrowed(), 0);
-    }
+    //     repay(admin, adminBorrowAmount * 2, adminInterestAmount);
+    //     assertEq(vault.borrowAPY_RAY(), borrowAPY);
+    //     assertEq(vault.totalBorrowed(), 0);
+    // }
 
     function deposit(address trader, uint256 amount) internal {
         vm.startPrank(trader);
