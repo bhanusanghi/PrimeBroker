@@ -590,20 +590,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
             vm.expectRevert(reason);
             contracts.marginManager.openPosition(marketKey, destinations, data);
         } else {
-            vm.expectEmit(
-                true,
-                true,
-                true,
-                true,
-                address(contracts.marginManager)
-            );
-            emit MarginTransferred(
-                marginAccount,
-                marketKey,
-                usdc,
-                marginX18,
-                marginX18Value
-            );
             if (margin > 0) {
                 prepareMarginTransfer(trader, marketKey, uint256(marginX18));
                 data[0] = abi.encodeWithSignature(
@@ -615,6 +601,20 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     "deposit(address,uint256)",
                     usdc,
                     margin
+                );
+                vm.expectEmit(
+                    true,
+                    true,
+                    true,
+                    true,
+                    address(contracts.marginManager)
+                );
+                emit MarginTransferred(
+                    marginAccount,
+                    marketKey,
+                    usdc,
+                    marginX18,
+                    marginX18Value
                 );
                 contracts.marginManager.openPosition(
                     marketKey,
@@ -636,6 +636,20 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     "withdraw(address,uint256)",
                     usdc,
                     margin.abs()
+                );
+                vm.expectEmit(
+                    true,
+                    true,
+                    true,
+                    true,
+                    address(contracts.marginManager)
+                );
+                emit MarginTransferred(
+                    marginAccount,
+                    marketKey,
+                    usdc,
+                    marginX18,
+                    marginX18Value
                 );
                 contracts.marginManager.updatePosition(
                     marketKey,

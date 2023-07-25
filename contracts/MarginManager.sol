@@ -125,6 +125,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
+        require(amount != 0, "Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
     }
 
@@ -146,7 +147,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable,, ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");
@@ -179,7 +180,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
-        (bool isLiquidatable,,  ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");

@@ -19,7 +19,7 @@ contract GetRemainingBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         invalidMarginAccount
     {
-        uint256 limit = contracts.riskManager.getMaxBorrowLimit(david);
+        uint256 limit = contracts.riskManager.getRemainingBorrowLimit(david);
         assertEq(limit, 0);
     }
 
@@ -28,7 +28,7 @@ contract GetRemainingBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         validMarginAccount
         zeroCollateral
     {
-        uint256 bLimit = contracts.riskManager.getMaxBorrowLimit(
+        uint256 bLimit = contracts.riskManager.getRemainingBorrowLimit(
             bobMarginAccount
         );
         assertEq(bLimit, 0);
@@ -43,7 +43,7 @@ contract GetRemainingBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         uint256 margin = 1000 * ONE_USDC;
         uint256 marginX18 = 1000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
-        uint256 bLimit = contracts.riskManager.getMaxBorrowLimit(
+        uint256 bLimit = contracts.riskManager.getRemainingBorrowLimit(
             bobMarginAccount
         );
         assertEq(bLimit, marginX18 * maxBorrowMultiplier);
@@ -60,18 +60,24 @@ contract GetRemainingBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         uint256 maxBLimit = marginX18 * maxBorrowMultiplier;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
         vm.startPrank(bob);
-        uint256 bLimit = contracts.riskManager.getMaxBorrowLimit(
+        uint256 bLimit = contracts.riskManager.getRemainingBorrowLimit(
             bobMarginAccount
         );
         assertEq(bLimit, maxBLimit);
         contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
-        bLimit = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
+        bLimit = contracts.riskManager.getRemainingBorrowLimit(
+            bobMarginAccount
+        );
         assertEq(bLimit, maxBLimit - 1000 ether);
         contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
-        bLimit = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
+        bLimit = contracts.riskManager.getRemainingBorrowLimit(
+            bobMarginAccount
+        );
         assertEq(bLimit, maxBLimit - 2000 ether);
         contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
-        bLimit = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
+        bLimit = contracts.riskManager.getRemainingBorrowLimit(
+            bobMarginAccount
+        );
         assertEq(bLimit, 0);
         vm.stopPrank();
     }

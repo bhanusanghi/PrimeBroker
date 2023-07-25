@@ -10,11 +10,6 @@ verifyTrade_RiskManager_UnitTest.t.sol
 
 
 
-verifyClosePosition_RiskManager_UnitTest.t.sol
-├── When invalid marketKey
-│   └── It should revert
-
-
 getTotalBuyingPower_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should return 0
@@ -68,36 +63,6 @@ getMaxBorrowLimit_RiskManager_UnitTest.t.sol
         │   └── It should return maxBorrowLimit = tcv * maxBorrowLimitPercent 
         ├── when borrowing fresh
         │   └── It should return maxBorrowLimit = tcv * maxBorrowLimitPercent
-
-// pnl and all should already be covered in absCollateralValue tests
-
-
-verifyBorrowLimit_RiskManager_UnitTest.t.sol
-├── When invalid marginAccount
-│   └── It should revert
-├── When valid marginAccount
-    ├── When new borrowAmountX18 is 0
-    │    └── It should return 0
-    ├── When new borrowAmountX18 is not 0
-        ├── When max limit is crossed
-        │   └── It should revert
-        ├── When max limit is not crossed
-        │   └── It should not revert
-
-
-getMarketPosition_RiskManager_UnitTest.t.sol
-├── When invalid marginAccount
-│   └── It should revert
-├── When valid marginAccount
-    ├── When invalid marketKey
-    │   └── It should revert
-    ├── When valid marketKey
-        ├── When user has a valid position
-        │   └── It should return the position
-        ├── When user had no valid position
-        │   └── It should return position
-        ├── When position is liquidated on TPP
-
 
 isAccountLiquidatable_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
@@ -174,23 +139,20 @@ getMaintenanceMarginRequirement_RiskManager_UnitTest.t.sol
         ├── When open notional > 0
         │   └── It should return open notional
 
-getTotalAbsOpenNotionalFromMarkets_RiskManager_UnitTest.t.sol
-├── When invalid marginAccount
-│   └── It should return 0
-├── When valid marginAccount
-    ├── no protocol risk managers
-    ├── protocol risk managers exist
-        ├── When no markets exist
-        ├── When multiple markets exist
-            ├── user has no open positions
-            ├── user has open positions
-                ├── user has open positions in multiple markets
-                ├── user has open positions in single market
 
-decodeAndVerifyLiquidationCalldata_RiskManager_UnitTest.t.sol
+
+verifyBorrowLimit_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should revert
 ├── When valid marginAccount
+    ├── When new borrowAmountX18 is 0
+    │    └── IIt should not revert
+    ├── When new borrowAmountX18 is not 0
+        ├── When max limit is crossed
+        │   └── It should revert
+        ├── When max limit is not crossed
+            └── It should not revert
+// ------------ Remaining tests -------------
 
 isTraderBankrupt_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
