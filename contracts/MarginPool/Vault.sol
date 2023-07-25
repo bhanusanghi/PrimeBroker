@@ -74,10 +74,10 @@ contract Vault is IVault, ERC4626 {
     // used to calculate next timestamp values quickly
     uint256 expectedLiquidityLastUpdated;
     uint256 timestampLastUpdated;
-    address owner;
+    address contractOwner;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Vault: Only Owner");
+        require(msg.sender == contractOwner, "Vault: Only Owner");
         _;
     }
 
@@ -98,12 +98,12 @@ contract Vault is IVault, ERC4626 {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
-        owner = msg.sender;
+        contractOwner = msg.sender;
         // maxExpectedLiquidity = _maxExpectedLiquidity;
     }
 
     function updateOwner(address _owner) external onlyOwner {
-        owner = _owner;
+        contractOwner = _owner;
     }
 
     // function asset() public view override(ERC4626) returns (address) {

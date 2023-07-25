@@ -180,23 +180,29 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // restrict to only marginManager.
         (
             bool isAccountLiquidatable,
-            bool isFullyLiquidatable
+            bool isFullyLiquidatable,
+            uint256 penalty
         ) = _isAccountLiquidatable(address(marginAccount));
         require(isAccountLiquidatable, "PRM: Account not liquidatable");
-        result.liquidator = msg.sender;
         // TODO - add this result.liquidationPenalty =
-        result = decodeAndVerifyLiquidationCalldata( // decode and verify data
+        decodeAndVerifyLiquidationCalldata( // decode and verify data
             marginAccount,
             isFullyLiquidatable,
             marketKeys,
             destinations,
             data
         );
+        result.isFullyLiquidatable = isFullyLiquidatable;
+        result.liquidationPenalty = penalty;
     }
 
     function isAccountLiquidatable(
         address marginAccount
-    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable) {
+    )
+        external
+        view
+        returns (bool isLiquidatable, bool isFullyLiquidatable, uint256 penalty)
+    {
         // check if account is liquidatable
         return _isAccountLiquidatable(marginAccount);
         // return _isAccountLiquidatable(marginAccount);
@@ -213,18 +219,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function getMaintenanceMarginRequirement(
         address marginAccount
     ) public view returns (uint256) {
-        IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
-        );
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketKeys();
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
-        uint256 minimumMarginRequirement = totalOpenNotional
-            .mul(maintanaceMarginFactor)
-            .div(100);
-        return minimumMarginRequirement;
+        return totalOpenNotional.mul(maintanaceMarginFactor).div(100);
     }
 
     function getAccountValue(
@@ -240,13 +238,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // check if account is liquidatable
         (
             bool isAccountLiquidatable,
-            bool isFullyLiquidatable
+            bool isFullyLiquidatable,
+            uint256 penalty
         ) = _isAccountLiquidatable(marginAccount);
         if (!isAccountLiquidatable) return false;
-        uint256 penalty = _getLiquidationPenalty(
-            address(marginAccount),
-            isFullyLiquidatable
-        );
         return _isTraderBankrupt(marginAccount, vaultLiability, penalty);
     }
 
@@ -281,15 +276,13 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             "PRM: Destinations and data length mismatch"
         );
         for (uint256 i = 0; i < destinations.length; i++) {
-            VerifyLiquidationResult
-                memory _result = _decodeAndVerifyLiquidationCalldata(
-                    marginAcc,
-                    isFullyLiquidatable,
-                    marketKeys[i],
-                    destinations[i],
-                    data[i]
-                );
-            result.marginDelta += _result.marginDelta;
+            _decodeAndVerifyLiquidationCalldata(
+                marginAcc,
+                isFullyLiquidatable,
+                marketKeys[i],
+                destinations[i],
+                data[i]
+            );
         }
         // Add stuff for full liquidation
 
@@ -348,37 +341,20 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
     }
 
-    function _getLiquidationPenalty(
-        address marginAccount,
-        bool isFullyLiquidatable
-    ) internal view returns (uint256 penalty) {
-        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
-            marginAccount
-        );
-        uint256 penalty;
-        if (isFullyLiquidatable) {
-            penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
-        } else {
-            // TODO - Add partial liquidation penalty logic here.
-            penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
-        }
-    }
-
     function _decodeAndVerifyLiquidationCalldata(
         IMarginAccount marginAcc,
         bool isFullyLiquidatable,
         bytes32 marketKey,
         address destination,
         bytes calldata data
-    ) internal returns (VerifyLiquidationResult memory result) {
+    ) internal {
         IMarketManager marketManager = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
         );
-
-        result = protocolRiskManager.decodeAndVerifyLiquidationCalldata(
+        protocolRiskManager.decodeAndVerifyLiquidationCalldata(
             isFullyLiquidatable,
             marketKey,
             destination,
@@ -388,22 +364,20 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     function _isAccountLiquidatable(
         address marginAccount
-    ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
+    )
+        internal
+        view
+        returns (bool isLiquidatable, bool isFullyLiquidatable, uint256 penalty)
+    {
         // Add conditions for partial liquidation.
-        IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
-        );
         uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketKeys();
-        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+        uint256 minimumMarginRequirement = getMaintenanceMarginRequirement(
             marginAccount
         );
-        uint256 minimumMarginRequirement = totalOpenNotional
-            .mul(maintanaceMarginFactor)
-            .div(100);
         if (accountValue < minimumMarginRequirement) {
             isLiquidatable = true;
+            penalty = accountValue.mul(liquidationPenalty).div(100);
+            // add partial liquidation part here.
         } else {
             isLiquidatable = false;
         }

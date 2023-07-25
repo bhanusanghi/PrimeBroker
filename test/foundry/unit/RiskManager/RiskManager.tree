@@ -49,17 +49,12 @@ getUnrealisedPnL_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should return 0
 ├── When trader has 0 pnl on TPPs
+│   └── It should return 0
 ├── When trader has pnl on TPPs
     ├── pnl is in opposite direction from multiple TPPs
+│       └── It should return the sum
     ├── pnl is in same direction from multiple TPPs
-
-
-getCollateralInMarkets_RiskManager_UnitTest.t.sol
-├── When invalid marginAccount
-│   └── It should return 0
-├── When valid marginAccount
-    ├── When no markets exist
-    ├── When multiple markets exist
+│       └── It should return the sum
 
 
 getMaxBorrowLimit_RiskManager_UnitTest.t.sol
@@ -103,15 +98,7 @@ getMarketPosition_RiskManager_UnitTest.t.sol
         │   └── It should return position
         ├── When position is liquidated on TPP
 
-verifyLiquidation_RiskManager_UnitTest.t.sol
-├── When invalid marginAccount
-│   └── It should revert
-├── When valid marginAccount
-    ├── When invalid liqudiation
-    │   └── It should revert
-    ├── When valid liquidation
-        └── It should revert
-    
+
 isAccountLiquidatable_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should revert
@@ -122,5 +109,53 @@ isAccountLiquidatable_RiskManager_UnitTest.t.sol
         ├── When trader has openPositions
             ├── When trader has enough account value
             ├── When trader does not have enough account value
-            
 
+
+verifyLiquidation_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── zero open positions
+    │   └── It should revert
+    ├── Has open positions
+        ├── When account has enough maintainence margin
+        │   └── It should revert
+        ├── When account does not enough maintainence margin
+            └── It should set correct penalty and return true
+    
+// We need trees for all the functions mentioned below
+
+getTotalAbsOpenNotionalFromMarkets_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0
+├── When valid marginAccount
+    ├── no protocol risk managers
+    ├── protocol risk managers exist
+        ├── When no markets exist
+        ├── When multiple markets exist
+            ├── user has no open positions
+            ├── user has open positions
+                ├── user has open positions in multiple markets
+                ├── user has open positions in single market
+
+
+decodeAndVerifyLiquidationCalldata_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+isTraderBankrupt_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+getAccountValue_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+getMaintenanceMarginRequirement_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+isAccountHealthy_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount

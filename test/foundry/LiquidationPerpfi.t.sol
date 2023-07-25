@@ -77,7 +77,7 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -1000 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 
@@ -126,7 +126,7 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -100 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
         assertEq(
@@ -174,7 +174,7 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -1000 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 
@@ -245,7 +245,7 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -450 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 

@@ -18,10 +18,9 @@ struct VerifyCloseResult {
     // int256 positionNotional;
 }
 struct VerifyLiquidationResult {
-    int256 marginDelta;
-    bool isFullLiquidation;
+    bool isFullyLiquidatable;
     address liquidator;
-    address liquidationPenalty;
+    uint256 liquidationPenalty;
 }
 
 interface IRiskManager {
@@ -91,7 +90,14 @@ interface IRiskManager {
 
     function isAccountLiquidatable(
         address marginAccount
-    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
+    )
+        external
+        view
+        returns (
+            bool isLiquidatable,
+            bool isFullyLiquidatable,
+            uint256 penalty
+        );
 
     function isAccountHealthy(
         address marginAccount

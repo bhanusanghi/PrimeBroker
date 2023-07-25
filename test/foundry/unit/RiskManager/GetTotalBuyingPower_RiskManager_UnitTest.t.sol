@@ -7,7 +7,7 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {SettlementTokenMath} from "../../../../contracts/Libraries/SettlementTokenMath.sol";
 import {BaseSetup} from "../../BaseSetup.sol";
-import {RiskManager_UnitTest} from "./RiskManager_UnitTest.sol";
+import {RiskManager_UnitTest} from "./RiskManager_UnitTest.t.sol";
 import {IMarginAccount, Position} from "../../../../contracts/Interfaces/IMarginAccount.sol";
 import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRiskManager.sol";
 

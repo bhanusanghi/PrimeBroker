@@ -71,7 +71,7 @@ contract LiquidationSnx is BaseSetup {
             -1000 ether
         );
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 
@@ -103,7 +103,7 @@ contract LiquidationSnx is BaseSetup {
             .getPosition(snxUniKey);
 
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 
@@ -131,7 +131,7 @@ contract LiquidationSnx is BaseSetup {
             .getPosition(snxUniKey);
 
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
         utils.simulateUnrealisedPnLSnx(

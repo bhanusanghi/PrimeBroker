@@ -36,7 +36,7 @@ contract ClosePositionSnx is BaseSetup {
         snxUtils = new SnxUtils(contracts);
     }
 
-    function testClosingSNXPosition(int256 positionSize) public {
+    function testClosingSNXPosition() public {
         uint256 chronuxMargin = 5000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         int256 snxMargin = int256(1000 ether);

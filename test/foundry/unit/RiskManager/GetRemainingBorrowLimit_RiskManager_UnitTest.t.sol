@@ -7,15 +7,15 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {SettlementTokenMath} from "../../../../contracts/Libraries/SettlementTokenMath.sol";
 import {BaseSetup} from "../../BaseSetup.sol";
-import {RiskManager_UnitTest} from "./RiskManager_UnitTest.sol";
+import {RiskManager_UnitTest} from "./RiskManager_UnitTest.t.sol";
 import {IMarginAccount, Position} from "../../../../contracts/Interfaces/IMarginAccount.sol";
 import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRiskManager.sol";
 
-contract GetMaxBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
+contract GetRemainingBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
     uint256 maxLeverageMultiplier = 4;
     uint256 maxBorrowMultiplier = 3;
 
-    function test_Zero_BorrowLimit_When_InvalidMarginAccount()
+    function test_Zero_RemainingBorrowLimit_When_InvalidMarginAccount()
         public
         invalidMarginAccount
     {
@@ -23,7 +23,7 @@ contract GetMaxBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         assertEq(limit, 0);
     }
 
-    function test_zero_borrow_limit_when_zero_collateral()
+    function test_zero_remainingBorrowLimit_when_zero_collateral()
         public
         validMarginAccount
         zeroCollateral
@@ -66,13 +66,13 @@ contract GetMaxBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         assertEq(bLimit, maxBLimit);
         contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
         bLimit = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
-        assertEq(bLimit, maxBLimit);
+        assertEq(bLimit, maxBLimit - 1000 ether);
         contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
         bLimit = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
-        assertEq(bLimit, maxBLimit);
+        assertEq(bLimit, maxBLimit - 2000 ether);
         contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
         bLimit = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
-        assertEq(bLimit, maxBLimit);
+        assertEq(bLimit, 0);
         vm.stopPrank();
     }
 }

@@ -8,7 +8,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {SettlementTokenMath} from "../../../../contracts/Libraries/SettlementTokenMath.sol";
 import {BaseSetup} from "../../BaseSetup.sol";
 
-import {RiskManager_UnitTest} from "./RiskManager_UnitTest.sol";
+import {RiskManager_UnitTest} from "./RiskManager_UnitTest.t.sol";
 
 contract VerifyTrade_RiskManager_UnitTest is RiskManager_UnitTest {
     function testVerifyTrade() public invalidMarketKey {

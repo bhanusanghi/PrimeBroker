@@ -1,7 +1,0 @@
-getUnrealisedPnL_SnxRiskManager_UnitTest.t.sol
-├── When invalid marginAccount
-│   └── It should return 0
-├── When trader has no positions
-├── When trader has multiple positions
-├── When trader has pnl on TPPs
-    ├── pnl is in opposite direction from multiple TPPs
