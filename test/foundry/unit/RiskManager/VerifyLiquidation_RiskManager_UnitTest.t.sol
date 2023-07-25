@@ -13,25 +13,45 @@ import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRi
 import {IRiskManager, VerifyLiquidationResult} from "../../../../contracts/Interfaces/IRiskManager.sol";
 
 contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
-
-    bytes32[] memory activeMarkets = new bytes32[](resultLength);
-        params.destinations = new address[](resultLength);
-        params.data = new bytes[](resultLength);
     function test_reverts_when_invalid_caller() public invalidMarginAccount {
+        bytes32[] memory activeMarkets = new bytes32[](1);
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
         vm.expectRevert("RiskManager: Only margin manager");
-        contracts.riskManager.verifyLiquidation(david);
+        contracts.riskManager.verifyLiquidation(
+            IMarginAccount(bobMarginAccount),
+            activeMarkets,
+            destinations,
+            data
+        );
     }
 
     function test_reverts_when_invalid_account() public invalidMarginAccount {
+        bytes32[] memory activeMarkets = new bytes32[](1);
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
         vm.prank(address(contracts.marginManager));
         vm.expectRevert();
-        contracts.riskManager.verifyLiquidation(david);
+        contracts.riskManager.verifyLiquidation(
+            IMarginAccount(david),
+            activeMarkets,
+            destinations,
+            data
+        );
     }
 
     function test_reverts_when_no_open_positions() public validMarginAccount {
+        bytes32[] memory activeMarkets = new bytes32[](1);
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
         vm.prank(address(contracts.marginManager));
         vm.expectRevert("PRM: Account not liquidatable");
-        contracts.riskManager.verifyLiquidation(bobMarginAccount);
+        contracts.riskManager.verifyLiquidation(
+            IMarginAccount(bobMarginAccount),
+            activeMarkets,
+            destinations,
+            data
+        );
     }
 
     function test_revert_when_enough_margin()
@@ -39,6 +59,9 @@ contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
         validMarginAccount
         negativePnL
     {
+        bytes32[] memory activeMarkets = new bytes32[](1);
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
         perpfiUtils.updateAndVerifyMargin(
             bob,
@@ -57,7 +80,12 @@ contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
         );
         vm.prank(address(contracts.marginManager));
         vm.expectRevert("PRM: Account not liquidatable");
-        contracts.riskManager.verifyLiquidation(bobMarginAccount);
+        contracts.riskManager.verifyLiquidation(
+            IMarginAccount(bobMarginAccount),
+            activeMarkets,
+            destinations,
+            data
+        );
     }
 
     function test_result_when_low_margin()
@@ -65,11 +93,22 @@ contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
         validMarginAccount
         negativePnL
     {
+        bytes32[] memory activeMarkets = new bytes32[](1);
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        activeMarkets[0] = perpAaveKey;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
             1000 * 1e6,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            3900 ether,
             false,
             ""
         );
@@ -81,12 +120,27 @@ contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
             ),
             abi.encode(pnl)
         );
+        vm.mockCall(
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.decodeAndVerifyLiquidationCalldata.selector
+            ),
+            abi.encode("")
+        );
         vm.prank(address(contracts.marginManager));
-        vm.expectRevert("PRM: Account not liquidatable");
         VerifyLiquidationResult memory result = contracts
             .riskManager
-            .verifyLiquidation(bobMarginAccount);
-        assertEq(result.liquidationPenalty, 20 ether);
+            .verifyLiquidation(
+                IMarginAccount(bobMarginAccount),
+                activeMarkets,
+                destinations,
+                data
+            );
+        assertEq(
+            result.liquidationPenalty,
+            8 ether,
+            "invalid liquidation penalty"
+        );
         assertEq(result.isFullyLiquidatable, true);
     }
 }

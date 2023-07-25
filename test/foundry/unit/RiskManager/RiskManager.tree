@@ -104,12 +104,15 @@ isAccountLiquidatable_RiskManager_UnitTest.t.sol
 │   └── It should revert
 ├── When valid marginAccount
     ├── When no collateral
+    │   └── It should return false
     ├── When collateral
         ├── When no openNotional
+        │   └── It should return false
         ├── When trader has openPositions
             ├── When trader has enough account value
+            │   └── It should return false
             ├── When trader does not have enough account value
-
+            │   └── It should return true and correct penalty
 
 verifyLiquidation_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount

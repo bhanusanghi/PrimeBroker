@@ -351,7 +351,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         bytes32 marketKey,
         address destination,
         bytes calldata data
-    ) external returns (VerifyLiquidationResult memory result) {
+    ) external {
         // Needs to verify stuff for full vs partial liquidation
         require(
             whitelistedAddresses[destination] == true,

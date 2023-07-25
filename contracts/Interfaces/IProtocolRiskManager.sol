@@ -27,7 +27,7 @@ interface IProtocolRiskManager {
         bytes32 marketKey,
         address destination,
         bytes calldata data
-    ) external returns (VerifyLiquidationResult memory result);
+    ) external;
 
     function toggleAddressWhitelisting(
         address contractAddress,

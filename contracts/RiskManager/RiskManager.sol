@@ -378,10 +378,10 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             isLiquidatable = true;
             penalty = accountValue.mul(liquidationPenalty).div(100);
             // add partial liquidation part here.
+            isFullyLiquidatable = true;
         } else {
             isLiquidatable = false;
         }
-        isFullyLiquidatable = true;
     }
 
     function _getAbsTotalCollateralValue(

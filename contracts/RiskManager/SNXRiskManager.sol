@@ -62,7 +62,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     function toggleAddressWhitelisting(
         address contractAddress,
         bool isAllowed
-    ) external {
+    ) external override {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
     }
@@ -165,7 +165,7 @@ contract SNXRiskManager is IProtocolRiskManager {
 
     function getDollarMarginInMarkets(
         address marginAccount
-    ) external view returns (int256 dollarMarginX18) {
+    ) external view override returns (int256 dollarMarginX18) {
         dollarMarginX18 = IPriceOracle(
             contractRegistry.getContractByName(keccak256("PriceOracle"))
         ).convertToUSD(_getMarginAcrossMarkets(marginAccount), marginToken);
@@ -220,7 +220,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     function getMarketPosition(
         address marginAccount,
         bytes32 marketKey
-    ) external view returns (Position memory position) {
+    ) external view override returns (Position memory position) {
         // TODO - need to fetch futures market address from market config.
         address market = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
@@ -238,7 +238,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
-    ) external view returns (VerifyCloseResult memory result) {
+    ) external view override returns (VerifyCloseResult memory result) {
         require(
             destinations.length == 1 && data.length == 1,
             "PRM: Only single destination and data allowed"
@@ -261,7 +261,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         bytes32 marketKey,
         address destination,
         bytes calldata data
-    ) external returns (VerifyLiquidationResult memory result) {
+    ) external override {
         // Needs to verify stuff for full vs partial liquidation
         require(
             whitelistedAddresses[destination] == true,
