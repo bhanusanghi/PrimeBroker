@@ -153,6 +153,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         ICollateralManager collateralManager = ICollateralManager(
             contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
+        require( // required so that approve cannot be called on random malicious erc20s
+            collateralManager.isAllowedCollateral(tokenIn),
+            "MM: Invalid tokenIn"
+        );
         require(
             collateralManager.isAllowedCollateral(tokenOut),
             "MM: Invalid tokenOut"
@@ -389,10 +393,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 amountIn,
         uint256 minAmountOut
     ) private returns (uint256 amountOut) {
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
         amountOut = marginAccount.swapTokens(
             tokenIn,
             tokenOut,
