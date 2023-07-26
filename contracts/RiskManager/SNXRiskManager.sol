@@ -273,7 +273,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address configuredBaseToken = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketBaseToken(marketKey);
-        if (funSig != CLOSE_POSITION || funSig != WITHDRAW_ALL_MARGIN) {
+        if (funSig != CLOSE_POSITION && funSig != WITHDRAW_ALL_MARGIN) {
             revert("PRM: Invalid Tx Data in liquidate call");
         }
     }

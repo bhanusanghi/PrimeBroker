@@ -243,10 +243,10 @@ contract SnxUtils is Test, IEvents {
             uint256 borrowNeedX18 = susdDiffX18 -
                 tokenBalanceUsdcX18 +
                 100 ether;
-            contracts.marginManager.borrowAssets(
+            contracts.marginManager.borrowFromVault(
                 borrowNeedX18.convertTokenDecimals(18, 6)
             );
-            uint256 tokenOut = contracts.marginManager.swapAssets(
+            uint256 tokenOut = contracts.marginManager.swapAsset(
                 usdc,
                 susd,
                 (susdDiffX18 + 100 ether).convertTokenDecimals(18, 6),
