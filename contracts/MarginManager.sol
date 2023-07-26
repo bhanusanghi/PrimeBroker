@@ -94,7 +94,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         address[] calldata destinations,
         bytes[] calldata data
     ) external {
-        // TODO - Use Interface rather than class.
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
