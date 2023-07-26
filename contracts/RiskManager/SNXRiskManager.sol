@@ -266,24 +266,14 @@ contract SNXRiskManager is IProtocolRiskManager {
     ) external returns (VerifyLiquidationResult memory result) {
         // Needs to verify stuff for full vs partial liquidation
         require(
-            whitelistedAddresses[destination] == true,
+            whitelistedAddresses[destination],
             "PRM: Calling non whitelisted contract"
         );
         bytes4 funSig = bytes4(data);
         address configuredBaseToken = IMarketManager(
             contractRegistry.getContractByName(keccak256("MarketManager"))
         ).getMarketBaseToken(marketKey);
-
-        if (funSig == CLOSE_POSITION) {
-            // do nothing
-        } else if (funSig == WITHDRAW_ALL_MARGIN) {
-            // result.marginDelta = abi.decode(data[36:], (int256));
-            // if (result.marginDelta > 0) {
-            //     revert(
-            //         "PRM: Invalid Tx Data in liquidate call, cannot add margin to Protocol"
-            //     );
-            // }
-        } else {
+        if (funSig != CLOSE_POSITION || funSig != WITHDRAW_ALL_MARGIN) {
             revert("PRM: Invalid Tx Data in liquidate call");
         }
     }

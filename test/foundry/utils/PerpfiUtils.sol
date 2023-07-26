@@ -495,14 +495,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
         vm.stopPrank();
     }
 
-    function borrowAssets(uint256 amount) public {
-        contracts.marginManager.borrowFromVault(amount);
-    }
-
-    function repayAssets(uint256 amount) public {
-        contracts.marginManager.repayVault(amount);
-    }
-
     function prepareMarginTransfer(
         address trader,
         bytes32 marketKey,
@@ -517,7 +509,9 @@ contract PerpfiUtils is Test, Constants, IEvents {
         //TODO- Will work till susd == usdc == 1 use exchange quote price later.
         if (deltaMarginX18 > tokenBalanceUsdcX18) {
             uint256 borrowNeedX18 = deltaMarginX18 - tokenBalanceUsdcX18;
-            borrowAssets(borrowNeedX18.convertTokenDecimals(18, 6));
+            contracts.marginManager.borrowAssets(
+                borrowNeedX18.convertTokenDecimals(18, 6)
+            );
         }
     }
 

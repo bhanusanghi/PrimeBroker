@@ -62,9 +62,7 @@ contract SnxUtils is Test, IEvents {
         assertEq(positionChronux.size, snxPositionSize);
     }
 
-    function borrowAssets(uint256 amount) public {
-        contracts.marginManager.borrowFromVault(amount);
-    }
+    function borrowAssets(uint256 amount) public {}
 
     function repayAssets(uint256 amount) public {
         contracts.marginManager.repayVault(amount);
@@ -245,8 +243,10 @@ contract SnxUtils is Test, IEvents {
             uint256 borrowNeedX18 = susdDiffX18 -
                 tokenBalanceUsdcX18 +
                 100 ether;
-            borrowAssets(borrowNeedX18.convertTokenDecimals(18, 6));
-            uint256 tokenOut = swapAssets(
+            contracts.marginManager.borrowAssets(
+                borrowNeedX18.convertTokenDecimals(18, 6)
+            );
+            uint256 tokenOut = contracts.marginManager.swapAssets(
                 usdc,
                 susd,
                 (susdDiffX18 + 100 ether).convertTokenDecimals(18, 6),
