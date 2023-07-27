@@ -326,7 +326,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             "PRM: Only single destination and data allowed"
         );
         require(
-            whitelistedAddresses[destinations[0]] == true,
+            whitelistedAddresses[destinations[0]],
             "PRM: Calling non whitelisted contract"
         );
         bytes4 funSig = bytes4(data[0]);
@@ -370,10 +370,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             if (baseToken != configuredBaseToken) {
                 revert("PRM: Invalid base token in close call");
             }
-        } else if (funSig == WITHDRAW_ALL_MARGIN) {
+        } else if (funSig != WITHDRAW_ALL_MARGIN) {
+            revert("PRM: Invalid Tx Data in liquidate call");
             // result.marginDelta = -abi.decode(data[36:], (int256));
-        } else {
-            revert("PRM: Unsupported Function call");
         }
     }
 }

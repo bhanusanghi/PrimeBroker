@@ -19,8 +19,8 @@ contract GetRemainingBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         invalidMarginAccount
     {
+        vm.expectRevert();
         uint256 limit = contracts.riskManager.getRemainingBorrowLimit(david);
-        assertEq(limit, 0);
     }
 
     function test_zero_remainingBorrowLimit_when_zero_collateral()

@@ -244,48 +244,6 @@ contract Utils is Test, IEvents {
             .getTotalPositionValue(trader, baseToken);
     }
 
-    // function simulateUnrealisedPnLPerpfi(
-    //     address accountBalance,
-    //     address trader,
-    //     address baseToken,
-    //     int256 openNotional,
-    //     int256 positionSize,
-    //     int256 pnl
-    // ) public {
-    //     uint256 interval = IClearingHouseConfig(
-    //         0xA4c817a425D3443BAf610CA614c8B11688a288Fb
-    //     ).getTwapInterval();
-    //     address perpMarketRegistry = 0xd5820eE0F55205f6cdE8BB0647072143b3060067;
-    //     (, int256 initialPnL, ) = IAccountBalance(accountBalance)
-    //         .getPnlAndPendingFee(trader);
-    //     uint256 currentPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
-    //     // uint256 iMarkPrice = getMarkPricePerp(perpMarketRegistry, baseToken);
-    //     int256 newPrice = 55 * 10 ** 8;
-    //     // (openNotional + pnl) / positionSize;
-    //     int256 initialPosValue = IAccountBalance(accountBalance)
-    //         .getTotalPositionValue(trader, baseToken);
-    //     // setMarkPrice(baseToken, newPrice.abs());
-    //     // setAavePrice(newPrice.abs() * 1e8);
-    //     setAssetPricePerpfi(baseToken, newPrice.abs());
-    //     uint256 updatedPrice = IBaseToken(baseToken).getIndexPrice(interval); // before simulating need to call setAssetPricePerpfi
-    //     console2.log("isBaseTokenClosed", IBaseToken(baseToken).isClosed());
-    //     console2.log("currentPrice", currentPrice);
-    //     console2.log("updatedPrice", updatedPrice);
-    //     // console2.log("iMarkPrice", iMarkPrice);
-    //     console2.log(
-    //         "updatedtMarkPrice",
-    //         getMarkPricePerp(perpMarketRegistry, baseToken)
-    //     );
-    //     (, int256 finalPnL, ) = IAccountBalance(accountBalance)
-    //         .getPnlAndPendingFee(trader);
-    //     int256 finalPosValue = IAccountBalance(accountBalance)
-    //         .getTotalPositionValue(trader, baseToken);
-    //     console2.log("iPosValue", initialPosValue);
-
-    //     // getPrice
-    //     console2.log("openNotional", openNotional);
-    // }
-
     function simulateUnrealisedPnLSnx(
         address circuitBreaker,
         address trader,
@@ -310,17 +268,6 @@ contract Utils is Test, IEvents {
         );
     }
 
-    // 1 ether -> 1500
-    // size - 1 ether , on 1500
-
-    // pnl = +1500
-    // 1500 + 1500 / 1
-    // ether 3000
-
-    // pnl = +4500
-    // 1500 + 4500 / 1
-    // ether 6000
-
     // @notice Returns the price of th UniV3Pool.
     function getMarkPricePerp(
         address perpMarketRegistry,
@@ -332,7 +279,3 @@ contract Utils is Test, IEvents {
         token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 }
-
-//  pnl = currentOpenNotional + (size * newPrice)
-
-//  newPrice = (pnl + currentOpenNotional) / size

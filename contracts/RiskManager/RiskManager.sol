@@ -231,6 +231,12 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return _getAbsTotalCollateralValue(marginAccount);
     }
 
+    // This function gets the total account value.
+    // And compares it with all of trader's liabilities.
+    // If the account value is less than the liabilities, then the trader is bankrupt.
+    // Liabilities include -> (borrowed+interest) + liquidationPenalty.
+    // liquidationPenalty is totalNotional * liquidationPenaltyFactor
+    // vaultLiability = borrowed + interest
     function isTraderBankrupt(
         address marginAccount,
         uint256 vaultLiability
@@ -242,7 +248,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             uint256 penalty
         ) = _isAccountLiquidatable(marginAccount);
         if (!isAccountLiquidatable) return false;
-        return _isTraderBankrupt(marginAccount, vaultLiability, penalty);
+        return
+            _getAbsTotalCollateralValue(marginAccount) <
+            vaultLiability + penalty;
     }
 
     function getTotalAbsOpenNotionalFromMarkets(
