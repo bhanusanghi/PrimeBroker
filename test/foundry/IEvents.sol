@@ -149,4 +149,8 @@ interface IEvents {
         address indexed trader,
         uint256 amount
     );
+    event MarginAccountOpened(
+        address indexed trader,
+        address indexed marginAccount
+    );
 }

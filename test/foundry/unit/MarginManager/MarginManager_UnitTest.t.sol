@@ -10,7 +10,7 @@ import {PerpfiUtils} from "../../utils/PerpfiUtils.sol";
 import {ChronuxUtils} from "../../utils/ChronuxUtils.sol";
 import {SnxUtils} from "../../utils/SnxUtils.sol";
 
-contract RiskManager_UnitTest is BaseSetup {
+contract MarginManager_UnitTest is BaseSetup {
     ChronuxUtils chronuxUtils;
     SnxUtils snxUtils;
     PerpfiUtils perpfiUtils;
@@ -37,40 +37,22 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier validMarginAccount() {
         _;
     }
+    modifier invalidMarginAccountFactory() {
+        _;
+    }
     modifier invalidMarketKey() {
         _;
     }
     modifier validMarketKey() {
         _;
     }
-    modifier invalidDestination() {
+    modifier isLiquidatable() {
         _;
     }
-    modifier zeroCollateral() {
+    modifier isExistingPosition() {
         _;
     }
-    modifier nonZeroCollateral() {
-        _;
-    }
-    modifier noUnrealisePnL() {
-        _;
-    }
-    modifier hasUnrealisedPnL() {
-        _;
-    }
-    modifier hasInterestAccrued() {
-        _;
-    }
-    modifier zeroInterestAccrued() {
-        _;
-    }
-    modifier hasCollateralOnTPPs() {
-        _;
-    }
-    modifier multipleTPPs() {
-        _;
-    }
-    modifier multipleMarkets() {
+    modifier invalidTrade() {
         _;
     }
     modifier noCollateralOnTPPs() {
@@ -94,56 +76,4 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier freshBorrow() {
         _;
     }
-    modifier previouslyBorrowed() {
-        _;
-    }
-
-    function testInvalidSetup() public invalidContractAddresses {
-        vm.expectRevert();
-        new RiskManager(IContractRegistry(address(0)));
-    }
-
-    // function testMaxBorrowLimitIsZero() public {
-    //     uint256 maxBorrowLimit = contracts.riskManager.getMaxBorrowLimit(
-    //         bobMarginAccount
-    //     );
-    //     assertEq(maxBorrowLimit, 0, "maxBorrowLimit should be zero");
-    // }
-
-    // function testMaxBorrowLimitInvalidUser() public {
-    //     uint256 maxBorrowLimit = contracts.riskManager.getMaxBorrowLimit(
-    //         address(0)
-    //     );
-    //     assertEq(maxBorrowLimit, 0, "maxBorrowLimit should be zero");
-    // }
-
-    // function testMaxBorrowLimit() public {
-    //     uint256 chronuxMargin = 500 * ONE_USDC;
-    //     chronuxUtils.depositAndVerifyMargin(
-    //         bobMarginAccount,
-    //         usdc,
-    //         chronuxMargin
-    //     );
-    //     uint256 maxBorrowLimit = contracts.riskManager.getMaxBorrowLimit(bob);
-    //     assertEq(maxBorrowLimit, 1500 * ONE_USDC, "maxBorrowLimit is wrong");
-    // }
-
-    /*
-    Unit Testing ->
-    maxBorrowLimit
-    remainingBorrowLimit
-    verifyBorrowLimit
-    liquidate
-    isAccountLiquidatable
-    minMarginRequirement
-    getLiquidationPenalty
-    decodeAndVerifyLiquidationCalldata
-
-    Accounting Testing ->
-    _getAbsTotalCollateralValue tests.
-    _getRemainingMarginTransfer
-    _getRemainingPositionOpenNotional
-
-    updates in data on state change.
-  */
 }
