@@ -10,6 +10,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ContractRegistry} from "../../contracts/Utils/ContractRegistry.sol";
 import {CollateralManager} from "../../contracts/CollateralManager.sol";
 import {MarketManager} from "../../contracts/MarketManager.sol";
+import {MarginAccountFactory} from "../../contracts/MarginAccount/MarginAccountFactory.sol";
 import {RiskManager} from "../../contracts/RiskManager/RiskManager.sol";
 import {SNXRiskManager} from "../../contracts/RiskManager/SNXRiskManager.sol";
 import {PerpfiRiskManager} from "../../contracts/RiskManager/PerpfiRiskManager.sol";
@@ -28,6 +29,8 @@ import {IMarginAccount} from "../../contracts/Interfaces/IMarginAccount.sol";
 import {ICollateralManager} from "../../contracts/Interfaces/ICollateralManager.sol";
 import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
+import {ICircuitBreaker} from "../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
+import {ISystemStatus} from "../../contracts/Interfaces/SNX/ISystemStatus.sol";
 import {Utils} from "./utils/Utils.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
@@ -70,6 +73,7 @@ contract BaseSetup is Test, IEvents {
     address public bob;
     address internal charlie;
     address internal david;
+    address internal deployerAdmin;
 
     // ============= Forked Addresses =============
 
@@ -93,7 +97,9 @@ contract BaseSetup is Test, IEvents {
     address snxFuturesMarketManager;
     address snxOwner = 0x6d4a64C57612841c2C6745dB2a4E4db34F002D20;
     address circuitBreaker = 0x803FD1d99C3a6cbcbABAB79C44e108dC2fb67102;
-
+    address exchangeRates = 0x913bd76F7E1572CC8278CeF2D6b06e2140ca9Ce2;
+    address systemStatus = 0xE8c41bE1A167314ABAF2423b72Bf8da826943FFD;
+    address exchangeCircuitBreaker = 0x7322e8F6cB6c6a7B4e6620C486777fcB9Ea052a4;
     bytes32 perpAaveKey = keccak256("PERP.AAVE");
     bytes32 invalidKey = keccak256("BKL.MKC");
     bytes32 snxUniKey = keccak256("SNX.UNI");
@@ -113,7 +119,10 @@ contract BaseSetup is Test, IEvents {
     // ============= Setup Functions =============
 
     function setupUsers() internal {
-        users = utils.createUsers(5);
+        users = utils.createUsers(6);
+        deployerAdmin = users[5];
+        vm.label(deployerAdmin, "deployerAdmin");
+        vm.deal(deployerAdmin, 1000 ether);
         admin = users[0];
         vm.label(admin, "Admin");
         vm.deal(admin, 1000 ether);
@@ -132,18 +141,23 @@ contract BaseSetup is Test, IEvents {
     }
 
     function setupContractRegistry() internal {
+        vm.startPrank(deployerAdmin);
         contracts.contractRegistry = new ContractRegistry();
+        vm.stopPrank();
     }
 
     function setupMarketManager() internal {
+        vm.startPrank(deployerAdmin);
         contracts.marketManager = new MarketManager();
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarketManager"),
             address(contracts.marketManager)
         );
+        vm.stopPrank();
     }
 
     function setupPriceOracle() internal {
+        vm.startPrank(deployerAdmin);
         contracts.priceOracle = new PriceOracle();
         contracts.priceOracle.addPriceFeed(susd, sUsdPriceFeed);
         contracts.priceOracle.addPriceFeed(usdc, usdcPriceFeed);
@@ -151,33 +165,31 @@ contract BaseSetup is Test, IEvents {
             keccak256("PriceOracle"),
             address(contracts.priceOracle)
         );
+        vm.stopPrank();
     }
 
     function setupMarginManager() internal {
-        contracts.marginManager = new MarginManager(
-            contracts.contractRegistry,
-            contracts.marketManager,
-            contracts.priceOracle
-        );
+        vm.startPrank(deployerAdmin);
+        contracts.marginManager = new MarginManager(contracts.contractRegistry);
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarginManager"),
             address(contracts.marginManager)
         );
+        vm.stopPrank();
     }
 
     function setupRiskManager() internal {
-        contracts.riskManager = new RiskManager(
-            contracts.contractRegistry,
-            contracts.marketManager
-        );
-        contracts.riskManager.setPriceOracle(address(contracts.priceOracle));
+        vm.startPrank(deployerAdmin);
+        contracts.riskManager = new RiskManager(contracts.contractRegistry);
         contracts.contractRegistry.addContractToRegistry(
             keccak256("RiskManager"),
             address(contracts.riskManager)
         );
+        vm.stopPrank();
     }
 
     function setupCollateralManager() internal {
+        vm.startPrank(deployerAdmin);
         contracts.collateralManager = new CollateralManager(
             address(contracts.marginManager),
             address(contracts.riskManager),
@@ -188,13 +200,28 @@ contract BaseSetup is Test, IEvents {
             keccak256("CollateralManager"),
             address(contracts.collateralManager)
         );
+        vm.stopPrank();
+    }
+
+    function setupMarginAccountFactory() internal {
+        vm.startPrank(deployerAdmin);
+        contracts.marginAccountFactory = new MarginAccountFactory(
+            address(contracts.marginManager),
+            address(contracts.contractRegistry)
+        );
+        contracts.contractRegistry.addContractToRegistry(
+            keccak256("MarginAccountFactory"),
+            address(contracts.marginAccountFactory)
+        );
+        vm.stopPrank();
     }
 
     function setupVault(address token) internal {
-        uint256 optimalUse = 9000;
+        uint256 optimalUse = 80 * 10 ** 4;
         uint256 rBase = 0;
-        uint256 rSlope1 = 200;
-        uint256 rSlope2 = 1000;
+        uint256 rSlope1 = 2 * 10 ** 4;
+        uint256 rSlope2 = 10 * 10 ** 4;
+        vm.startPrank(deployerAdmin);
         contracts.interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
@@ -209,7 +236,9 @@ contract BaseSetup is Test, IEvents {
             address(contracts.interestModel)
             // maxExpectedLiquidity
         );
+        contracts.vault.addLendingAddress(admin);
         contracts.vault.addLendingAddress(address(contracts.marginManager));
+        contracts.vault.addRepayingAddress(admin);
         contracts.vault.addRepayingAddress(address(contracts.marginManager));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("InterestModel"),
@@ -219,9 +248,11 @@ contract BaseSetup is Test, IEvents {
             keccak256("Vault"),
             address(contracts.vault)
         );
+        vm.stopPrank();
     }
 
     function setupProtocolRiskManagers() internal {
+        vm.startPrank(deployerAdmin);
         contracts.perpfiRiskManager = new PerpfiRiskManager(
             usdc,
             address(contracts.contractRegistry),
@@ -229,13 +260,13 @@ contract BaseSetup is Test, IEvents {
             perpMarketRegistry,
             perpClearingHouse,
             perpVault,
-            ERC20(contracts.vault.asset()).decimals(),
+            address(contracts.priceOracle),
             18
         );
         contracts.snxRiskManager = new SNXRiskManager(
             susd,
             address(contracts.contractRegistry),
-            ERC20(contracts.vault.asset()).decimals(),
+            address(contracts.priceOracle),
             18
         );
         contracts.contractRegistry.addContractToRegistry(
@@ -246,6 +277,7 @@ contract BaseSetup is Test, IEvents {
             keccak256("SnxRiskManager"),
             address(contracts.snxRiskManager)
         );
+        vm.stopPrank();
     }
 
     function _setupCommonFixture(address vaultAsset) internal {
@@ -254,18 +286,19 @@ contract BaseSetup is Test, IEvents {
         setupPriceOracle();
         setupMarketManager();
         setupMarginManager();
+        setupMarginAccountFactory();
         setupRiskManager();
         setupVault(vaultAsset);
         setupCollateralManager();
-        contracts.riskManager.setCollateralManager(
-            address(contracts.collateralManager)
-        );
-        contracts.riskManager.setVault(address(contracts.vault));
+        vm.startPrank(deployerAdmin);
         contracts.marginManager.setVault(address(contracts.vault));
         contracts.marginManager.SetRiskManager(address(contracts.riskManager));
+        vm.stopPrank();
         setupProtocolRiskManagers();
+        vm.startPrank(deployerAdmin);
         contracts.collateralManager.addAllowedCollateral(usdc, 100);
         contracts.collateralManager.addAllowedCollateral(susd, 100);
+        vm.stopPrank();
 
         // Fund admin traders
         vm.startPrank(usdcWhaleContract);
@@ -289,20 +322,11 @@ contract BaseSetup is Test, IEvents {
         );
         contracts.vault.deposit(vaultDepositAmount, admin);
         vm.stopPrank();
-
         //  open Margin Accounts
         vm.prank(bob);
         bobMarginAccount = contracts.marginManager.openMarginAccount();
         vm.prank(alice);
         aliceMarginAccount = contracts.marginManager.openMarginAccount();
-
-        // Set mock response for price oracle
-        makeSusdAndUsdcEqualToOne();
-    }
-
-    function setupSNXFixture() internal {
-        _setupCommonFixture(usdc);
-        // =============================== Get Market Addresses from SNX using Keys ===============================
         snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("FuturesMarketManager"));
         uniFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
@@ -311,19 +335,43 @@ contract BaseSetup is Test, IEvents {
         ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
             .marketForKey(snxEth_marketKey);
         vm.label(ethFuturesMarket, "ETH futures Market");
+
+        // Set mock response for price oracle
+        makeSusdAndUsdcEqualToOne();
+
+        // Set Mock response of SNX Probe Circuit Broken to false always
+        vm.mockCall(
+            circuitBreaker,
+            abi.encodeWithSelector(
+                ICircuitBreaker.probeCircuitBreaker.selector
+            ),
+            abi.encode(false)
+        );
+
+        vm.mockCall(
+            systemStatus,
+            abi.encodeWithSelector(ISystemStatus.synthSuspended.selector),
+            abi.encode(false)
+        );
+    }
+
+    function setupSNXFixture() internal {
+        _setupCommonFixture(usdc);
+        // =============================== Get Market Addresses from SNX using Keys ===============================
         // =============================== Add Markets to Market Manager and setup Whitelist ===============================
+        vm.startPrank(deployerAdmin);
         contracts.marketManager.addMarket(
             snxUniKey,
             uniFuturesMarket,
             address(contracts.snxRiskManager),
-            susd,
+            address(0),
             susd
         );
         contracts.marketManager.addMarket(
             snxEthKey,
             ethFuturesMarket,
             address(contracts.snxRiskManager),
-            susd,
+            address(0),
             susd
         );
         contracts.snxRiskManager.toggleAddressWhitelisting(
@@ -354,10 +402,21 @@ contract BaseSetup is Test, IEvents {
             usdc,
             2
         );
+        vm.stopPrank();
     }
 
     function setupPerpfiFixture() internal {
         _setupCommonFixture(usdc);
+        snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
+            .getAddress(bytes32("FuturesMarketManager"));
+        uniFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
+            .marketForKey(snxUni_marketKey);
+        vm.label(uniFuturesMarket, "UNI futures Market");
+        ethFuturesMarket = IFuturesMarketManager(snxFuturesMarketManager)
+            .marketForKey(snxEth_marketKey);
+        vm.label(ethFuturesMarket, "ETH futures Market");
+
+        vm.startPrank(deployerAdmin);
         contracts.marketManager.addMarket(
             perpAaveKey,
             perpClearingHouse,
@@ -372,6 +431,51 @@ contract BaseSetup is Test, IEvents {
         );
         contracts.perpfiRiskManager.toggleAddressWhitelisting(usdc, true);
         contracts.perpfiRiskManager.toggleAddressWhitelisting(perpVault, true);
+
+        // for working with snx together
+        contracts.marketManager.addMarket(
+            snxUniKey,
+            uniFuturesMarket,
+            address(contracts.snxRiskManager),
+            address(0),
+            susd
+        );
+        contracts.marketManager.addMarket(
+            snxEthKey,
+            ethFuturesMarket,
+            address(contracts.snxRiskManager),
+            address(0),
+            susd
+        );
+        contracts.snxRiskManager.toggleAddressWhitelisting(
+            uniFuturesMarket,
+            true
+        );
+        contracts.snxRiskManager.toggleAddressWhitelisting(
+            ethFuturesMarket,
+            true
+        );
+        contracts.contractRegistry.addCurvePool(
+            usdc,
+            susd,
+            0x061b87122Ed14b9526A813209C8a59a633257bAb
+        );
+        contracts.contractRegistry.addCurvePool(
+            susd,
+            usdc,
+            0x061b87122Ed14b9526A813209C8a59a633257bAb
+        );
+        contracts.contractRegistry.addCurvePoolTokenIndex(
+            0x061b87122Ed14b9526A813209C8a59a633257bAb,
+            susd,
+            0
+        );
+        contracts.contractRegistry.addCurvePoolTokenIndex(
+            0x061b87122Ed14b9526A813209C8a59a633257bAb,
+            usdc,
+            2
+        );
+        vm.stopPrank();
     }
 
     function makeSusdAndUsdcEqualToOne() internal {

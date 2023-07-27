@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
@@ -14,29 +14,24 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IVault} from "../Interfaces/IVault.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract MarginAccount is IMarginAccount {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
-    using SafeMath for uint256;
+    using SettlementTokenMath for uint256;
     using SafeCast for uint256;
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-
-    // address public baseToken; //usdt/c
     address public marginManager;
-    uint256 public totalInternalLev;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
-    // address public underlyingToken;
-    // perp.eth, Position
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
-    // dollar value in 6 decimal digits.
-    int256 public totalDollarMarginInMarkets;
 
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
      serves multiple purposes
@@ -46,6 +41,8 @@ contract MarginAccount is IMarginAccount {
     */
     int256 public unsettledRealizedPnL;
 
+    address owner;
+
     // constructor(address underlyingToken) {
     //     marginManager = msg.sender;
     //     underlyingToken = underlyingToken;
@@ -54,99 +51,120 @@ contract MarginAccount is IMarginAccount {
     IContractRegistry contractRegistry;
 
     constructor(
+        address _marginManager, //  address _marketManager
         address _contractRegistry //  address _marketManager
     ) {
-        marginManager = msg.sender;
+        marginManager = _marginManager;
         contractRegistry = IContractRegistry(_contractRegistry);
-        // TODO- Market manager is not related to accounts.
-        // marketManager = IMarketManager(_marketManager);
+        cumulativeIndexAtOpen = 1;
+    }
+
+    modifier onlyMarginManager() {
+        require(
+            marginManager == msg.sender,
+            "MarginAccount: Only margin manager"
+        );
+        _;
+    }
+    modifier onlyCollateralManager() {
+        require(
+            contractRegistry.getContractByName(
+                keccak256("CollateralManager")
+            ) == msg.sender,
+            "MarginAccount: Only collateral manager"
+        );
+        _;
+    }
+
+    modifier onlyMarginManagerOrCollateralManager() {
+        require(
+            contractRegistry.getContractByName(
+                keccak256("CollateralManager")
+            ) ==
+                msg.sender ||
+                marginManager == msg.sender,
+            "MarginAccount: Only collateral manager"
+        );
+        _;
     }
 
     function getPosition(
         bytes32 market
-    ) public view override returns (Position memory) {
-        return positions[market];
+    ) public view override returns (Position memory position) {
+        position = positions[market];
     }
 
-    function getTotalOpeningAbsoluteNotional(
-        bytes32[] memory _allowedMarkets
-    ) public view override returns (uint256 totalNotional) {
-        uint256 len = _allowedMarkets.length;
-        for (uint256 i = 0; i < len; i++) {
-            totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].openNotional.abs()
-            );
-        }
+    function isActivePosition(
+        bytes32 marketKey
+    ) public view override returns (bool) {
+        return existingPosition[marketKey];
     }
 
-    function getTotalOpeningNotional(
-        bytes32[] memory _allowedMarkets
-    ) public view override returns (int256 totalNotional) {
-        uint256 len = _allowedMarkets.length;
-        for (uint256 i = 0; i < len; i++) {
-            totalNotional = totalNotional.add(
-                positions[_allowedMarkets[i]].openNotional
-            );
-        }
-    }
+    // function getTotalOpeningAbsoluteNotional()
+    //     public
+    //     view
+    //     override
+    //     returns (uint256 totalNotional)
+    // {
+    //     bytes32[] memory marketKeys = IMarketManager(
+    //         contractRegistry.getContractByName(keccak256("MarketManager"))
+    //     ).getAllMarketKeys();
+    //     uint256 len = marketKeys.length;
+    //     for (uint256 i = 0; i < len; i++) {
+    //         totalNotional += positions[marketKeys[i]].openNotional.abs();
+    //     }
+    // }
 
     function addCollateral(
         address from,
         address token,
         uint256 amount
-    ) external override {
-        // acl - only collateral manager.
-        // convert
+    ) external override onlyCollateralManager {
         IERC20(token).safeTransferFrom(from, address(this), amount);
-        // update in collatral manager
     }
 
-    function approveToProtocol(
-        address token,
-        address protocol
-    ) external override {
-        // onlyMarginmanager
-        IERC20(token).approve(protocol, type(uint256).max);
-    }
+    // function approveToProtocol(
+    //     address token,
+    //     address protocol
+    // ) external override {
+    //     // onlyMarginmanager
+    //     IERC20(token).approve(protocol, type(uint256).max);
+    // }
 
+    // Cannot be only MarginManager.
+    // Risk Manager also calls this.
     function transferTokens(
         address token,
         address to,
-        uint256 amount // onlyMarginManager
-    ) external {
+        uint256 amount
+    ) external onlyMarginManagerOrCollateralManager {
         IERC20(token).safeTransfer(to, amount);
     }
 
     function executeTx(
         address destination,
         bytes memory data
-    ) external returns (bytes memory) {
-        // onlyMarginManager
+    ) external override onlyMarginManager returns (bytes memory) {
         bytes memory returnData = destination.functionCall(data);
-        // make post trade chnges
-        // add new position in array, update leverage int, ext
         return returnData;
     }
 
     function execMultiTx(
         address[] calldata destinations,
         bytes[] memory dataArray
-    ) external override returns (bytes memory returnData) {
-        // onlyMarginManager
+    ) external override onlyMarginManager returns (bytes memory returnData) {
         uint8 len = destinations.length.toUint8();
         for (uint8 i = 0; i < len; i++) {
+            if (destinations[i] == address(0)) continue;
             returnData = destinations[i].functionCall(dataArray[i]);
         }
-        // add new position in array, update leverage int, ext
         return returnData;
     }
 
     function addPosition(
         bytes32 market,
         Position memory position
-    ) public override {
-        // only riskmanagger
-
+    ) external override onlyMarginManager {
         require(!existingPosition[market], "Existing position");
         positions[market] = position;
         existingPosition[market] = true;
@@ -155,8 +173,7 @@ contract MarginAccount is IMarginAccount {
     function updatePosition(
         bytes32 marketKey,
         Position memory position
-    ) public override {
-        // only riskmanagger
+    ) external override onlyMarginManager {
         // require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
         positions[marketKey].protocol = positions[marketKey].protocol; //@note @0xAshish rewriting it as of now will remove it later
         positions[marketKey].openNotional = position.openNotional;
@@ -164,37 +181,22 @@ contract MarginAccount is IMarginAccount {
         positions[marketKey].orderFee = position.orderFee;
     }
 
-    function removePosition(bytes32 market) public override {
+    function removePosition(
+        bytes32 marketKey
+    ) public override onlyMarginManager {
         // only riskmanagger
-        existingPosition[market] = false;
-        delete positions[market];
+        existingPosition[marketKey] = false;
+        delete positions[marketKey];
     }
 
-    /// @dev Updates borrowed amount. Restricted for current credit manager only
-    /// @param totalBorrowedAmount Amount which pool lent to credit account
-    function updateBorrowData(
-        uint256 totalBorrowedAmount,
-        uint256 _cumulativeIndexAtOpen
-    ) external override {
-        // add acl check
-        totalBorrowed = totalBorrowedAmount;
-        cumulativeIndexAtOpen = _cumulativeIndexAtOpen;
-    }
-
-    function updateDollarMarginInMarkets(
-        int256 transferredMargin
-    ) public override {
-        // require(
-        //     marginInMarket[market].add(transferredMargin) > 0,
-        //     "MA: Cannot have negative margin In protocol"
-        // );
-        totalDollarMarginInMarkets = totalDollarMarginInMarkets.add(
-            transferredMargin
-        );
-    }
-
-    function updateUnsettledRealizedPnL(int256 _realizedPnL) public override {
-        unsettledRealizedPnL = _realizedPnL;
+    function setTokenAllowance(
+        address token,
+        address spender,
+        uint256 amount
+    ) public override onlyMarginManager {
+        // only marginManager
+        // TODO - add acl
+        IERC20(token).approve(spender, type(uint256).max);
     }
 
     function swapTokens(
@@ -202,12 +204,14 @@ contract MarginAccount is IMarginAccount {
         address tokenOut,
         uint256 amountIn,
         uint256 minAmountOut
-    ) public returns (uint256 amountOut) {
-        // only marginManager.
-
+    ) public onlyMarginManager returns (uint256 amountOut) {
+        if (tokenIn == tokenOut) revert("MarginAccount: Same token");
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
+        if (address(pool) == address(0)) {
+            revert("MarginAccount: Pool not found");
+        }
         int128 tokenInIndex = contractRegistry.getCurvePoolTokenIndex(
             address(pool),
             tokenIn
@@ -216,7 +220,9 @@ contract MarginAccount is IMarginAccount {
             address(pool),
             tokenOut
         );
-
+        // @dev imp notice -
+        // IF the token is not found in the pool, it still would return the index as 0
+        // Need to have a pre check on the tokens allowed to swap before calling swap here.
         IERC20(tokenIn).approve(address(pool), amountIn);
         amountOut = pool.exchange_underlying(
             tokenInIndex, // TODO - correct this
@@ -225,4 +231,65 @@ contract MarginAccount is IMarginAccount {
             minAmountOut
         );
     }
+
+    // amount in vault decimals
+    function increaseDebt(uint256 amount) public onlyMarginManager {
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
+        uint256 amountX18 = amount.convertTokenDecimals(
+            IERC20Metadata(vault.asset()).decimals(),
+            18
+        );
+        uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
+        // the fuck is this ?
+        uint256 prevBorrowedAmount = totalBorrowed;
+        totalBorrowed += amountX18;
+        // Computes new cumulative index which accrues previous debt
+        cumulativeIndexAtOpen =
+            (cumulativeIndexNow * cumulativeIndexAtOpen * totalBorrowed) /
+            (cumulativeIndexNow *
+                prevBorrowedAmount +
+                amountX18 *
+                cumulativeIndexAtOpen);
+    }
+
+    // needs to be sent in vault asset decimals
+    function decreaseDebt(uint256 amount) public onlyMarginManager {
+        require(
+            totalBorrowed >= amount,
+            "MarginAccount: Decrease debt amount exceeds total debt"
+        );
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
+        uint256 amountX18 = amount.convertTokenDecimals(
+            IERC20Metadata(vault.asset()).decimals(),
+            18
+        );
+        totalBorrowed = totalBorrowed.sub(amountX18);
+        // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
+        cumulativeIndexAtOpen = vault.calcLinearCumulative_RAY();
+    }
+
+    function getInterestAccruedX18() public view returns (uint256) {
+        return _getInterestAccruedX18();
+    }
+
+    function _getInterestAccruedX18() private view returns (uint256 interest) {
+        if (totalBorrowed == 0) return 0;
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
+        uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY();
+        interest = (((totalBorrowed * cumulativeIndexNow) /
+            cumulativeIndexAtOpen) - totalBorrowed);
+    }
 }
+
+/*
+ Unit Testing
+    1. Swap Token, failure cases
+Feature Testing 
+    - NA -
+*/

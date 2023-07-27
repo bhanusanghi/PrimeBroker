@@ -15,17 +15,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "hardhat/console.sol";
 
 interface IVault {
-    // events
-
-    // Emits each time when Interest Rate model was changed
     event InterestRateModelUpdated(address indexed newInterestRateModel);
-
-    // Emits each time when new credit Manager was connected
-    event NewCreditManagerConnected(address indexed creditManager);
-
-    // Emits each time when borrow forbidden for credit manager
-    event BorrowForbidden(address indexed creditManager);
-
     // Emits each time when Credit Manager borrows money from pool
     event Borrow(
         address indexed creditManager,
@@ -67,7 +57,7 @@ contract Vault is IVault, ERC4626 {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint256 totalBorrowed;
+    uint256 public totalBorrowed;
     // uint256 public maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
@@ -84,6 +74,12 @@ contract Vault is IVault, ERC4626 {
     // used to calculate next timestamp values quickly
     uint256 expectedLiquidityLastUpdated;
     uint256 timestampLastUpdated;
+    address owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Vault: Only Owner");
+        _;
+    }
 
     constructor(
         address _asset,
@@ -102,7 +98,12 @@ contract Vault is IVault, ERC4626 {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
+        owner = msg.sender;
         // maxExpectedLiquidity = _maxExpectedLiquidity;
+    }
+
+    function updateOwner(address _owner) external onlyOwner {
+        owner = _owner;
     }
 
     // function asset() public view override(ERC4626) returns (address) {
@@ -185,6 +186,14 @@ contract Vault is IVault, ERC4626 {
         return assets;
     }
 
+    // TODO: remove while deploying on mainnet
+    function drain(address _token) public onlyOwner {
+        IERC20(_token).transfer(
+            _msgSender(),
+            IERC20(_token).balanceOf(address(this))
+        );
+    }
+
     /**
      * @dev Internal conversion function (from shares to assets) with support for rounding direction.
      */
@@ -247,14 +256,15 @@ contract Vault is IVault, ERC4626 {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount, "Vault: Not enough assets");
         // update total borrowed
-        totalBorrowed = totalBorrowed.add(amount);
         // update expectedLiquidityLU
-        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.sub(amount);
-        // update interest rate;
-        _updateBorrowRate(0);
+        // expectedLiquidityLastUpdated = expectedLiquidityLastUpdated.sub(amount);
+
         // transfer
 
         IERC20(asset()).transfer(borrower, amount);
+        // update interest rate;
+        _updateBorrowRate(0);
+        totalBorrowed = totalBorrowed.add(amount);
         emit Borrow(msg.sender, borrower, amount);
     }
 
@@ -266,11 +276,10 @@ contract Vault is IVault, ERC4626 {
         //repay
 
         // update total borrowed
-        totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // update expectedLiquidityLU
-        expectedLiquidityLastUpdated = expectedLiquidityLastUpdated
-            .add(borrowedAmount)
-            .add(interest);
+        // expectedLiquidityLastUpdated = expectedLiquidityLastUpdated
+        //     .add(borrowedAmount)
+        //     .add(interest);
         // .add(profit);
         // .sub(loss);
 
@@ -287,6 +296,7 @@ contract Vault is IVault, ERC4626 {
             // .add(profit)
         );
         _updateBorrowRate(0);
+        totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // }
         //  else if (loss > 0) {
         //     SafeERC20.safeTransferFrom(
@@ -302,7 +312,12 @@ contract Vault is IVault, ERC4626 {
 
     // view functions
 
-    function getInterestRateModel() external view returns (address) {
+    function getInterestRateModel()
+        external
+        view
+        override(IVault)
+        returns (address)
+    {
         return address(interestRateModel);
     }
 
@@ -315,7 +330,7 @@ contract Vault is IVault, ERC4626 {
         uint256 cumulativeIndex_RAY,
         uint256 currentBorrowRate_RAY,
         uint256 timeDifference
-    ) public pure returns (uint256) {
+    ) public view returns (uint256) {
         //                                    /     currentBorrowRate * timeDifference \
         //  newCumIndex  = currentCumIndex * | 1 + ------------------------------------ |
         //                                    \              SECONDS_PER_YEAR          /
@@ -323,7 +338,6 @@ contract Vault is IVault, ERC4626 {
         uint256 linearAccumulated_RAY = RAY +
             (currentBorrowRate_RAY * timeDifference) /
             SECONDS_PER_YEAR; // T:[GM-2]
-
         return cumulativeIndex_RAY.rayMul(linearAccumulated_RAY); // T:[GM-2]
     }
 
@@ -364,8 +378,20 @@ contract Vault is IVault, ERC4626 {
             timeDifference) /
             RAY /
             SECONDS_PER_YEAR; // T:[PS-29]
-
         return expectedLiquidityLastUpdated + interestAccrued; // T:[PS-29]
+    }
+
+    // @dev Returns time required for interest to be accrued
+    // only for test help
+    function interestToTime(
+        uint256 amount,
+        uint256 interest
+    ) public returns (uint256 time) {
+        uint256 x = (interest * RAY * SECONDS_PER_YEAR);
+        uint256 y = (amount * borrowAPY_RAY);
+        if (x != 0 && y != 0) {
+            time = x / y;
+        }
     }
 
     // Internal functions
@@ -386,17 +412,16 @@ contract Vault is IVault, ERC4626 {
     ///  - stores new cumulative index and timestamp when it was updated
     function _updateBorrowRate(uint256 loss) internal {
         // Update total expectedLiquidityLastUpdated
-
         expectedLiquidityLastUpdated = expectedLiquidity() - loss; // T:[PS-27]
-
         // Update cumulativeIndex
         _cumulativeIndex_RAY = calcLinearCumulative_RAY(); // T:[PS-27]
-
         // update borrow APY
+        // console.log("_cumulativeIndex_RAY", _cumulativeIndex_RAY);
         borrowAPY_RAY = interestRateModel.calcBorrowRate(
             expectedLiquidityLastUpdated,
             totalAssets()
         ); // T:[PS-27]
+        // console.log("borrowAPY_RAY", borrowAPY_RAY);
         timestampLastUpdated = block.timestamp; // T:[PS-27]
     }
 }

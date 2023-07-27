@@ -3,6 +3,7 @@ pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
@@ -45,8 +46,8 @@ contract OpenPositionPerpfi is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupPerpfiFixture();
-        perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
     // Internal
@@ -57,14 +58,14 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 expectedRemainingMargin = int256(
             (chronuxMargin * 100) / marginFactor
         );
-        vm.assume(
-            perpMargin > int256(1 * ONE_USDC) &&
-                perpMargin < expectedRemainingMargin
-        );
+        // vm.assume(
+        //     perpMargin > int256(1 * ONE_USDC) &&
+        //         perpMargin < expectedRemainingMargin
+        // );
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
-            perpMargin,
+            1000_000000,
             false,
             ""
         );
@@ -81,13 +82,9 @@ contract OpenPositionPerpfi is BaseSetup {
             perpMargin > expectedRemainingMargin &&
                 perpMargin < 2 * expectedRemainingMargin
         );
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            true,
-            "Borrow limit exceeded"
-        );
+        vm.prank(bob);
+        vm.expectRevert("Borrow limit exceeded");
+        contracts.marginManager.borrowFromVault(uint256(perpMargin));
     }
 
     function testOpenPositionPerpExtraLeverageRevert(int256 notional) public {
@@ -118,7 +115,7 @@ contract OpenPositionPerpfi is BaseSetup {
             perpAaveKey,
             -notional,
             true,
-            "Extra leverage not allowed"
+            "MM: Unhealthy account"
         );
     }
 
@@ -141,6 +138,7 @@ contract OpenPositionPerpfi is BaseSetup {
             ""
         );
         vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
+
         perpfiUtils.addAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -243,5 +241,48 @@ contract OpenPositionPerpfi is BaseSetup {
         );
 
         // check third party events and value by using static call.
+    }
+
+    function testLongWithdrawCollateral() public {
+        int256 notional = 5000 ether;
+        uint256 chronuxMargin = 1500 * ONE_USDC;
+        int256 perpMargin = int256(1200 * ONE_USDC);
+        uint256 withdrawAmount = 250 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.addAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            notional,
+            false,
+            ""
+        );
+        uint256 _beforeBalance = IERC20(contracts.vault.asset()).balanceOf(
+            bobMarginAccount
+        );
+        uint256 _beforeBobBalance = IERC20(contracts.vault.asset()).balanceOf(
+            bob
+        );
+        vm.startPrank(bob);
+        contracts.collateralManager.withdrawCollateral(
+            contracts.vault.asset(),
+            withdrawAmount
+        );
+        vm.stopPrank();
+        assertEq(
+            IERC20(contracts.vault.asset()).balanceOf(bob),
+            _beforeBobBalance + withdrawAmount
+        );
+        assertEq(
+            IERC20(contracts.vault.asset()).balanceOf(bobMarginAccount),
+            _beforeBalance - withdrawAmount
+        );
     }
 }

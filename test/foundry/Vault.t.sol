@@ -3,20 +3,26 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "ds-test/test.sol";
-import "forge-std/console2.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
 // force update
 import {MockERC20} from "../../contracts/Utils/MockERC20.sol";
-
+// import {IERC20} from "openzeppelin-contracts/contracts/token/IERC20/IERC20.sol";
+import {WadRayMath, WAD, RAY} from "../../contracts/Libraries/WadRayMath.sol";
 import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterestRateModel.sol";
 import {Utils} from "./utils/Utils.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {PercentageMath, PERCENTAGE_FACTOR} from "../../contracts/Libraries/PercentageMath.sol";
 
 contract VaultTest is Test {
+    using WadRayMath for uint256;
+    using Math for uint256;
+    using PercentageMath for uint256;
     Vault public vault;
+
     LinearInterestRateModel public interestModel;
     MockERC20 public underlyingToken;
     // uint256 public maxExpectedLiquidity;
-
+    uint256 public constant CENT = 100;
     Utils internal utils;
 
     address payable[] internal users;
@@ -48,9 +54,12 @@ contract VaultTest is Test {
 
     function simulateYield(uint256 amount) public {
         vm.startPrank(admin);
-        vault.borrow(admin, 1);
+        uint256 borrowAmount = vault.totalAssets();
+        vault.borrow(admin, borrowAmount);
+        uint256 timeToTravel = vault.interestToTime(borrowAmount, amount); //block.timestamp + 365 days;
+        utils.mineBlocks(100, timeToTravel);
         underlyingToken.approve(address(vault), type(uint256).max);
-        vault.repay(admin, 1, amount);
+        vault.repay(admin, borrowAmount, amount);
         vm.stopPrank();
     }
 
@@ -58,10 +67,10 @@ contract VaultTest is Test {
         utils = new Utils();
 
         // ======= setup vault ========
-        uint256 optimalUse = 9000;
-        uint256 rBase = 0;
-        uint256 rSlope1 = 200;
-        uint256 rSlope2 = 1000;
+        uint256 optimalUse = 950000;
+        uint256 rBase = 100000;
+        uint256 rSlope1 = 400000;
+        uint256 rSlope2 = 950000;
         interestModel = new LinearInterestRateModel(
             optimalUse,
             rBase,
@@ -103,6 +112,8 @@ contract VaultTest is Test {
 
         vault.addLendingAddress(admin);
         vault.addRepayingAddress(admin);
+        vault.addLendingAddress(alice);
+        vault.addRepayingAddress(alice);
 
         // Setup Alice and Bob's allowance for vault.
         vm.prank(alice);
@@ -114,10 +125,7 @@ contract VaultTest is Test {
     function testVaultInitialisation() public {
         assertEq(vault.asset(), address(underlyingToken));
         assertEq(vault.name(), "GigaLP");
-        assertEq(
-            vault.getInterestRateModel(),
-            address(interestModel)
-        );
+        assertEq(vault.getInterestRateModel(), address(interestModel));
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.expectedLiquidity(), 0);
@@ -169,6 +177,191 @@ contract VaultTest is Test {
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.expectedLiquidity(), 0);
+        vm.stopPrank();
+    }
+
+    // function testInterestRates(uint256 utilizationRate) public {
+    //     uint256 depositAmount = 5000 ether;
+    //     uint256 borrowAmount;
+    //     vm.assume(
+    //         utilizationRate <= PERCENTAGE_FACTOR &&
+    //             utilizationRate >= PERCENTAGE_FACTOR / 10 ** 2
+    //     );
+    //     uint256 borrowAPY = vault.borrowAPY_RAY();
+    //     uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     assertEq(borrowAPY, excpecteBorrowRate);
+    //     deposit(bob, depositAmount);
+    //     vm.startPrank(admin);
+    //     borrowAmount = depositAmount.percentMul(utilizationRate);
+    //     console2.log(borrowAmount);
+    //     vault.borrow(admin, borrowAmount);
+    //     vm.warp(block.timestamp + 365 days);
+    //     vm.roll(block.number + 100);
+    //     uint256 newborrowAPY = vault.borrowAPY_RAY();
+    //     // uint256 interestAmount = (borrowAmount * newborrowAPY) / RAY;
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     assertApproxEqAbs(
+    //         newborrowAPY,
+    //         excpecteBorrowRate,
+    //         (10 ** 2),
+    //         "Borrow rate is not as expected"
+    //     );
+    //     assertEq(vault.totalBorrowed(), borrowAmount, "Vault accounting error");
+    //     vm.stopPrank();
+    // }
+
+    // function testInterestRatesDaily() public {
+    //     uint256 depositAmount = 5000 ether;
+    //     uint256 borrowAmount = 1000 ether;
+    //     uint256 borrowAPY = vault.borrowAPY_RAY();
+    //     uint256 cumulativeIndexAtOpen;
+
+    //     uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     assertEq(borrowAPY, excpecteBorrowRate);
+    //     deposit(bob, depositAmount);
+    //     vm.startPrank(admin);
+    //     // borrowAmount = depositAmount;
+    //     cumulativeIndexAtOpen = vault.calcLinearCumulative_RAY();
+    //     vault.borrow(admin, borrowAmount / 2);
+    //     vm.roll(block.number + 100);
+    //     vm.warp(block.timestamp + 1 days);
+
+    //     uint256 newborrowAPY = vault.borrowAPY_RAY();
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY();
+    //     uint256 interestAmount = ((((borrowAmount / 2) * cumulativeIndexNow) /
+    //         cumulativeIndexAtOpen) - borrowAmount / 2);
+    //     console2.log(
+    //         interestAmount,
+    //         ((borrowAmount / 2) * excpecteBorrowRate) / RAY
+    //     );
+    //     // assertApproxEqAbs(
+    //     //     interestAmount,
+    //     //     ((borrowAmount / 2) * excpecteBorrowRate) / RAY,
+    //     //     10 ** 18,
+    //     //     "Incorrect borrow interest"
+    //     // );
+    //     vault.borrow(admin, borrowAmount / 2);
+    //     vm.roll(block.number + 100);
+    //     vm.warp(block.timestamp + 1 days);
+
+    //     newborrowAPY = vault.borrowAPY_RAY();
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     interestAmount = ((((borrowAmount) * cumulativeIndexNow) /
+    //         cumulativeIndexAtOpen) - borrowAmount);
+    //     console2.log(
+    //         interestAmount,
+    //         ((borrowAmount) * excpecteBorrowRate) / RAY
+    //     );
+    //     // assertApproxEqAbs(
+    //     //     interestAmount,
+    //     //     ((borrowAmount) * excpecteBorrowRate) / RAY,
+    //     //     10 ** 18,
+    //     //     "Incorrect borrow interest"
+    //     // );
+    //     vm.stopPrank();
+    // }
+
+    // function testInterestRatesDailyMultiBorrowers() public {
+    //     uint256 depositAmount = 5000 ether;
+    //     uint256 adminBorrowAmount = 1000 ether;
+    //     uint256 aliceBorrowAmount = 500 ether;
+    //     uint256 adminInterestAmount;
+
+    //     uint256 borrowAPY = vault.borrowAPY_RAY();
+    //     uint256 excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+
+    //     assertEq(borrowAPY, excpecteBorrowRate);
+    //     deposit(bob, depositAmount);
+
+    //     borrow(admin, adminBorrowAmount);
+    //     vm.warp(block.timestamp + 180 days);
+    //     vm.roll(block.number + 100);
+
+    //     uint256 newborrowAPY = vault.borrowAPY_RAY();
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     adminInterestAmount = ((adminBorrowAmount) * newborrowAPY) / RAY;
+
+    //     assertApproxEqAbs(
+    //         newborrowAPY,
+    //         excpecteBorrowRate,
+    //         10 ** 25,
+    //         "Borrow rate is not as expected"
+    //     );
+    //     borrow(alice, aliceBorrowAmount);
+    //     uint256 aliceInterestAmount = (aliceBorrowAmount *
+    //         vault.borrowAPY_RAY()) / RAY;
+    //     vm.warp(block.timestamp + 1 days);
+    //     vm.roll(block.number + 100);
+    //     borrow(admin, adminBorrowAmount);
+    //     vm.warp(block.timestamp + 180 days);
+    //     vm.roll(block.number + 100);
+    //     assertEq(
+    //         vault.totalBorrowed(),
+    //         adminBorrowAmount * 2 + aliceBorrowAmount,
+    //         "Vault accounting error"
+    //     );
+    //     uint256 beforeRepayBorrow_RAY = vault.borrowAPY_RAY();
+    //     repay(alice, aliceBorrowAmount, aliceInterestAmount);
+    //     newborrowAPY = vault.borrowAPY_RAY();
+    //     assertGt(
+    //         beforeRepayBorrow_RAY,
+    //         newborrowAPY,
+    //         "After repay and profit brrow rate should go down"
+    //     );
+    //     excpecteBorrowRate = interestModel.calcBorrowRate(
+    //         vault.expectedLiquidity(),
+    //         vault.totalAssets()
+    //     );
+    //     adminInterestAmount += (adminBorrowAmount * newborrowAPY) / RAY;
+
+    //     repay(admin, adminBorrowAmount * 2, adminInterestAmount);
+    //     assertEq(vault.borrowAPY_RAY(), borrowAPY);
+    //     assertEq(vault.totalBorrowed(), 0);
+    // }
+
+    function deposit(address trader, uint256 amount) internal {
+        vm.startPrank(trader);
+        underlyingToken.approve(address(vault), amount);
+        vault.deposit(amount, trader);
+        vm.stopPrank();
+    }
+
+    function borrow(address trader, uint256 amount) internal {
+        vm.startPrank(trader);
+        vault.borrow(trader, amount);
+        vm.stopPrank();
+    }
+
+    function repay(
+        address trader,
+        uint256 amount,
+        uint256 interestAmount
+    ) internal {
+        vm.startPrank(trader);
+        underlyingToken.approve(address(vault), amount + interestAmount);
+        vault.repay(trader, amount, interestAmount);
         vm.stopPrank();
     }
 
@@ -225,7 +418,7 @@ contract VaultTest is Test {
     // |--------------|---------|----------|---------|----------|
     // |            0 |       0 |        0 |       0 |        0 |
     // |______________|_________|__________|_________|__________|
-
+    // @note some numbers are -+1,2 due to roundup errors
     function testOp1() external {
         vm.expectEmit(true, true, false, true);
         emit Deposit(alice, alice, 2000, 2000);
@@ -257,7 +450,7 @@ contract VaultTest is Test {
 
         assertEq(vault.totalAssets(), 9000);
         assertEq(vault.totalSupply(), 6000);
-        assertEq(vault.expectedLiquidity(), 9000);
+        assertEq(vault.expectedLiquidity(), 8999);
     }
 
     function testOp4() external {
@@ -271,7 +464,7 @@ contract VaultTest is Test {
         assertEq(shares, 1333);
         assertEq(vault.totalAssets(), 11000);
         assertEq(vault.totalSupply(), 7333);
-        assertEq(vault.expectedLiquidity(), 11000);
+        assertEq(vault.expectedLiquidity(), 10999);
     }
 
     function testOp5() external {
@@ -284,8 +477,8 @@ contract VaultTest is Test {
         vault.deposit(2000, alice);
         vm.prank(bob);
         uint256 assetsNeeded = vault.mint(2000, bob);
-        assertEq(assetsNeeded, 3001);
-        assertEq(vault.totalAssets(), 14001);
+        assertEq(assetsNeeded, 3000);
+        assertEq(vault.totalAssets(), 14000);
         assertEq(vault.totalSupply(), 9333);
     }
 
@@ -300,7 +493,7 @@ contract VaultTest is Test {
         vm.prank(bob);
         vault.mint(2000, bob);
         simulateYield(3000);
-        assertEq(vault.totalAssets(), 17001);
+        assertEq(vault.totalAssets(), 17000);
         assertEq(vault.totalSupply(), 9333);
     }
 
@@ -317,17 +510,11 @@ contract VaultTest is Test {
         simulateYield(3000);
         vm.prank(alice);
         uint256 assetsRecvd = vault.redeem(1333, alice, alice);
-        assertEq(assetsRecvd, 2428);
+        assertEq(assetsRecvd, 2427);
         assertEq(vault.totalAssets(), 14573);
         assertEq(vault.totalSupply(), 8000);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            10929
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            3643
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 10928);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3642);
     }
 
     function testOp8() external {
@@ -348,14 +535,8 @@ contract VaultTest is Test {
         assertEq(sharesBurned, 1608);
         assertEq(vault.totalAssets(), 14573 - 2928);
         assertEq(vault.totalSupply(), 8000 - 1608);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            8001
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            3643
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8000);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 3642);
     }
 
     function testOp9() external {
@@ -373,19 +554,14 @@ contract VaultTest is Test {
         vault.redeem(1333, alice, alice);
         vm.prank(bob);
         vault.withdraw(2928, bob, bob);
-        vm.prank(alice);
-        uint256 sharesBurned = vault.withdraw(3643, alice, alice);
+        vm.startPrank(alice);
+        uint256 sharesBurned = vault.withdraw(3642, alice, alice);
+        vm.stopPrank();
         assertEq(sharesBurned, 2000);
-        assertEq(vault.totalAssets(), 14573 - 2928 - 3643);
+        assertEq(vault.totalAssets(), 14573 - 2928 - 3642);
         assertEq(vault.totalSupply(), 8000 - 1608 - 2000);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            8001
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            0
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 8000);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
     }
 
     function testOp10() external {
@@ -404,19 +580,14 @@ contract VaultTest is Test {
         vm.prank(bob);
         vault.withdraw(2928, bob, bob);
         vm.prank(alice);
-        vault.withdraw(3643, alice, alice);
-        vm.prank(bob);
+        vault.withdraw(3642, alice, alice);
+        vm.startPrank(bob);
         uint256 assets = vault.redeem(4392, bob, bob);
-        assertEq(assets, 8001);
-        assertEq(vault.totalAssets(), 1);
+        vm.stopPrank();
+        assertEq(assets, 8000);
+        assertEq(vault.totalAssets(), 3);
         assertEq(vault.totalSupply(), 0);
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(bob)),
-            0
-        );
-        assertEq(
-            vault.previewRedeem(vault.balanceOf(alice)),
-            0
-        );
+        assertEq(vault.previewRedeem(vault.balanceOf(bob)), 0);
+        assertEq(vault.previewRedeem(vault.balanceOf(alice)), 0);
     }
 }

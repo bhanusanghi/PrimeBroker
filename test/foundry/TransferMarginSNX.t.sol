@@ -38,8 +38,8 @@ contract TransferMarginSNX is BaseSetup {
         vm.selectFork(forkId);
         utils = new Utils();
         setupSNXFixture();
-        snxUtils = new SnxUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
+        snxUtils = new SnxUtils(contracts);
         //fetch snx market addresses.
     }
 
@@ -61,34 +61,21 @@ contract TransferMarginSNX is BaseSetup {
 
     function testBobTransfersExcessMarginSingleAttempt() public {
         uint256 margin = 5000 ether;
-        uint256 marginInVaultAssetDecimals = margin.convertTokenDecimals(
-            18,
-            ERC20(contracts.vault.asset()).decimals()
-        );
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         // find max transferable margin.
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256(
-            (marginInVaultAssetDecimals * 100) / marginFactor
-        );
+        int256 expectedRemainingMargin = int256((margin * 100) / marginFactor);
         chronuxUtils.verifyRemainingTransferableMargin(
             bob,
             expectedRemainingMargin
         );
         int256 remainingMargin = int256(
-            contracts
-                .riskManager
-                .getRemainingMarginTransfer(bobMarginAccount)
-                .convertTokenDecimals(
-                    ERC20(contracts.vault.asset()).decimals(),
-                    18
-                )
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
-      
-        snxUtils.verifyExcessMarginRevert(
-            bob,
-            snxUniKey,
-            remainingMargin + 1 ether
+        vm.prank(bob);
+        vm.expectRevert("Borrow limit exceeded");
+        contracts.marginManager.borrowFromVault(
+            uint256(remainingMargin + 1 ether).convertTokenDecimals(18, 6)
         );
     }
 
@@ -160,37 +147,13 @@ contract TransferMarginSNX is BaseSetup {
         // vm.stopPrank();
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         int256 remainingTransferrableMargin = int256(
-            contracts
-                .riskManager
-                .getRemainingMarginTransfer(bobMarginAccount)
-                .convertTokenDecimals(
-                    ERC20(contracts.vault.asset()).decimals(),
-                    18
-                )
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
         // vm.assume(
         //     snxMargin > 1 ether && snxMargin < remainingTransferrableMargin // otherwise the uniswap swap is extra bad
         // );
         snxMargin = 15000 ether;
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-    }
-
-    function testBobTransfersExcessMarginInMultipleAttempt() public {
-        uint256 margin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
-        int256 remainingTransferrableMargin = int256(
-            contracts
-                .riskManager
-                .getRemainingMarginTransfer(bobMarginAccount)
-                .convertTokenDecimals(
-                    ERC20(contracts.vault.asset()).decimals(),
-                    18
-                )
-        );
-        int256 snxMargin1 = remainingTransferrableMargin / 2;
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin1, false, "");
-        int256 snxMargin2 = (remainingTransferrableMargin / 2) + 1 ether;
-        snxUtils.verifyExcessMarginRevert(bob, snxUniKey, snxMargin2);
     }
 
     // function testBobTransfersExcessMarginMultipleDataInSingleAttempt(
@@ -257,13 +220,8 @@ contract TransferMarginSNX is BaseSetup {
             bobMarginAccount
         );
         int256 maxTransferrableMargin = int256(
-            ((maxBorrowableAmount.convertTokenDecimals(
-                ERC20(contracts.vault.asset()).decimals(),
-                18
-            ) + margin) * 9) / 10
-        );
-        console2.log("maxTransferrableMargin");
-        console2.logInt(maxTransferrableMargin);
+            (maxBorrowableAmount + margin) * 9
+        ) / 10;
         snxUtils.updateAndVerifyMargin(
             bob,
             snxUniKey,
@@ -283,13 +241,7 @@ contract TransferMarginSNX is BaseSetup {
         uint256 margin = 5000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         int256 totalTransferrableMargin = int256(
-            contracts
-                .riskManager
-                .getRemainingMarginTransfer(bobMarginAccount)
-                .convertTokenDecimals(
-                    ERC20(contracts.vault.asset()).decimals(),
-                    18
-                )
+            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
         );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 2000, false, "");

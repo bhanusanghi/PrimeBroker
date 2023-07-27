@@ -13,3 +13,6 @@ coverage.json
 package-lock.json
 forge-cache/
 bin/
+broadcast/
+.idea/
+*.sh

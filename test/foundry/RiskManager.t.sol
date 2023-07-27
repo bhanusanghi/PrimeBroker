@@ -1,54 +1,64 @@
 pragma solidity ^0.8.10;
-pragma abicoder v2;
 
-import "forge-std/Test.sol";
 import "forge-std/console2.sol";
+
+import {Utils} from "./utils/Utils.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseSetup} from "./BaseSetup.sol";
-import {Utils} from "./utils/Utils.sol";
 import {SnxUtils} from "./utils/SnxUtils.sol";
+import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
 import {ChronuxUtils} from "./utils/ChronuxUtils.sol";
+import {IFuturesMarket} from "../../contracts/Interfaces/SNX/IFuturesMarket.sol";
 
-contract ClosePositionSnx is BaseSetup {
+contract RiskManagerTest is BaseSetup {
     using SafeMath for uint256;
+    using SafeMath for uint128;
     using Math for uint256;
+    using Math for int256;
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
     SnxUtils snxUtils;
+    PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
         uint256 forkId = vm.createFork(
             vm.envString("ARCHIVE_NODE_URL_L2"),
-            37274241
+            71255016
         );
         vm.selectFork(forkId);
+        // need to be done in this order only.
         utils = new Utils();
-        setupSNXFixture();
+        setupPerpfiFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
+        perpfiUtils = new PerpfiUtils(contracts);
     }
 
-    function testClosingSNXPosition(int256 positionSize) public {
-        uint256 chronuxMargin = 5000 ether;
-        chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
-        int256 snxMargin = int256(1000 ether);
-        int256 positionSize = 1000 ether;
-        int256 expectedRemainingNotional = int256(
-            contracts.riskManager.getRemainingPositionOpenNotional(
-                bobMarginAccount
-            )
-        );
-        address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
-        snxUtils.closeAndVerifyPosition(bob, snxUniKey);
-    }
+    /*
+    Unit Testing ->
+    verifyTrade with wrong data
+    verifyClosePosition with wrong data
+    maxBorrowLimit
+    remainingBorrowLimit
+    verifyBorrowLimit
+    liquidate
+    isAccountLiquidatable
+    minMarginRequirement
+    getLiquidationPenalty
+    decodeAndVerifyLiquidationCalldata
+
+    Accounting Testing ->
+    _getAbsTotalCollateralValue tests.
+    _getRemainingMarginTransfer
+    _getRemainingPositionOpenNotional
+
+  */
 }

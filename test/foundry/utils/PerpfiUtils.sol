@@ -21,8 +21,13 @@ import {Constants} from "./Constants.sol";
 import {IEvents} from "../IEvents.sol";
 import "forge-std/console2.sol";
 
+// This is useless force push comment, please remove after use
+
 contract PerpfiUtils is Test, Constants, IEvents {
     using SettlementTokenMath for uint256;
+    using Math for uint256;
+    using Math for int256;
+    using SignedMath for int256;
     using SettlementTokenMath for int256;
     address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
     Contracts contracts;
@@ -31,7 +36,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
 
     constructor(Contracts memory _contracts) {
         contracts = _contracts;
-        // add any contracts for perp here.
     }
 
     // @notice Returns the price of th UniV3Pool.
@@ -52,7 +56,13 @@ contract PerpfiUtils is Test, Constants, IEvents {
         margin = int256(IVault(perpVault).getBalance(marginAccount));
     }
 
-    function verifyMargin(
+    function getAccountValue(
+        address marginAccount
+    ) public returns (int256 accountValue) {
+        accountValue = int256(IVault(perpVault).getAccountValue(marginAccount));
+    }
+
+    function verifyMarginOnPerp(
         address marginAccount,
         bytes32 marketKey,
         int256 expectedMargin
@@ -485,6 +495,26 @@ contract PerpfiUtils is Test, Constants, IEvents {
         vm.stopPrank();
     }
 
+    function prepareMarginTransfer(
+        address trader,
+        bytes32 marketKey,
+        uint256 deltaMarginX18
+    ) public {
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        uint256 tokenBalanceUsdcX18 = IERC20(usdc)
+            .balanceOf(marginAccount)
+            .convertTokenDecimals(6, 18);
+        //TODO- Will work till susd == usdc == 1 use exchange quote price later.
+        if (deltaMarginX18 > tokenBalanceUsdcX18) {
+            uint256 borrowNeedX18 = deltaMarginX18 - tokenBalanceUsdcX18;
+            contracts.marginManager.borrowFromVault(
+                borrowNeedX18.convertTokenDecimals(18, 6)
+            );
+        }
+    }
+
     // send margin in 6 decimals.
     function updateAndVerifyMargin(
         address trader,
@@ -493,6 +523,11 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bool shouldFail,
         bytes memory reason
     ) public {
+        int256 marginX18 = margin.convertTokenDecimals(6, 18);
+        int256 marginX18Value = contracts.priceOracle.convertToUSD(
+            marginX18,
+            usdc
+        );
         vm.startPrank(trader);
         address marketAddress = contracts.marketManager.getMarketAddress(
             marketKey
@@ -504,7 +539,10 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes[] memory data = new bytes[](2);
         destinations[0] = usdc;
         destinations[1] = perpVault;
-
+        int256 currentMargin = fetchMargin(marginAccount, marketKey);
+        int256 freeCollateralPerp = int256(
+            IVault(perpVault).getFreeCollateral(marginAccount)
+        );
         data[0] = abi.encodeWithSignature(
             "approve(address,uint256)",
             perpVault,
@@ -515,37 +553,82 @@ contract PerpfiUtils is Test, Constants, IEvents {
             usdc,
             margin
         );
-        // check event for position opened on our side.
-        int256 marginDollarValue = margin.convertTokenDecimals(
-            6,
-            ERC20(contracts.vault.asset()).decimals()
-        );
         if (shouldFail) {
             vm.expectRevert(reason);
             contracts.marginManager.openPosition(marketKey, destinations, data);
         } else {
-            vm.expectEmit(
-                true,
-                true,
-                true,
-                true,
-                address(contracts.marginManager)
-            );
-            emit MarginTransferred(
-                marginAccount,
-                marketKey,
-                usdc,
-                margin,
-                marginDollarValue
-            );
-            vm.expectEmit(true, true, true, true, perpVault);
             if (margin > 0) {
-                emit Deposited(usdc, marginAccount, uint256(margin));
+                prepareMarginTransfer(trader, marketKey, uint256(marginX18));
+                data[0] = abi.encodeWithSignature(
+                    "approve(address,uint256)",
+                    perpVault,
+                    margin
+                );
+                data[1] = abi.encodeWithSignature(
+                    "deposit(address,uint256)",
+                    usdc,
+                    margin
+                );
+                vm.expectEmit(
+                    true,
+                    true,
+                    true,
+                    true,
+                    address(contracts.marginManager)
+                );
+                emit MarginTransferred(
+                    marginAccount,
+                    marketKey,
+                    usdc,
+                    marginX18,
+                    marginX18Value
+                );
+                contracts.marginManager.openPosition(
+                    marketKey,
+                    destinations,
+                    data
+                );
+                verifyMarginOnPerp(
+                    marginAccount,
+                    marketKey,
+                    currentMargin + margin
+                );
+                // existing margin + delta not just margin.
             } else {
-                emit Withdrawn(usdc, marginAccount, uint256(margin));
+                // emit Withdrawn(usdc, marginAccount, uint256(margin));
+                destinations = new address[](1);
+                data = new bytes[](1);
+                destinations[0] = perpVault;
+                data[0] = abi.encodeWithSignature(
+                    "withdraw(address,uint256)",
+                    usdc,
+                    margin.abs()
+                );
+                vm.expectEmit(
+                    true,
+                    true,
+                    true,
+                    true,
+                    address(contracts.marginManager)
+                );
+                emit MarginTransferred(
+                    marginAccount,
+                    marketKey,
+                    usdc,
+                    marginX18,
+                    marginX18Value
+                );
+                contracts.marginManager.updatePosition(
+                    marketKey,
+                    destinations,
+                    data
+                );
+                verifyMarginOnPerp(
+                    marginAccount,
+                    marketKey,
+                    freeCollateralPerp + margin
+                );
             }
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-            verifyMargin(marginAccount, marketKey, margin);
         }
         vm.stopPrank();
     }

@@ -1,15 +1,24 @@
 pragma solidity ^0.8.10;
 
 interface IMarginManager {
-    event MarginAccountOpened(address indexed, address indexed);
-    event MarginAccountLiquidated(address indexed, address indexed);
-    event MarginAccountClosed(address indexed, address indexed);
+    event MarginAccountOpened(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountLiquidated(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountClosed(
+        address indexed trader,
+        address indexed marginAccount
+    );
     event MarginTransferred(
-        address indexed,
-        bytes32 indexed,
-        address indexed,
-        int256,
-        int256
+        address indexed marginAccount,
+        bytes32 indexed marketKey,
+        address indexed tokenOut,
+        int256 marginTokenAmountX18,
+        int256 marginValueX18
     );
 
     // marginAccount, protocol, assetOut, size, openNotional
@@ -19,15 +28,16 @@ interface IMarginManager {
         int256 size,
         int256 openNotional
     );
-    event PositionUpdated(address indexed, bytes32 indexed, int256, int256);
+    event PositionUpdated(
+        address indexed marginAccount,
+        bytes32 indexed marketKey,
+        int256 size,
+        int256 openNotional
+    );
     event PositionClosed(
         address indexed marginAccount,
         bytes32 indexed marketKey
     );
-
-    function getInterestAccrued(
-        address marginAccount
-    ) external view returns (uint256);
 
     function getMarginAccount(address trader) external view returns (address);
 
@@ -37,7 +47,9 @@ interface IMarginManager {
 
     function openMarginAccount() external returns (address);
 
-    function closeMarginAccount() external;
+    function drainAllMarginAccounts(address _token) external;
+
+    function closeMarginAccount(address marginAccount) external;
 
     function openPosition(
         bytes32 marketKey,
@@ -58,11 +70,20 @@ interface IMarginManager {
     ) external;
 
     function liquidate(
-        bytes32 marketKey,
+        address trader,
+        bytes32[] calldata marketKeys,
         address[] calldata destinations,
         bytes[] calldata data
     ) external;
 
-    function updateUnsettledRealizedPnL(address trader) external;
+    function borrowFromVault(uint256 amount) external;
 
+    function repayVault(uint256 amount) external;
+
+    function swapAsset(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) external returns (uint256 amountOut);
 }

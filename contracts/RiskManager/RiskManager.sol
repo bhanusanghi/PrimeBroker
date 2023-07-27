@@ -10,16 +10,14 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import {IPriceOracle} from "../Interfaces/IPriceOracle.sol";
 import {SNXRiskManager} from "./SNXRiskManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
-import {Vault} from "../MarginPool/Vault.sol";
-import {IRiskManager, VerifyTradeResult, VerifyCloseResult} from "../Interfaces/IRiskManager.sol";
+import {IRiskManager, VerifyTradeResult, VerifyCloseResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import {IProtocolRiskManager} from "../Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IMarketManager} from "../Interfaces/IMarketManager.sol";
-import {IMarginManager} from "../Interfaces/IMarginManager.sol";
-import {CollateralManager} from "../CollateralManager.sol";
+import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
+import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
 import "hardhat/console.sol";
 
@@ -34,100 +32,57 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     using SignedSafeMath for int256;
     using SafeCast for int256;
     using SignedMath for int256;
-    IPriceOracle public priceOracle;
-    Vault public vault;
     modifier xyz() {
         _;
     }
-    IContractRegistry public contractRegistery;
-    CollateralManager public collateralManager;
-    IMarketManager public marketManager;
+    IContractRegistry public contractRegistry;
     uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
     uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
+    uint256 public liquidationPenalty = 2; // lets say it is 2 percent for now.
 
-    constructor(
-        IContractRegistry _contractRegistery,
-        IMarketManager _marketManager
-    ) {
-        contractRegistery = _contractRegistery;
-        marketManager = _marketManager;
+    constructor(IContractRegistry _contractRegistry) {
+        contractRegistry = _contractRegistry;
+        // marketManager = _marketManager;
     }
 
-    function setPriceOracle(address oracle) external {
-        // onlyOwner
-        priceOracle = IPriceOracle(oracle);
+    modifier onlyMarginManager() {
+        require(
+            contractRegistry.getContractByName(keccak256("MarginManager")) ==
+                msg.sender,
+            "RiskManager: Only margin manager"
+        );
+        _;
     }
 
-    function setCollateralManager(address _collateralManager) public {
-        collateralManager = CollateralManager(_collateralManager);
-    }
-
-    function setVault(address _vault) external {
-        vault = Vault(_vault);
-    }
-
-    // important note ->
-    // To be able to provide more leverage on our protocol (Risk increases) to avoid bad debt we need to
-    // - Track TotalDeployedMargin
-    // - When opening positions make sure
-    // TotalDeployedMargin + newMargin(could be 0) / Sum of abs(ExistingNotional) + newNotional(could be 0)  >= IMR (InitialMarginRatio)
-
-    function _verifyTrade(
+    function _decodeTradeData(
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] memory data
     ) internal returns (VerifyTradeResult memory result) {
-        address _protocolRiskManager;
-        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
-            marketKey
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
         );
-
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
+            marketManager.getRiskManagerByMarketName(marketKey)
         );
-
-        result.tokenOut = protocolRiskManager.getMarginToken();
-
-        (result.marginDelta, result.position) = protocolRiskManager
-            .decodeTxCalldata(marketKey, destinations, data);
-        if (result.marginDelta != 0) {
-            //idk unnecessary?
-            result.marginDeltaDollarValue = priceOracle
-                .convertToUSD(result.marginDelta, result.tokenOut)
-                .convertTokenDecimals(
-                    ERC20(result.tokenOut).decimals(),
-                    ERC20(vault.asset()).decimals()
-                );
-        }
+        result = protocolRiskManager.decodeTxCalldata(
+            marketKey,
+            destinations,
+            data
+        );
     }
 
     function verifyTrade(
         IMarginAccount marginAccount,
         bytes32 marketKey,
         address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
+        bytes[] memory data
     ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(marketKey, destinations, data);
-        // interest accrued is in vault decimals
-        // pnl is in vault decimals
-        // BP is in vault decimals
-        uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        ).mulDiv(100, initialMarginFactor);
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        int256 totalNotional = IMarginAccount(marginAccount)
-        // .getTotalOpeningNotional(_whitelistedMarketNames);
-            .getTotalOpeningAbsoluteNotional(_whitelistedMarketNames)
-            .toInt256();
-        // Bp is in dollars vault asset decimals
-        // Position Size is in 18 decimals -> need to convert
-        // totalNotional is in 18 decimals
-        _verifyFinalLeverage(
-            address(marginAccount),
-            result.position.openNotional
-        );
+        result = _decodeTradeData(marketKey, destinations, data);
+        // _verifyFinalLeverage(
+        //     address(marginAccount),
+        //     result.position.openNotional
+        // );
     }
 
     function verifyClosePosition(
@@ -136,77 +91,31 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address[] memory destinations,
         bytes[] memory data
     ) external returns (VerifyCloseResult memory result) {
-        address _protocolRiskManager;
-        _protocolRiskManager = marketManager.getRiskManagerByMarketName(
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
         );
-        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
-        );
-        protocolRiskManager.decodeClosePositionCalldata(
-            marginAcc,
-            marketKey,
-            destinations,
-            data
-        );
+        result = IProtocolRiskManager(_protocolRiskManager)
+            .decodeClosePositionCalldata(
+                marginAcc,
+                marketKey,
+                destinations,
+                data
+            );
     }
 
-    function verifyLiquidation(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        address[] memory destinations,
-        bytes[] memory data,
-        uint256 interestAccrued
-    ) public returns (VerifyTradeResult memory result) {
-        result = _verifyTrade(marketKey, destinations, data);
-        uint256 buyingPower = _getAbsTotalCollateralValue(
-            address(marginAccount)
-        );
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        int256 totalNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
-        _checkLiquidable(
-            marginAccount,
-            buyingPower,
-            result.position.openNotional,
-            result.marginDeltaDollarValue,
-            totalNotional
-        );
-    }
-
-    function _verifyFinalLeverage(
-        address marginAccount,
-        int256 positionOpenNotional
-    ) internal {
-        require(
-            getRemainingPositionOpenNotional(marginAccount) >=
-                positionOpenNotional.abs(),
-            "Extra leverage not allowed"
-        );
-    }
-
-    function _checkLiquidable(
-        IMarginAccount marginAccount,
-        uint256 buyingPower,
-        int256 positionOpenNotional,
-        int256 marginDeltaDollarValue,
-        int256 totalNotional
-    ) internal {
-        buyingPower = buyingPower.mulDiv(100, maintanaceMarginFactor);
-
-        // check if open
-        // require(marginDeltaDollarValue>=0, "Extra Transfer not allowed");
-        // require(
-        //     getRemainingMarginTransfer(marginAccount) >= marginDeltaDollarValue,
-        //     "Extra Transfer not allowed"
-        // );
-        // require(
-        //     getRemainingPositionOpenNotional(marginAccount) >=
-        //         positionOpenNotional,
-        //     "Extra leverage not allowed"
-        // );
-    }
+    // function _verifyFinalLeverage(
+    //     address marginAccount,
+    //     int256 positionOpenNotional
+    // ) internal {
+    //     require(
+    //         getRemainingPositionOpenNotional(marginAccount) >=
+    //             positionOpenNotional.abs(),
+    //         "Extra leverage not allowed"
+    //     );
+    // }
 
     // @TODO - should be able to get buying power from account directly.
     // total free buying power
@@ -217,21 +126,18 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function _getAbsTotalCollateralValue(
         address marginAccount
     ) internal view returns (uint256) {
-        address marginManager = contractRegistery.getContractByName(
-            keccak256("MarginManager")
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
-        uint256 interestAccrued = IMarginManager(marginManager)
-            .getInterestAccrued(marginAccount);
-        // unsettledRealizedPnL is in vault decimals
-        // unrealizedPnL is in vault decimals
-        return
-            collateralManager
-                .totalCollateralValue(marginAccount)
-                .sub(interestAccrued)
-                .toInt256()
-                .add(_getUnrealizedPnL(marginAccount))
-                .abs();
-        // .add(IMarginAccount(marginAccount).unsettledRealizedPnL())
+        uint256 interestAccrued = IMarginAccount(marginAccount)
+            .getInterestAccruedX18();
+        int256 totalCollateralValue = (collateralManager.totalCollateralValue(
+            marginAccount
+        ) - interestAccrued).toInt256() + _getUnrealizedPnL(marginAccount);
+        if (totalCollateralValue < 0) {
+            return 0;
+        }
+        return uint256(totalCollateralValue);
     }
 
     function getTotalBuyingPower(
@@ -243,37 +149,37 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
     }
 
-    // @note This finds and returns delta margin across all markets.
-
     function getCurrentDollarMarginInMarkets(
         address marginAccount
-    ) external override returns (int256 totalCurrentDollarMargin) {
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-
+    ) external view override returns (int256 totalCurrentDollarMargin) {
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
+        );
+        address[] memory _riskManagers = IMarketManager(marketManager)
+            .getUniqueRiskManagers();
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
                 .getDollarMarginInMarkets(marginAccount);
-            totalCurrentDollarMargin = totalCurrentDollarMargin.add(
-                dollarMargin
-            );
+            totalCurrentDollarMargin += dollarMargin;
         }
     }
 
-    // returns in vault base decimals
+    // Integration testing -> check unrealisedPnL vals
     function getUnrealizedPnL(
         address marginAccount
-    ) external override returns (int256 totalUnrealizedPnL) {
+    ) external view override returns (int256 totalUnrealizedPnL) {
         return _getUnrealizedPnL(marginAccount);
     }
 
-    // returns in vault base decimals
+    // returns in X18 decimals
     function _getUnrealizedPnL(
         address marginAccount
     ) internal view returns (int256 totalUnrealizedPnL) {
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
+        );
+        address[] memory _riskManagers = IMarketManager(marketManager)
+            .getUniqueRiskManagers();
         for (uint256 i = 0; i < _riskManagers.length; i++) {
             // margin acc get bitmask
             int256 unrealizedPnL = IProtocolRiskManager(_riskManagers[i])
@@ -282,28 +188,18 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         }
     }
 
-    // @note This finds all the realized accounting parameters at the TPP and returns deltaMargin representing the change in margin.
-    //realized PnL, Order Fee, settled funding fee, liquidation Penalty etc. Exact parameters will be tracked in implementatios of respective Protocol Risk Managers
-    // This should affect the Trader's Margin directly.
-    // This actually stops loss or takes profit.
-    function settleRealizedAccounting(address marginAccount) external {}
-
-    //@note This returns the total deltaMargin comprising unsettled accounting on TPPs
-    // ex -> position's PnL. pending Funding Fee etc. refer to implementations for exact params being being settled.
-    // This should effect the Buying Power of account.
-    function getUnsettledAccounting(address marginAccount) external {}
-
     function getRemainingMarginTransfer(
         address _marginAccount
     ) public view returns (uint256) {
         return _getRemainingMarginTransfer(_marginAccount);
     }
 
-    // Remaining transferrable margin will be
-    // totalCollateralInMarginAccount + availableBorrowLimit
     function _getRemainingMarginTransfer(
         address marginAccount
     ) private view returns (uint256) {
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
         uint256 totalCollateralInMarginAccount = collateralManager
             .getCollateralHeldInMarginAccount(marginAccount);
         uint256 availableBorrowLimit = getRemainingBorrowLimit(marginAccount);
@@ -322,28 +218,29 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
             address(marginAccount)
         );
-        bytes32[] memory _whitelistedMarketNames = marketManager
-            .getAllMarketNames();
-        int256 totalOpenNotional = IMarginAccount(marginAccount)
-            .getTotalOpeningNotional(_whitelistedMarketNames);
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
         return
-            (_totalCollateralValue.mul(100).div(initialMarginFactor))
-                .convertTokenDecimals(ERC20(vault.asset()).decimals(), 18)
-                .sub(totalOpenNotional.abs()); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
+            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
+                totalOpenNotional
+            ); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
     }
 
     // @todo - later add the collateral weights to the calculations below.
     // Currently does not take into account the collateral weights.
     function getCollateralInMarkets(
         address _marginAccount
-    ) public view returns (uint256 totalCollateralValue) {
-        // todo - can be moved into margin account and removed from here. See whats the better design.
-        address[] memory _riskManagers = marketManager.getUniqueRiskManagers();
-
+    ) public view returns (uint256 totalCollateralValueX18) {
+        address marketManager = contractRegistry.getContractByName(
+            keccak256("MarketManager")
+        );
+        address[] memory _riskManagers = IMarketManager(marketManager)
+            .getUniqueRiskManagers();
         for (uint256 i = 0; i < _riskManagers.length; i++) {
-            int256 dollarMargin = IProtocolRiskManager(_riskManagers[i])
+            int256 dollarMarginX18 = IProtocolRiskManager(_riskManagers[i])
                 .getDollarMarginInMarkets(_marginAccount);
-            totalCollateralValue = totalCollateralValue.add(dollarMargin.abs());
+            totalCollateralValueX18 += dollarMarginX18.abs();
         }
     }
 
@@ -376,28 +273,249 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             IMarginAccount(_marginAccount).totalBorrowed();
     }
 
-    function verifyBorrowLimit(address _marginAccount) external view {
+    function verifyBorrowLimit(
+        address _marginAccount,
+        uint256 newBorrowAmountX18
+    ) external view {
         // Get margin account borrowed amount.
         uint256 maxBorrowLimit = _getMaxBorrowLimit(_marginAccount);
-        console.log("maxBorrowLimit");
-        console.log(maxBorrowLimit);
         uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
-        require(borrowedAmount < maxBorrowLimit, "Borrow limit exceeded");
+        require(
+            borrowedAmount + newBorrowAmountX18 <= maxBorrowLimit,
+            "Borrow limit exceeded"
+        );
     }
 
     function getMarketPosition(
         address _marginAccount,
         bytes32 _marketKey
     ) public view returns (Position memory marketPosition) {
-        address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
-            _marketKey
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
         );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
-            _protocolRiskManager
+            marketManager.getRiskManagerByMarketName(_marketKey)
         );
         marketPosition = protocolRiskManager.getMarketPosition(
             _marginAccount,
             _marketKey
         );
+    }
+
+    // ===========================================Liquidation===========================================
+
+    function liquidate(
+        IMarginAccount marginAccount,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) public onlyMarginManager returns (VerifyLiquidationResult memory result) {
+        // check if account is liquidatable
+        // restrict to only marginManager.
+        (
+            bool isAccountLiquidatable,
+            bool isFullyLiquidatable
+        ) = _isAccountLiquidatable(address(marginAccount));
+        require(isAccountLiquidatable, "PRM: Account not liquidatable");
+        result.liquidator = msg.sender;
+        // TODO - add this result.liquidationPenalty =
+        result = decodeAndVerifyLiquidationCalldata( // decode and verify data
+            marginAccount,
+            isFullyLiquidatable,
+            marketKeys,
+            destinations,
+            data
+        );
+    }
+
+    function isAccountLiquidatable(
+        address marginAccount
+    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable) {
+        // check if account is liquidatable
+        return _isAccountLiquidatable(marginAccount);
+        // return _isAccountLiquidatable(marginAccount);
+    }
+
+    function isAccountHealthy(
+        address marginAccount
+    ) external view returns (bool isHealthy) {
+        return _isAccountHealthy(marginAccount);
+        // check like is liquidatable but with IMR
+    }
+
+    function _isAccountHealthy(
+        address marginAccount
+    ) internal view returns (bool isHealthy) {
+        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        uint256 minimumMarginRequirement = totalOpenNotional
+            .mul(initialMarginFactor)
+            .div(100);
+        if (accountValue >= minimumMarginRequirement) {
+            isHealthy = true;
+        }
+        // check if account is liquidatable
+    }
+
+    function _isAccountLiquidatable(
+        address marginAccount
+    ) internal view returns (bool isLiquidatable, bool isFullyLiquidatable) {
+        // Add conditions for partial liquidation.
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketKeys();
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        uint256 minimumMarginRequirement = totalOpenNotional
+            .mul(maintanaceMarginFactor)
+            .div(100);
+        if (accountValue < minimumMarginRequirement) {
+            isLiquidatable = true;
+        } else {
+            isLiquidatable = false;
+        }
+        isFullyLiquidatable = true;
+
+        // check if account is liquidatable
+    }
+
+    // returns in 18 decimals.
+    function getMinimumMaintenanceMarginRequirement(
+        address marginAccount
+    ) public view returns (uint256) {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        bytes32[] memory _whitelistedMarketNames = marketManager
+            .getAllMarketKeys();
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        uint256 minimumMarginRequirement = totalOpenNotional
+            .mul(maintanaceMarginFactor)
+            .div(100);
+        return minimumMarginRequirement;
+    }
+
+    function getAccountValue(
+        address marginAccount
+    ) public view returns (uint256) {
+        return _getAbsTotalCollateralValue(marginAccount);
+    }
+
+    // This function gets the total account value.
+    // And compares it with all of trader's liabilities.
+    // If the account value is less than the liabilities, then the trader is bankrupt.
+    // Liabilities include -> (borrowed+interest) + liquidationPenalty.
+    // liquidationPenalty is totalNotional * liquidationPenaltyFactor
+    // vaultLiability = borrowed + interest
+    function isTraderBankrupt(
+        address marginAccount,
+        uint256 vaultLiability
+    ) public view returns (bool isBankrupt) {
+        // check if account is liquidatable
+        (
+            bool isAccountLiquidatable,
+            bool isFullyLiquidatable
+        ) = _isAccountLiquidatable(marginAccount);
+        if (!isAccountLiquidatable) return false;
+        uint256 penalty = _getLiquidationPenalty(
+            address(marginAccount),
+            isFullyLiquidatable
+        );
+        return
+            _getAbsTotalCollateralValue(marginAccount) <
+            vaultLiability + penalty;
+    }
+
+    function _getLiquidationPenalty(
+        address marginAccount,
+        bool isFullyLiquidatable
+    ) internal view returns (uint256 penalty) {
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        uint256 penalty;
+        if (isFullyLiquidatable) {
+            penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
+        } else {
+            // TODO - Add partial liquidation penalty logic here.
+            penalty = totalOpenNotional.mul(liquidationPenalty).div(100);
+        }
+    }
+
+    function decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32[] memory marketKeys,
+        address[] memory destinations,
+        bytes[] calldata data
+    ) public returns (VerifyLiquidationResult memory result) {
+        require(
+            destinations.length == data.length &&
+                destinations.length == marketKeys.length,
+            "PRM: Destinations and data length mismatch"
+        );
+        for (uint256 i = 0; i < destinations.length; i++) {
+            VerifyLiquidationResult
+                memory _result = _decodeAndVerifyLiquidationCalldata(
+                    marginAcc,
+                    isFullyLiquidatable,
+                    marketKeys[i],
+                    destinations[i],
+                    data[i]
+                );
+            result.marginDelta += _result.marginDelta;
+        }
+        // Add stuff for full liquidation
+
+        // Add checks for half liquidation
+    }
+
+    function _decodeAndVerifyLiquidationCalldata(
+        IMarginAccount marginAcc,
+        bool isFullyLiquidatable,
+        bytes32 marketKey,
+        address destination,
+        bytes calldata data
+    ) internal returns (VerifyLiquidationResult memory result) {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+            marketManager.getRiskManagerByMarketName(marketKey)
+        );
+
+        result = protocolRiskManager.decodeAndVerifyLiquidationCalldata(
+            marginAcc,
+            isFullyLiquidatable,
+            marketKey,
+            destination,
+            data
+        );
+    }
+
+    function getTotalAbsOpenNotionalFromMarkets(
+        address marginAccount
+    ) public view returns (uint256 totalAbsOpenNotional) {
+        IMarketManager marketManager = IMarketManager(
+            contractRegistry.getContractByName(keccak256("MarketManager"))
+        );
+        address[] memory protocolRiskManagers = marketManager
+            .getUniqueRiskManagers();
+        for (uint256 i = 0; i < protocolRiskManagers.length; i++) {
+            IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
+                protocolRiskManagers[i]
+            );
+            totalAbsOpenNotional += protocolRiskManager.getTotalAbsOpenNotional(
+                marginAccount
+            );
+        }
     }
 }

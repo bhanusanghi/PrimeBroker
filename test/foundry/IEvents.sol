@@ -1,4 +1,5 @@
 pragma solidity ^0.8.10;
+import {IMarginAccountFactory} from "../../contracts/Interfaces/IMarginAccountFactory.sol";
 import {IAddressResolver} from "../../contracts/Interfaces/SNX/IAddressResolver.sol";
 import {IProtocolRiskManager} from "../../contracts/Interfaces/IProtocolRiskManager.sol";
 import {IContractRegistry} from "../../contracts/Interfaces/IContractRegistry.sol";
@@ -23,6 +24,7 @@ interface IEvents {
         IProtocolRiskManager snxRiskManager;
         IInterestRateModel interestModel;
         Vault vault;
+        IMarginAccountFactory marginAccountFactory;
     }
     struct OpenPositionParams {
         address baseToken;
@@ -103,8 +105,7 @@ interface IEvents {
     event CollateralAdded(
         address indexed,
         address indexed,
-        uint256 indexed,
-        uint256
+        uint256 indexed tokenAmount
     );
     // ============= Margin Manager Events =============
     event MarginTransferred(
