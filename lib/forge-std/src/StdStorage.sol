@@ -88,7 +88,7 @@ library stdStorageSafe {
                 vm.store(who, reads[i], prev);
             }
         } else {
-            require(false, "stdStorage find(StdStorage): No storage use detected for target.");
+            revert("stdStorage find(StdStorage): No storage use detected for target.");
         }
 
         require(
@@ -237,6 +237,10 @@ library stdStorage {
 
     function checked_write(StdStorage storage self, uint256 amt) internal {
         checked_write(self, bytes32(amt));
+    }
+
+    function checked_write_int(StdStorage storage self, int256 val) internal {
+        checked_write(self, bytes32(uint256(val)));
     }
 
     function checked_write(StdStorage storage self, bool write) internal {
