@@ -19,6 +19,7 @@ OpenPosition_MarginManager_UnitTest.t.sol
     ├── existing position
     ├── new Position 
         ├── Invalid trade
+        │   └── It should revert
         ├── Valid trade
             ├── transferring margin positive
                 ├── Calls multi tx

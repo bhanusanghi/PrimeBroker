@@ -81,14 +81,14 @@ contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
             perpAaveKey,
             int256(100 * ONE_USDC),
             true,
-            "Invalid Trade"
+            abi.encode("Invalid Trade")
         );
         perpfiUtils.addAndVerifyPositionSize(
             bob,
             perpAaveKey,
             1 ether,
             true,
-            "Invalid Trade"
+            abi.encode("Invalid Trade")
         );
     }
 }
