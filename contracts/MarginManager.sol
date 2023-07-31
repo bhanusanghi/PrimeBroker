@@ -124,7 +124,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        require(amount != 0, "Borrow amount should be greater than zero");
+        require(amount != 0, "MM: Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
     }
 
@@ -496,6 +496,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 interestAccrued = marginAccount
             .getInterestAccruedX18()
             .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
+        require(
+            amount + interestAccrued > 0,
+            "MM: repaying 0 amount not allowed"
+        );
         vault.repay(address(marginAccount), amount, interestAccrued);
         marginAccount.decreaseDebt(amount);
     }

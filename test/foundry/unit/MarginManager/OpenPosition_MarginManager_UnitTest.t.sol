@@ -91,4 +91,25 @@ contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
             abi.encode("Invalid Trade")
         );
     }
+
+    function test_openPosition_valid_trade() public {
+        uint256 chronuxMargin = 1000 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            int256(1000 * ONE_USDC),
+            false,
+            ""
+        );
+        perpfiUtils.addAndVerifyPositionSize(
+            bob,
+            perpAaveKey,
+            1 ether,
+            false,
+            ""
+        );
+    }
+
 }
+
