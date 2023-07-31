@@ -124,6 +124,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
+            address(marginAccount)
+        );
+        require(!isLiquidatable, "MM: Account is liquidatable");
         require(amount != 0, "MM: Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
     }
@@ -161,6 +165,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             collateralManager.isAllowedCollateral(tokenOut),
             "MM: Invalid tokenOut"
         );
+        if (tokenIn == tokenOut) revert("MM: Same token");
         // swap
         amountOut = _swapAsset(
             marginAccount,
@@ -170,8 +175,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             minAmountOut
         );
         // check if health factor is good enough now.
-        if (!riskManager.isAccountHealthy(address(marginAccount)))
-            revert("MM: Unhealthy account");
+        require(
+            riskManager.isAccountHealthy(address(marginAccount)),
+            "MM: Unhealthy account"
+        );
     }
 
     function updatePosition(
@@ -360,8 +367,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // if (verificationResult.marginDelta > 0) {
         //     riskManager.verifyBorrowLimit(address(marginAccount));
         // }
-        if (!riskManager.isAccountHealthy(address(marginAccount)))
-            revert("MM: Unhealthy account");
+        require(
+            riskManager.isAccountHealthy(address(marginAccount)),
+            "MM: Unhealthy account"
+        );
     }
 
     // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values.
@@ -382,8 +391,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             "MM: Invalid close position call"
         );
         // riskManager.verifyBorrowLimit(address(marginAccount));
-        if (!riskManager.isAccountHealthy(address(marginAccount)))
-            revert("MM: Unhealthy account");
+        require(
+            riskManager.isAccountHealthy(address(marginAccount)),
+            "MM: Unhealthy account"
+        );
     }
 
     function _swapAsset(

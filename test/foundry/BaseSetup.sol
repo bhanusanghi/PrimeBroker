@@ -78,6 +78,7 @@ contract BaseSetup is Test, IEvents {
     // ============= Forked Addresses =============
 
     address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
+    address usdt = 0x94b008aA00579c1307B0EF2c499aD98a8ce58e58;
     address usdcWhaleContract = 0x625E7708f30cA75bfd92586e17077590C60eb4cD;
     address susdWhaleContract = 0xd16232ad60188B68076a235c65d692090caba155;
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
@@ -397,12 +398,12 @@ contract BaseSetup is Test, IEvents {
             usdc,
             0x061b87122Ed14b9526A813209C8a59a633257bAb
         );
-        contracts.contractRegistry.addCurvePoolTokenIndex(
+        contracts.contractRegistry.updateCurvePoolTokenIndex(
             0x061b87122Ed14b9526A813209C8a59a633257bAb,
             susd,
             0
         );
-        contracts.contractRegistry.addCurvePoolTokenIndex(
+        contracts.contractRegistry.updateCurvePoolTokenIndex(
             0x061b87122Ed14b9526A813209C8a59a633257bAb,
             usdc,
             2
@@ -470,12 +471,12 @@ contract BaseSetup is Test, IEvents {
             usdc,
             0x061b87122Ed14b9526A813209C8a59a633257bAb
         );
-        contracts.contractRegistry.addCurvePoolTokenIndex(
+        contracts.contractRegistry.updateCurvePoolTokenIndex(
             0x061b87122Ed14b9526A813209C8a59a633257bAb,
             susd,
             0
         );
-        contracts.contractRegistry.addCurvePoolTokenIndex(
+        contracts.contractRegistry.updateCurvePoolTokenIndex(
             0x061b87122Ed14b9526A813209C8a59a633257bAb,
             usdc,
             2

@@ -23,13 +23,17 @@ interface IContractRegistry {
         address pool
     ) external;
 
-    function addCurvePoolTokenIndex(
+    function updateCurvePoolTokenIndex(
         address curvePool,
         address token,
         int128 index
     ) external;
 
-    function removeCurvePool(address tokenIn, address tokenOut) external;
+    function updateCurvePool(
+        address tokenIn,
+        address tokenOut,
+        address pool
+    ) external;
 
     function getCurvePoolTokenIndex(
         address curvePool,

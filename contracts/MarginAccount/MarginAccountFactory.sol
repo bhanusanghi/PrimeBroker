@@ -21,7 +21,7 @@ contract MarginAccountFactory is IMarginAccountFactory {
         _;
     }
 
-    constructor(address _marginManager, address _contractRegistry) public {
+    constructor(address _marginManager, address _contractRegistry) {
         marginManager = _marginManager;
         owner = msg.sender;
         contractRegistry = IContractRegistry(_contractRegistry);

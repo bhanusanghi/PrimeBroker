@@ -16,3 +16,4 @@ bin/
 broadcast/
 .idea/
 *.sh
+.DS_Store

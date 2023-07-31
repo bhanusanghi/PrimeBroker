@@ -237,11 +237,11 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) public view returns (bool isBankrupt) {
         // check if account is liquidatable
         (
-            bool isAccountLiquidatable,
+            bool isAccountLiquidatableLocal,
             bool isFullyLiquidatable,
             uint256 penalty
         ) = _isAccountLiquidatable(marginAccount);
-        if (!isAccountLiquidatable) return false;
+        if (!isAccountLiquidatableLocal) return false;
         return
             _getAbsTotalCollateralValue(marginAccount) <
             vaultLiability + penalty;
