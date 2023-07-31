@@ -68,13 +68,20 @@ SwapAsset_MarginManager_UnitTest.t.sol
     │   └── It should revert
     ├── Non Liquidatable   
         ├── token in is invalid 
+        │   └── It should revert
         ├── token out is invalid
+        │   └── It should revert
         ├── token Out = token In
+        │   └── It should revert
         ├── token in and out are valid allowedcollateral
-            ├── invalid amount input/out/min amount out
+            ├── invalid amount input value
             │   └── It should revert
             ├── valid amount input/out/min amount out
+                ├── no path found
+                │   └── It should revert
                 ├── final health is bad
+                │   └── It should revert
+                ├── slippage > configured slippage
                 │   └── It should revert
                 ├── final health is good
                     └── final token balances are updated for MA

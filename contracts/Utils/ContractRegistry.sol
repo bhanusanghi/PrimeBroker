@@ -63,24 +63,28 @@ contract ContractRegistry is IContractRegistry {
         address tokenIn,
         address tokenOut,
         address pool
-    ) public {
+    ) public onlyOwner {
         curvePools[tokenIn][tokenOut] = pool; // zero address allowed to disable a pool.
     }
 
-    function addCurvePoolTokenIndex(
+    function updateCurvePoolTokenIndex(
         address curvePool,
         address token,
         int128 index
-    ) public {
+    ) public onlyOwner {
         require(curvePool != address(0), "Invalid curve pool, zero address");
         curvePoolTokenIndex[curvePool][token] = index;
     }
 
-    function removeCurvePool(address tokenIn, address tokenOut) public {
+    function updateCurvePool(
+        address tokenIn,
+        address tokenOut,
+        address pool
+    ) public onlyOwner {
         require(
             curvePools[tokenIn][tokenOut] != address(0),
             "Curve pool doesn't exist"
         );
-        curvePools[tokenIn][tokenOut] = address(0);
+        curvePools[tokenIn][tokenOut] = pool;
     }
 }
