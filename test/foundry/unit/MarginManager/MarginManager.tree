@@ -22,14 +22,11 @@ OpenPosition_MarginManager_UnitTest.t.sol
         │   └── It should revert
         ├── Valid trade
             ├── transferring margin positive
-                ├── Calls multi tx
-                    ├── If fails
-                    │   └── It should revert
-                    ├── If successful
-                    │   └── Fetches new position
-                    │   └── stores new fetched position
-                    │   └── Calls add position on marginAccount
-                    │   └── Emits margin transferred
+                │   └── Calls multi tx
+                │   └── Fetches new position
+                │   └── stores new fetched position
+                │   └── Calls add position on marginAccount
+                │   └── Emits margin transferred
             ├── transferring margin negative
             ├── opening position only
             ├── margin transfer with opening position 
@@ -53,11 +50,16 @@ RepayVault_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount
 │   └── It should revert
 ├── ValidMarginAccount
-    ├── zeroAmount
+    ├── Never Borrowed
     │   └── It should revert
-    ├── nonZeroAmount
-        │   └── Calls decreaseDebt on MarginAccount
-        │   └── Calls repay on Vault
+    ├── Has a valid borrowed amount
+        ├── repaying with 0 as input
+        │   └── It should repay only interest amount
+        ├── repay more than borrowed amount
+        │   └── reverts
+        ├── repay valid amount
+            │   └── Calls decreaseDebt on MarginAccount
+            │   └── Calls repay on Vault
 
 SwapAsset_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount

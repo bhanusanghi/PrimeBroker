@@ -308,6 +308,7 @@ contract BaseSetup is Test, IEvents {
         vm.startPrank(usdcWhaleContract);
         IERC20(usdc).transfer(admin, 2 * ONE_MILLION_USDC);
         IERC20(usdc).transfer(bob, ONE_MILLION_USDC);
+        IERC20(usdc).transfer(alice, ONE_MILLION_USDC);
         vm.stopPrank();
         vm.startPrank(susdWhaleContract);
         IERC20(susd).transfer(admin, 2 * ONE_MILLION_SUSD);
