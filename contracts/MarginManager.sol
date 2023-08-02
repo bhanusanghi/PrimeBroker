@@ -18,6 +18,7 @@ import {IMarginManager} from "./Interfaces/IMarginManager.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccountFactory} from "./Interfaces/IMarginAccountFactory.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "hardhat/console.sol";
 
 contract MarginManager is IMarginManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -97,10 +98,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
+        // (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
+        //     address(marginAccount)
+        // );
+        // require(!isLiquidatable, "MM: Account is liquidatable");
         _syncPositions(address(marginAccount));
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
@@ -190,10 +191,11 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
+        // (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
+        //     address(marginAccount)
+        // );
+        // require(!isLiquidatable, "MM: Account is liquidatable");
+
         // Add check for an existing position.
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
@@ -222,10 +224,10 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
+        require(
+            marginAccount.isActivePosition(marketKey),
+            "MM: Trader does not have active position in this market"
         );
-        require(!isLiquidatable, "MM: Account is liquidatable");
         // @note fee is assumed to be in usdc value
         // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
@@ -271,15 +273,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             vaultLiability
         );
         _swapAllTokensToVaultAsset(marginAccount);
+        if (vaultLiability > 0) {
+            _repayMaxVaultDebt(marginAccount);
+        }
         if (!hasBadDebt) {
             // pay money to liquidator based on config.
-            // pay interest
+            marginAccount.transferTokens(
+                vault.asset(),
+                result.liquidator,
+                result.liquidationPenaltyX18.convertTokenDecimals(
+                    18,
+                    IERC20Metadata(vault.asset()).decimals()
+                )
+            );
         } else {
             // bring insurance fund in to cover the negative balance.
             // pay interest
             // pay liquidator
         }
-        _repayMaxVaultDebt(marginAccount);
+        emit AccountLiquidated(
+            address(marginAccount),
+            result.liquidator,
+            result.liquidationPenaltyX18
+        );
     }
 
     function syncPositions(address trader) public {
@@ -440,6 +456,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 vaultAssetBalance = IERC20(vault.asset()).balanceOf(
             address(marginAccount)
         );
+        // Will this ever hinder liquidation. If yes, then we need to remove this check
         if (vaultAssetBalance == 0)
             revert("MM: Not enough balance in MA to repay vault debt");
         uint256 interestAccrued = marginAccount
@@ -483,7 +500,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         require(
             marginInMarkets == 0,
-            "MM: Complete Mmrgin not transferred back to Chronux"
+            "MM: Margin not transferred back to Chronux"
         );
         // When margin in market is 0 it implies all positions are also closed.
     }
