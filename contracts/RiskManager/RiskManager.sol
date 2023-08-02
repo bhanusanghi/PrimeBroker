@@ -35,7 +35,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     IContractRegistry public contractRegistry;
     uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
     uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
-    uint256 public liquidationPenalty = 2; // lets say it is 2 percent for now.
+    uint256 public liquidationPenaltyPercentage = 2; // lets say it is 2 percent for now.
 
     constructor(IContractRegistry _contractRegistry) {
         require(
@@ -179,11 +179,11 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // check if account is liquidatable
         // restrict to only marginManager.
         (
-            bool isAccountLiquidatable,
+            bool isLiquidatable,
             bool isFullyLiquidatable,
             uint256 penalty
         ) = _isAccountLiquidatable(address(marginAccount));
-        require(isAccountLiquidatable, "PRM: Account not liquidatable");
+        require(isLiquidatable, "PRM: Account not liquidatable");
         // TODO - add this result.liquidationPenalty =
         decodeAndVerifyLiquidationCalldata( // decode and verify data
             marginAccount,
@@ -193,7 +193,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
             data
         );
         result.isFullyLiquidatable = isFullyLiquidatable;
-        result.liquidationPenalty = penalty;
+        result.liquidationPenaltyX18 = penalty;
     }
 
     function isAccountLiquidatable(
@@ -384,7 +384,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         );
         if (accountValue < minimumMarginRequirement) {
             isLiquidatable = true;
-            penalty = accountValue.mul(liquidationPenalty).div(100);
+            penalty = accountValue.mul(liquidationPenaltyPercentage).div(100);
             // add partial liquidation part here.
             isFullyLiquidatable = true;
         } else {

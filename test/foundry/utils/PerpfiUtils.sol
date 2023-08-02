@@ -693,6 +693,39 @@ contract PerpfiUtils is Test, Constants, IEvents {
         vm.stopPrank();
     }
 
+    function revertClosePosition(
+        address trader,
+        bytes32 marketKey,
+        bytes calldata errorMessage
+    ) public {
+        vm.startPrank(trader);
+        address marketAddress = contracts.marketManager.getMarketAddress(
+            marketKey
+        );
+        address baseToken = contracts.marketManager.getMarketBaseToken(
+            marketKey
+        );
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+
+        address[] memory destinations = new address[](1);
+        bytes[] memory data = new bytes[](1);
+        destinations[0] = marketAddress;
+        data[0] = abi.encodeWithSelector(
+            0x00aa9a89,
+            baseToken,
+            0,
+            0,
+            type(uint256).max,
+            bytes32(0)
+        );
+        // check event for position opened on our side.
+        vm.expectRevert(errorMessage);
+        contracts.marginManager.closePosition(marketKey, destinations, data);
+        vm.stopPrank();
+    }
+
     function withdrawAllMargin(address trader, address token) public {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader

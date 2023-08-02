@@ -86,11 +86,53 @@ SwapAsset_MarginManager_UnitTest.t.sol
                 ├── final health is good
                     └── final token balances are updated for MA
     
+liquidate_MarginManager_UnitTest.t.sol
+├── InvalidMarginAccount
+│   └── It should revert
+├── ValidMarginAccount
+    ├── verification fails from risk manager   
+    │   └── It should revert
+    ├── verification passes from risk manager   
+        ├── final margin in markets is not zero
+        │   └── It should revert
+        ├── final margin in markets is zero
+            ├── no vault liability
+            ???
+            ├── has vault liability
+                ├── has vault tokens only
+                ├── has other tokens too
+                ├── no bad debt
+                │   └── swaps all assets to vault asset
+                │   └── Pays liquidator
+                │   └── Final margin in TPP is zero
+                │   └── all remaining collateral becomes withdrawable
+                │   └── Emits a liquidation event    
+                ├── has bad debt
+                ???
+
+closePosition_MarginManager_UnitTest.t.sol
+├── InvalidMarginAccount
+│   └── It should revert
+├── ValidMarginAccount
+    ├── closing non existent position because trader never opened a position
+        │   └── It should revert
+    ├── closing non existent position because of liquidation on TPP
+        │   └── It should revert
+        │   └── updates the position in MA (need to resolve bug here)
+    ├── closing existing position
+        ├── Invalid close call
+        ├── Valid close call
+            ├── final position size is not zero
+            ├── final position size is zero
+                ├── Final account health is bad
+                    │   └── It should revert
+                ├── Final account health is good
+                    │   └── emits event
+                    │   └── updates position in MA
+
 
 
 updatePosition_MarginManager_UnitTest.t.sol
-closePosition_MarginManager_UnitTest.t.sol
-liquidate_MarginManager_UnitTest.t.sol
 syncPositions_MarginManager_UnitTest.t.sol
 
 

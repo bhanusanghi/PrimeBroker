@@ -20,7 +20,7 @@ struct VerifyCloseResult {
 struct VerifyLiquidationResult {
     bool isFullyLiquidatable;
     address liquidator;
-    uint256 liquidationPenalty;
+    uint256 liquidationPenaltyX18;
 }
 
 interface IRiskManager {
