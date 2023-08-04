@@ -49,7 +49,7 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
         int256 notional = int256(100 * ONE_USDC);
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
         perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, margin, false, "");
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -91,7 +91,7 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
         int256 notional = int256(100 ether);
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
         perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, margin, false, "");
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -100,7 +100,7 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
         );
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, 1 ether, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, 1 ether, false, "");
         vm.mockCall(
             address(contracts.riskManager),
             abi.encodeWithSelector(IRiskManager.verifyLiquidation.selector),
@@ -133,7 +133,7 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         int256 positionSize = (notional * 1 ether) / int256(assetPrice);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
         utils.mineBlocks(100, 1 days); // accrues funding rate and interest
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);

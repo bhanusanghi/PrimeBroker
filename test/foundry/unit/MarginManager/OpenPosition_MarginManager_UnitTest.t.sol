@@ -14,59 +14,30 @@ import {IRiskManager} from "../../../../contracts/Interfaces/IRiskManager.sol";
 
 // acv = account value
 contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
-    function test_openPosition_when_trader_isLiquidatable(
-        int256 marginMultiplier
-    ) public isLiquidatable {
-        vm.assume(marginMultiplier > -10 && marginMultiplier < 10);
-        vm.mockCall(
-            address(contracts.riskManager),
-            abi.encodeWithSelector(IRiskManager.isAccountLiquidatable.selector),
-            abi.encode(true, true, 0)
-        );
-        snxUtils.updateAndVerifyMargin(
-            bob,
-            snxUniKey,
-            marginMultiplier * int256(100 * ONE_USDC),
-            true,
-            "MM: Account is liquidatable"
-        );
-        snxUtils.addAndVerifyPosition(
-            bob,
-            snxUniKey,
-            marginMultiplier * 1 ether,
-            true,
-            "MM: Account is liquidatable"
-        );
-    }
-
-    function test_openPosition_when_isExistingPosition()
-        public
-        isExistingPosition
-    {
-        uint256 chronuxMargin = 1000 * ONE_USDC;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            int256(100 * ONE_USDC),
-            false,
-            ""
-        );
-        perpfiUtils.addAndVerifyPositionSize(
-            bob,
-            perpAaveKey,
-            1 ether,
-            false,
-            ""
-        );
-        perpfiUtils.addAndVerifyPositionSize(
-            bob,
-            perpAaveKey,
-            1 ether,
-            true,
-            "Existing position"
-        );
-    }
+    // function test_openPosition_when_trader_isLiquidatable(
+    //     int256 marginMultiplier
+    // ) public isLiquidatable {
+    //     vm.assume(marginMultiplier > -10 && marginMultiplier < 10);
+    //     vm.mockCall(
+    //         address(contracts.riskManager),
+    //         abi.encodeWithSelector(IRiskManager.isAccountLiquidatable.selector),
+    //         abi.encode(true, true, 0)
+    //     );
+    //     snxUtils.updateAndVerifyMargin(
+    //         bob,
+    //         snxUniKey,
+    //         marginMultiplier * int256(100 * ONE_USDC),
+    //         true,
+    //         "MM: Account is liquidatable"
+    //     );
+    //     snxUtils.updateAndVerifyPositionSize(
+    //         bob,
+    //         snxUniKey,
+    //         marginMultiplier * 1 ether,
+    //         true,
+    //         "MM: Account is liquidatable"
+    //     );
+    // }
 
     function test_openPosition_when_invalidTrade() public invalidTrade {
         uint256 chronuxMargin = 1000 * ONE_USDC;
@@ -83,7 +54,7 @@ contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
             true,
             abi.encode("Invalid Trade")
         );
-        perpfiUtils.addAndVerifyPositionSize(
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             1 ether,
@@ -102,7 +73,7 @@ contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionSize(
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             1 ether,

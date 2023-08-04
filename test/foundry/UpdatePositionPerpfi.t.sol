@@ -70,7 +70,7 @@ contract UpdatePositionPerpfi is BaseSetup {
         vm.assume(
             notional > 100 ether && notional < expectedRemainingNotional / 2
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             -notional,
@@ -117,7 +117,7 @@ contract UpdatePositionPerpfi is BaseSetup {
         vm.assume(
             notional > 100 ether && notional < expectedRemainingNotional / 2
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             -notional,
@@ -169,7 +169,7 @@ contract UpdatePositionPerpfi is BaseSetup {
         vm.assume(
             notional > 100 ether && notional < expectedRemainingNotional / 2
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -220,7 +220,7 @@ contract UpdatePositionPerpfi is BaseSetup {
         vm.assume(
             notional > 100 ether && notional < expectedRemainingNotional / 2
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,

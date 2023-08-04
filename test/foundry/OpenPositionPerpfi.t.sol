@@ -110,7 +110,7 @@ contract OpenPositionPerpfi is BaseSetup {
             notional > expectedRemainingNotional &&
                 notional < 2 * expectedRemainingNotional
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             -notional,
@@ -139,7 +139,7 @@ contract OpenPositionPerpfi is BaseSetup {
         );
         vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
 
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             -notional,
@@ -174,7 +174,7 @@ contract OpenPositionPerpfi is BaseSetup {
         uint256 maxSize = uint256(expectedRemainingNotional) / markPrice;
 
         vm.assume(size > 1 ether && size < int256(maxSize));
-        perpfiUtils.addAndVerifyPositionSize(
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             -size,
@@ -209,7 +209,7 @@ contract OpenPositionPerpfi is BaseSetup {
         uint256 maxSize = uint256(expectedRemainingNotional) / markPrice;
 
         vm.assume(size > 1 ether && size < int256(maxSize));
-        perpfiUtils.addAndVerifyPositionSize(bob, perpAaveKey, size, false, "");
+        perpfiUtils.updateAndVerifyPositionSize(bob, perpAaveKey, size, false, "");
         // check third party events and value by using static call.
     }
 
@@ -232,7 +232,7 @@ contract OpenPositionPerpfi is BaseSetup {
             ""
         );
         vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -257,7 +257,7 @@ contract OpenPositionPerpfi is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,

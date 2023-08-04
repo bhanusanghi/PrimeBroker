@@ -56,7 +56,7 @@ contract TransferMarginSNX is BaseSetup {
         destinations[0] = uniFuturesMarket;
         data[0] = transferMarginData;
         vm.prank(bob);
-        contracts.marginManager.openPosition(invalidKey, destinations, data);
+        contracts.marginManager.updatePosition(invalidKey, destinations, data);
     }
 
     function testBobTransfersExcessMarginSingleAttempt() public {
@@ -123,7 +123,7 @@ contract TransferMarginSNX is BaseSetup {
     //         "transferMargin(int256)",
     //         int256(marginSNX)
     //     );
-    //     bytes memory openPositionData = abi.encodeWithSignature(
+    //     bytes memory updatePositionData = abi.encodeWithSignature(
     //         "modifyPositionWithTracking(int256,bytes32)",
     //         int256(positionSize),
     //         trackingCode
@@ -134,8 +134,8 @@ contract TransferMarginSNX is BaseSetup {
     //     destinations[0] = ethFuturesMarket;
     //     destinations[1] = ethFuturesMarket;
     //     data[0] = transferMarginData;
-    //     data[1] = openPositionData;
-    //     contracts.marginManager.openPosition(snxUniKey, destinations, data);
+    //     data[1] = updatePositionData;
+    //     contracts.marginManager.updatePosition(snxUniKey, destinations, data);
     // }
 
     function testCorrectAmountOfMarginIsDepositedInTPP(
@@ -199,7 +199,7 @@ contract TransferMarginSNX is BaseSetup {
     //     data[2] = transferMarginData3;
 
     //     vm.expectRevert(bytes("Extra Transfer not allowed"));
-    //     contracts.marginManager.openPosition(snxUniKey, destinations, data);
+    //     contracts.marginManager.updatePosition(snxUniKey, destinations, data);
     // }
 
     //@testing issues

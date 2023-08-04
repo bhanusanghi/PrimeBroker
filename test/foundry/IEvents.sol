@@ -116,7 +116,6 @@ interface IEvents {
         int256
     );
 
-    event PositionAdded(address indexed, bytes32 indexed, int256, int256);
     event PositionUpdated(address indexed, bytes32 indexed, int256, int256);
     event PositionClosed(
         address indexed marginAccount,

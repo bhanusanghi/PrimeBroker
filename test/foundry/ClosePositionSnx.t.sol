@@ -48,7 +48,7 @@ contract ClosePositionSnx is BaseSetup {
         );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
         snxUtils.closeAndVerifyPosition(bob, snxUniKey);
     }
 }

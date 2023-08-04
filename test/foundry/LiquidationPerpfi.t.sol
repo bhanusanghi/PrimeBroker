@@ -60,7 +60,7 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             openNotional,
@@ -109,7 +109,7 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             openNotional,
@@ -157,7 +157,7 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             openNotional,
@@ -227,7 +227,7 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             openNotional,

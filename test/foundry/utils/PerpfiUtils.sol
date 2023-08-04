@@ -162,165 +162,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
         );
     }
 
-    function addAndVerifyPositionSize(
-        address trader,
-        bytes32 marketKey,
-        int256 positionSize,
-        bool shouldFail,
-        bytes memory reason
-    ) public {
-        vm.startPrank(trader);
-        address marketAddress = contracts.marketManager.getMarketAddress(
-            marketKey
-        );
-        address marginAccount = contracts.marginManager.getMarginAccount(
-            trader
-        );
-        address baseAsset = contracts.marketManager.getMarketBaseToken(
-            marketKey
-        );
-        bytes memory openPositionData;
-        if (positionSize < 0) {
-            openPositionData = abi.encodeWithSelector(
-                0xb6b1b6c3,
-                baseAsset,
-                true, // isShort
-                true,
-                -positionSize,
-                0,
-                type(uint256).max,
-                uint160(0),
-                bytes32(0)
-            );
-        } else {
-            openPositionData = abi.encodeWithSelector(
-                0xb6b1b6c3,
-                baseAsset,
-                false, // isShort
-                false,
-                positionSize,
-                0,
-                type(uint256).max,
-                uint160(0),
-                bytes32(0)
-            );
-        }
-        address[] memory destinations = new address[](1);
-        bytes[] memory data = new bytes[](1);
-        destinations[0] = marketAddress;
-        data[0] = openPositionData;
-        // check event for position opened on our side.
-        // (
-        //     int256 finalPositionSize,
-        //     int256 finalPositionNotional
-        // ) = fetchPosition(
-        //         contracts.marginManager.getMarginAccount(trader),
-        //         marketKey
-        //     );
-        if (!shouldFail) {
-            //     vm.expectEmit(
-            //         true,
-            //         true,
-            //         true,
-            //         true,
-            //         address(contracts.marginManager)
-            //     );
-            //     emit PositionAdded(
-            //         marginAccount,
-            //         marketKey,
-            //         finalPositionSize,
-            //         finalPositionNotional
-            //     );
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-            verifyPositionSize(marginAccount, marketKey, positionSize);
-        } else {
-            vm.expectRevert(reason);
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-        }
-
-        vm.stopPrank();
-    }
-
-    function addAndVerifyPositionNotional(
-        address trader,
-        bytes32 marketKey,
-        int256 positionNotional,
-        bool shouldFail,
-        bytes memory reason
-    ) public {
-        vm.startPrank(trader);
-        address marketAddress = contracts.marketManager.getMarketAddress(
-            marketKey
-        );
-        address marginAccount = contracts.marginManager.getMarginAccount(
-            trader
-        );
-        address baseAsset = contracts.marketManager.getMarketBaseToken(
-            marketKey
-        );
-        bytes memory openPositionData;
-        if (positionNotional < 0) {
-            openPositionData = abi.encodeWithSelector(
-                0xb6b1b6c3,
-                baseAsset,
-                true, // isShort
-                false,
-                -positionNotional,
-                0,
-                type(uint256).max,
-                uint160(0),
-                bytes32(0)
-            );
-        } else {
-            openPositionData = abi.encodeWithSelector(
-                0xb6b1b6c3,
-                baseAsset,
-                false, // isShort
-                true,
-                positionNotional,
-                0,
-                type(uint256).max,
-                uint160(0),
-                bytes32(0)
-            );
-        }
-
-        address[] memory destinations = new address[](1);
-        bytes[] memory data = new bytes[](1);
-        destinations[0] = marketAddress;
-        data[0] = openPositionData;
-        // check event for position opened on our side.
-
-        if (!shouldFail) {
-            // (
-            //     int256 finalPositionSize,
-            //     int256 finalPositionNotional
-            // ) = fetchPosition(
-            //         contracts.marginManager.getMarginAccount(trader),
-            //         marketKey
-            //     );
-            // vm.expectEmit(
-            //     true,
-            //     true,
-            //     true,
-            //     true,
-            //     address(contracts.marginManager)
-            // );
-            // emit PositionAdded(
-            //     marginAccount,
-            //     marketKey,
-            //     finalPositionSize,
-            //     finalPositionNotional
-            // );
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-            verifyPositionNotional(marginAccount, marketKey, positionNotional);
-        } else {
-            vm.expectRevert(reason);
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-        }
-        vm.stopPrank();
-    }
-
     function updateAndVerifyPositionSize(
         address trader,
         bytes32 marketKey,
@@ -377,8 +218,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
         tradeData.txDestinations[0] = tradeData.marketAddress;
         tradeData.txData[0] = updatePositionData;
         // check event for position opened on our side.
-
-        vm.prank(tradeData.trader);
 
         if (shouldFail) {
             // (
@@ -584,7 +423,11 @@ contract PerpfiUtils is Test, Constants, IEvents {
         );
         if (shouldFail) {
             vm.expectRevert(reason);
-            contracts.marginManager.openPosition(marketKey, destinations, data);
+            contracts.marginManager.updatePosition(
+                marketKey,
+                destinations,
+                data
+            );
         } else {
             if (margin > 0) {
                 prepareMarginTransfer(trader, marketKey, uint256(marginX18));
@@ -612,7 +455,7 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     marginX18,
                     marginX18Value
                 );
-                contracts.marginManager.openPosition(
+                contracts.marginManager.updatePosition(
                     marketKey,
                     destinations,
                     data

@@ -20,7 +20,7 @@ contract VerifyTrade_RiskManager_UnitTest is RiskManager_UnitTest {
         txData[0] = bytes("");
         vm.expectRevert("MM: Invalid Market");
         vm.prank(bob);
-        contracts.marginManager.openPosition(
+        contracts.marginManager.updatePosition(
             invalidKey,
             txDestinations,
             txData

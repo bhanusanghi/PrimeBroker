@@ -82,55 +82,6 @@ contract SnxUtils is Test, IEvents {
         );
     }
 
-    function addAndVerifyPosition(
-        address trader,
-        bytes32 marketKey,
-        int256 positionSize,
-        bool shouldFail,
-        bytes memory reason
-    ) public {
-        vm.startPrank(trader);
-        address marketAddress = contracts.marketManager.getMarketAddress(
-            marketKey
-        );
-        address marginAccount = contracts.marginManager.getMarginAccount(
-            trader
-        );
-        (uint256 assetPriceBeforeOpen, ) = IFuturesMarket(marketAddress)
-            .assetPrice();
-        bytes memory openPositionData = abi.encodeWithSignature(
-            "modifyPositionWithTracking(int256,bytes32)",
-            positionSize,
-            keccak256("GigabrainMarginAccount")
-        );
-        address[] memory destinations = new address[](1);
-        bytes[] memory data = new bytes[](1);
-        destinations[0] = marketAddress;
-        data[0] = openPositionData;
-        // check event for position opened on our side.
-        if (!shouldFail) {
-            vm.expectEmit(
-                true,
-                true,
-                true,
-                false, // potential difference of 1 wei in value because of rounding
-                address(contracts.marginManager)
-            );
-            emit PositionAdded(
-                marginAccount,
-                marketKey,
-                positionSize,
-                (positionSize * int256(assetPriceBeforeOpen)) / 1 ether // openNotional
-            );
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-            verifyPosition(marginAccount, marketKey, positionSize);
-        } else {
-            vm.expectRevert(reason);
-            contracts.marginManager.openPosition(marketKey, destinations, data);
-        }
-        vm.stopPrank();
-    }
-
     function updateAndVerifyPositionSize(
         address trader,
         bytes32 marketKey,
@@ -283,7 +234,11 @@ contract SnxUtils is Test, IEvents {
         // check event for position opened on our side.
         if (shouldFail) {
             vm.expectRevert(reason);
-            contracts.marginManager.openPosition(marketKey, destinations, data);
+            contracts.marginManager.updatePosition(
+                marketKey,
+                destinations,
+                data
+            );
         } else {
             if (deltaMarginX18 > 0) {
                 prepareMarginTransfer(trader, marketKey, deltaMarginX18.abs());
@@ -302,7 +257,11 @@ contract SnxUtils is Test, IEvents {
                 deltaMarginX18,
                 deltaMarginX18
             );
-            contracts.marginManager.openPosition(marketKey, destinations, data);
+            contracts.marginManager.updatePosition(
+                marketKey,
+                destinations,
+                data
+            );
             verifyMargin(
                 marginAccount,
                 marketKey,
@@ -331,7 +290,7 @@ contract SnxUtils is Test, IEvents {
         data[0] = transferMarginData;
         // check event for position opened on our side.
         vm.expectRevert(bytes("Borrow limit exceeded"));
-        contracts.marginManager.openPosition(marketKey, destinations, data);
+        contracts.marginManager.updatePosition(marketKey, destinations, data);
         vm.stopPrank();
     }
 
