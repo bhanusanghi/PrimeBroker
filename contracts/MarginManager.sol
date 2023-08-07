@@ -98,7 +98,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");
@@ -125,6 +125,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
+        require(amount != 0, "Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
     }
 
@@ -146,7 +147,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");
@@ -179,7 +180,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");
@@ -211,14 +212,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");
         // @note fee is assumed to be in usdc value
         // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
-            marginAccount,
             marketKey,
             destinations,
             data
@@ -241,12 +241,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         _syncPositions(address(marginAccount));
         // verifies if account is liquidatable, verifies tx calldata, and returns the amount of margin to be transferred.
-        VerifyLiquidationResult memory result = riskManager.liquidate(
+        VerifyLiquidationResult memory result = riskManager.verifyLiquidation(
             marginAccount,
             marketKeys,
             destinations,
             data
         );
+        result.liquidator = msg.sender;
         // Update totalMarginInMarkets data.
         marginAccount.execMultiTx(destinations, data);
 
@@ -389,7 +390,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 amountIn,
         uint256 minAmountOut
     ) private returns (uint256 amountOut) {
-        (bool isLiquidatable, ) = riskManager.isAccountLiquidatable(
+        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
             address(marginAccount)
         );
         require(!isLiquidatable, "MM: Account is liquidatable");

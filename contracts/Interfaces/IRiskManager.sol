@@ -18,10 +18,9 @@ struct VerifyCloseResult {
     // int256 positionNotional;
 }
 struct VerifyLiquidationResult {
-    int256 marginDelta;
-    bool isFullLiquidation;
+    bool isFullyLiquidatable;
     address liquidator;
-    address liquidationPenalty;
+    uint256 liquidationPenalty;
 }
 
 interface IRiskManager {
@@ -32,7 +31,7 @@ interface IRiskManager {
         bytes[] memory data
     ) external returns (VerifyTradeResult memory result);
 
-    function liquidate(
+    function verifyLiquidation(
         IMarginAccount marginAccount,
         bytes32[] memory marketKeys,
         address[] memory destinations,
@@ -52,10 +51,6 @@ interface IRiskManager {
         address marginAccount
     ) external view returns (int256 totalUnrealizedPnL);
 
-    function getRemainingMarginTransfer(
-        address _marginAccount
-    ) external view returns (uint256);
-
     function getRemainingPositionOpenNotional(
         address _marginAccount
     ) external view returns (uint256);
@@ -66,7 +61,6 @@ interface IRiskManager {
     ) external view returns (Position memory marketPosition);
 
     function verifyClosePosition(
-        IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] calldata destinations,
         bytes[] calldata data
@@ -85,10 +79,6 @@ interface IRiskManager {
         uint256 vaultLiability
     ) external view returns (bool isBankrupt);
 
-    function getCollateralInMarkets(
-        address _marginAccount
-    ) external view returns (uint256 totalCollateralValue);
-
     function verifyBorrowLimit(
         address _marginAccount,
         uint256 newBorrowAmountX18
@@ -100,17 +90,32 @@ interface IRiskManager {
 
     function isAccountLiquidatable(
         address marginAccount
-    ) external view returns (bool isLiquidatable, bool isFullyLiquidatable);
+    )
+        external
+        view
+        returns (
+            bool isLiquidatable,
+            bool isFullyLiquidatable,
+            uint256 penalty
+        );
 
     function isAccountHealthy(
         address marginAccount
     ) external view returns (bool isHealthy);
 
-    function getMinimumMaintenanceMarginRequirement(
+    function getMaintenanceMarginRequirement(
         address marginAccount
     ) external view returns (uint256);
 
     function getAccountValue(
+        address marginAccount
+    ) external view returns (uint256);
+
+    function getRemainingBorrowLimit(
+        address _marginAccount
+    ) external view returns (uint256);
+
+    function getTotalBuyingPower(
         address marginAccount
     ) external view returns (uint256);
 }

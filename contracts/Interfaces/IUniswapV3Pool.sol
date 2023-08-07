@@ -1,3 +1,5 @@
+pragma solidity ^0.8.10;
+
 interface IUniswapV3Pool {
     function slot0()
         external
@@ -9,6 +11,6 @@ interface IUniswapV3Pool {
             uint16 observationCardinality,
             uint32 observationCardinalityNext,
             uint8 feeProtocol,
-            bool unlocked 
+            bool unlocked
         );
 }

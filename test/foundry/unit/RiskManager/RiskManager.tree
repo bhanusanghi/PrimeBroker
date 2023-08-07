@@ -1,0 +1,162 @@
+RiskManager.t.sol
+├── When contract addresses are not set properly in constructor
+│   └── It should revert
+
+
+
+verifyTrade_RiskManager_UnitTest.t.sol
+├── When invalid marketKey
+│   └── It should revert
+
+
+
+getTotalBuyingPower_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0
+├── When valid marginAccount
+    ├── When trader has 0 collateral in marginAccount
+    │   └── It should return 0
+    ├── When trader has collateral in marginAccount
+        ├── When trader has interest accrued
+        │   └── It should get accounted
+        ├── When trader has no interest accrued
+        │   └── It should get accounted
+        ├── When trader has no unrealisedPnL accrued
+        │   └── It should get accounted
+        ├── When trader has unrealisedPnL accrued
+            ├── positive pnl
+        │   └── It should get accounted
+        ├── When trader has unrealisedPnL and interest accrued
+        │   └── It should get accounted
+        ├── When totalCollateralValue is negative
+            └── It should return 0
+        
+getCurrentDollarMarginInMarkets_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0
+├── When trader has 0 collateral in TPPs
+├── When trader has collateral in TPPs
+    ├── When trader has collateral in single TPP
+    ├── When trader has collateral in multiple TPPs
+
+        
+getUnrealisedPnL_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0
+├── When trader has 0 pnl on TPPs
+│   └── It should return 0
+├── When trader has pnl on TPPs
+    ├── pnl is in opposite direction from multiple TPPs
+│       └── It should return the sum
+    ├── pnl is in same direction from multiple TPPs
+│       └── It should return the sum
+
+
+getMaxBorrowLimit_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0
+├── When valid marginAccount
+    ├── When tcv is 0
+    │   └── It should return 0
+    ├── When tcv is not 0
+        ├── When already borrowed some amount
+        │   └── It should return maxBorrowLimit = tcv * maxBorrowLimitPercent 
+        ├── when borrowing fresh
+        │   └── It should return maxBorrowLimit = tcv * maxBorrowLimitPercent
+
+isAccountLiquidatable_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── When no collateral
+    │   └── It should return false
+    ├── When collateral
+        ├── When no openNotional
+        │   └── It should return false
+        ├── When trader has openPositions
+            ├── When trader has enough account value
+            │   └── It should return false
+            ├── When trader does not have enough account value
+            │   └── It should return true and correct penalty
+
+verifyLiquidation_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── zero open positions
+    │   └── It should revert
+    ├── Has open positions
+        ├── When account has enough maintainence margin
+        │   └── It should revert
+        ├── When account does not enough maintainence margin
+            └── It should set correct penalty and return true
+
+isAccountHealthy_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── When no collateral
+    │   └── It should return false
+    ├── When collateral
+        ├── When no openNotional
+        │   └── It should return false
+        ├── When trader has openPositions
+            ├── When trader has enough account value
+            │   └── It should return false
+            ├── When trader does not have enough account value
+            │   └── It should return true and correct penalty
+
+getAccountValue_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0
+├── When valid marginAccount
+    ├── When trader has 0 collateral in marginAccount
+    │   └── It should return 0
+    ├── When trader has collateral in marginAccount
+        ├── When trader has interest accrued
+        │   └── It should get accounted
+        ├── When trader has no interest accrued
+        │   └── It should get accounted
+        ├── When trader has no unrealisedPnL accrued
+        │   └── It should get accounted
+        ├── When trader has unrealisedPnL accrued
+            ├── positive pnl
+        │   └── It should get accounted
+        ├── When trader has unrealisedPnL and interest accrued
+        │   └── It should get accounted
+        ├── When totalCollateralValue is negative
+            └── It should return 0
+
+getMaintenanceMarginRequirement_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should return 0 or revert
+├── When valid marginAccount
+    ├── When 0 collateral
+    │   └── It should return 0
+    ├── When trader has collateral
+        ├── When 0 open notional
+        │   └── It should return 0
+        ├── When open notional > 0
+        │   └── It should return open notional
+
+
+
+verifyBorrowLimit_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+    ├── When new borrowAmountX18 is 0
+    │    └── IIt should not revert
+    ├── When new borrowAmountX18 is not 0
+        ├── When max limit is crossed
+        │   └── It should revert
+        ├── When max limit is not crossed
+            └── It should not revert
+// ------------ Remaining tests -------------
+
+isTraderBankrupt_RiskManager_UnitTest.t.sol
+├── When invalid marginAccount
+│   └── It should revert
+├── When valid marginAccount
+
+

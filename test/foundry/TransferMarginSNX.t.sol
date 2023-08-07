@@ -69,13 +69,13 @@ contract TransferMarginSNX is BaseSetup {
             bob,
             expectedRemainingMargin
         );
-        int256 remainingMargin = int256(
-            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
-        );
         vm.prank(bob);
         vm.expectRevert("Borrow limit exceeded");
         contracts.marginManager.borrowFromVault(
-            uint256(remainingMargin + 1 ether).convertTokenDecimals(18, 6)
+            uint256(expectedRemainingMargin + 1 ether).convertTokenDecimals(
+                18,
+                6
+            )
         );
     }
 
@@ -146,12 +146,6 @@ contract TransferMarginSNX is BaseSetup {
         // IERC20()
         // vm.stopPrank();
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
-        int256 remainingTransferrableMargin = int256(
-            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
-        );
-        // vm.assume(
-        //     snxMargin > 1 ether && snxMargin < remainingTransferrableMargin // otherwise the uniswap swap is extra bad
-        // );
         snxMargin = 15000 ether;
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
     }
@@ -240,9 +234,6 @@ contract TransferMarginSNX is BaseSetup {
     function testBobReducesMarginMultipleCalls() public {
         uint256 margin = 5000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
-        int256 totalTransferrableMargin = int256(
-            contracts.riskManager.getRemainingMarginTransfer(bobMarginAccount)
-        );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 2000, false, "");
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, -1000, false, "");

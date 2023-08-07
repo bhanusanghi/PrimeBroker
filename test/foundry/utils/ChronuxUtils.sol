@@ -15,6 +15,7 @@ import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/Agg
 import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol";
 import {Position} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IUniswapV3Pool} from "../../../contracts/Interfaces/IUniswapV3Pool.sol";
+import {ICollateralManager} from "../../../contracts/Interfaces/ICollateralManager.sol";
 import {IEvents} from "../IEvents.sol";
 import {Constants} from "./Constants.sol";
 import "forge-std/console2.sol";
@@ -71,9 +72,19 @@ contract ChronuxUtils is Test, Constants, IEvents {
         address marginAccount = contracts.marginManager.getMarginAccount(
             trader
         );
-        uint256 remainingMargin = contracts
+        ICollateralManager collateralManager = ICollateralManager(
+            contracts.contractRegistry.getContractByName(
+                keccak256("CollateralManager")
+            )
+        );
+        uint256 totalCollateralInMarginAccount = contracts
+            .collateralManager
+            .getCollateralHeldInMarginAccount(marginAccount);
+        uint256 availableBorrowLimit = contracts
             .riskManager
-            .getRemainingMarginTransfer(marginAccount);
+            .getRemainingBorrowLimit(marginAccount);
+        uint256 remainingMargin = totalCollateralInMarginAccount +
+            availableBorrowLimit;
         assertEq(
             int256(remainingMargin),
             amount,

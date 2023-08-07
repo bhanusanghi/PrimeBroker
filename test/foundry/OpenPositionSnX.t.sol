@@ -89,11 +89,8 @@ contract OpenPositionSnX is BaseSetup {
                 bobMarginAccount
             )
         );
-        console2.log("remainingNotional");
-        console2.log(remainingNotional);
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        console2.log("assetPrice", assetPrice);
         int256 maxPositionSize = (remainingNotional * 1 ether) /
             int256(assetPrice);
         vm.assume(

@@ -1,22 +1,21 @@
 pragma solidity ^0.8.10;
 pragma abicoder v2;
-import {BaseSetup} from "./BaseSetup.sol";
-import {Utils} from "./utils/Utils.sol";
+import {BaseSetup} from "../BaseSetup.sol";
+import {Utils} from "../utils/Utils.sol";
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
-
-import {IVault} from "../../contracts/Interfaces/Perpfi/IVault.sol";
+import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {MarginAccount} from "../../contracts/MarginAccount/MarginAccount.sol";
+import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath.sol";
+import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
-import {PerpfiUtils} from "./utils/PerpfiUtils.sol";
-import {ChronuxUtils} from "./utils/ChronuxUtils.sol";
+import {PerpfiUtils} from "../utils/PerpfiUtils.sol";
+import {ChronuxUtils} from "../utils/ChronuxUtils.sol";
 
 contract CollateralManagerTest is BaseSetup {
     using SafeMath for uint256;
@@ -217,6 +216,20 @@ contract CollateralManagerTest is BaseSetup {
         );
         contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
         vm.stopPrank();
+    }
+
+    // This is not working yet.
+    function testTotalCollateralValueWrongAddress() public {
+        assertEq(
+            contracts.collateralManager.totalCollateralValue(address(0)),
+            0,
+            "totalCollateralValue should be zero"
+        );
+        assertEq(
+            contracts.collateralManager.totalCollateralValue(david),
+            0,
+            "totalCollateralValue should be zero"
+        );
     }
 
     /*

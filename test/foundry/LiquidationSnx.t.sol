@@ -71,7 +71,7 @@ contract LiquidationSnx is BaseSetup {
             -1000 ether
         );
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 
@@ -103,7 +103,7 @@ contract LiquidationSnx is BaseSetup {
             .getPosition(snxUniKey);
 
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
 
@@ -131,7 +131,7 @@ contract LiquidationSnx is BaseSetup {
             .getPosition(snxUniKey);
 
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        (bool isLiquidatable, bool isFullyLiquidatable) = contracts
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
         utils.simulateUnrealisedPnLSnx(
@@ -156,9 +156,7 @@ contract LiquidationSnx is BaseSetup {
     function testMinimumMarginRequirement() public {
         uint256 chronuxMargin = 1000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
-        uint256 minMarginRequirement = contracts
-            .riskManager
-            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
+
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
@@ -173,9 +171,6 @@ contract LiquidationSnx is BaseSetup {
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
 
-        minMarginRequirement = contracts
-            .riskManager
-            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
 
@@ -197,9 +192,7 @@ contract LiquidationSnx is BaseSetup {
         snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
-        uint256 minMarginRequirement = contracts
-            .riskManager
-            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
+
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
@@ -212,9 +205,7 @@ contract LiquidationSnx is BaseSetup {
             -200 ether
         );
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
-        minMarginRequirement = contracts
-            .riskManager
-            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
+
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
 
@@ -236,9 +227,6 @@ contract LiquidationSnx is BaseSetup {
         Position memory openPosition = IMarginAccount(bobMarginAccount)
             .getPosition(snxUniKey);
 
-        uint256 minMarginRequirement = contracts
-            .riskManager
-            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
         );
@@ -251,9 +239,6 @@ contract LiquidationSnx is BaseSetup {
             -200 ether
         );
 
-        minMarginRequirement = contracts
-            .riskManager
-            .getMinimumMaintenanceMarginRequirement(bobMarginAccount);
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
 

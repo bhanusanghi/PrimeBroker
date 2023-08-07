@@ -16,7 +16,6 @@ interface IProtocolRiskManager {
     ) external returns (VerifyTradeResult memory result);
 
     function decodeClosePositionCalldata(
-        IMarginAccount marginAcc,
         bytes32 marketKey,
         address[] memory destinations,
         bytes[] calldata data
@@ -24,12 +23,11 @@ interface IProtocolRiskManager {
 
     // Checks if the function signatures are allowed in liquidation calls.
     function decodeAndVerifyLiquidationCalldata(
-        IMarginAccount marginAcc,
         bool isFullyLiquidatable,
         bytes32 marketKey,
         address destination,
         bytes calldata data
-    ) external returns (VerifyLiquidationResult memory result);
+    ) external;
 
     function toggleAddressWhitelisting(
         address contractAddress,

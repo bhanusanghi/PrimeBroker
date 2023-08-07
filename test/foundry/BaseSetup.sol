@@ -85,8 +85,12 @@ contract BaseSetup is Test, IEvents {
     address perpAccountBalance = 0xA7f3FC32043757039d5e13d790EE43edBcBa8b7c;
     address perpMarketRegistry = 0xd5820eE0F55205f6cdE8BB0647072143b3060067;
     address perpClearingHouse = 0x82ac2CE43e33683c58BE4cDc40975E73aA50f459;
+    address perpClearingHouseConfig =
+        0xA4c817a425D3443BAf610CA614c8B11688a288Fb;
     address perpAaveMarket = 0x34235C8489b06482A99bb7fcaB6d7c467b92d248;
+    address perpEthMarket = 0x8C835DFaA34e2AE61775e80EE29E2c724c6AE2BB;
     address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
+    address perpExchange = 0xBd7a3B7DbEb096F0B832Cf467B94b091f30C34ec;
     // synthetix (ReadProxyAddressResolver)
     address SNX_ADDRESS_RESOLVER = 0x1Cb059b7e74fD21665968C908806143E744D5F30;
     // address futuresMarketSettings = 0x0dde87714C3bdACB93bB1d38605aFff209a85998;

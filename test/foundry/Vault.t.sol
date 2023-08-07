@@ -31,7 +31,6 @@ contract VaultTest is Test {
     address public bob;
     address internal charlie;
     address internal david;
-    uint256 RAY = 10 ** 27;
 
     // ================ EVENTS =================
 
