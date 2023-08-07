@@ -72,10 +72,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     IExchange(exchange).getSqrtMarkTwapX96(_baseToken, 0)
                 )
             );
-        // (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
-        //     IMarketRegistry(perpMarketRegistry).getPool(_baseToken)
-        // ).slot0();
-        // token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
     function fetchMargin(
@@ -209,28 +205,8 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes[] memory data = new bytes[](1);
         destinations[0] = marketAddress;
         data[0] = openPositionData;
-        // check event for position opened on our side.
-        // (
-        //     int256 finalPositionSize,
-        //     int256 finalPositionNotional
-        // ) = fetchPosition(
-        //         contracts.marginManager.getMarginAccount(trader),
-        //         marketKey
-        //     );
+
         if (!shouldFail) {
-            //     vm.expectEmit(
-            //         true,
-            //         true,
-            //         true,
-            //         true,
-            //         address(contracts.marginManager)
-            //     );
-            //     emit PositionAdded(
-            //         marginAccount,
-            //         marketKey,
-            //         finalPositionSize,
-            //         finalPositionNotional
-            //     );
             contracts.marginManager.openPosition(marketKey, destinations, data);
             verifyPositionSize(marginAccount, marketKey, positionSize);
         } else {

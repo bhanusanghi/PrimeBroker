@@ -44,10 +44,11 @@ contract Is_Account_Healthy_RiskManager_UnitTest is RiskManager_UnitTest {
         assertEq(isHealthy, true);
     }
 
-    function test_is_Account_Healthy_returns_true_when_enough_margin()
+    function test_is_Account_Healthy_returns_true_when_margin_in_TPP()
         public
         validMarginAccount
         nonZeroCollateral
+        marginInTPP
     {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
         perpfiUtils.updateAndVerifyMargin(

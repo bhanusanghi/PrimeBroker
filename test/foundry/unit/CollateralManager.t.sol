@@ -220,11 +220,16 @@ contract CollateralManagerTest is BaseSetup {
 
     // This is not working yet.
     function testTotalCollateralValueWrongAddress() public {
-        // assertEq(
-        //     contracts.collateralManager.totalCollateralValue(address(0)),
-        //     0,
-        //     "totalCollateralValue should be zero"
-        // );
+        assertEq(
+            contracts.collateralManager.totalCollateralValue(address(0)),
+            0,
+            "totalCollateralValue should be zero"
+        );
+        assertEq(
+            contracts.collateralManager.totalCollateralValue(david),
+            0,
+            "totalCollateralValue should be zero"
+        );
     }
 
     /*

@@ -27,7 +27,7 @@ contract GetUnrealisedPnL_RiskManager_UnitTest is RiskManager_UnitTest {
         assertEq(uint256(pnlFetched), 0);
     }
 
-    function test_returns_sum_same_direction()
+    function test_returns_sum_of_positive_pnl_across_protocols()
         public
         validMarginAccount
         positivePnL
@@ -55,10 +55,11 @@ contract GetUnrealisedPnL_RiskManager_UnitTest is RiskManager_UnitTest {
         assertEq(uint256(pnlFetched), 200 ether);
     }
 
-    function test_returns_sum_opposite_direction()
+    function test_returns_sum_of_pnl_across_protocols()
         public
         validMarginAccount
         positivePnL
+        negativePnL
     {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
         int256 pnl = 100 ether;

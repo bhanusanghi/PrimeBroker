@@ -98,52 +98,12 @@ contract RiskManager_UnitTest is BaseSetup {
         _;
     }
 
+    modifier marginInTPP() {
+        _;
+    }
+
     function testInvalidSetup() public invalidContractAddresses {
         vm.expectRevert();
         new RiskManager(IContractRegistry(address(0)));
     }
-
-    // function testMaxBorrowLimitIsZero() public {
-    //     uint256 maxBorrowLimit = contracts.riskManager.getMaxBorrowLimit(
-    //         bobMarginAccount
-    //     );
-    //     assertEq(maxBorrowLimit, 0, "maxBorrowLimit should be zero");
-    // }
-
-    // function testMaxBorrowLimitInvalidUser() public {
-    //     uint256 maxBorrowLimit = contracts.riskManager.getMaxBorrowLimit(
-    //         address(0)
-    //     );
-    //     assertEq(maxBorrowLimit, 0, "maxBorrowLimit should be zero");
-    // }
-
-    // function testMaxBorrowLimit() public {
-    //     uint256 chronuxMargin = 500 * ONE_USDC;
-    //     chronuxUtils.depositAndVerifyMargin(
-    //         bobMarginAccount,
-    //         usdc,
-    //         chronuxMargin
-    //     );
-    //     uint256 maxBorrowLimit = contracts.riskManager.getMaxBorrowLimit(bob);
-    //     assertEq(maxBorrowLimit, 1500 * ONE_USDC, "maxBorrowLimit is wrong");
-    // }
-
-    /*
-    Unit Testing ->
-    maxBorrowLimit
-    remainingBorrowLimit
-    verifyBorrowLimit
-    liquidate
-    isAccountLiquidatable
-    minMarginRequirement
-    getLiquidationPenalty
-    decodeAndVerifyLiquidationCalldata
-
-    Accounting Testing ->
-    _getAbsTotalCollateralValue tests.
-    _getRemainingMarginTransfer
-    _getRemainingPositionOpenNotional
-
-    updates in data on state change.
-  */
 }
