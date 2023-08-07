@@ -32,8 +32,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     IVault public vault;
     IRiskManager public riskManager;
     IContractRegistry public contractRegistry;
-    // IMarketManager public marketManager;
-    // address public riskManager;
     mapping(address => address) public marginAccounts;
     address[] private traders;
     modifier nonZeroAddress(address _address) {
@@ -52,7 +50,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         contractRegistry = _contractRegistry;
     }
 
-    // Add recycle accounts functionality
     function openMarginAccount() external returns (address) {
         require(
             marginAccounts[msg.sender] == address(0x0),
@@ -98,10 +95,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        // (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-        //     address(marginAccount)
-        // );
-        // require(!isLiquidatable, "MM: Account is liquidatable");
         _syncPositions(address(marginAccount));
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
@@ -125,12 +118,12 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
         require(amount != 0, "MM: Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
+        require(
+            riskManager.isAccountHealthy(address(marginAccount)),
+            "MM: Unhealthy account"
+        );
     }
 
     // amount in vault asset decimals
@@ -151,10 +144,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
         ICollateralManager collateralManager = ICollateralManager(
             contractRegistry.getContractByName(keccak256("CollateralManager"))
         );
@@ -191,13 +180,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
-        // (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-        //     address(marginAccount)
-        // );
-        // require(!isLiquidatable, "MM: Account is liquidatable");
-
-        // Add check for an existing position.
-        // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             marginAccount,
             marketKey,
@@ -214,7 +196,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
     }
 
-    // In this call do we allow only closing of the position or do we also allow transferring back margin from the TPP?
     function closePosition(
         bytes32 marketKey,
         address[] calldata destinations,
@@ -252,7 +233,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(trader)
         );
         _syncPositions(address(marginAccount));
-        // verifies if account is liquidatable, verifies tx calldata, and returns the amount of margin to be transferred.
         VerifyLiquidationResult memory result = riskManager.verifyLiquidation(
             marginAccount,
             marketKeys,
@@ -260,7 +240,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             data
         );
         result.liquidator = msg.sender;
-        // Update totalMarginInMarkets data.
         marginAccount.execMultiTx(destinations, data);
 
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
@@ -277,7 +256,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _repayMaxVaultDebt(marginAccount);
         }
         if (!hasBadDebt) {
-            // pay money to liquidator based on config.
             marginAccount.transferTokens(
                 vault.asset(),
                 result.liquidator,
@@ -325,7 +303,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 marketPosition.openNotional == 0
             ) IMarginAccount(marginAccount).removePosition(marketKey);
         }
-        // emit PositionSynced(marginAccount, marketKey, marketPosition);
     }
 
     function _requireAndGetMarginAccount(
@@ -380,24 +357,16 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 );
             }
         }
-        // if (verificationResult.marginDelta > 0) {
-        //     riskManager.verifyBorrowLimit(address(marginAccount));
-        // }
         require(
             riskManager.isAccountHealthy(address(marginAccount)),
             "MM: Unhealthy account"
         );
     }
 
-    // Used to update data about Opening/Updating a Position. Fetches final position size and notional from TPP and merges with estimated values.
-    // TO DO - verify repaid interest.
     function _executePostPositionCloseUpdates(
         IMarginAccount marginAccount,
         bytes32 marketKey
     ) private {
-        // check slippage based on verification result and actual market position.
-        // update position size and notional.
-
         Position memory marketPosition = riskManager.getMarketPosition(
             address(marginAccount),
             marketKey
@@ -406,7 +375,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             marketPosition.size == 0 && marketPosition.openNotional == 0,
             "MM: Invalid close position call"
         );
-        // riskManager.verifyBorrowLimit(address(marginAccount));
         require(
             riskManager.isAccountHealthy(address(marginAccount)),
             "MM: Unhealthy account"
@@ -481,10 +449,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         VerifyLiquidationResult memory result
     ) private {
-        // Make changes to stored positions.
         _syncPositions(address(marginAccount));
-        // _updateUnsettledRealizedPnL(address(marginAccount));
-        // Emit a liquidation event with relevant data.
     }
 
     // @note - this function validates the following points
