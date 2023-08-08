@@ -103,11 +103,10 @@ isAccountHealthy_RiskManager_UnitTest.t.sol
         │   └── It should return false
         ├── When trader has openPositions
             ├── When trader has enough account value initially
-                ├── Increases absolute open notional
-                ├── Decreases absolute open notional
-                ├── When trader has enough account value
                 │   └── It should return false
             ├── When trader does not have enough account value
+                ├── closes sufficient position
+                │   └── It should return true
                 ├── Increases absolute open notional
                 │   └── It should return false
                 ├── Decreases sufficient absolute open notional

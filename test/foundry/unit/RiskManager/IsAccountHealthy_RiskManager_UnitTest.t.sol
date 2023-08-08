@@ -267,4 +267,43 @@ contract IsAccountHealthy_RiskManager_UnitTest is RiskManager_UnitTest {
             ""
         );
     }
+
+    function test_closing_position_in_unhealthy_account()
+        public
+        validMarginAccount
+        negativePnL
+        reducedNotional
+    {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            1000 * 1e6,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            3900 ether,
+            false,
+            ""
+        );
+        int256 pnl = -100 ether;
+        vm.mockCall(
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.getUnrealizedPnL.selector
+            ),
+            abi.encode(pnl)
+        );
+        vm.prank(address(contracts.marginManager));
+        bool isHealthy = contracts.riskManager.isAccountHealthy(
+            bobMarginAccount
+        );
+        assertEq(isHealthy, false);
+        perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
+        isHealthy = contracts.riskManager.isAccountHealthy(bobMarginAccount);
+        assertEq(isHealthy, true);
+    }
 }
