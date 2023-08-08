@@ -12,7 +12,7 @@ import {IMarginAccount, Position} from "../../../../contracts/Interfaces/IMargin
 import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRiskManager.sol";
 import {IRiskManager, VerifyLiquidationResult} from "../../../../contracts/Interfaces/IRiskManager.sol";
 
-contract Is_Account_Healthy_RiskManager_UnitTest is RiskManager_UnitTest {
+contract IsAccountHealthy_RiskManager_UnitTest is RiskManager_UnitTest {
     function test_is_Account_Healthy_returns_true_when_invalid_account()
         public
         invalidMarginAccount
@@ -97,5 +97,174 @@ contract Is_Account_Healthy_RiskManager_UnitTest is RiskManager_UnitTest {
             bobMarginAccount
         );
         assertEq(isHealthy, false);
+    }
+
+    function test_adding_enough_collateral_in_unhealhty_account()
+        public
+        validMarginAccount
+        negativePnL
+        addCollateral
+        finallyHealthy
+    {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            1000 * 1e6,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            3900 ether,
+            false,
+            ""
+        );
+        int256 pnl = -100 ether;
+        vm.mockCall(
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.getUnrealizedPnL.selector
+            ),
+            abi.encode(pnl)
+        );
+        vm.prank(address(contracts.marginManager));
+        bool isHealthy = contracts.riskManager.isAccountHealthy(
+            bobMarginAccount
+        );
+        assertEq(isHealthy, false);
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 100 * 1e6);
+        isHealthy = contracts.riskManager.isAccountHealthy(bobMarginAccount);
+        assertEq(isHealthy, true);
+    }
+
+    function test_adding_insufficient_collateral_in_unhealhty_account()
+        public
+        validMarginAccount
+        negativePnL
+        addCollateral
+    {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            1000 * 1e6,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            3900 ether,
+            false,
+            ""
+        );
+        int256 pnl = -100 ether;
+        vm.mockCall(
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.getUnrealizedPnL.selector
+            ),
+            abi.encode(pnl)
+        );
+        vm.prank(address(contracts.marginManager));
+        bool isHealthy = contracts.riskManager.isAccountHealthy(
+            bobMarginAccount
+        );
+        assertEq(isHealthy, false);
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1 * 1e6);
+        isHealthy = contracts.riskManager.isAccountHealthy(bobMarginAccount);
+        assertEq(isHealthy, false);
+    }
+
+    function test_reducing_sufficient_notional_in_unhealthy_account()
+        public
+        validMarginAccount
+        negativePnL
+        reducedNotional
+        finallyHealthy
+    {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            1000 * 1e6,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            3900 ether,
+            false,
+            ""
+        );
+        int256 pnl = -100 ether;
+        vm.mockCall(
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.getUnrealizedPnL.selector
+            ),
+            abi.encode(pnl)
+        );
+        vm.prank(address(contracts.marginManager));
+        bool isHealthy = contracts.riskManager.isAccountHealthy(
+            bobMarginAccount
+        );
+        assertEq(isHealthy, false);
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -900 ether,
+            false,
+            ""
+        );
+        isHealthy = contracts.riskManager.isAccountHealthy(bobMarginAccount);
+        assertEq(isHealthy, true);
+    }
+
+    function test_reducing_insufficient_notional_in_unhealthy_account()
+        public
+        validMarginAccount
+        negativePnL
+        reducedNotional
+    {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            1000 * 1e6,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            3900 ether,
+            false,
+            ""
+        );
+        int256 pnl = -100 ether;
+        vm.mockCall(
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.getUnrealizedPnL.selector
+            ),
+            abi.encode(pnl)
+        );
+        vm.prank(address(contracts.marginManager));
+        bool isHealthy = contracts.riskManager.isAccountHealthy(
+            bobMarginAccount
+        );
+        assertEq(isHealthy, false);
+        vm.expectRevert("MM: Unhealthy account");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -9 ether,
+            false,
+            ""
+        );
     }
 }

@@ -101,6 +101,15 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier marginInTPP() {
         _;
     }
+    modifier addCollateral() {
+        _;
+    }
+    modifier reducedNotional() {
+        _;
+    }
+    modifier finallyHealthy() {
+        _;
+    }
 
     function testInvalidSetup() public invalidContractAddresses {
         vm.expectRevert();
