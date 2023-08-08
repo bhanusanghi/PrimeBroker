@@ -22,17 +22,15 @@ interface IMarginManager {
     );
 
     // marginAccount, protocol, assetOut, size, openNotional
-    event PositionAdded(
-        address indexed marginAccount,
-        bytes32 indexed marketKey,
-        int256 size,
-        int256 openNotional
-    );
+
     event PositionUpdated(
         address indexed marginAccount,
         bytes32 indexed marketKey,
-        int256 size,
-        int256 openNotional
+        int256 size, //final size
+        int256 openNotional // final openNotional
+        // uint256 lastPrice,
+        // int256 deltaSize,
+        // int256 deltaNotional,
     );
     event PositionClosed(
         address indexed marginAccount,
@@ -58,12 +56,6 @@ interface IMarginManager {
     function drainAllMarginAccounts(address _token) external;
 
     function closeMarginAccount(address marginAccount) external;
-
-    function openPosition(
-        bytes32 marketKey,
-        address[] calldata destinations,
-        bytes[] calldata data
-    ) external;
 
     function updatePosition(
         bytes32 marketKey,

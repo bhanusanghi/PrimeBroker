@@ -46,7 +46,7 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -90,7 +90,7 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -122,7 +122,7 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -154,7 +154,7 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -184,7 +184,7 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,

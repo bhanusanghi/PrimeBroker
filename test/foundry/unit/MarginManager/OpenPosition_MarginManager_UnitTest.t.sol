@@ -14,32 +14,51 @@ import {IRiskManager} from "../../../../contracts/Interfaces/IRiskManager.sol";
 
 // acv = account value
 contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
-    function test_openPosition_when_isExistingPosition()
+    function test_marginTransfer_when_trader_is_unhealthy()
         public
-        isExistingPosition
+        isLiquidatable
     {
         uint256 chronuxMargin = 1000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        vm.mockCall(
+            address(contracts.riskManager),
+            abi.encodeWithSelector(IRiskManager.isAccountHealthy.selector),
+            abi.encode(false)
+        );
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
-            int256(100 * ONE_USDC),
-            false,
-            ""
+            int256(1000 * ONE_USDC),
+            true,
+            "MM: Unhealthy account"
         );
-        perpfiUtils.addAndVerifyPositionSize(
+    }
+
+    function test_openPosition_when_trader_is_unhealthy()
+        public
+        isLiquidatable
+    {
+        uint256 chronuxMargin = 1000 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+
+        perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,
-            1 ether,
+            int256(1000 * ONE_USDC),
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionSize(
+        vm.mockCall(
+            address(contracts.riskManager),
+            abi.encodeWithSelector(IRiskManager.isAccountHealthy.selector),
+            abi.encode(false)
+        );
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             1 ether,
             true,
-            "Existing position"
+            "MM: Unhealthy account"
         );
     }
 
@@ -58,7 +77,7 @@ contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
             true,
             abi.encode("Invalid Trade")
         );
-        perpfiUtils.addAndVerifyPositionSize(
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             1 ether,
@@ -77,7 +96,7 @@ contract OpenPosition_MarginManager_UnitTest is MarginManager_UnitTest {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionSize(
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             1 ether,

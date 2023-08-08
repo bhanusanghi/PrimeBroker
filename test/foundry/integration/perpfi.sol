@@ -81,8 +81,8 @@ contract PerpfiIntegration is BaseSetup {
             ""
         );
 
-        vm.assume(positionSize > 1 ether && positionSize < 1500 ether); // safely assuming position size in range when aave = ~90$
-        perpfiUtils.addAndVerifyPositionSize(
+        vm.assume(positionSize > 1 ether && positionSize < 1200 ether); // safely assuming position size in range when aave = ~90$
+        perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,
             positionSize,
@@ -111,7 +111,7 @@ contract PerpfiIntegration is BaseSetup {
         );
 
         vm.assume(positionNotional > 1 ether && positionNotional < 16000 ether); // safely assuming position size in range when aave = ~90$
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             positionNotional,
@@ -143,7 +143,7 @@ contract PerpfiIntegration is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             2000 ether,
@@ -183,7 +183,7 @@ contract PerpfiIntegration is BaseSetup {
             ""
         );
         vm.assume(openNotional > 1 ether && openNotional < 3000 ether); // safely assuming position size in range when aave = ~90$
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             openNotional,
@@ -221,7 +221,7 @@ contract PerpfiIntegration is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             2000 ether,

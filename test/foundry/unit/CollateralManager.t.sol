@@ -109,7 +109,7 @@ contract CollateralManagerTest is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -133,7 +133,7 @@ contract CollateralManagerTest is BaseSetup {
             false,
             ""
         );
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,
@@ -170,7 +170,7 @@ contract CollateralManagerTest is BaseSetup {
             ""
         );
 
-        perpfiUtils.addAndVerifyPositionNotional(
+        perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
             notional,

@@ -106,7 +106,7 @@ contract UpdatePositionSnx is BaseSetup {
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < maxPositionSize / 2);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, -size, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -size, false, "");
 
         snxUtils.updateAndVerifyPositionSize(
             bob,
@@ -133,7 +133,7 @@ contract UpdatePositionSnx is BaseSetup {
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < maxPositionSize / 2);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, -size, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -size, false, "");
 
         snxUtils.updateAndVerifyPositionSize(
             bob,
@@ -160,7 +160,7 @@ contract UpdatePositionSnx is BaseSetup {
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < (maxPositionSize / 2) - 10 ether);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, size, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, size, false, "");
         snxUtils.updateAndVerifyPositionSize(
             bob,
             snxUniKey,
@@ -185,7 +185,7 @@ contract UpdatePositionSnx is BaseSetup {
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < maxPositionSize / 2);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, size, false, "");
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, size, false, "");
 
         snxUtils.updateAndVerifyPositionSize(
             bob,

@@ -52,7 +52,7 @@ contract OpenPositionSnX is BaseSetup {
             trackingCode
         );
         vm.prank(bob);
-        contracts.marginManager.openPosition(invalidKey, destinations, data);
+        contracts.marginManager.updatePosition(invalidKey, destinations, data);
     }
 
     function testBobAddsPositionOnInvalidContract() public {
@@ -74,7 +74,7 @@ contract OpenPositionSnX is BaseSetup {
         data[0] = openPositionData;
         vm.expectRevert(bytes("PRM: Calling non whitelisted contract"));
         vm.prank(bob);
-        contracts.marginManager.openPosition(snxUniKey, destinations, data);
+        contracts.marginManager.updatePosition(snxUniKey, destinations, data);
     }
 
     function testBobOpensPositionWithExcessLeverageSingleAttempt(
@@ -97,7 +97,7 @@ contract OpenPositionSnX is BaseSetup {
             positionSize > maxPositionSize && positionSize < 2 * maxPositionSize
         );
         // /assetPrice.convertTokenDecimals(18, 0)).add(1 ether);
-        snxUtils.addAndVerifyPosition(
+        snxUtils.updateAndVerifyPositionSize(
             bob,
             snxUniKey,
             positionSize,
@@ -125,7 +125,13 @@ contract OpenPositionSnX is BaseSetup {
         int256 maxPositionSize = (remainingNotional * 1 ether) /
             int256(assetPrice);
         vm.assume(positionSize > 1 ether && positionSize < maxPositionSize);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
     }
 
     function testBobOpensShortPositionWithLeverage(int256 positionSize) public {
@@ -143,6 +149,12 @@ contract OpenPositionSnX is BaseSetup {
         int256 maxPositionSize = (remainingNotional * 1 ether) /
             int256(assetPrice);
         vm.assume(positionSize > 1 ether && positionSize < maxPositionSize);
-        snxUtils.addAndVerifyPosition(bob, snxUniKey, -positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            -positionSize,
+            false,
+            ""
+        );
     }
 }

@@ -39,8 +39,6 @@ contract MarginAccount is IMarginAccount {
      2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
      3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
     */
-    int256 public unsettledRealizedPnL;
-
     address owner;
 
     // constructor(address underlyingToken) {
@@ -161,24 +159,12 @@ contract MarginAccount is IMarginAccount {
         return returnData;
     }
 
-    function addPosition(
-        bytes32 market,
-        Position memory position
-    ) external override onlyMarginManager {
-        require(!existingPosition[market], "Existing position");
-        positions[market] = position;
-        existingPosition[market] = true;
-    }
-
     function updatePosition(
         bytes32 marketKey,
         Position memory position
     ) external override onlyMarginManager {
-        // require(existingPosition[marketKey]||marginInMarket[marketKey] > 0, "Position doesn't exist");
-        positions[marketKey].protocol = positions[marketKey].protocol; //@note @0xAshish rewriting it as of now will remove it later
-        positions[marketKey].openNotional = position.openNotional;
-        positions[marketKey].size = position.size;
-        positions[marketKey].orderFee = position.orderFee;
+        if (!existingPosition[marketKey]) existingPosition[marketKey] = true;
+        positions[marketKey] = position;
     }
 
     function removePosition(

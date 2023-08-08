@@ -87,32 +87,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return _requireAndGetMarginAccount(trader);
     }
 
-    function openPosition(
-        bytes32 marketKey,
-        address[] calldata destinations,
-        bytes[] calldata data
-    ) external {
-        IMarginAccount marginAccount = IMarginAccount(
-            _requireAndGetMarginAccount(msg.sender)
-        );
-        _syncPositions(address(marginAccount));
-        // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
-            marginAccount,
-            marketKey,
-            destinations,
-            data
-        );
-        marginAccount.execMultiTx(destinations, data);
-        _executePostMarketOrderUpdates(
-            marginAccount,
-            marketKey,
-            verificationResult,
-            true
-        );
-        _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
-    }
-
     // amount in vault asset decimals
     function borrowFromVault(uint256 amount) external {
         IMarginAccount marginAccount = IMarginAccount(
@@ -180,6 +154,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         _syncPositions(address(marginAccount));
+        // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
             marginAccount,
             marketKey,
@@ -190,10 +165,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _executePostMarketOrderUpdates(
             marginAccount,
             marketKey,
-            verificationResult,
-            false
+            verificationResult
         );
-        _emitMarginTransferEvent(marginAccount, marketKey, verificationResult);
     }
 
     function closePosition(
@@ -256,6 +229,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _repayMaxVaultDebt(marginAccount);
         }
         if (!hasBadDebt) {
+            // pay money to liquidator based on config.
             marginAccount.transferTokens(
                 vault.asset(),
                 result.liquidator,
@@ -319,8 +293,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     function _executePostMarketOrderUpdates(
         IMarginAccount marginAccount,
         bytes32 marketKey,
-        VerifyTradeResult memory verificationResult,
-        bool isOpen
+        VerifyTradeResult memory verificationResult
     ) private {
         // check slippage based on verification result and actual market position.
         Position memory marketPosition = riskManager.getMarketPosition(
@@ -332,30 +305,25 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         verificationResult.position.openNotional = marketPosition.openNotional;
 
         if (verificationResult.position.size.abs() > 0) {
-            // check if enough margin to open this position ??
-            if (isOpen) {
-                marginAccount.addPosition(
-                    marketKey,
-                    verificationResult.position
-                );
-                emit PositionAdded(
-                    address(marginAccount),
-                    marketKey,
-                    verificationResult.position.size,
-                    verificationResult.position.openNotional
-                );
-            } else {
-                marginAccount.updatePosition(
-                    marketKey,
-                    verificationResult.position
-                );
-                emit PositionUpdated(
-                    address(marginAccount),
-                    marketKey,
-                    verificationResult.position.size,
-                    verificationResult.position.openNotional
-                );
-            }
+            emit PositionUpdated(
+                address(marginAccount),
+                marketKey,
+                verificationResult.position.size,
+                verificationResult.position.openNotional
+            );
+            marginAccount.updatePosition(
+                marketKey,
+                verificationResult.position
+            );
+        }
+        if (verificationResult.marginDelta.abs() > 0) {
+            emit MarginTransferred(
+                address(marginAccount),
+                marketKey,
+                verificationResult.tokenOut,
+                verificationResult.marginDelta,
+                verificationResult.marginDeltaDollarValue
+            );
         }
         require(
             riskManager.isAccountHealthy(address(marginAccount)),
@@ -495,20 +463,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         vault.repay(address(marginAccount), amount, interestAccrued);
         marginAccount.decreaseDebt(amount);
-    }
-
-    function _emitMarginTransferEvent(
-        IMarginAccount marginAccount,
-        bytes32 marketKey,
-        VerifyTradeResult memory verificationResult
-    ) private {
-        emit MarginTransferred(
-            address(marginAccount),
-            marketKey,
-            verificationResult.tokenOut,
-            verificationResult.marginDelta,
-            verificationResult.marginDeltaDollarValue
-        );
     }
 
     // ----------------- Team functions ---------------------

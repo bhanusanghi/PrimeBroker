@@ -12,10 +12,10 @@ GetMarginAccount_MarginManager_UnitTest.t.sol
 
 CloseMarginAccount_MarginManager_UnitTest.t.sol
 
-OpenPosition_MarginManager_UnitTest.t.sol
-├── If already liquidatable
+UpdatePosition_MarginManager_UnitTest.t.sol
+├── If already unhealthy
 │   └── It should revert
-├── If not liquidatable
+├── If healthy
     ├── existing position
     ├── new Position 
         ├── Invalid trade
@@ -43,8 +43,11 @@ BorrowFromVault_MarginManager_UnitTest.t.sol
         ├── outside borrowLimit
         │   └── It should revert
         ├── within borrowLimit
-        │   └── Calls increaseDebt on MarginAccount
-        │   └── Calls borrow on Vault
+            ├── Unhealthy account
+            │   └── It should revert
+            ├── healthy account
+            │   └── Calls increaseDebt on MarginAccount
+            │   └── Calls borrow on Vault
             
 RepayVault_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount
@@ -64,9 +67,9 @@ RepayVault_MarginManager_UnitTest.t.sol
 SwapAsset_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount
 ├── ValidMarginAccount
-    ├── Liquidatable   
+    ├── Unhealthy account
     │   └── It should revert
-    ├── Non Liquidatable   
+    ├── Healthy account
         ├── token in is invalid 
         │   └── It should revert
         ├── token out is invalid
@@ -132,7 +135,6 @@ closePosition_MarginManager_UnitTest.t.sol
 
 
 
-updatePosition_MarginManager_UnitTest.t.sol
 syncPositions_MarginManager_UnitTest.t.sol
 
 
