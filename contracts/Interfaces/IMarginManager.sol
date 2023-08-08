@@ -39,6 +39,14 @@ interface IMarginManager {
         bytes32 indexed marketKey
     );
 
+    event AccountLiquidated(
+        address indexed marginAccount,
+        address indexed liquidator,
+        uint256 liquidationPenaltyX18
+        // bool hasBadDebt,
+        // uint256 badDebtAmount
+    );
+
     function getMarginAccount(address trader) external view returns (address);
 
     function SetRiskManager(address _riskmgr) external;

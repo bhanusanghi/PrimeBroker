@@ -205,13 +205,9 @@ contract MarginAccount is IMarginAccount {
         uint256 amountIn,
         uint256 minAmountOut
     ) public onlyMarginManager returns (uint256 amountOut) {
-        if (tokenIn == tokenOut) revert("MarginAccount: Same token");
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
-        if (address(pool) == address(0)) {
-            revert("MarginAccount: Pool not found");
-        }
         int128 tokenInIndex = contractRegistry.getCurvePoolTokenIndex(
             address(pool),
             tokenIn

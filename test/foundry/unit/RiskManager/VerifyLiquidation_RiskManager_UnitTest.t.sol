@@ -137,7 +137,7 @@ contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
                 data
             );
         assertEq(
-            result.liquidationPenalty,
+            result.liquidationPenaltyX18,
             8 ether,
             "invalid liquidation penalty"
         );
