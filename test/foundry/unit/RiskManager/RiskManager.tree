@@ -91,6 +91,7 @@ verifyLiquidation_RiskManager_UnitTest.t.sol
         ├── When account does not enough maintainence margin
             └── It should set correct penalty and return true
 
+// CRUD positions, collateral.
 isAccountHealthy_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
 │   └── It should revert
@@ -101,10 +102,21 @@ isAccountHealthy_RiskManager_UnitTest.t.sol
         ├── When no openNotional
         │   └── It should return false
         ├── When trader has openPositions
-            ├── When trader has enough account value
-            │   └── It should return false
+            ├── When trader has enough account value initially
+                │   └── It should return false
             ├── When trader does not have enough account value
-            │   └── It should return true and correct penalty
+                ├── closes sufficient position
+                │   └── It should return true
+                ├── Increases absolute open notional
+                │   └── It should return false
+                ├── Decreases sufficient absolute open notional
+                │   └── It should return true
+                ├── User adds enough collateral
+                │   └── It should return true
+                ├── User adds collateral but is not enough collateral to make account healthy again
+                │   └── It should return false
+                ├── When trader does not have enough account value
+                │   └── It should return false
 
 getAccountValue_RiskManager_UnitTest.t.sol
 ├── When invalid marginAccount
