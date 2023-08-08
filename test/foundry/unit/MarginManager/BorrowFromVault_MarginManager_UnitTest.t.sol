@@ -60,4 +60,19 @@ contract BorrowFromVault_MarginManager_UnitTest is MarginManager_UnitTest {
         contracts.marginManager.borrowFromVault(borrowAmount);
         vm.stopPrank();
     }
+
+    function test_borrowFromVault_when_unhealthy() public {
+        uint256 chronuxMargin = 100 * ONE_USDC;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        uint256 borrowAmount = chronuxMargin * 3;
+        vm.mockCall(
+            address(contracts.riskManager),
+            abi.encodeWithSelector(IRiskManager.isAccountHealthy.selector),
+            abi.encode(false)
+        );
+        vm.startPrank(bob);
+        vm.expectRevert("MM: Unhealthy account");
+        contracts.marginManager.borrowFromVault(borrowAmount);
+        vm.stopPrank();
+    }
 }

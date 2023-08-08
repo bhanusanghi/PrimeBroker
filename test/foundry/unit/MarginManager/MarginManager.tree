@@ -43,8 +43,11 @@ BorrowFromVault_MarginManager_UnitTest.t.sol
         ├── outside borrowLimit
         │   └── It should revert
         ├── within borrowLimit
-        │   └── Calls increaseDebt on MarginAccount
-        │   └── Calls borrow on Vault
+            ├── Unhealthy account
+            │   └── It should revert
+            ├── healthy account
+            │   └── Calls increaseDebt on MarginAccount
+            │   └── Calls borrow on Vault
             
 RepayVault_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount

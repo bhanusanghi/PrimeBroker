@@ -92,10 +92,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        (bool isLiquidatable, , ) = riskManager.isAccountLiquidatable(
-            address(marginAccount)
-        );
-        require(!isLiquidatable, "MM: Account is liquidatable");
         require(amount != 0, "MM: Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
         require(
