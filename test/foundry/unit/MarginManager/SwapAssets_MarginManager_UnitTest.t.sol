@@ -25,15 +25,15 @@ contract SwapAssets_MarginManager_UnitTest is MarginManager_UnitTest {
         );
     }
 
-    function test_swapAssets_when_liquidatable() public {
+    function test_swapAssets_when_Unhealthy() public {
         uint256 chronuxMargin = 100 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         vm.mockCall(
             address(contracts.riskManager),
-            abi.encodeWithSelector(IRiskManager.isAccountLiquidatable.selector),
-            abi.encode(true, true, 0)
+            abi.encodeWithSelector(IRiskManager.isAccountHealthy.selector),
+            abi.encode(false)
         );
-        vm.expectRevert("MM: Account is liquidatable");
+        vm.expectRevert("MM: Unhealthy account");
         vm.prank(bob);
         contracts.marginManager.swapAsset(
             usdc,
