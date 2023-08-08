@@ -12,11 +12,10 @@ GetMarginAccount_MarginManager_UnitTest.t.sol
 
 CloseMarginAccount_MarginManager_UnitTest.t.sol
 
-// update these tests.
-OpenPosition_MarginManager_UnitTest.t.sol
-├── If already liquidatable
+UpdatePosition_MarginManager_UnitTest.t.sol
+├── If already unhealthy
 │   └── It should revert
-├── If not liquidatable
+├── If healthy
     ├── existing position
     ├── new Position 
         ├── Invalid trade
@@ -65,9 +64,9 @@ RepayVault_MarginManager_UnitTest.t.sol
 SwapAsset_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount
 ├── ValidMarginAccount
-    ├── Liquidatable   
+    ├── Unhealthy account
     │   └── It should revert
-    ├── Non Liquidatable   
+    ├── Healthy account
         ├── token in is invalid 
         │   └── It should revert
         ├── token out is invalid
@@ -133,7 +132,6 @@ closePosition_MarginManager_UnitTest.t.sol
 
 
 
-updatePosition_MarginManager_UnitTest.t.sol
 syncPositions_MarginManager_UnitTest.t.sol
 
 

@@ -72,10 +72,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
                     IExchange(exchange).getSqrtMarkTwapX96(_baseToken, 0)
                 )
             );
-        // (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(
-        //     IMarketRegistry(perpMarketRegistry).getPool(_baseToken)
-        // ).slot0();
-        // token0Price = ((uint256(sqrtPriceX96) ** 2) / (2 ** 192));
     }
 
     function fetchMargin(

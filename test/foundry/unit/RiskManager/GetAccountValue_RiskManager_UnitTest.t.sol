@@ -196,13 +196,12 @@ contract GetAccountValue_RiskManager_UnitTest is RiskManager_UnitTest {
             ),
             abi.encode(pnl)
         );
-        uint256 interestX18 = 0 ether;
         vm.mockCall(
             bobMarginAccount,
             abi.encodeWithSelector(
                 IMarginAccount.getInterestAccruedX18.selector
             ),
-            abi.encode(interestX18)
+            abi.encode(0)
         );
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount

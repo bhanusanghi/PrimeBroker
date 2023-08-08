@@ -57,7 +57,6 @@ contract RiskManagerTest is BaseSetup {
 
     Accounting Testing ->
     _getAbsTotalCollateralValue tests.
-    _getRemainingMarginTransfer
     _getRemainingPositionOpenNotional
 
   */

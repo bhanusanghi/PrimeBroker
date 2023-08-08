@@ -114,12 +114,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         return _getUnrealizedPnL(marginAccount);
     }
 
-    // function getRemainingMarginTransfer(
-    //     address _marginAccount
-    // ) public view returns (uint256) {
-    //     return _getRemainingMarginTransfer(_marginAccount);
-    // }
-
     function getRemainingPositionOpenNotional(
         address _marginAccount
     ) public view returns (uint256) {
@@ -463,16 +457,4 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
                 totalOpenNotional
             ); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
     }
-
-    // function _getRemainingMarginTransfer(
-    //     address marginAccount
-    // ) private view returns (uint256) {
-    //     ICollateralManager collateralManager = ICollateralManager(
-    //         contractRegistry.getContractByName(keccak256("CollateralManager"))
-    //     );
-    //     uint256 totalCollateralInMarginAccount = collateralManager
-    //         .getCollateralHeldInMarginAccount(marginAccount);
-    //     uint256 availableBorrowLimit = getRemainingBorrowLimit(marginAccount);
-    //     return totalCollateralInMarginAccount + availableBorrowLimit;
-    // }
 }
