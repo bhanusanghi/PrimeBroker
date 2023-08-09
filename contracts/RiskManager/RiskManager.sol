@@ -123,15 +123,27 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function getMaxBorrowLimit(
         address _marginAccount
     ) public view override returns (uint256) {
-        return _getMaxBorrowLimit(_marginAccount);
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            _marginAccount
+        );
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            _marginAccount
+        );
+        return _getMaxBorrowLimit(_totalCollateralValue, totalOpenNotional);
     }
 
     // TODO: USELESS_FUNCTION remove this
     function getRemainingBorrowLimit(
         address _marginAccount
     ) public view override returns (uint256) {
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            _marginAccount
+        );
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            _marginAccount
+        );
         return
-            _getMaxBorrowLimit(_marginAccount) -
+            _getMaxBorrowLimit(_totalCollateralValue, totalOpenNotional) -
             IMarginAccount(_marginAccount).totalBorrowed();
     }
 
@@ -139,8 +151,16 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address _marginAccount,
         uint256 newBorrowAmountX18
     ) external view {
-        // Get margin account borrowed amount.
-        uint256 maxBorrowLimit = _getMaxBorrowLimit(_marginAccount);
+        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
+            _marginAccount
+        );
+        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+            _marginAccount
+        );
+        uint256 maxBorrowLimit = _getMaxBorrowLimit(
+            _totalCollateralValue,
+            totalOpenNotional
+        );
         uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
         require(
             borrowedAmount + newBorrowAmountX18 <= maxBorrowLimit,
@@ -330,13 +350,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     // get max borrow limit using this formula
     // maxBorrowLimit = totalCollateralValue * ((100 - mmf)/mmf)
-    // if borrowed amount > maxBorrowLimit then revert
+
+    // max borrow limit should be 0 when user is unhealthy
     function _getMaxBorrowLimit(
-        address _marginAccount
+        uint256 _totalCollateralValue,
+        uint256 totalOpenNotional
     ) internal view returns (uint256 maxBorrowLimit) {
-        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
-            _marginAccount
-        );
+        // should maxBorrowLimit be 0 when user is unhealthy??
+        if (_totalCollateralValue == 0) return 0;
+        if (!_isHealthy(_totalCollateralValue, totalOpenNotional)) return 0;
         maxBorrowLimit = _totalCollateralValue.mulDiv(
             100 - initialMarginFactor,
             initialMarginFactor
@@ -434,13 +456,17 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
+        return _isHealthy(accountValue, totalOpenNotional);
+    }
+
+    function _isHealthy(
+        uint256 accountValue,
+        uint256 totalOpenNotional
+    ) internal view returns (bool isHealthy) {
         uint256 minimumMarginRequirement = totalOpenNotional
             .mul(initialMarginFactor)
             .div(100);
-        if (accountValue >= minimumMarginRequirement) {
-            isHealthy = true;
-        }
-        // check if account is liquidatable
+        if (accountValue >= minimumMarginRequirement) isHealthy = true;
     }
 
     function _getRemainingPositionOpenNotional(

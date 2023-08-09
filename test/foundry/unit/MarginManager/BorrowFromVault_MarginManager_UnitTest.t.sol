@@ -11,6 +11,7 @@ import {BaseSetup} from "../../BaseSetup.sol";
 import {MarginManager_UnitTest} from "./MarginManager_UnitTest.t.sol";
 import {IMarginAccount} from "../../../../contracts/Interfaces/IMarginAccount.sol";
 import {IRiskManager} from "../../../../contracts/Interfaces/IRiskManager.sol";
+import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRiskManager.sol";
 
 // acv = account value
 contract BorrowFromVault_MarginManager_UnitTest is MarginManager_UnitTest {
@@ -64,15 +65,32 @@ contract BorrowFromVault_MarginManager_UnitTest is MarginManager_UnitTest {
     function test_borrowFromVault_when_unhealthy() public {
         uint256 chronuxMargin = 100 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            int256(100 * ONE_USDC),
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            300 ether,
+            false,
+            ""
+        );
         uint256 borrowAmount = chronuxMargin * 3;
         vm.mockCall(
-            address(contracts.riskManager),
-            abi.encodeWithSelector(IRiskManager.isAccountHealthy.selector),
-            abi.encode(false)
+            address(contracts.perpfiRiskManager),
+            abi.encodeWithSelector(
+                IProtocolRiskManager.getUnrealizedPnL.selector
+            ),
+            abi.encode(-30 ether)
         );
         vm.startPrank(bob);
-        vm.expectRevert("MM: Unhealthy account");
+        vm.expectRevert("Borrow limit exceeded");
         contracts.marginManager.borrowFromVault(borrowAmount);
+        assertEq(contracts.riskManager.getMaxBorrowLimit(bobMarginAccount), 0);
         vm.stopPrank();
     }
 }
