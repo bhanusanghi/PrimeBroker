@@ -94,10 +94,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         require(amount != 0, "MM: Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
-        require(
-            riskManager.isAccountHealthy(address(marginAccount)),
-            "MM: Unhealthy account"
-        );
     }
 
     // amount in vault asset decimals
