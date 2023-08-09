@@ -160,13 +160,13 @@ contract CollateralManager is ICollateralManager {
         collateralWeight[_token] = _collateralWeight;
     }
 
-    // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
+    // free collateral = accountValue - maintanenceMargin
     function _getFreeCollateralValue(
         address _marginAccount
     ) internal view returns (uint256 freeCollateralValueX18) {
         // free collateral
         freeCollateralValueX18 =
-            _totalCurrentCollateralValue(address(_marginAccount)) -
+            riskManager.getAccountValue(address(_marginAccount)) -
             riskManager.getMaintenanceMarginRequirement(_marginAccount);
     }
 

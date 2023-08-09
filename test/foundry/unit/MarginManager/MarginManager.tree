@@ -32,7 +32,8 @@ UpdatePosition_MarginManager_UnitTest.t.sol
             ├── margin transfer with opening position 
                 
 
-
+// account health should be unaffected by borrow more.
+// i.e collateral value should be unaffected by borrow more.
 BorrowFromVault_MarginManager_UnitTest.t.sol
 ├── InvalidMarginAccount
 │   └── It should revert

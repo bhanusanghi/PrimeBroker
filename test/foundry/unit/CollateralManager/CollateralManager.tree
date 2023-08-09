@@ -1,0 +1,6 @@
+OpenMarginAccount_MarginManager_UnitTest.t.sol
+├── When invalid factory
+├── When valid factory
+    ├── when duplicate trader
+    ├── when valid new trader
+        ├── creates a new MarginAccount with its initial values set properly, sets tokenAllowance of vault asset to allow repay, adds to traders array, emits event

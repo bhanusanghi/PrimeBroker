@@ -5,6 +5,7 @@ import {Utils} from "../utils/Utils.sol";
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
+import {IMarginAccount} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -231,6 +232,39 @@ contract CollateralManagerTest is BaseSetup {
             "totalCollateralValue should be zero"
         );
     }
+
+    function testfreeCollateralValue_with_accrued_interest() public {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            1000 ether
+        );
+        vm.prank(bob);
+        contracts.marginManager.borrowFromVault(1000 * ONE_USDC);
+        utils.mineBlocks(100, 10 days);
+        uint256 interestAcrued = IMarginAccount(bobMarginAccount)
+            .getInterestAccruedX18();
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            1000 ether - interestAcrued
+        );
+    }
+
+    // collateral value affected on these operations ->
+    // repay
+    // swap
+    // withdraw
+    // deposit
+    // CRUD positions
+    // passing time (funding fee, interest accrued)
+
+    //unaffected by these ->
+    // borrow
+    // transferring margin to/from TPP
 
     /*
     // Unit tests 
