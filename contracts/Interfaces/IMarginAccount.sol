@@ -14,7 +14,7 @@ interface IMarginAccount {
 
     function cumulativeIndexAtOpen() external view returns (uint256);
 
-    function addCollateral(
+    function depositCollateral(
         address from,
         address token,
         uint256 amount

@@ -113,7 +113,7 @@ contract MarginAccount is IMarginAccount {
     //     }
     // }
 
-    function addCollateral(
+    function depositCollateral(
         address from,
         address token,
         uint256 amount

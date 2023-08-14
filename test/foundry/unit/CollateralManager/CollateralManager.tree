@@ -1,6 +1,68 @@
-OpenMarginAccount_MarginManager_UnitTest.t.sol
-├── When invalid factory
-├── When valid factory
-    ├── when duplicate trader
-    ├── when valid new trader
-        ├── creates a new MarginAccount with its initial values set properly, sets tokenAllowance of vault asset to allow repay, adds to traders array, emits event
+whitelistCollateral_CollateralManager_UnitTest.t.sol
+├── invalid accesss
+├── valid access
+    ├── invalid address
+    ├── valid address
+        ├── existing collateral
+        ├── valid new collateral
+            ├── invalid weight
+            ├── valid weight
+
+
+depositCollateral_CollateralManager_UnitTest.t.sol
+├── invalid MA
+├── valid MA
+    ├── invalid collateral
+    ├── valid collateral
+        ├── ERC20: not approved 
+        ├── ERC20: approved
+            │   └── increases ERC20 balance of MA
+            │   └── emits event
+
+withdrawCollateral_CollateralManager_UnitTest.t.sol
+├── invalid MA
+├── valid MA
+    ├── invalid token out
+    │   └── reverts
+    ├── valid token out
+        ├── amount > withdrawableLimit
+        ├── amount > ERC20 balance && amount < withdrawableLimit
+        ├── amount < ERC20 balance && amount < withdrawableLimit
+            │   └── increases ERC20 balance of MA
+            │   └── emits event
+
+// States 
+// WHEN LIQUIDATABLE
+// WHEN Unhealthy
+// when pnl 
+// when interest accrued
+freeCollateral_CollateralManager_UnitTest.t.sol
+├── invalid MA
+├── valid MA
+    ├── invalid token out
+    │   └── reverts
+    ├── valid token out
+        ├── amount > withdrawableLimit
+        ├── amount > ERC20 balance && amount < withdrawableLimit
+        ├── amount < ERC20 balance && amount < withdrawableLimit
+            │   └── increases ERC20 balance of MA
+            │   └── emits event
+
+totalCollateralValue
+├── invalid MA
+├── valid MA
+    ├── without deposit
+    ├── valid deposits
+        ├── on Chronux only
+        ├── on TPPs Only 
+        ├── on Chronux and TPPs
+            ├── with vault borrow no interest accrued
+            │   └── 
+            ├── with vault borrow and interest accrued
+            ├── with vault borrow and positions data
+
+
+
+totalCollateralValueInMA
+
+

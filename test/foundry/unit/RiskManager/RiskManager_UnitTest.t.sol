@@ -101,7 +101,7 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier marginInTPP() {
         _;
     }
-    modifier addCollateral() {
+    modifier depositCollateral() {
         _;
     }
     modifier reducedNotional() {

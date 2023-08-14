@@ -38,7 +38,7 @@ contract CollateralManager is ICollateralManager {
     mapping(address => bool) public isAllowedCollateral;
     mapping(address => mapping(address => int256)) internal _balance;
     // mapping(address => mapping(address => uint256)) internal _balance;
-    event CollateralAdded(
+    event CollateralDeposited(
         address indexed marginAccount,
         address indexed token,
         uint256 indexed amount
@@ -67,34 +67,7 @@ contract CollateralManager is ICollateralManager {
         owner = msg.sender;
     }
 
-    function updateCollateralAmount(uint256 amount) external {
-        // only marginManager
-    }
-
-    function addAllowedCollaterals(
-        address[] calldata _allowed,
-        uint256[] calldata _collateralWeights
-    ) public onlyOwner {
-        require(
-            _allowed.length == _collateralWeights.length,
-            "CM: No array parity"
-        );
-        uint256 len = _allowed.length;
-        for (uint256 i = 0; i < len; i++) {
-            // @todo use mapping instead
-            // Needed otherwise borrowing power can be inflated by pushing same collateral multiple times.
-            require(
-                isAllowedCollateral[_allowed[i]] == false,
-                "CM: Collateral already added"
-            );
-            allowedCollateral.push(_allowed[i]);
-            collateralWeight[_allowed[i]] = _collateralWeights[i];
-            isAllowedCollateral[_allowed[i]] = true;
-            _decimals[_allowed[i]] = IERC20Metadata(_allowed[i]).decimals();
-        }
-    }
-
-    function addAllowedCollateral(
+    function whitelistCollateral(
         address _allowed,
         uint256 _collateralWeight
     ) public onlyOwner {
@@ -109,17 +82,17 @@ contract CollateralManager is ICollateralManager {
         _decimals[_allowed] = IERC20Metadata(_allowed).decimals();
     }
 
-    function addCollateral(address _token, uint256 _amount) external {
+    function depositCollateral(address _token, uint256 _amount) external {
         require(isAllowedCollateral[_token], "CM: Unsupported collateral"); //@note move it to margin manager
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
         );
-        IMarginAccount(marginAccount).addCollateral(
+        IMarginAccount(marginAccount).depositCollateral(
             msg.sender,
             _token,
             _amount
         );
-        emit CollateralAdded(address(marginAccount), _token, _amount);
+        emit CollateralDeposited(address(marginAccount), _token, _amount);
     }
 
     // Should be accessed by Margin Manager only??
@@ -198,7 +171,7 @@ contract CollateralManager is ICollateralManager {
     }
 
     // sends result in 18 decimals.
-    function _getCollateralHeldInMarginAccount(
+    function _getCollateralValueInMarginAccount(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
@@ -216,16 +189,16 @@ contract CollateralManager is ICollateralManager {
         }
     }
 
-    function getCollateralHeldInMarginAccount(
+    function getCollateralValueInMarginAccount(
         address _marginAccount
     ) external view returns (uint256 totalAmount) {
-        return _getCollateralHeldInMarginAccount(_marginAccount);
+        return _getCollateralValueInMarginAccount(_marginAccount);
     }
 
     function _totalCurrentCollateralValue(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
-        uint256 collateralHeldInMarginAccountX18 = _getCollateralHeldInMarginAccount(
+        uint256 collateralHeldInMarginAccountX18 = _getCollateralValueInMarginAccount(
                 _marginAccount
             );
         uint256 totalCollateralInMarketsX18 = riskManager

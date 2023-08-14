@@ -301,8 +301,8 @@ contract BaseSetup is Test, IEvents {
         vm.stopPrank();
         setupProtocolRiskManagers();
         vm.startPrank(deployerAdmin);
-        contracts.collateralManager.addAllowedCollateral(usdc, 100);
-        contracts.collateralManager.addAllowedCollateral(susd, 100);
+        contracts.collateralManager.whitelistCollateral(usdc, 100);
+        contracts.collateralManager.whitelistCollateral(susd, 100);
         vm.stopPrank();
 
         // Fund admin traders
@@ -533,7 +533,7 @@ contract BaseSetup is Test, IEvents {
     // riskManager.setCollateralManager(collateralManager);
     // riskManager.setVault(vault);
     // setupProtocolRiskManagers();
-    // collateralManager.addAllowedCollateral([usdc, susd], [100, 100]);
+    // collateralManager.whitelistCollateral([usdc, susd], [100, 100]);
     // marketManager.addMarket(_marketName, _market, _riskManager);
     //fetch
     // snxFuturesMarketManager = IAddressResolver(SYN_ADDRESS_RESOLVER).getAddress(keccak256("FuturesMarketManager"));

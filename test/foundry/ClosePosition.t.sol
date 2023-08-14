@@ -133,8 +133,8 @@
 
 //         // collaterals.push(usdc);
 //         // collaterals.push(susd);
-//         contracts.collateralManager.addAllowedCollateral(usdc, 100);
-//         contracts.collateralManager.addAllowedCollateral(susd, 100);
+//         contracts.collateralManager.whitelistCollateral(usdc, 100);
+//         contracts.collateralManager.whitelistCollateral(susd, 100);
 //         //fetch snx market addresses.
 //         snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
 //             .getAddress(bytes32("FuturesMarketManager"));
@@ -273,7 +273,7 @@
 //         marginSNX = margin.mul(2).convertTokenDecimals(6, 18);
 //         vm.startPrank(bob);
 //         IERC20(usdc).approve(bobMarginAccount, margin);
-//         contracts.collateralManager.addCollateral(usdc, margin);
+//         contracts.collateralManager.depositCollateral(usdc, margin);
 //         console2.log("margin");
 //         bytes memory transferMarginData = abi.encodeWithSignature(
 //             "transferMargin(int256)",
@@ -428,7 +428,7 @@
 //         // assertEq(contracts.vault.expectedLiquidity(), largeAmount);
 //         vm.startPrank(bob);
 //         IERC20(usdc).approve(bobMarginAccount, liquiMargin);
-//         contracts.collateralManager.addCollateral(usdc, liquiMargin);
+//         contracts.collateralManager.depositCollateral(usdc, liquiMargin);
 //         address[] memory destinations = new address[](3);
 //         bytes[] memory data1 = new bytes[](3);
 //         destinations[0] = usdc;

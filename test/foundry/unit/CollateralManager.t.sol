@@ -42,7 +42,13 @@ contract CollateralManagerTest is BaseSetup {
         perpfiUtils = new PerpfiUtils(contracts);
     }
 
-    function testAddCollateral(uint256 _depositAmt) public {
+    function test_DepositUnsupported_Collateral() public {
+        vm.expectRevert("CM: Unsupported collateral");
+        vm.prank(bob);
+        contracts.collateralManager.depositCollateral(usdt, 100 * ONE_USDC);
+    }
+
+    function testdepositCollateral(uint256 _depositAmt) public {
         vm.assume(_depositAmt < ONE_MILLION_USDC && _depositAmt > 0);
         chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
     }
@@ -76,6 +82,18 @@ contract CollateralManagerTest is BaseSetup {
         uint256 change = 100 * ONE_USDC;
         vm.assume(withdrawAmount <= _depositAmt && withdrawAmount > ONE_USDC);
         vm.startPrank(bob);
+        vm.expectEmit(
+            true,
+            true,
+            true,
+            true,
+            address(contracts.collateralManager)
+        );
+        emit CollateralWithdrawn(
+            address(bobMarginAccount),
+            usdc,
+            withdrawAmount
+        );
         contracts.collateralManager.withdrawCollateral(usdc, withdrawAmount);
         uint256 totalCollateralValueX18 = contracts
             .collateralManager
@@ -233,7 +251,7 @@ contract CollateralManagerTest is BaseSetup {
         );
     }
 
-    function testfreeCollateralValue_with_accrued_interest() public {
+    function testFreeCollateralValue_with_accrued_interest() public {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
         assertEq(
             contracts.collateralManager.getFreeCollateralValue(
@@ -254,6 +272,21 @@ contract CollateralManagerTest is BaseSetup {
         );
     }
 
+    modifier invalidAccess() {
+        _;
+    }
+    modifier invalidToken() {
+        _;
+    }
+    modifier existingCollateral() {
+        _;
+    }
+    modifier invalidWeight() {
+        _;
+    }
+
+    function test_whitelistCollateral() public {}
+
     // collateral value affected on these operations ->
     // repay
     // swap
@@ -271,7 +304,7 @@ contract CollateralManagerTest is BaseSetup {
     1. Add Allowed collateral
     2. Withdraw collateral
     3. totalCurrentCollateralValue 
-    4. getCollateralHeldInMarginAccount
+    4. getCollateralValueInMarginAccount
 
     // Accounting tests 
     1. Free Collateral Value

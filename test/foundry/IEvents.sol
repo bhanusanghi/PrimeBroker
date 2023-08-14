@@ -102,7 +102,7 @@ interface IEvents {
     }
 
     // ============= Collateral Manager Events =============
-    event CollateralAdded(
+    event CollateralDeposited(
         address indexed,
         address indexed,
         uint256 indexed tokenAmount
@@ -151,5 +151,16 @@ interface IEvents {
     event MarginAccountOpened(
         address indexed trader,
         address indexed marginAccount
+    );
+
+    event CollateralDeposited(
+        address indexed marginAccount,
+        address indexed token,
+        uint256 indexed amount
+    );
+    event CollateralWithdrawn(
+        address indexed marginAccount,
+        address indexed token,
+        uint256 indexed amount
     );
 }
