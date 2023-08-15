@@ -12,7 +12,7 @@ contract MarginAccountFactory is IMarginAccountFactory {
     address marginManager;
     IContractRegistry contractRegistry;
     IACLManager aclManager;
-
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     modifier onlyMarginManager() {
         require(msg.sender == marginManager, "Only Margin Manager");
         _;
@@ -20,7 +20,7 @@ contract MarginAccountFactory is IMarginAccountFactory {
 
     modifier onlyAdmin() {
         require(
-            aclManager.isChronuxAdminRoleAdmin(msg.sender),
+            aclManager.hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
             "Vault: Chronux Admin only"
         );
         _;

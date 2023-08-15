@@ -104,10 +104,9 @@ contract VaultTest is Test {
         vm.deal(david, 1000 ether);
 
         vm.startPrank(admin);
-        //IContractRegistry(admin) fake registry
-        aclManager = new ACLManager(IContractRegistry(admin), admin);
-        aclManager.setChronuxAdminRoleAdmin(admin);
-        aclManager.setLendBorrowRoleAdmin(admin);
+        aclManager = new ACLManager(admin);
+        aclManager.grantRole(aclManager.CHRONUX_ADMIN_ROLE(), admin);
+        aclManager.grantRole(aclManager.LEND_BORROW_ROLE(), admin);
         vm.stopPrank();
         // maxExpectedLiquidity = type(uint256).max;
         vault = new Vault(

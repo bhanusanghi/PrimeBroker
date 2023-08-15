@@ -30,6 +30,7 @@ contract CollateralManager is ICollateralManager {
     IPriceOracle public priceOracle;
     IVault public vault;
     IACLManager public aclManager;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     address[] public allowedCollateral; // allowed tokens
     mapping(address => uint256) public collateralWeight;
     uint8 private constant baseDecimals = 6; // @todo get from vault in initialize func
@@ -50,7 +51,7 @@ contract CollateralManager is ICollateralManager {
 
     modifier onlyAdmin() {
         require(
-            aclManager.isChronuxAdminRoleAdmin(_msgSender()),
+            aclManager.hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
             "Vault: Chronux Admin only"
         );
         _;

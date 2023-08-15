@@ -61,6 +61,11 @@ contract Vault is IVault, ERC4626 {
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
     IACLManager aclManager;
+    // keeping these internal so no public methods,
+    //@todo set these consts directly from aclmanager and set it one time at deployment
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
+    bytes32 internal constant LEND_BORROW_ROLE =
+        keccak256("CHRONUX.LEND_BORROW");
     mapping(address => bool) public lendingAllowed;
     mapping(address => bool) public repayingAllowed;
     address[] whitelistedCreditors;
@@ -75,7 +80,7 @@ contract Vault is IVault, ERC4626 {
 
     modifier onlyAdmin() {
         require(
-            aclManager.isChronuxAdminRoleAdmin(_msgSender()),
+            aclManager.hasRole(CHRONUX_ADMIN_ROLE, _msgSender()),
             "Vault: Chronux Admin only"
         );
         _;
@@ -83,7 +88,7 @@ contract Vault is IVault, ERC4626 {
     // onlyLendBorrowManager?
     modifier onlyManager() {
         require(
-            aclManager.isLendBorrowRoleAdmin(_msgSender()),
+            aclManager.hasRole(LEND_BORROW_ROLE, _msgSender()),
             "Vault: Lend/borrow manager only"
         );
         _;

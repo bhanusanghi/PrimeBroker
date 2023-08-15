@@ -33,6 +33,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     IRiskManager public riskManager;
     IContractRegistry public contractRegistry;
     IACLManager public aclManager;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     mapping(address => address) public marginAccounts;
     address[] private traders;
     modifier nonZeroAddress(address _address) {
@@ -42,7 +43,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
     modifier onlyAdmin() {
         require(
-            aclManager.isChronuxAdminRoleAdmin(msg.sender),
+            aclManager.hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
             "MM: Chronux Admin only"
         );
         _;

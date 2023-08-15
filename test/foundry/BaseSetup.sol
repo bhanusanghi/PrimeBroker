@@ -163,11 +163,11 @@ contract BaseSetup is Test, IEvents {
 
     function setupACLManager() internal {
         vm.startPrank(deployerAdmin);
-        contracts.aclManager = new ACLManager(
-            contracts.contractRegistry,
+        contracts.aclManager = new ACLManager(deployerAdmin);
+        contracts.aclManager.grantRole(
+            contracts.aclManager.CHRONUX_ADMIN_ROLE(),
             deployerAdmin
         );
-        contracts.aclManager.setChronuxAdminRoleAdmin(deployerAdmin);
         vm.stopPrank();
     }
 
@@ -193,7 +193,8 @@ contract BaseSetup is Test, IEvents {
             keccak256("MarginManager"),
             address(contracts.marginManager)
         );
-        contracts.aclManager.setLendBorrowRoleAdmin(
+        contracts.aclManager.grantRole(
+            contracts.aclManager.LEND_BORROW_ROLE(),
             address(contracts.marginManager)
         );
         vm.stopPrank();
