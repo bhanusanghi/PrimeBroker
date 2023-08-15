@@ -2,6 +2,7 @@ pragma solidity ^0.8.10;
 import {MarginAccount} from "./MarginAccount.sol";
 import {IMarginAccountFactory} from "../Interfaces/IMarginAccountFactory.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IACLManager} from "../Interfaces/IACLManager.sol";
 
 // Use Clone Factory Method to deploy new Margin Accounts with proxy pattern
 // Reuse clones
@@ -9,21 +10,29 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 
 contract MarginAccountFactory is IMarginAccountFactory {
     address marginManager;
-    address owner;
     IContractRegistry contractRegistry;
+    IACLManager aclManager;
 
     modifier onlyMarginManager() {
         require(msg.sender == marginManager, "Only Margin Manager");
         _;
     }
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only Owner");
+
+    modifier onlyAdmin() {
+        require(
+            aclManager.isChronuxAdminRoleAdmin(msg.sender),
+            "Vault: Chronux Admin only"
+        );
         _;
     }
 
-    constructor(address _marginManager, address _contractRegistry) {
+    constructor(
+        address _marginManager,
+        address _contractRegistry,
+        address _aclManager
+    ) {
         marginManager = _marginManager;
-        owner = msg.sender;
+        aclManager = IACLManager(_aclManager);
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 

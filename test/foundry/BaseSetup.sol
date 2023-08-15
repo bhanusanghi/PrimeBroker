@@ -215,7 +215,8 @@ contract BaseSetup is Test, IEvents {
             address(contracts.marginManager),
             address(contracts.riskManager),
             address(contracts.priceOracle),
-            address(contracts.vault)
+            address(contracts.vault),
+            address(contracts.aclManager)
         );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("CollateralManager"),
@@ -228,7 +229,8 @@ contract BaseSetup is Test, IEvents {
         vm.startPrank(deployerAdmin);
         contracts.marginAccountFactory = new MarginAccountFactory(
             address(contracts.marginManager),
-            address(contracts.contractRegistry)
+            address(contracts.contractRegistry),
+            address(contracts.aclManager)
         );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarginAccountFactory"),
