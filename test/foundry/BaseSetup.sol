@@ -39,6 +39,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IEvents} from "./IEvents.sol";
+import {ACLManager} from "../../contracts/Utils/ACLManager.sol";
 
 struct RoundData {
     uint80 roundId;
@@ -158,6 +159,15 @@ contract BaseSetup is Test, IEvents {
             keccak256("MarketManager"),
             address(contracts.marketManager)
         );
+    }
+
+    function setupACLManager() internal {
+        vm.startPrank(deployerAdmin);
+        contracts.aclManager = new ACLManager(
+            contracts.contractRegistry,
+            deployerAdmin
+        );
+        contracts.aclManager.setChronuxAdminRoleAdmin(deployerAdmin);
         vm.stopPrank();
     }
 
@@ -175,9 +185,15 @@ contract BaseSetup is Test, IEvents {
 
     function setupMarginManager() internal {
         vm.startPrank(deployerAdmin);
-        contracts.marginManager = new MarginManager(contracts.contractRegistry);
+        contracts.marginManager = new MarginManager(
+            contracts.contractRegistry,
+            address(contracts.aclManager)
+        );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarginManager"),
+            address(contracts.marginManager)
+        );
+        contracts.aclManager.setLendBorrowRoleAdmin(
             address(contracts.marginManager)
         );
         vm.stopPrank();
@@ -288,6 +304,7 @@ contract BaseSetup is Test, IEvents {
     function _setupCommonFixture(address vaultAsset) internal {
         setupUsers();
         setupContractRegistry();
+        setupACLManager();
         setupPriceOracle();
         setupMarketManager();
         setupMarginManager();

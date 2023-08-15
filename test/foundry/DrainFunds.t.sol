@@ -58,7 +58,7 @@ contract DrainFunds is BaseSetup {
         vm.startPrank(deployerAdmin);
         uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
-        contracts.marginManager.drainAllMarginAccounts(susd);
+        contracts.marginManager.drainAllMarginAccounts(susd, deployerAdmin);
         assertEq(
             IERC20(susd).balanceOf(deployerAdmin),
             adminBalance + (amount * 2)
@@ -68,8 +68,8 @@ contract DrainFunds is BaseSetup {
 
     function testRejectDrainMarginAccountNonAdmin() public {
         vm.startPrank(alice);
-        vm.expectRevert("MM: Unauthorized, only owner allowed");
-        contracts.marginManager.drainAllMarginAccounts(susd);
+        vm.expectRevert("MM: Chronux Admin only");
+        contracts.marginManager.drainAllMarginAccounts(susd, deployerAdmin);
         vm.stopPrank();
     }
 

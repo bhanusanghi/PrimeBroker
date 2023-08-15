@@ -11,6 +11,7 @@ import {ICollateralManager} from "../../contracts/Interfaces/ICollateralManager.
 import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
+import {IACLManager} from "../../contracts/Interfaces/IACLManager.sol";
 
 interface IEvents {
     struct Contracts {
@@ -25,6 +26,7 @@ interface IEvents {
         IInterestRateModel interestModel;
         Vault vault;
         IMarginAccountFactory marginAccountFactory;
+        IACLManager aclManager;
     }
     struct OpenPositionParams {
         address baseToken;
