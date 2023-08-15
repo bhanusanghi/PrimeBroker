@@ -18,10 +18,20 @@ contract GetTotalBuyingPower_RiskManager_UnitTest is RiskManager_UnitTest {
     {
         uint256 bp = contracts.riskManager.getTotalBuyingPower(david);
         assertEq(bp, 0);
+        bp = contracts.riskManager.getTotalBuyingPower(
+            contracts.contractWithFallback
+        );
+        assertEq(bp, 0);
+        bp = contracts.riskManager.getTotalBuyingPower(
+            contracts.contractWithoutFallback
+        );
+        assertEq(bp, 0);
     }
 
     function test_zero_bp_when_0_collateral() public zeroCollateral {
-        uint256 bp = contracts.riskManager.getTotalBuyingPower(bob);
+        uint256 bp = contracts.riskManager.getTotalBuyingPower(
+            bobMarginAccount
+        );
         assertEq(bp, 0);
     }
 

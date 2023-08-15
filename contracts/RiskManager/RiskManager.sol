@@ -62,10 +62,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data
     ) public returns (VerifyTradeResult memory result) {
         result = _decodeTradeData(marketKey, destinations, data);
-        // _verifyFinalLeverage(
-        //     address(marginAccount),
-        //     result.position.openNotional
-        // );
     }
 
     function verifyClosePosition(
@@ -120,7 +116,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function getMaxBorrowLimit(
-        address _marginAccount
+        address marginAccount
     ) public view override returns (uint256) {
         return
             _getMaxBorrowLimit(
@@ -132,7 +128,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     // TODO: USELESS_FUNCTION remove this
     function getRemainingBorrowLimit(
-        address _marginAccount
+        address marginAccount
     ) public view override returns (uint256) {
         uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
         return
@@ -226,12 +222,17 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address marginAccount
     ) public view returns (uint256) {
         uint256 borrowedAmount = IMarginAccount(marginAccount).totalBorrowed();
-        uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
+        uint256 openNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
-        return
-            borrowedAmount +
-            ((totalOpenNotional * maintanaceMarginFactor) / 100);
+        return _getMaintenanceMarginRequirement(borrowedAmount, openNotional);
+    }
+
+    function _getMaintenanceMarginRequirement(
+        uint256 borrowedAmount,
+        uint256 openNotional
+    ) public view returns (uint256) {
+        return borrowedAmount + ((openNotional * maintanaceMarginFactor) / 100);
     }
 
     // returns in 18 decimals.
@@ -258,22 +259,13 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // And compares it with all of trader's liabilities.
     // If the account value is less than the liabilities, then the trader is bankrupt.
     // Liabilities include -> (borrowed+interest) + liquidationPenalty.
-    // liquidationPenalty is totalNotional * liquidationPenaltyFactor
-    // vaultLiability = borrowed + interest
+    // liquidationPenalty is totalAbsCollateralValue * liquidationPenaltyFactor
     function isTraderBankrupt(
         address marginAccount,
-        uint256 vaultLiability
+        uint256 totalBorrowedX18,
+        uint256 penaltyX18
     ) public view returns (bool isBankrupt) {
-        // check if account is liquidatable
-        (
-            bool isAccountLiquidatableLocal,
-            bool isFullyLiquidatable,
-            uint256 penalty
-        ) = _isAccountLiquidatable(marginAccount);
-        if (!isAccountLiquidatableLocal) return false;
-        return
-            _getAccountValueIncludingBorrowedAmount(marginAccount) <
-            vaultLiability + penalty;
+        return _isTraderBankrupt(marginAccount, totalBorrowedX18 + penaltyX18);
     }
 
     function getTotalAbsOpenNotionalFromMarkets(
@@ -401,24 +393,32 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     )
         internal
         view
-        returns (bool isLiquidatable, bool isFullyLiquidatable, uint256 penalty)
+        returns (
+            bool isLiquidatable,
+            bool isFullyLiquidatable,
+            uint256 liquidationPenalty
+        )
     {
         // Add conditions for partial liquidation.
         uint256 accountValue = _getAccountValueIncludingBorrowedAmount(
             marginAccount
         );
-        uint256 minimumMarginRequirement = getMaintenanceMarginRequirement(
+        uint256 totalBorrowed = IMarginAccount(marginAccount).totalBorrowed();
+        uint256 openNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
+        uint256 minimumMarginRequirement = _getMaintenanceMarginRequirement(
+            totalBorrowed,
+            openNotional
+        );
+
         if (accountValue < minimumMarginRequirement) {
             isLiquidatable = true;
-            uint256 totalBorrowed = IMarginAccount(marginAccount)
-                .totalBorrowed();
-            penalty = (accountValue - totalBorrowed)
-                .mul(liquidationPenaltyPercentage)
-                .div(100);
             // add partial liquidation part here.
             isFullyLiquidatable = true;
+            liquidationPenalty =
+                (openNotional * liquidationPenaltyPercentage) /
+                100;
         } else {
             isLiquidatable = false;
         }
@@ -457,10 +457,8 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // vaultLiability = borrowed + interest
     function _isTraderBankrupt(
         address marginAccount,
-        uint256 vaultLiability,
-        uint256 penalty
+        uint256 liability
     ) internal view returns (bool) {
-        uint256 liability = vaultLiability + penalty;
         uint256 accountValue = _getAccountValueIncludingBorrowedAmount(
             marginAccount
         );
@@ -490,7 +488,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     ) private view returns (uint256) {
         uint256 totalBorrowed = IMarginAccount(marginAccount).totalBorrowed();
         uint256 accValue = _getAccountValueIncludingBorrowedAmount(
-            address(marginAccount)
+            marginAccount
         );
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount

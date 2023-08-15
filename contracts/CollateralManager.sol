@@ -167,7 +167,7 @@ contract CollateralManager is ICollateralManager {
         // free collateral
         freeCollateralValueX18 =
             _totalCurrentCollateralValue(_marginAccount) -
-            riskManager.getMarginForHealthyAccount(_marginAccount);
+            riskManager.getHealthyMarginRequirement(_marginAccount);
     }
 
     function totalCollateralValue(
@@ -219,10 +219,10 @@ contract CollateralManager is ICollateralManager {
         //         collateralHeldInMarginAccountX18 +
         //         totalCollateralInMarketsX18;
         // } else {
-            // uint256 totalBorrowedX18 = abi.decode(returnData, (uint256));
-            totalAmountX18 =
-                collateralHeldInMarginAccountX18 +
-                totalCollateralInMarketsX18 
+        // uint256 totalBorrowedX18 = abi.decode(returnData, (uint256));
+        totalAmountX18 =
+            collateralHeldInMarginAccountX18 +
+            totalCollateralInMarketsX18;
     }
 
     function getAllCollateralTokens() public view returns (address[] memory) {
