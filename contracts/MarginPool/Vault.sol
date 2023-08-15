@@ -10,9 +10,8 @@ import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import "hardhat/console.sol";
+import {IACLManager} from "../Interfaces/IACLManager.sol";
 
 interface IVault {
     event InterestRateModelUpdated(address indexed newInterestRateModel);
@@ -61,27 +60,37 @@ contract Vault is IVault, ERC4626 {
     // uint256 public maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
-
+    IACLManager aclManager;
     mapping(address => bool) public lendingAllowed;
     mapping(address => bool) public repayingAllowed;
     address[] whitelistedCreditors;
 
     // Cumulative index in RAY
     uint256 public _cumulativeIndex_RAY;
-    // Current borrow rate in RAY: https://dev.gearbox.fi/developers/pools/economy#borrow-apy
     uint256 public borrowAPY_RAY;
 
     // used to calculate next timestamp values quickly
     uint256 expectedLiquidityLastUpdated;
     uint256 timestampLastUpdated;
-    address contractOwner;
 
-    modifier onlyOwner() {
-        require(msg.sender == contractOwner, "Vault: Only Owner");
+    modifier onlyAdmin() {
+        require(
+            aclManager.isChronuxAdminRoleAdmin(_msgSender()),
+            "Vault: Chronux Admin only"
+        );
+        _;
+    }
+    // onlyLendBorrowManager?
+    modifier onlyManager() {
+        require(
+            aclManager.isLendBorrowRoleAdmin(_msgSender()),
+            "Vault: Lend/borrow manager only"
+        );
         _;
     }
 
     constructor(
+        address _aclManager,
         address _asset,
         string memory _lpTokenName,
         string memory _lpTokenSymbol,
@@ -98,17 +107,9 @@ contract Vault is IVault, ERC4626 {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
-        contractOwner = msg.sender;
+        aclManager = IACLManager(_aclManager);
         // maxExpectedLiquidity = _maxExpectedLiquidity;
     }
-
-    function updateOwner(address _owner) external onlyOwner {
-        contractOwner = _owner;
-    }
-
-    // function asset() public view override(ERC4626) returns (address) {
-    //     return address(_asset);
-    // }
 
     /** @dev See {IERC4262-deposit}. */
     function deposit(
@@ -187,7 +188,7 @@ contract Vault is IVault, ERC4626 {
     }
 
     // TODO: remove while deploying on mainnet
-    function drain(address _token) public onlyOwner {
+    function drain(address _token) public onlyAdmin {
         IERC20(_token).transfer(
             _msgSender(),
             IERC20(_token).balanceOf(address(this))
@@ -232,27 +233,10 @@ contract Vault is IVault, ERC4626 {
         return (expectedLiquidity() * RAY) / _totalSupply; // T:[PS-6]
     }
 
-    modifier onlyAllowedLendingMarginManager() {
-        require(lendingAllowed[msg.sender] == true, "Unauthorized Lend");
-        _;
-    }
-    modifier onlyAllowedRepayingMarginManager() {
-        require(repayingAllowed[msg.sender] == true, "Unauthorized Repay");
-        _;
-    }
-
-    function addLendingAddress(address _lendAddress) public {
-        lendingAllowed[_lendAddress] = true;
-    }
-
-    function addRepayingAddress(address _repayAddress) public {
-        repayingAllowed[_repayAddress] = true;
-    }
-
     function borrow(
         address borrower,
         uint256 amount
-    ) external override onlyAllowedLendingMarginManager {
+    ) external override onlyManager {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount, "Vault: Not enough assets");
         // update total borrowed
@@ -272,7 +256,7 @@ contract Vault is IVault, ERC4626 {
         address borrower,
         uint256 borrowedAmount, // exact amount that is returned as principle
         uint256 interest
-    ) external override onlyAllowedRepayingMarginManager {
+    ) external override onlyManager {
         //repay
 
         // update total borrowed

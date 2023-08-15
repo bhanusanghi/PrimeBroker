@@ -251,16 +251,13 @@ contract BaseSetup is Test, IEvents {
         );
         // uint256 maxExpectedLiquidity = 1_000_000 * ERC20(token).decimals();
         contracts.vault = new Vault(
+            address(contracts.aclManager),
             token,
             "GigaLP",
             "GLP",
             address(contracts.interestModel)
             // maxExpectedLiquidity
         );
-        contracts.vault.addLendingAddress(admin);
-        contracts.vault.addLendingAddress(address(contracts.marginManager));
-        contracts.vault.addRepayingAddress(admin);
-        contracts.vault.addRepayingAddress(address(contracts.marginManager));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("InterestModel"),
             address(contracts.interestModel)

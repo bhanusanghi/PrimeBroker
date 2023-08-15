@@ -12,6 +12,8 @@ import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterest
 import {Utils} from "./utils/Utils.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {PercentageMath, PERCENTAGE_FACTOR} from "../../contracts/Libraries/PercentageMath.sol";
+import {ACLManager} from "../../contracts/Utils/ACLManager.sol";
+import {IContractRegistry} from "../../contracts/Interfaces/IContractRegistry.sol";
 
 contract VaultTest is Test {
     using WadRayMath for uint256;
@@ -21,6 +23,7 @@ contract VaultTest is Test {
 
     LinearInterestRateModel public interestModel;
     MockERC20 public underlyingToken;
+    ACLManager public aclManager;
     // uint256 public maxExpectedLiquidity;
     uint256 public constant CENT = 100;
     Utils internal utils;
@@ -77,15 +80,6 @@ contract VaultTest is Test {
             rSlope2
         );
         underlyingToken = new MockERC20("FakeDAI", "FDAI");
-        // maxExpectedLiquidity = type(uint256).max;
-        vault = new Vault(
-            address(underlyingToken),
-            "GigaLP",
-            "GLP",
-            address(interestModel)
-            // maxExpectedLiquidity
-        );
-
         // ======= Setup and fund Users ========
         users = utils.createUsers(5);
         admin = users[0];
@@ -109,10 +103,21 @@ contract VaultTest is Test {
         underlyingToken.mint(david, 100000 ether);
         vm.deal(david, 1000 ether);
 
-        vault.addLendingAddress(admin);
-        vault.addRepayingAddress(admin);
-        vault.addLendingAddress(alice);
-        vault.addRepayingAddress(alice);
+        vm.startPrank(admin);
+        //IContractRegistry(admin) fake registry
+        aclManager = new ACLManager(IContractRegistry(admin), admin);
+        aclManager.setChronuxAdminRoleAdmin(admin);
+        aclManager.setLendBorrowRoleAdmin(admin);
+        vm.stopPrank();
+        // maxExpectedLiquidity = type(uint256).max;
+        vault = new Vault(
+            address(aclManager),
+            address(underlyingToken),
+            "GigaLP",
+            "GLP",
+            address(interestModel)
+            // maxExpectedLiquidity
+        );
 
         // Setup Alice and Bob's allowance for vault.
         vm.prank(alice);
