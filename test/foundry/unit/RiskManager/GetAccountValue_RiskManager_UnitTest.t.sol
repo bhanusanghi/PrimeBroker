@@ -208,4 +208,18 @@ contract GetAccountValue_RiskManager_UnitTest is RiskManager_UnitTest {
         );
         assertEq(accountValue, 0);
     }
+
+    function testAccountValue_after_borrow() public {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
+        assertEq(
+            contracts.riskManager.getAccountValue(bobMarginAccount),
+            1000 ether
+        );
+        vm.prank(bob);
+        contracts.marginManager.borrowFromVault(100 * ONE_USDC);
+        assertEq(
+            contracts.riskManager.getAccountValue(bobMarginAccount),
+            1000 ether
+        );
+    }
 }

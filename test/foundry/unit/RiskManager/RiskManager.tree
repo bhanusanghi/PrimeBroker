@@ -125,6 +125,8 @@ getAccountValue_RiskManager_UnitTest.t.sol
     ├── When trader has 0 collateral in marginAccount
     │   └── It should return 0
     ├── When trader has collateral in marginAccount
+        ├── When trader has borrowed but no interest accrued
+        │   └── It should not affect the accountValue
         ├── When trader has interest accrued
         │   └── It should get accounted
         ├── When trader has no interest accrued
