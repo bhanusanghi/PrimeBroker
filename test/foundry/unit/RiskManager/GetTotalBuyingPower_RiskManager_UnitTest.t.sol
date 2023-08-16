@@ -10,22 +10,37 @@ import {BaseSetup} from "../../BaseSetup.sol";
 import {RiskManager_UnitTest} from "./RiskManager_UnitTest.t.sol";
 import {IMarginAccount, Position} from "../../../../contracts/Interfaces/IMarginAccount.sol";
 import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRiskManager.sol";
+import {FallbackExample} from "../../utils/FallbackExample.sol";
 
 contract GetTotalBuyingPower_RiskManager_UnitTest is RiskManager_UnitTest {
-    function test_Zero_BuyingPower_When_InvalidMarginAccount()
+    function test_Zero_BuyingPower_When_InvalidMarginAccount_EOA()
         public
         invalidMarginAccount
     {
+        vm.expectRevert();
         uint256 bp = contracts.riskManager.getTotalBuyingPower(david);
-        assertEq(bp, 0);
-        bp = contracts.riskManager.getTotalBuyingPower(
-            contracts.contractWithFallback
+    }
+
+    function test_Zero_BuyingPower_When_InvalidMarginAccount_Contract()
+        public
+        invalidMarginAccount
+    {
+        vm.expectRevert();
+        uint256 bp = contracts.riskManager.getTotalBuyingPower(
+            // contracts.contractWithoutFallback
+            perpClearingHouse
         );
-        assertEq(bp, 0);
-        bp = contracts.riskManager.getTotalBuyingPower(
-            contracts.contractWithoutFallback
+    }
+
+    function test_Zero_BuyingPower_When_InvalidMarginAccount_Contract_With_Fallback()
+        public
+        invalidMarginAccount
+    {
+        FallbackExample fallbackExample = new FallbackExample();
+        vm.expectRevert();
+        uint256 bp = contracts.riskManager.getTotalBuyingPower(
+            address(fallbackExample)
         );
-        assertEq(bp, 0);
     }
 
     function test_zero_bp_when_0_collateral() public zeroCollateral {

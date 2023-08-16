@@ -19,8 +19,8 @@ contract GetMaxBorrowLimit_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         invalidMarginAccount
     {
+        vm.expectRevert();
         uint256 limit = contracts.riskManager.getMaxBorrowLimit(david);
-        assertEq(limit, 0);
     }
 
     function test_zero_borrow_limit_when_zero_collateral()

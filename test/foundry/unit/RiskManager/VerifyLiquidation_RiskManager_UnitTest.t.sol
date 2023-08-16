@@ -138,7 +138,7 @@ contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
             );
         assertEq(
             result.liquidationPenaltyX18,
-            8 ether,
+            78 ether, // 2% of notional
             "invalid liquidation penalty"
         );
         assertEq(result.isFullyLiquidatable, true);
