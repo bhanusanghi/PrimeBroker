@@ -116,7 +116,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     }
 
     function getMaxBorrowLimit(
-        address marginAccount
+        address _marginAccount
     ) public view override returns (uint256) {
         return
             _getMaxBorrowLimit(
@@ -128,7 +128,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     // TODO: USELESS_FUNCTION remove this
     function getRemainingBorrowLimit(
-        address marginAccount
+        address _marginAccount
     ) public view override returns (uint256) {
         uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
         return
