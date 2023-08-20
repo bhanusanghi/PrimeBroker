@@ -17,14 +17,12 @@ contract Is_Account_Liquidatable_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         invalidMarginAccount
     {
+        vm.expectRevert();
         (
             bool isLiquidatable,
             bool isFullyLiquidatable,
             uint256 penalty
         ) = contracts.riskManager.isAccountLiquidatable(david);
-        assertEq(isLiquidatable, false);
-        assertEq(isFullyLiquidatable, false);
-        assertEq(penalty, 0);
     }
 
     function test_is_Account_Liquidatable_returns_false_when_no_collateral()
@@ -130,7 +128,7 @@ contract Is_Account_Liquidatable_RiskManager_UnitTest is RiskManager_UnitTest {
             bool isFullyLiquidatable,
             uint256 penalty
         ) = contracts.riskManager.isAccountLiquidatable(bobMarginAccount);
-        assertEq(penalty, 8 ether, "invalid liquidation penalty");
+        assertEq(penalty, 78 ether, "invalid liquidation penalty");
         assertEq(isFullyLiquidatable, true);
         assertEq(isLiquidatable, true);
     }

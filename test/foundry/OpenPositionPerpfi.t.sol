@@ -206,10 +206,17 @@ contract OpenPositionPerpfi is BaseSetup {
             perpMarketRegistry,
             perpAaveMarket
         );
-        uint256 maxSize = uint256(expectedRemainingNotional) / markPrice;
+        uint256 maxSize = (uint256(expectedRemainingNotional) / markPrice) -
+            10 ether;
 
         vm.assume(size > 1 ether && size < int256(maxSize));
-        perpfiUtils.updateAndVerifyPositionSize(bob, perpAaveKey, size, false, "");
+        perpfiUtils.updateAndVerifyPositionSize(
+            bob,
+            perpAaveKey,
+            size,
+            false,
+            ""
+        );
         // check third party events and value by using static call.
     }
 

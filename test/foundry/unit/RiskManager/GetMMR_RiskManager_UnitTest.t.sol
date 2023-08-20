@@ -14,10 +14,10 @@ import {IRiskManager, VerifyLiquidationResult} from "../../../../contracts/Inter
 
 contract Get_MMR_RiskManager_UnitTest is RiskManager_UnitTest {
     function test_reverts_when_invalid_account() public invalidMarginAccount {
+        vm.expectRevert();
         uint256 mmr = contracts.riskManager.getMaintenanceMarginRequirement(
             david
         );
-        assertEq(mmr, 0);
     }
 
     function test_mmr_is_zero_when_no_collateral()
