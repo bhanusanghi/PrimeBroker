@@ -107,6 +107,11 @@ interface IEvents {
         address indexed,
         uint256 indexed tokenAmount
     );
+    event CollateralWithdrawn(
+        address indexed marginAccount,
+        address indexed token,
+        uint256 indexed amount
+    );
     // ============= Margin Manager Events =============
     event MarginTransferred(
         address indexed,
@@ -149,6 +154,10 @@ interface IEvents {
         uint256 amount
     );
     event MarginAccountOpened(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountClosed(
         address indexed trader,
         address indexed marginAccount
     );
