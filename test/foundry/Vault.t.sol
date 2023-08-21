@@ -19,6 +19,7 @@ contract VaultTest is Test {
     using WadRayMath for uint256;
     using Math for uint256;
     using PercentageMath for uint256;
+
     Vault public vault;
 
     LinearInterestRateModel public interestModel;
@@ -37,18 +38,9 @@ contract VaultTest is Test {
 
     // ================ EVENTS =================
 
-    event Deposit(
-        address indexed caller,
-        address indexed owner,
-        uint256 assets,
-        uint256 shares
-    );
+    event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
     event Withdraw(
-        address indexed sender,
-        address indexed receiver,
-        address indexed owner,
-        uint256 assets,
-        uint256 shares
+        address indexed sender, address indexed receiver, address indexed owner, uint256 assets, uint256 shares
     );
     event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -106,7 +98,7 @@ contract VaultTest is Test {
         vm.startPrank(admin);
         aclManager = new ACLManager(admin);
         aclManager.grantRole(aclManager.CHRONUX_ADMIN_ROLE(), admin);
-        aclManager.grantRole(aclManager.LEND_BORROW_ROLE(), admin);
+        aclManager.grantRole(aclManager.MARGIN_MANAGER_ROLE(), admin);
         vm.stopPrank();
         // maxExpectedLiquidity = type(uint256).max;
         vault = new Vault(
@@ -357,11 +349,7 @@ contract VaultTest is Test {
         vm.stopPrank();
     }
 
-    function repay(
-        address trader,
-        uint256 amount,
-        uint256 interestAmount
-    ) internal {
+    function repay(address trader, uint256 amount, uint256 interestAmount) internal {
         vm.startPrank(trader);
         underlyingToken.approve(address(vault), amount + interestAmount);
         vault.repay(trader, amount, interestAmount);
