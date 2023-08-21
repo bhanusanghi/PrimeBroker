@@ -37,7 +37,7 @@ contract ClosePositionPerp is BaseSetup {
     }
 
     function testClosingPosition(int notional) public {
-        uint256 chronuxMargin = 5000 * ONE_USDC;
+        uint256 chronuxMargin = 2000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMargin = int256(1000 * ONE_USDC);
         int256 expectedRemainingNotional = int256(

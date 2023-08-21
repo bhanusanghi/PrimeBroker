@@ -17,8 +17,8 @@ contract IsAccountHealthy_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         invalidMarginAccount
     {
+        vm.expectRevert();
         bool isHealthy = contracts.riskManager.isAccountHealthy(david);
-        assertEq(isHealthy, true);
     }
 
     function test_is_Account_Healthy_returns_true_when_no_collateral()

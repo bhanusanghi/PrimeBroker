@@ -17,12 +17,14 @@ contract GetAccountValue_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         invalidMarginAccount
     {
+        vm.expectRevert();
         uint256 accountValue = contracts.riskManager.getAccountValue(david);
-        assertEq(accountValue, 0);
     }
 
-    function test_zero_bp_when_0_collateral() public zeroCollateral {
-        uint256 accountValue = contracts.riskManager.getAccountValue(bob);
+    function test_zero_accountValue_when_0_collateral() public zeroCollateral {
+        uint256 accountValue = contracts.riskManager.getAccountValue(
+            bobMarginAccount
+        );
         assertEq(accountValue, 0);
     }
 
@@ -207,5 +209,19 @@ contract GetAccountValue_RiskManager_UnitTest is RiskManager_UnitTest {
             bobMarginAccount
         );
         assertEq(accountValue, 0);
+    }
+
+    function testAccountValue_after_borrow() public {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
+        assertEq(
+            contracts.riskManager.getAccountValue(bobMarginAccount),
+            1000 ether
+        );
+        vm.prank(bob);
+        contracts.marginManager.borrowFromVault(100 * ONE_USDC);
+        assertEq(
+            contracts.riskManager.getAccountValue(bobMarginAccount),
+            1000 ether
+        );
     }
 }

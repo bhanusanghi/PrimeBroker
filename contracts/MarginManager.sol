@@ -94,10 +94,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         require(amount != 0, "MM: Borrow amount should be greater than zero");
         _borrowFromVault(marginAccount, amount);
-        require(
-            riskManager.isAccountHealthy(address(marginAccount)),
-            "MM: Unhealthy account"
-        );
     }
 
     // amount in vault asset decimals
@@ -218,15 +214,20 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
         _verifyPostLiquidation(marginAccount, result);
         _executePostLiquidationUpdates(marginAccount, result);
-        uint256 vaultLiability = marginAccount.totalBorrowed() +
-            marginAccount.getInterestAccruedX18();
+        uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
+        uint256 interestAccruedX18 = marginAccount.getInterestAccruedX18();
         bool hasBadDebt = riskManager.isTraderBankrupt(
             address(marginAccount),
-            vaultLiability
+            totalBorrowedX18,
+            result.liquidationPenaltyX18
         );
         _swapAllTokensToVaultAsset(marginAccount);
-        if (vaultLiability > 0) {
-            _repayMaxVaultDebt(marginAccount);
+        if (totalBorrowedX18 > 0) {
+            _repayMaxVaultDebt(
+                marginAccount,
+                totalBorrowedX18,
+                interestAccruedX18
+            );
         }
         if (!hasBadDebt) {
             // pay money to liquidator based on config.
@@ -388,17 +389,21 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // repay(marginDelta - (borrowedAmount + interestAccrued)) }
     //  else repay marginDelta
     // }
-    function _repayMaxVaultDebt(IMarginAccount marginAccount) private {
+    function _repayMaxVaultDebt(
+        IMarginAccount marginAccount,
+        uint256 totalBorrowedX18,
+        uint256 interestAccruedX18
+    ) private {
         uint256 vaultAssetBalance = IERC20(vault.asset()).balanceOf(
             address(marginAccount)
         );
         // Will this ever hinder liquidation. If yes, then we need to remove this check
         if (vaultAssetBalance == 0)
             revert("MM: Not enough balance in MA to repay vault debt");
-        uint256 interestAccrued = marginAccount
-            .getInterestAccruedX18()
-            .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
-        uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
+        uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
+            18,
+            IERC20Metadata(vault.asset()).decimals()
+        );
         uint256 totalBorrowed = totalBorrowedX18.convertTokenDecimals(
             18,
             IERC20Metadata(vault.asset()).decimals()
@@ -406,7 +411,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 vaultLiability = totalBorrowed + interestAccrued;
         if (vaultLiability == 0) return;
         if (vaultAssetBalance < vaultLiability) {
-            // max repayment possible here is amount - interestAccrued
+            // max repayment possible here is amount - interestAccrued because interest gets added in vault function automatically.
             _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
         } else {
             _repayVault(marginAccount, totalBorrowed);

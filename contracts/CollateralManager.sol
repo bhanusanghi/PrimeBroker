@@ -139,39 +139,18 @@ contract CollateralManager is ICollateralManager {
     ) internal view returns (uint256 freeCollateralValueX18) {
         // free collateral
         freeCollateralValueX18 =
-            riskManager.getAccountValue(address(_marginAccount)) -
-            riskManager.getMaintenanceMarginRequirement(_marginAccount);
+            _totalCurrentCollateralValue(_marginAccount) -
+            riskManager.getHealthyMarginRequirement(_marginAccount);
     }
 
     function totalCollateralValue(
         address _marginAccount
     ) external view returns (uint256 totalAmount) {
-        // return _depositedCollateralValue(_marginAccount);
         return _totalCurrentCollateralValue(_marginAccount);
     }
 
     // sends result in 18 decimals.
-    function _depositedCollateralValue(
-        address _marginAccount
-    ) internal view returns (uint256 totalAmount) {
-        for (uint256 i = 0; i < allowedCollateral.length; i++) {
-            address token = allowedCollateral[i];
-            uint256 tokenDollarValue = (
-                priceOracle
-                    .convertToUSD(
-                        int256(_balance[_marginAccount][token]),
-                        token
-                    )
-                    .abs()
-            ).mulDiv(collateralWeight[token], 100);
-            totalAmount = totalAmount.add(
-                tokenDollarValue.convertTokenDecimals(_decimals[token], 18)
-            );
-        }
-    }
-
-    // sends result in 18 decimals.
-    function _getCollateralValueInMarginAccount(
+    function _getCollateralHeldInMarginAccount(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
@@ -205,20 +184,18 @@ contract CollateralManager is ICollateralManager {
             .getCurrentDollarMarginInMarkets(_marginAccount)
             .abs();
         // This will fail if invalid margin account is passed.
-        (bool success, bytes memory returnData) = _marginAccount.staticcall(
-            abi.encodeWithSelector(IMarginAccount.totalBorrowed.selector)
-        );
-        if (!success || returnData.length == 0) {
-            totalAmountX18 =
-                collateralHeldInMarginAccountX18 +
-                totalCollateralInMarketsX18;
-        } else {
-            uint256 totalBorrowedX18 = abi.decode(returnData, (uint256));
-            totalAmountX18 =
-                collateralHeldInMarginAccountX18 +
-                totalCollateralInMarketsX18 -
-                totalBorrowedX18;
-        }
+        // (bool success, bytes memory returnData) = _marginAccount.staticcall(
+        //     abi.encodeWithSelector(IMarginAccount.totalBorrowed.selector)
+        // );
+        // if (!success || returnData.length == 0) {
+        //     totalAmountX18 =
+        //         collateralHeldInMarginAccountX18 +
+        //         totalCollateralInMarketsX18;
+        // } else {
+        // uint256 totalBorrowedX18 = abi.decode(returnData, (uint256));
+        totalAmountX18 =
+            collateralHeldInMarginAccountX18 +
+            totalCollateralInMarketsX18;
     }
 
     function getAllCollateralTokens() public view returns (address[] memory) {

@@ -159,18 +159,20 @@ contract CollateralManagerTest is BaseSetup {
             false,
             ""
         );
-
+        // healthyMarginRequirement = 4500 * 0.25 = 1125
+        // freeCollateral = 1500 - 1125 = 375
+        // 375
         assertEq(
             contracts.collateralManager.getFreeCollateralValue(
                 bobMarginAccount
             ),
-            600 ether
+            375 ether
         );
         vm.startPrank(bob);
         vm.expectRevert(
             "CM: Withdrawing more than free collateral not allowed"
         );
-        contracts.collateralManager.withdrawCollateral(usdc, 601 * ONE_USDC);
+        contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC);
         vm.stopPrank();
     }
 
@@ -200,7 +202,7 @@ contract CollateralManagerTest is BaseSetup {
             contracts.collateralManager.getFreeCollateralValue(
                 bobMarginAccount
             ),
-            600 ether
+            375 ether
         );
         perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
         uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(

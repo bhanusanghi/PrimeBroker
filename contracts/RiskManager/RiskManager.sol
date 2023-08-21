@@ -62,10 +62,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data
     ) public returns (VerifyTradeResult memory result) {
         result = _decodeTradeData(marketKey, destinations, data);
-        // _verifyFinalLeverage(
-        //     address(marginAccount),
-        //     result.position.openNotional
-        // );
     }
 
     function verifyClosePosition(
@@ -86,10 +82,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function getTotalBuyingPower(
         address marginAccount
     ) external view returns (uint256 buyingPower) {
-        buyingPower = _getAbsTotalCollateralValue(marginAccount).mulDiv(
-            100,
-            initialMarginFactor
-        );
+        uint256 totalBorrowed = IMarginAccount(marginAccount).totalBorrowed();
+        buyingPower = (_getAccountValueIncludingBorrowedAmount(marginAccount) -
+            totalBorrowed).mulDiv(100, initialMarginFactor);
     }
 
     function getCurrentDollarMarginInMarkets(
@@ -123,27 +118,40 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function getMaxBorrowLimit(
         address _marginAccount
     ) public view override returns (uint256) {
-        return _getMaxBorrowLimit(_marginAccount);
+        return
+            _getMaxBorrowLimit(
+                _marginAccount,
+                _getAccountValueIncludingBorrowedAmount(_marginAccount),
+                IMarginAccount(_marginAccount).totalBorrowed()
+            );
     }
 
     // TODO: USELESS_FUNCTION remove this
     function getRemainingBorrowLimit(
         address _marginAccount
     ) public view override returns (uint256) {
+        uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
         return
-            _getMaxBorrowLimit(_marginAccount) -
-            IMarginAccount(_marginAccount).totalBorrowed();
+            _getMaxBorrowLimit(
+                _marginAccount,
+                _getAccountValueIncludingBorrowedAmount(_marginAccount),
+                borrowedAmount
+            ) - borrowedAmount;
     }
 
     function verifyBorrowLimit(
-        address _marginAccount,
+        address marginAccount,
         uint256 newBorrowAmountX18
     ) external view {
         // Get margin account borrowed amount.
-        uint256 maxBorrowLimit = _getMaxBorrowLimit(_marginAccount);
-        uint256 borrowedAmount = IMarginAccount(_marginAccount).totalBorrowed();
+        uint256 borrowedAmount = IMarginAccount(marginAccount).totalBorrowed();
         require(
-            borrowedAmount + newBorrowAmountX18 <= maxBorrowLimit,
+            borrowedAmount + newBorrowAmountX18 <=
+                _getMaxBorrowLimit(
+                    marginAccount,
+                    _getAccountValueIncludingBorrowedAmount(marginAccount),
+                    borrowedAmount
+                ),
             "Borrow limit exceeded"
         );
     }
@@ -213,38 +221,51 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function getMaintenanceMarginRequirement(
         address marginAccount
     ) public view returns (uint256) {
+        uint256 borrowedAmount = IMarginAccount(marginAccount).totalBorrowed();
+        uint256 openNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        return _getMaintenanceMarginRequirement(borrowedAmount, openNotional);
+    }
+
+    function _getMaintenanceMarginRequirement(
+        uint256 borrowedAmount,
+        uint256 openNotional
+    ) public view returns (uint256) {
+        return borrowedAmount + ((openNotional * maintanaceMarginFactor) / 100);
+    }
+
+    // returns in 18 decimals.
+    function getHealthyMarginRequirement(
+        address marginAccount
+    ) public view returns (uint256) {
+        uint256 borrowedAmount = IMarginAccount(marginAccount).totalBorrowed();
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
-        return totalOpenNotional.mul(maintanaceMarginFactor).div(100);
+        return
+            borrowedAmount + ((totalOpenNotional * initialMarginFactor) / 100);
     }
 
     function getAccountValue(
         address marginAccount
     ) public view returns (uint256) {
-        return _getAbsTotalCollateralValue(marginAccount);
+        return
+            _getAccountValueIncludingBorrowedAmount(marginAccount) -
+            IMarginAccount(marginAccount).totalBorrowed();
     }
 
     // This function gets the total account value.
     // And compares it with all of trader's liabilities.
     // If the account value is less than the liabilities, then the trader is bankrupt.
     // Liabilities include -> (borrowed+interest) + liquidationPenalty.
-    // liquidationPenalty is totalNotional * liquidationPenaltyFactor
-    // vaultLiability = borrowed + interest
+    // liquidationPenalty is totalAbsCollateralValue * liquidationPenaltyFactor
     function isTraderBankrupt(
         address marginAccount,
-        uint256 vaultLiability
+        uint256 totalBorrowedX18,
+        uint256 penaltyX18
     ) public view returns (bool isBankrupt) {
-        // check if account is liquidatable
-        (
-            bool isAccountLiquidatableLocal,
-            bool isFullyLiquidatable,
-            uint256 penalty
-        ) = _isAccountLiquidatable(marginAccount);
-        if (!isAccountLiquidatableLocal) return false;
-        return
-            _getAbsTotalCollateralValue(marginAccount) <
-            vaultLiability + penalty;
+        return _isTraderBankrupt(marginAccount, totalBorrowedX18 + penaltyX18);
     }
 
     function getTotalAbsOpenNotionalFromMarkets(
@@ -330,17 +351,20 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     // get max borrow limit using this formula
     // maxBorrowLimit = totalCollateralValue * ((100 - mmf)/mmf)
-    // if borrowed amount > maxBorrowLimit then revert
+
+    // max borrow limit should be 0 when user is unhealthy
     function _getMaxBorrowLimit(
-        address _marginAccount
+        address _marginAccount,
+        uint256 _totalCollateralValueWithBorrowed,
+        uint256 _totalBorrowedAmount
     ) internal view returns (uint256 maxBorrowLimit) {
-        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
-            _marginAccount
-        );
-        maxBorrowLimit = _totalCollateralValue.mulDiv(
-            100 - initialMarginFactor,
-            initialMarginFactor
-        );
+        // should maxBorrowLimit be 0 when user is unhealthy??
+        if (!_isAccountHealthy(_marginAccount)) return 0;
+        maxBorrowLimit = (_totalCollateralValueWithBorrowed -
+            _totalBorrowedAmount).mulDiv(
+                100 - initialMarginFactor,
+                initialMarginFactor
+            );
     }
 
     function _decodeAndVerifyLiquidationCalldata(
@@ -369,24 +393,38 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     )
         internal
         view
-        returns (bool isLiquidatable, bool isFullyLiquidatable, uint256 penalty)
+        returns (
+            bool isLiquidatable,
+            bool isFullyLiquidatable,
+            uint256 liquidationPenalty
+        )
     {
         // Add conditions for partial liquidation.
-        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
-        uint256 minimumMarginRequirement = getMaintenanceMarginRequirement(
+        uint256 accountValue = _getAccountValueIncludingBorrowedAmount(
             marginAccount
         );
+        uint256 totalBorrowed = IMarginAccount(marginAccount).totalBorrowed();
+        uint256 openNotional = getTotalAbsOpenNotionalFromMarkets(
+            marginAccount
+        );
+        uint256 minimumMarginRequirement = _getMaintenanceMarginRequirement(
+            totalBorrowed,
+            openNotional
+        );
+
         if (accountValue < minimumMarginRequirement) {
             isLiquidatable = true;
-            penalty = accountValue.mul(liquidationPenaltyPercentage).div(100);
             // add partial liquidation part here.
             isFullyLiquidatable = true;
+            liquidationPenalty =
+                (openNotional * liquidationPenaltyPercentage) /
+                100;
         } else {
             isLiquidatable = false;
         }
     }
 
-    function _getAbsTotalCollateralValue(
+    function _getAccountValueIncludingBorrowedAmount(
         address marginAccount
     ) internal view returns (uint256) {
         ICollateralManager collateralManager = ICollateralManager(
@@ -419,25 +457,27 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     // vaultLiability = borrowed + interest
     function _isTraderBankrupt(
         address marginAccount,
-        uint256 vaultLiability,
-        uint256 penalty
+        uint256 liability
     ) internal view returns (bool) {
-        uint256 liability = vaultLiability + penalty;
-        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
+        uint256 accountValue = _getAccountValueIncludingBorrowedAmount(
+            marginAccount
+        );
         return accountValue < liability;
     }
 
     function _isAccountHealthy(
         address marginAccount
     ) internal view returns (bool isHealthy) {
-        uint256 accountValue = _getAbsTotalCollateralValue(marginAccount);
+        uint256 accountValue = _getAccountValueIncludingBorrowedAmount(
+            marginAccount
+        );
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
-        uint256 minimumMarginRequirement = totalOpenNotional
-            .mul(initialMarginFactor)
-            .div(100);
-        if (accountValue >= minimumMarginRequirement) {
+        uint256 healthyMarginRequired = getHealthyMarginRequirement(
+            marginAccount
+        );
+        if (accountValue >= healthyMarginRequired) {
             isHealthy = true;
         }
         // check if account is liquidatable
@@ -446,14 +486,15 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     function _getRemainingPositionOpenNotional(
         address marginAccount
     ) private view returns (uint256) {
-        uint256 _totalCollateralValue = _getAbsTotalCollateralValue(
-            address(marginAccount)
+        uint256 totalBorrowed = IMarginAccount(marginAccount).totalBorrowed();
+        uint256 accValue = _getAccountValueIncludingBorrowedAmount(
+            marginAccount
         );
         uint256 totalOpenNotional = getTotalAbsOpenNotionalFromMarkets(
             marginAccount
         );
         return
-            (_totalCollateralValue.mul(100).div(initialMarginFactor)).sub(
+            ((accValue - totalBorrowed).mul(100).div(initialMarginFactor)).sub(
                 totalOpenNotional
             ); // this will also be converted from marketConfig.tradeDecimals to 18 dynamically.
     }
