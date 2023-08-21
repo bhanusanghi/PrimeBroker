@@ -6,6 +6,4 @@ interface IMarginAccountFactory {
     // function assignMarginAccount(
     //     address marginAccount
     // ) external returns (address);
-
-    function updateMarginManager(address _marginManager) external;
 }

@@ -54,7 +54,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
     IVault public perpVaultUsdc;
-    IPriceOracle public priceOracle;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
@@ -64,7 +63,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address _marketRegistry,
         address _clearingHouse,
         address _perpVaultUsdc,
-        address _priceOracle,
         // uint8 _vaultAssetDecimals,
         uint8 _positionDecimals
     ) {
@@ -76,7 +74,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         positionDecimals = _positionDecimals;
         marginTokenDecimals = IERC20Metadata(_marginToken).decimals();
         marginToken = _marginToken;
-        priceOracle = IPriceOracle(_priceOracle);
     }
 
     //@note: use _init :pointup
@@ -86,10 +83,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     ) external {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
-    }
-
-    function setPriceOracle(address _priceOracle) external override {
-        priceOracle = IPriceOracle(_priceOracle);
     }
 
     // function updateExchangeAddress(address _perpExchange) external {
@@ -221,10 +214,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         }
         result.tokenOut = marginToken;
         if (result.marginDelta != 0) {
-            result.marginDeltaDollarValue = priceOracle.convertToUSD(
-                result.marginDelta,
-                result.tokenOut
-            );
+            result.marginDeltaDollarValue = IPriceOracle(
+                contractRegistry.getContractByName(keccak256("PriceOracle"))
+            ).convertToUSD(result.marginDelta, result.tokenOut);
         }
     }
 

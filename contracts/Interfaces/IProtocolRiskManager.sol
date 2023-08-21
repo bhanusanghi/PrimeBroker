@@ -3,12 +3,6 @@ import {Position, IMarginAccount} from "./IMarginAccount.sol";
 import {VerifyCloseResult, VerifyTradeResult, VerifyLiquidationResult} from "./IRiskManager.sol";
 
 interface IProtocolRiskManager {
-    // mapping(bytes4=>string) public abiStrings;
-    // bytes4[] public supportedFunctions;
-
-    // function getPositionPnL(address marginAccount) external returns (int256);
-    function setPriceOracle(address oracle) external;
-
     function decodeTxCalldata(
         bytes32 marketKey,
         address[] memory destinations,

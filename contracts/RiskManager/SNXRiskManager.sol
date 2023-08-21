@@ -35,28 +35,21 @@ contract SNXRiskManager is IProtocolRiskManager {
     // uint8 public marginTokenDecimals;
     uint8 public positionDecimals;
     IContractRegistry contractRegistry;
-    IPriceOracle public priceOracle;
     mapping(address => bool) whitelistedAddresses;
 
     constructor(
         address _marginToken,
         address _contractRegistry,
-        address _priceOracle,
         uint8 _positionDecimals
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
         positionDecimals = _positionDecimals;
         marginToken = _marginToken;
-        priceOracle = IPriceOracle(_priceOracle);
         // marginTokenDecimals = ERC20(_marginToken).decimals();
     }
 
     function getMarginToken() external view returns (address) {
         return marginToken;
-    }
-
-    function setPriceOracle(address _priceOracle) external override {
-        priceOracle = IPriceOracle(_priceOracle);
     }
 
     function toggleAddressWhitelisting(
@@ -156,10 +149,9 @@ contract SNXRiskManager is IProtocolRiskManager {
         }
         result.tokenOut = marginToken;
         if (result.marginDelta != 0) {
-            result.marginDeltaDollarValue = priceOracle.convertToUSD(
-                result.marginDelta,
-                result.tokenOut
-            );
+            result.marginDeltaDollarValue = IPriceOracle(
+                contractRegistry.getContractByName(keccak256("PriceOracle"))
+            ).convertToUSD(result.marginDelta, result.tokenOut);
         }
     }
 

@@ -8,12 +8,15 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 //
 
 contract MarginAccountFactory is IMarginAccountFactory {
-    address marginManager;
     address owner;
     IContractRegistry contractRegistry;
 
     modifier onlyMarginManager() {
-        require(msg.sender == marginManager, "Only Margin Manager");
+        require(
+            msg.sender ==
+                contractRegistry.getContractByName(keccak256("MarginManager")),
+            "Only Margin Manager"
+        );
         _;
     }
     modifier onlyOwner() {
@@ -21,17 +24,9 @@ contract MarginAccountFactory is IMarginAccountFactory {
         _;
     }
 
-    constructor(address _marginManager, address _contractRegistry) {
-        marginManager = _marginManager;
+    constructor(address _contractRegistry) {
         owner = msg.sender;
         contractRegistry = IContractRegistry(_contractRegistry);
-    }
-
-    // Address setters
-    function updateMarginManager(
-        address _marginManager
-    ) public onlyMarginManager {
-        marginManager = _marginManager;
     }
 
     function updateContractRegistry(
@@ -43,7 +38,6 @@ contract MarginAccountFactory is IMarginAccountFactory {
     // creates new instance of MarginAccount
     function createMarginAccount() public onlyMarginManager returns (address) {
         MarginAccount newMarginAccount = new MarginAccount(
-            marginManager,
             address(contractRegistry)
         );
         return address(newMarginAccount);

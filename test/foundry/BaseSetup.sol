@@ -196,10 +196,7 @@ contract BaseSetup is Test, IEvents {
     function setupCollateralManager() internal {
         vm.startPrank(deployerAdmin);
         contracts.collateralManager = new CollateralManager(
-            address(contracts.marginManager),
-            address(contracts.riskManager),
-            address(contracts.priceOracle),
-            address(contracts.vault)
+            address(contracts.contractRegistry)
         );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("CollateralManager"),
@@ -211,7 +208,6 @@ contract BaseSetup is Test, IEvents {
     function setupMarginAccountFactory() internal {
         vm.startPrank(deployerAdmin);
         contracts.marginAccountFactory = new MarginAccountFactory(
-            address(contracts.marginManager),
             address(contracts.contractRegistry)
         );
         contracts.contractRegistry.addContractToRegistry(
@@ -265,13 +261,11 @@ contract BaseSetup is Test, IEvents {
             perpMarketRegistry,
             perpClearingHouse,
             perpVault,
-            address(contracts.priceOracle),
             18
         );
         contracts.snxRiskManager = new SNXRiskManager(
             susd,
             address(contracts.contractRegistry),
-            address(contracts.priceOracle),
             18
         );
         contracts.contractRegistry.addContractToRegistry(

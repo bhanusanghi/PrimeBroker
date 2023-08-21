@@ -26,7 +26,6 @@ contract MarginAccount is IMarginAccount {
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-    address public marginManager;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
@@ -39,27 +38,19 @@ contract MarginAccount is IMarginAccount {
      2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
      3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
     */
-    address owner;
-
-    // constructor(address underlyingToken) {
-    //     marginManager = msg.sender;
-    //     underlyingToken = underlyingToken;
-    // }
-
     IContractRegistry contractRegistry;
 
     constructor(
-        address _marginManager, //  address _marketManager
         address _contractRegistry //  address _marketManager
     ) {
-        marginManager = _marginManager;
         contractRegistry = IContractRegistry(_contractRegistry);
         cumulativeIndexAtOpen = 1;
     }
 
     modifier onlyMarginManager() {
         require(
-            marginManager == msg.sender,
+            contractRegistry.getContractByName(keccak256("MarginManager")) ==
+                msg.sender,
             "MarginAccount: Only margin manager"
         );
         _;
@@ -80,7 +71,10 @@ contract MarginAccount is IMarginAccount {
                 keccak256("CollateralManager")
             ) ==
                 msg.sender ||
-                marginManager == msg.sender,
+                contractRegistry.getContractByName(
+                    keccak256("MarginManager")
+                ) ==
+                msg.sender,
             "MarginAccount: Only collateral manager"
         );
         _;
@@ -180,7 +174,6 @@ contract MarginAccount is IMarginAccount {
         address spender,
         uint256 amount
     ) public override onlyMarginManager {
-        // only marginManager
         // TODO - add acl
         IERC20(token).approve(spender, type(uint256).max);
     }
