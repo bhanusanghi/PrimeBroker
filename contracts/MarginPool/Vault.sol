@@ -51,7 +51,7 @@ contract Vault is IVault, ERC4626 {
     // keeping these internal so no public methods,
     //@todo set these consts directly from aclmanager and set it one time at deployment
     bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
-    bytes32 internal constant MARGIN_MANAGER_ROLE = keccak256("CHRONUX.MARGIN_MANAGER);
+    bytes32 internal constant MARGIN_MANAGER_ROLE = keccak256("CHRONUX.MARGIN_MANAGER");
     mapping(address => bool) public lendingAllowed;
     mapping(address => bool) public repayingAllowed;
     address[] whitelistedCreditors;
