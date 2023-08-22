@@ -31,35 +31,29 @@ withdrawCollateral_CollateralManager_UnitTest.t.sol
             │   └── increases ERC20 balance of MA
             │   └── emits event
 
-// States 
-// WHEN LIQUIDATABLE
-// WHEN Unhealthy
-// when pnl 
-// when interest accrued
 freeCollateral_CollateralManager_UnitTest.t.sol
 ├── invalid MA
 ├── valid MA
-    ├── invalid token out
-    │   └── reverts
-    ├── valid token out
-        ├── amount > withdrawableLimit
-        ├── amount > ERC20 balance && amount < withdrawableLimit
-        ├── amount < ERC20 balance && amount < withdrawableLimit
-            │   └── increases ERC20 balance of MA
-            │   └── emits event
+    ├── collateral in MA < freeAmount
+    │   └── returns collateral in MA
+    ├── collateral in MA > freeAmount
+    │   └── returns free amount (free amount = totalAccountValue - mmForHealthy)
+    
+   
 
 totalCollateralValue
 ├── invalid MA
+│   └── returns 0
 ├── valid MA
     ├── without deposit
+    │   └── returns 0
     ├── valid deposits
         ├── on Chronux only
+        │   └── returns sum of tokens multiplied by tokenWeight  and price
         ├── on TPPs Only 
+        │   └── returns sum of margins on TPPs
         ├── on Chronux and TPPs
-            ├── with vault borrow no interest accrued
-            │   └── 
-            ├── with vault borrow and interest accrued
-            ├── with vault borrow and positions data
+        │   └── returns sum of  margins on TPPs and Chronux
 
 
 

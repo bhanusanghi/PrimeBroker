@@ -98,10 +98,6 @@ contract CollateralManager is ICollateralManager {
     // Should be accessed by Margin Manager only??
     // While withdraw check free collateral, only that much is allowed to be taken out.
     function withdrawCollateral(address _token, uint256 _amount) external {
-        // only marginManager
-        //
-        // check if _amount is allowed to be taken out.
-        // If yes transfer and manage accounting.
         require(isAllowedCollateral[_token], "CM: Unsupported collateral");
         IMarginAccount marginAccount = IMarginAccount(
             marginManager.marginAccounts(msg.sender)
@@ -133,16 +129,6 @@ contract CollateralManager is ICollateralManager {
         collateralWeight[_token] = _collateralWeight;
     }
 
-    // free collateral = accountValue - maintanenceMargin
-    function _getFreeCollateralValue(
-        address _marginAccount
-    ) internal view returns (uint256 freeCollateralValueX18) {
-        // free collateral
-        freeCollateralValueX18 =
-            _totalCurrentCollateralValue(_marginAccount) -
-            riskManager.getHealthyMarginRequirement(_marginAccount);
-    }
-
     function totalCollateralValue(
         address _marginAccount
     ) external view returns (uint256 totalAmount) {
@@ -150,7 +136,40 @@ contract CollateralManager is ICollateralManager {
     }
 
     // sends result in 18 decimals.
-    function _getCollateralHeldInMarginAccount(
+
+    function getCollateralValueInMarginAccount(
+        address _marginAccount
+    ) external view returns (uint256 totalAmount) {
+        return _getCollateralValueInMarginAccount(_marginAccount);
+    }
+
+    function getAllCollateralTokens() public view returns (address[] memory) {
+        return allowedCollateral;
+    }
+
+    function getFreeCollateralValue(
+        address _marginAccount
+    ) external view returns (uint256) {
+        return _getFreeCollateralValue(_marginAccount);
+    }
+
+    // --------------- Internal Functions ------------------
+
+    // accValue - MMForHealthy
+    function _getFreeCollateralValue(
+        address _marginAccount
+    ) internal view returns (uint256) {
+        // free collateral
+        uint256 collateralValueInMA = _getCollateralValueInMarginAccount(
+            _marginAccount
+        );
+        uint256 freeCollateral = _totalCurrentCollateralValue(_marginAccount) -
+            riskManager.getHealthyMarginRequirement(_marginAccount);
+        if (collateralValueInMA <= freeCollateral) return collateralValueInMA;
+        else return freeCollateral;
+    }
+
+    function _getCollateralValueInMarginAccount(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
@@ -168,12 +187,6 @@ contract CollateralManager is ICollateralManager {
         }
     }
 
-    function getCollateralValueInMarginAccount(
-        address _marginAccount
-    ) external view returns (uint256 totalAmount) {
-        return _getCollateralValueInMarginAccount(_marginAccount);
-    }
-
     function _totalCurrentCollateralValue(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
@@ -183,28 +196,8 @@ contract CollateralManager is ICollateralManager {
         uint256 totalCollateralInMarketsX18 = riskManager
             .getCurrentDollarMarginInMarkets(_marginAccount)
             .abs();
-        // This will fail if invalid margin account is passed.
-        // (bool success, bytes memory returnData) = _marginAccount.staticcall(
-        //     abi.encodeWithSelector(IMarginAccount.totalBorrowed.selector)
-        // );
-        // if (!success || returnData.length == 0) {
-        //     totalAmountX18 =
-        //         collateralHeldInMarginAccountX18 +
-        //         totalCollateralInMarketsX18;
-        // } else {
-        // uint256 totalBorrowedX18 = abi.decode(returnData, (uint256));
         totalAmountX18 =
             collateralHeldInMarginAccountX18 +
             totalCollateralInMarketsX18;
-    }
-
-    function getAllCollateralTokens() public view returns (address[] memory) {
-        return allowedCollateral;
-    }
-
-    function getFreeCollateralValue(
-        address _marginAccount
-    ) external view returns (uint256) {
-        return _getFreeCollateralValue(_marginAccount);
     }
 }
