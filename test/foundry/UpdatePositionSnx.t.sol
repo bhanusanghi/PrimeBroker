@@ -35,17 +35,15 @@ contract UpdatePositionSnx is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     SnxUtils snxUtils;
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(
-            vm.envString("ARCHIVE_NODE_URL_L2"),
-            37274241
-        );
+        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
         vm.selectFork(forkId);
         utils = new Utils();
-        setupSNXFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
     }
@@ -55,40 +53,20 @@ contract UpdatePositionSnx is BaseSetup {
         uint256 chronuxMargin = 5000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256(
-            (chronuxMargin * 100) / marginFactor
-        );
-        vm.assume(
-            snxMargin > 1 ether && snxMargin < expectedRemainingMargin / 2
-        );
+        int256 expectedRemainingMargin = int256((chronuxMargin * 100) / marginFactor);
+        vm.assume(snxMargin > 1 ether && snxMargin < expectedRemainingMargin / 2);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyMargin(
-            bob,
-            snxUniKey,
-            snxMargin / 2,
-            false,
-            ""
-        );
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin / 2, false, "");
     }
 
     function testDecreaseMarginSnx(int256 snxMargin) public {
         uint256 chronuxMargin = 5000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256(
-            (chronuxMargin * 100) / marginFactor
-        );
-        vm.assume(
-            snxMargin > 1 ether && snxMargin < expectedRemainingMargin / 2
-        );
+        int256 expectedRemainingMargin = int256((chronuxMargin * 100) / marginFactor);
+        vm.assume(snxMargin > 1 ether && snxMargin < expectedRemainingMargin / 2);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyMargin(
-            bob,
-            snxUniKey,
-            -snxMargin / 2,
-            false,
-            ""
-        );
+        snxUtils.updateAndVerifyMargin(bob, snxUniKey, -snxMargin / 2, false, "");
     }
 
     function testOpenShortAndShort(int256 size) public {
@@ -96,25 +74,16 @@ contract UpdatePositionSnx is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         int256 snxMargin = 10000 ether;
 
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
+        int256 maxChronuxNotional = int256((chronuxMargin * 100) / contracts.riskManager.initialMarginFactor());
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (maxChronuxNotional * 1 ether) /
-            int256(assetPrice);
+        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (maxChronuxNotional * 1 ether) / int256(assetPrice);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < maxPositionSize / 2);
         snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -size, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(
-            bob,
-            snxUniKey,
-            -deltaSize,
-            false,
-            ""
-        );
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -deltaSize, false, "");
     }
 
     // final position is still short
@@ -123,25 +92,16 @@ contract UpdatePositionSnx is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         int256 snxMargin = 10000 ether;
 
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
+        int256 maxChronuxNotional = int256((chronuxMargin * 100) / contracts.riskManager.initialMarginFactor());
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (maxChronuxNotional * 1 ether) /
-            int256(assetPrice);
+        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (maxChronuxNotional * 1 ether) / int256(assetPrice);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < maxPositionSize / 2);
         snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -size, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(
-            bob,
-            snxUniKey,
-            deltaSize,
-            false,
-            ""
-        );
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, deltaSize, false, "");
     }
 
     // final position is in same direction
@@ -150,24 +110,15 @@ contract UpdatePositionSnx is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         int256 snxMargin = 10000 ether;
 
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
+        int256 maxChronuxNotional = int256((chronuxMargin * 100) / contracts.riskManager.initialMarginFactor());
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (maxChronuxNotional * 1 ether) /
-            int256(assetPrice);
+        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (maxChronuxNotional * 1 ether) / int256(assetPrice);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < (maxPositionSize / 2) - 10 ether);
         snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, size, false, "");
-        snxUtils.updateAndVerifyPositionSize(
-            bob,
-            snxUniKey,
-            -deltaSize,
-            false,
-            ""
-        );
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -deltaSize, false, "");
     }
 
     function testOpenLongAndLong(int256 size) public {
@@ -175,24 +126,15 @@ contract UpdatePositionSnx is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         int256 snxMargin = 10000 ether;
 
-        int256 maxChronuxNotional = int256(
-            (chronuxMargin * 100) / contracts.riskManager.initialMarginFactor()
-        );
+        int256 maxChronuxNotional = int256((chronuxMargin * 100) / contracts.riskManager.initialMarginFactor());
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (maxChronuxNotional * 1 ether) /
-            int256(assetPrice);
+        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (maxChronuxNotional * 1 ether) / int256(assetPrice);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
         int256 deltaSize = maxPositionSize / 3;
         vm.assume(size > 1 ether && size < maxPositionSize / 2);
         snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, size, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(
-            bob,
-            snxUniKey,
-            deltaSize,
-            false,
-            ""
-        );
+        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, deltaSize, false, "");
     }
 }

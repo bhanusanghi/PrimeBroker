@@ -24,19 +24,17 @@ contract TimeSimulationTest is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     SnxUtils snxUtils;
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(
-            vm.envString("ARCHIVE_NODE_URL_L2"),
-            71255016
-        );
+        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 71255016);
         vm.selectFork(forkId);
         // need to be done in this order only.
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
@@ -44,14 +42,14 @@ contract TimeSimulationTest is BaseSetup {
 
     /*
 
-  VARIABLES DEPENDENT ON TIME ->
-  1. AccruedFunding
-  2. AssetPrice Change
-  3. Vault Interest
+    VARIABLES DEPENDENT ON TIME ->
+    1. AccruedFunding
+    2. AssetPrice Change
+    3. Vault Interest
 
 
-  4. Vault Interest Rate Change.
+    4. Vault Interest Rate Change.
 
 
-*/
+    */
 }

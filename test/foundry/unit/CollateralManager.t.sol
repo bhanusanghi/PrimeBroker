@@ -1,5 +1,6 @@
 pragma solidity ^0.8.10;
 pragma abicoder v2;
+
 import {BaseSetup} from "../BaseSetup.sol";
 import {Utils} from "../utils/Utils.sol";
 import "forge-std/Test.sol";
@@ -26,17 +27,15 @@ contract CollateralManagerTest is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(
-            vm.envString("ARCHIVE_NODE_URL_L2"),
-            37274241
-        );
+        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
     }
@@ -54,17 +53,11 @@ contract CollateralManagerTest is BaseSetup {
         contracts.collateralManager.updateCollateralWeight(usdc, _wf);
         vm.stopPrank();
         assertEq(
-            contracts
-                .collateralManager
-                .totalCollateralValue(bobMarginAccount)
-                .convertTokenDecimals(18, 6),
+            contracts.collateralManager.totalCollateralValue(bobMarginAccount).convertTokenDecimals(18, 6),
             _depositAmt.mul(_wf).div(CENT)
         );
         assertEq(
-            contracts
-                .collateralManager
-                .getFreeCollateralValue(bobMarginAccount)
-                .convertTokenDecimals(18, 6),
+            contracts.collateralManager.getFreeCollateralValue(bobMarginAccount).convertTokenDecimals(18, 6),
             _depositAmt.mul(_wf).div(CENT)
         );
     }
@@ -76,21 +69,12 @@ contract CollateralManagerTest is BaseSetup {
         vm.assume(withdrawAmount <= _depositAmt && withdrawAmount > ONE_USDC);
         vm.startPrank(bob);
         contracts.collateralManager.withdrawCollateral(usdc, withdrawAmount);
-        uint256 totalCollateralValueX18 = contracts
-            .collateralManager
-            .totalCollateralValue(bobMarginAccount);
-        uint256 totalCollateralValue = totalCollateralValueX18
-            .convertTokenDecimals(18, 6);
-        assertEq(
-            IERC20(usdc).balanceOf(bobMarginAccount),
-            _depositAmt - withdrawAmount
-        );
+        uint256 totalCollateralValueX18 = contracts.collateralManager.totalCollateralValue(bobMarginAccount);
+        uint256 totalCollateralValue = totalCollateralValueX18.convertTokenDecimals(18, 6);
+        assertEq(IERC20(usdc).balanceOf(bobMarginAccount), _depositAmt - withdrawAmount);
         assertEq(totalCollateralValue, _depositAmt - withdrawAmount);
         assertEq(
-            contracts
-                .collateralManager
-                .getFreeCollateralValue(bobMarginAccount)
-                .convertTokenDecimals(18, 6),
+            contracts.collateralManager.getFreeCollateralValue(bobMarginAccount).convertTokenDecimals(18, 6),
             _depositAmt - withdrawAmount
         );
         vm.stopPrank();
@@ -102,20 +86,8 @@ contract CollateralManagerTest is BaseSetup {
         int256 notional = int256(4500 ether);
         int256 perpMargin = int256(_depositAmt);
 
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            false,
-            ""
-        );
-        perpfiUtils.updateAndVerifyPositionNotional(
-            bob,
-            perpAaveKey,
-            notional,
-            false,
-            ""
-        );
+        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
         vm.startPrank(bob);
         vm.expectRevert(bytes("ERC20: transfer amount exceeds balance"));
         contracts.collateralManager.withdrawCollateral(usdc, 100 * ONE_USDC);
@@ -126,33 +98,14 @@ contract CollateralManagerTest is BaseSetup {
         uint256 _depositAmt = 1500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
         int256 notional = 4500 ether; // max withdrawable amount = 600
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            int256(_depositAmt),
-            false,
-            ""
-        );
-        perpfiUtils.updateAndVerifyPositionNotional(
-            bob,
-            perpAaveKey,
-            notional,
-            false,
-            ""
-        );
+        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, int256(_depositAmt), false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
         // healthyMarginRequirement = 4500 * 0.25 = 1125
         // freeCollateral = 1500 - 1125 = 375
         // 375
-        assertEq(
-            contracts.collateralManager.getFreeCollateralValue(
-                bobMarginAccount
-            ),
-            375 ether
-        );
+        assertEq(contracts.collateralManager.getFreeCollateralValue(bobMarginAccount), 375 ether);
         vm.startPrank(bob);
-        vm.expectRevert(
-            "CM: Withdrawing more than free collateral not allowed"
-        );
+        vm.expectRevert("CM: Withdrawing more than free collateral not allowed");
         contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC);
         vm.stopPrank();
     }
@@ -164,38 +117,13 @@ contract CollateralManagerTest is BaseSetup {
         int256 notional = int256(4500 ether);
         int256 perpMargin = int256(2000 * ONE_USDC);
 
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            false,
-            ""
-        );
+        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
 
-        perpfiUtils.updateAndVerifyPositionNotional(
-            bob,
-            perpAaveKey,
-            notional,
-            false,
-            ""
-        );
-        assertEq(
-            contracts.collateralManager.getFreeCollateralValue(
-                bobMarginAccount
-            ),
-            375 ether
-        );
+        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
+        assertEq(contracts.collateralManager.getFreeCollateralValue(bobMarginAccount), 375 ether);
         perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(
-            bobMarginAccount
-        );
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            -int256(freeCollateralPerp),
-            false,
-            ""
-        );
+        uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(bobMarginAccount);
+        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, -int256(freeCollateralPerp), false, "");
 
         // assertEq(
         //     contracts
@@ -208,30 +136,17 @@ contract CollateralManagerTest is BaseSetup {
         vm.startPrank(bob);
         uint256 perpLoss = uint256(perpMargin).sub(freeCollateralPerp);
         uint256 maxWithdrawable = _depositAmt.sub(perpLoss);
-        contracts.collateralManager.withdrawCollateral(
-            usdc,
-            maxWithdrawable - ONE_USDC
-        );
+        contracts.collateralManager.withdrawCollateral(usdc, maxWithdrawable - ONE_USDC);
         contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
-        vm.expectRevert(
-            "CM: Withdrawing more than free collateral not allowed"
-        );
+        vm.expectRevert("CM: Withdrawing more than free collateral not allowed");
         contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
         vm.stopPrank();
     }
 
     // This is not working yet.
     function testTotalCollateralValueWrongAddress() public {
-        assertEq(
-            contracts.collateralManager.totalCollateralValue(address(0)),
-            0,
-            "totalCollateralValue should be zero"
-        );
-        assertEq(
-            contracts.collateralManager.totalCollateralValue(david),
-            0,
-            "totalCollateralValue should be zero"
-        );
+        assertEq(contracts.collateralManager.totalCollateralValue(address(0)), 0, "totalCollateralValue should be zero");
+        assertEq(contracts.collateralManager.totalCollateralValue(david), 0, "totalCollateralValue should be zero");
     }
 
     /*

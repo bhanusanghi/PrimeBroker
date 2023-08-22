@@ -44,7 +44,7 @@ interface IMarginAccount {
         bytes[] memory dataArray
     ) external returns (bytes memory returnData);
 
-    function updatePosition(bytes32 market, Position memory position) external;
+    function updatePosition(bytes32 market) external;
 
     function removePosition(bytes32 market) external;
 

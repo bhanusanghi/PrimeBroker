@@ -30,9 +30,8 @@ contract MarginAccount is IMarginAccount {
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
-    mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
-
+    bytes32[] public activeMarkets;
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
      serves multiple purposes
      1. Affects buyingPower correctly
@@ -40,11 +39,6 @@ contract MarginAccount is IMarginAccount {
      3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
     */
     address owner;
-
-    // constructor(address underlyingToken) {
-    //     marginManager = msg.sender;
-    //     underlyingToken = underlyingToken;
-    // }
 
     IContractRegistry contractRegistry;
 
@@ -89,7 +83,11 @@ contract MarginAccount is IMarginAccount {
     function getPosition(
         bytes32 market
     ) public view override returns (Position memory position) {
-        position = positions[market];
+        // position = positions[market];
+    }
+
+    function getActiveMarkets() public view returns (bytes32[] memory) {
+        return activeMarkets;
     }
 
     function isActivePosition(
@@ -160,19 +158,17 @@ contract MarginAccount is IMarginAccount {
     }
 
     function updatePosition(
-        bytes32 marketKey,
-        Position memory position
+        bytes32 marketKey
     ) external override onlyMarginManager {
         if (!existingPosition[marketKey]) existingPosition[marketKey] = true;
-        positions[marketKey] = position;
+        activeMarkets.push(marketKey);
     }
 
     function removePosition(
         bytes32 marketKey
     ) public override onlyMarginManager {
-        // only riskmanagger
         existingPosition[marketKey] = false;
-        delete positions[marketKey];
+        // activeMarkets.remove(marketKey);
     }
 
     function setTokenAllowance(
