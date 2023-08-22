@@ -29,7 +29,10 @@ contract DrainFunds is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            37274241
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();
@@ -51,7 +54,10 @@ contract DrainFunds is BaseSetup {
         uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);
 
         contracts.marginManager.drainAllMarginAccounts(susd);
-        assertEq(IERC20(susd).balanceOf(deployerAdmin), adminBalance + (amount * 2));
+        assertEq(
+            IERC20(susd).balanceOf(deployerAdmin),
+            adminBalance + (amount * 2)
+        );
         vm.stopPrank();
     }
 

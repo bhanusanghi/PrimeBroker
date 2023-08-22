@@ -68,24 +68,20 @@ contract ACLRegistry is IACLRegistry {
     /**
      * @dev Returns `true` if `account` has been granted `role`.
      */
-    function hasRole(bytes32 role, address account)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function hasRole(
+        bytes32 role,
+        address account
+    ) public view override returns (bool) {
         return _roles[role].members[account];
     }
 
     /**
      * @dev Returns `true` if `account` has been granted `permission`.
      */
-    function hasPermission(bytes32 permission, address account)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function hasPermission(
+        bytes32 permission,
+        address account
+    ) public view override returns (bool) {
         return _permissions[permission] == account;
     }
 
@@ -103,11 +99,10 @@ contract ACLRegistry is IACLRegistry {
         require(hasRole(role, account), "you dont have the right role");
     }
 
-    function requirePermission(bytes32 permission, address account)
-        public
-        view
-        override
-    {
+    function requirePermission(
+        bytes32 permission,
+        address account
+    ) public view override {
         require(
             hasPermission(permission, account),
             "you dont have the right permissions"
@@ -121,11 +116,9 @@ contract ACLRegistry is IACLRegistry {
         );
     }
 
-    function requireApprovedContractOrEOA(address account)
-        public
-        view
-        override
-    {
+    function requireApprovedContractOrEOA(
+        address account
+    ) public view override {
         require(
             hasRole(APPROVED_CONTRACT_ROLE, account) || account == tx.origin,
             "Access denied for caller"
@@ -144,11 +137,10 @@ contract ACLRegistry is IACLRegistry {
      *
      * - the caller must have ``role``'s admin role.
      */
-    function grantRole(bytes32 role, address account)
-        public
-        override
-        onlyRole(getRoleAdmin(role))
-    {
+    function grantRole(
+        bytes32 role,
+        address account
+    ) public override onlyRole(getRoleAdmin(role)) {
         _grantRole(role, account);
     }
 
@@ -161,11 +153,10 @@ contract ACLRegistry is IACLRegistry {
      *
      * - the caller must have ``role``'s admin role.
      */
-    function revokeRole(bytes32 role, address account)
-        public
-        override
-        onlyRole(getRoleAdmin(role))
-    {
+    function revokeRole(
+        bytes32 role,
+        address account
+    ) public override onlyRole(getRoleAdmin(role)) {
         _revokeRole(role, account);
     }
 
@@ -202,10 +193,10 @@ contract ACLRegistry is IACLRegistry {
         _setRoleAdmin(role, adminRole);
     }
 
-    function grantPermission(bytes32 permission, address account)
-        public
-        override
-    {
+    function grantPermission(
+        bytes32 permission,
+        address account
+    ) public override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "only for admin");
         _permissions[permission] = account;
     }

@@ -26,7 +26,10 @@ contract ClosePositionSnx is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            37274241
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();
@@ -39,11 +42,20 @@ contract ClosePositionSnx is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, susd, chronuxMargin);
         int256 snxMargin = int256(1000 ether);
         int256 positionSize = 1000 ether;
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
         snxUtils.closeAndVerifyPosition(bob, snxUniKey);
     }
 }

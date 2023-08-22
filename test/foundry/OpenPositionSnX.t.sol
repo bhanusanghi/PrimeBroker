@@ -28,7 +28,10 @@ contract OpenPositionSnX is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 71255016);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            71255016
+        );
         vm.selectFork(forkId);
         // need to be done in this order only.
         utils = new Utils();
@@ -44,7 +47,11 @@ contract OpenPositionSnX is BaseSetup {
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = uniFuturesMarket;
-        data[0] = abi.encodeWithSignature("modifyPositionWithTracking(int256,bytes32)", positionSize, trackingCode);
+        data[0] = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            positionSize,
+            trackingCode
+        );
         vm.prank(bob);
         contracts.marginManager.updatePosition(invalidKey, destinations, data);
     }
@@ -53,9 +60,15 @@ contract OpenPositionSnX is BaseSetup {
         vm.prank(bob);
         int256 positionSize = 50 ether;
         bytes32 trackingCode = keccak256("GigabrainMarginAccount");
-        bytes memory openPositionData =
-            abi.encodeWithSignature("modifyPositionWithTracking(int256,bytes32)", positionSize, trackingCode);
-        contracts.snxRiskManager.toggleAddressWhitelisting(ethFuturesMarket, false);
+        bytes memory openPositionData = abi.encodeWithSignature(
+            "modifyPositionWithTracking(int256,bytes32)",
+            positionSize,
+            trackingCode
+        );
+        contracts.snxRiskManager.toggleAddressWhitelisting(
+            ethFuturesMarket,
+            false
+        );
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = ethFuturesMarket;
@@ -65,18 +78,33 @@ contract OpenPositionSnX is BaseSetup {
         contracts.marginManager.updatePosition(snxUniKey, destinations, data);
     }
 
-    function testBobOpensPositionWithExcessLeverageSingleAttempt(int128 positionSize) public {
+    function testBobOpensPositionWithExcessLeverageSingleAttempt(
+        int128 positionSize
+    ) public {
         uint256 chronuxMargin = 1000 * ONE_USDC;
         uint256 imf = contracts.riskManager.initialMarginFactor();
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 1000 ether, false, "");
-        int256 remainingNotional = int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        int256 remainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (remainingNotional * 1 ether) / int256(assetPrice);
-        vm.assume(positionSize > maxPositionSize && positionSize < 2 * maxPositionSize);
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (remainingNotional * 1 ether) /
+            int256(assetPrice);
+        vm.assume(
+            positionSize > maxPositionSize && positionSize < 2 * maxPositionSize
+        );
         // /assetPrice.convertTokenDecimals(18, 0)).add(1 ether);
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, true, bytes("MM: Unhealthy account"));
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            true,
+            bytes("MM: Unhealthy account")
+        );
     }
 
     // liquiMargin = 50k
@@ -88,12 +116,23 @@ contract OpenPositionSnX is BaseSetup {
         uint256 imf = contracts.riskManager.initialMarginFactor();
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 3000 ether, false, "");
-        int256 remainingNotional = int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        int256 remainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (remainingNotional * 1 ether) / int256(assetPrice);
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (remainingNotional * 1 ether) /
+            int256(assetPrice);
         vm.assume(positionSize > 1 ether && positionSize < maxPositionSize);
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
     }
 
     function testBobOpensShortPositionWithLeverage(int256 positionSize) public {
@@ -101,11 +140,22 @@ contract OpenPositionSnX is BaseSetup {
         uint256 imf = contracts.riskManager.initialMarginFactor();
         chronuxUtils.depositAndVerifyMargin(bob, susd, 1000 ether);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, 2000 ether, false, "");
-        int256 remainingNotional = int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        int256 remainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
-        (uint256 assetPrice,) = IFuturesMarket(market).assetPrice();
-        int256 maxPositionSize = (remainingNotional * 1 ether) / int256(assetPrice);
+        (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
+        int256 maxPositionSize = (remainingNotional * 1 ether) /
+            int256(assetPrice);
         vm.assume(positionSize > 1 ether && positionSize < maxPositionSize);
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, -positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            -positionSize,
+            false,
+            ""
+        );
     }
 }

@@ -47,13 +47,19 @@ contract MarketManager is IMarketManager {
         address _baseToken,
         address _marginToken
     ) external onlyOwner {
-        require(marketRegistry[_marketKey] == address(0), "MM: Market already exists");
+        require(
+            marketRegistry[_marketKey] == address(0),
+            "MM: Market already exists"
+        );
         require(_market != address(0), "MM: Adding Zero Address as Market");
         // require(
         //     _baseToken != address(0),
         //     "MM: Adding Zero Address as Base token"
         // );
-        require(_marginToken != address(0), "MM: Adding Zero Address as Margin token");
+        require(
+            _marginToken != address(0),
+            "MM: Adding Zero Address as Margin token"
+        );
         marketRegistry[_marketKey] = _market;
         marketRiskManagerRegistry[_marketKey] = _riskManager;
         whitelistedMarketKeys.push(_marketKey);
@@ -70,7 +76,9 @@ contract MarketManager is IMarketManager {
         }
     }
 
-    function getMarketsForRiskManager(address _riskManager) public view returns (address[] memory) {
+    function getMarketsForRiskManager(
+        address _riskManager
+    ) public view returns (address[] memory) {
         bytes32[] memory marketKeys = marketKeysForRiskManager[_riskManager];
         address[] memory markets = new address[](marketKeys.length);
         for (uint256 i = 0; i < marketKeys.length; i++) {
@@ -79,12 +87,18 @@ contract MarketManager is IMarketManager {
         return markets;
     }
 
-    function getMarketKeysForRiskManager(address _riskManager) public view override returns (bytes32[] memory) {
+    function getMarketKeysForRiskManager(
+        address _riskManager
+    ) public view override returns (bytes32[] memory) {
         require(registeredRiskManagers[_riskManager], "Invalid Risk Manager");
         return marketKeysForRiskManager[_riskManager];
     }
 
-    function getUniqueMarketAddresses() external view returns (address[] memory) {
+    function getUniqueMarketAddresses()
+        external
+        view
+        returns (address[] memory)
+    {
         return uniqueMarketAddresses;
     }
 
@@ -103,7 +117,10 @@ contract MarketManager is IMarketManager {
         address _baseToken,
         address _marginToken
     ) external onlyOwner {
-        require(marketRegistry[_marketKey] != address(0), "MM: Market doesn't exist");
+        require(
+            marketRegistry[_marketKey] != address(0),
+            "MM: Market doesn't exist"
+        );
         marketRegistry[_marketKey] = _market;
         marketRiskManagerRegistry[_marketKey] = _riskManager;
         marketBaseToken[_marketKey] = _baseToken;
@@ -112,7 +129,10 @@ contract MarketManager is IMarketManager {
 
     // TODO - Handle closing of all remaining positions in this market etc.
     function removeMarket(bytes32 marketName) external onlyOwner {
-        require(marketRegistry[marketName] != address(0), "MM: Market doesn't exist");
+        require(
+            marketRegistry[marketName] != address(0),
+            "MM: Market doesn't exist"
+        );
         address marketAddress = marketRegistry[marketName];
         address rmAddress = marketRiskManagerRegistry[marketName];
         marketRegistry[marketName] = address(0);
@@ -120,27 +140,37 @@ contract MarketManager is IMarketManager {
         // @TODO remove from arrays
     }
 
-    function getProtocolAddressByMarketName(bytes32 marketName) external view returns (address) {
+    function getProtocolAddressByMarketName(
+        bytes32 marketName
+    ) external view returns (address) {
         require(marketRegistry[marketName] != address(0), "MM: Invalid Market");
         return (marketRegistry[marketName]);
     }
 
-    function getRiskManagerByMarketName(bytes32 marketName) external view returns (address) {
+    function getRiskManagerByMarketName(
+        bytes32 marketName
+    ) external view returns (address) {
         require(marketRegistry[marketName] != address(0), "MM: Invalid Market");
         return marketRiskManagerRegistry[marketName];
     }
 
-    function getMarketAddress(bytes32 _marketKey) external view returns (address) {
+    function getMarketAddress(
+        bytes32 _marketKey
+    ) external view returns (address) {
         require(marketRegistry[_marketKey] != address(0), "MM: Invalid Market");
         return marketRegistry[_marketKey];
     }
 
-    function getMarketBaseToken(bytes32 _marketKey) external view returns (address) {
+    function getMarketBaseToken(
+        bytes32 _marketKey
+    ) external view returns (address) {
         require(marketRegistry[_marketKey] != address(0), "MM: Invalid Market");
         return marketBaseToken[_marketKey];
     }
 
-    function getMarketMarginToken(bytes32 _marketKey) external view returns (address) {
+    function getMarketMarginToken(
+        bytes32 _marketKey
+    ) external view returns (address) {
         require(marketRegistry[_marketKey] != address(0), "MM: Invalid Market");
         return marketMarginToken[_marketKey];
     }

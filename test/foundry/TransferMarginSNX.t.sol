@@ -32,7 +32,10 @@ contract TransferMarginSNX is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 69164900);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            69164900
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();
@@ -44,7 +47,10 @@ contract TransferMarginSNX is BaseSetup {
     function testBobAddsMarginOnInvalidMarket() public {
         uint256 margin = 5000 ether;
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
-        bytes memory transferMarginData = abi.encodeWithSignature("transferMargin(int256)", margin);
+        bytes memory transferMarginData = abi.encodeWithSignature(
+            "transferMargin(int256)",
+            margin
+        );
         vm.expectRevert(bytes("MM: Invalid Market"));
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
@@ -60,13 +66,23 @@ contract TransferMarginSNX is BaseSetup {
         // find max transferable margin.
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
         int256 expectedRemainingMargin = int256((margin * 100) / marginFactor);
-        chronuxUtils.verifyRemainingTransferableMargin(bob, expectedRemainingMargin);
+        chronuxUtils.verifyRemainingTransferableMargin(
+            bob,
+            expectedRemainingMargin
+        );
         vm.prank(bob);
         vm.expectRevert("Borrow limit exceeded");
-        contracts.marginManager.borrowFromVault(uint256(expectedRemainingMargin + 1 ether).convertTokenDecimals(18, 6));
+        contracts.marginManager.borrowFromVault(
+            uint256(expectedRemainingMargin + 1 ether).convertTokenDecimals(
+                18,
+                6
+            )
+        );
     }
 
-    function testCorrectAmountOfMarginIsDepositedInTPP(int256 snxMargin) public {
+    function testCorrectAmountOfMarginIsDepositedInTPP(
+        int256 snxMargin
+    ) public {
         uint256 margin = 5000 ether;
         // vm.prank(0x061b87122Ed14b9526A813209C8a59a633257bAb);
         // IERC20()
@@ -81,9 +97,19 @@ contract TransferMarginSNX is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, susd, margin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
         int256 expectedRemainingMargin = int256((margin * 100) / marginFactor);
-        uint256 maxBorrowableAmount = contracts.riskManager.getMaxBorrowLimit(bobMarginAccount);
-        int256 maxTransferrableMargin = int256((maxBorrowableAmount + margin) * 9) / 10;
-        snxUtils.updateAndVerifyMargin(bob, snxUniKey, maxTransferrableMargin, false, "");
+        uint256 maxBorrowableAmount = contracts.riskManager.getMaxBorrowLimit(
+            bobMarginAccount
+        );
+        int256 maxTransferrableMargin = int256(
+            (maxBorrowableAmount + margin) * 9
+        ) / 10;
+        snxUtils.updateAndVerifyMargin(
+            bob,
+            snxUniKey,
+            maxTransferrableMargin,
+            false,
+            ""
+        );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
     }
 

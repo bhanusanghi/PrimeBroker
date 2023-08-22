@@ -16,7 +16,10 @@ contract RiskManager_UnitTest is BaseSetup {
     PerpfiUtils perpfiUtils;
 
     function setUp() public virtual {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 69164900);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            69164900
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();

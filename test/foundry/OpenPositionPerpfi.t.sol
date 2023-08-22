@@ -40,7 +40,10 @@ contract OpenPositionPerpfi is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            37274241
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();
@@ -53,20 +56,33 @@ contract OpenPositionPerpfi is BaseSetup {
         uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256((chronuxMargin * 100) / marginFactor);
+        int256 expectedRemainingMargin = int256(
+            (chronuxMargin * 100) / marginFactor
+        );
         // vm.assume(
         //     perpMargin > int256(1 * ONE_USDC) &&
         //         perpMargin < expectedRemainingMargin
         // );
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, 1000_000000, false, "");
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            1000_000000,
+            false,
+            ""
+        );
     }
 
     function testExcessMarginTransferRevert(int256 perpMargin) public {
         uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         uint256 marginFactor = contracts.riskManager.initialMarginFactor();
-        int256 expectedRemainingMargin = int256((chronuxMargin * 100) / marginFactor);
-        vm.assume(perpMargin > expectedRemainingMargin && perpMargin < 2 * expectedRemainingMargin);
+        int256 expectedRemainingMargin = int256(
+            (chronuxMargin * 100) / marginFactor
+        );
+        vm.assume(
+            perpMargin > expectedRemainingMargin &&
+                perpMargin < 2 * expectedRemainingMargin
+        );
         vm.prank(bob);
         vm.expectRevert("Borrow limit exceeded");
         contracts.marginManager.borrowFromVault(uint256(perpMargin));
@@ -78,12 +94,30 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 perpMarginFactor = 10;
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
 
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        vm.assume(notional > expectedRemainingNotional && notional < 2 * expectedRemainingNotional);
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, -notional, true, "MM: Unhealthy account");
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        vm.assume(
+            notional > expectedRemainingNotional &&
+                notional < 2 * expectedRemainingNotional
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -notional,
+            true,
+            "MM: Unhealthy account"
+        );
     }
 
     function testOpenShortPositionWithNotionalPerp(int256 notional) public {
@@ -92,12 +126,27 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 perpMarginFactor = 10;
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
         vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
 
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, -notional, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -notional,
+            false,
+            ""
+        );
         // check third party events and value by using static call.
     }
 
@@ -107,14 +156,32 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 perpMarginFactor = 10;
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        uint256 markPrice = utils.getMarkPricePerp(perpMarketRegistry, perpAaveMarket);
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        uint256 markPrice = utils.getMarkPricePerp(
+            perpMarketRegistry,
+            perpAaveMarket
+        );
         uint256 maxSize = uint256(expectedRemainingNotional) / markPrice;
 
         vm.assume(size > 1 ether && size < int256(maxSize));
-        perpfiUtils.updateAndVerifyPositionSize(bob, perpAaveKey, -size, false, "");
+        perpfiUtils.updateAndVerifyPositionSize(
+            bob,
+            perpAaveKey,
+            -size,
+            false,
+            ""
+        );
         // check third party events and value by using static call.
     }
 
@@ -124,14 +191,33 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 perpMarginFactor = 10;
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        uint256 markPrice = utils.getMarkPricePerp(perpMarketRegistry, perpAaveMarket);
-        uint256 maxSize = (uint256(expectedRemainingNotional) / markPrice) - 10 ether;
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        uint256 markPrice = utils.getMarkPricePerp(
+            perpMarketRegistry,
+            perpAaveMarket
+        );
+        uint256 maxSize = (uint256(expectedRemainingNotional) / markPrice) -
+            10 ether;
 
         vm.assume(size > 1 ether && size < int256(maxSize));
-        perpfiUtils.updateAndVerifyPositionSize(bob, perpAaveKey, size, false, "");
+        perpfiUtils.updateAndVerifyPositionSize(
+            bob,
+            perpAaveKey,
+            size,
+            false,
+            ""
+        );
         // check third party events and value by using static call.
     }
 
@@ -141,11 +227,26 @@ contract OpenPositionPerpfi is BaseSetup {
         int256 perpMarginFactor = 10;
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
         vm.assume(notional > 1 ether && notional < expectedRemainingNotional);
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            notional,
+            false,
+            ""
+        );
 
         // check third party events and value by using static call.
     }
@@ -157,14 +258,39 @@ contract OpenPositionPerpfi is BaseSetup {
         uint256 withdrawAmount = 250 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
 
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
-        uint256 _beforeBalance = IERC20(contracts.vault.asset()).balanceOf(bobMarginAccount);
-        uint256 _beforeBobBalance = IERC20(contracts.vault.asset()).balanceOf(bob);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            notional,
+            false,
+            ""
+        );
+        uint256 _beforeBalance = IERC20(contracts.vault.asset()).balanceOf(
+            bobMarginAccount
+        );
+        uint256 _beforeBobBalance = IERC20(contracts.vault.asset()).balanceOf(
+            bob
+        );
         vm.startPrank(bob);
-        contracts.collateralManager.withdrawCollateral(contracts.vault.asset(), withdrawAmount);
+        contracts.collateralManager.withdrawCollateral(
+            contracts.vault.asset(),
+            withdrawAmount
+        );
         vm.stopPrank();
-        assertEq(IERC20(contracts.vault.asset()).balanceOf(bob), _beforeBobBalance + withdrawAmount);
-        assertEq(IERC20(contracts.vault.asset()).balanceOf(bobMarginAccount), _beforeBalance - withdrawAmount);
+        assertEq(
+            IERC20(contracts.vault.asset()).balanceOf(bob),
+            _beforeBobBalance + withdrawAmount
+        );
+        assertEq(
+            IERC20(contracts.vault.asset()).balanceOf(bobMarginAccount),
+            _beforeBalance - withdrawAmount
+        );
     }
 }

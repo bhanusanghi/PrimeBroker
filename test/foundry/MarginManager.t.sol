@@ -30,7 +30,10 @@ contract RiskManagerTest is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 71255016);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            71255016
+        );
         vm.selectFork(forkId);
         // need to be done in this order only.
         utils = new Utils();

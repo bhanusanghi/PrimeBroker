@@ -1,9 +1,18 @@
 pragma solidity ^0.8.10;
 
 interface IMarginManager {
-    event MarginAccountOpened(address indexed trader, address indexed marginAccount);
-    event MarginAccountLiquidated(address indexed trader, address indexed marginAccount);
-    event MarginAccountClosed(address indexed trader, address indexed marginAccount);
+    event MarginAccountOpened(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountLiquidated(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountClosed(
+        address indexed trader,
+        address indexed marginAccount
+    );
     event MarginTransferred(
         address indexed marginAccount,
         bytes32 indexed marketKey,
@@ -14,15 +23,28 @@ interface IMarginManager {
 
     // marginAccount, protocol, assetOut, size, openNotional
 
-    event PositionUpdated( //final size
+    event PositionUpdated(
+        //final size
         // final openNotional
         // uint256 lastPrice,
         // int256 deltaSize,
         // int256 deltaNotional,
-    address indexed marginAccount, bytes32 indexed marketKey, int256 size, int256 openNotional);
-    event PositionClosed(address indexed marginAccount, bytes32 indexed marketKey);
+        address indexed marginAccount,
+        bytes32 indexed marketKey,
+        int256 size,
+        int256 openNotional
+    );
+    event PositionClosed(
+        address indexed marginAccount,
+        bytes32 indexed marketKey
+    );
 
-    event AccountLiquidated(address indexed marginAccount, address indexed liquidator, uint256 liquidationPenaltyX18);
+    event AccountLiquidated(
+        address indexed marginAccount,
+        address indexed liquidator,
+        uint256 liquidationPenaltyX18
+    );
+
     // bool hasBadDebt,
     // uint256 badDebtAmount
 
@@ -38,9 +60,17 @@ interface IMarginManager {
 
     function closeMarginAccount(address marginAccount) external;
 
-    function updatePosition(bytes32 marketKey, address[] calldata destinations, bytes[] calldata data) external;
+    function updatePosition(
+        bytes32 marketKey,
+        address[] calldata destinations,
+        bytes[] calldata data
+    ) external;
 
-    function closePosition(bytes32 marketKey, address[] calldata destinations, bytes[] calldata data) external;
+    function closePosition(
+        bytes32 marketKey,
+        address[] calldata destinations,
+        bytes[] calldata data
+    ) external;
 
     function liquidate(
         address trader,
@@ -53,7 +83,10 @@ interface IMarginManager {
 
     function repayVault(uint256 amount) external;
 
-    function swapAsset(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)
-        external
-        returns (uint256 amountOut);
+    function swapAsset(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) external returns (uint256 amountOut);
 }

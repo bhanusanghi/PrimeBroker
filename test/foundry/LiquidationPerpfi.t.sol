@@ -29,7 +29,10 @@ contract LiquidationPerpfi is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            37274241
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();
@@ -51,9 +54,24 @@ contract LiquidationPerpfi is BaseSetup {
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, openNotional, false, "");
-        Position memory openPosition = contracts.riskManager.getMarketPosition(bobMarginAccount, perpAaveKey);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            openNotional,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
             bobMarginAccount,
@@ -62,9 +80,15 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -1000 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable,) = contracts.riskManager.isAccountLiquidatable(bobMarginAccount);
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
+            .riskManager
+            .isAccountLiquidatable(bobMarginAccount);
 
-        assertEq(isLiquidatable, true, "IsLiquidatable is not working properly");
+        assertEq(
+            isLiquidatable,
+            true,
+            "IsLiquidatable is not working properly"
+        );
         // check third party events and value by using static call.
     }
 
@@ -81,9 +105,24 @@ contract LiquidationPerpfi is BaseSetup {
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, openNotional, false, "");
-        Position memory openPosition = contracts.riskManager.getMarketPosition(bobMarginAccount, perpAaveKey);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            openNotional,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
 
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
@@ -93,8 +132,14 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -100 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable,) = contracts.riskManager.isAccountLiquidatable(bobMarginAccount);
-        assertEq(isLiquidatable, false, "IsLiquidatable is not working properly");
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
+            .riskManager
+            .isAccountLiquidatable(bobMarginAccount);
+        assertEq(
+            isLiquidatable,
+            false,
+            "IsLiquidatable is not working properly"
+        );
         // check third party events and value by using static call.
     }
 
@@ -111,9 +156,24 @@ contract LiquidationPerpfi is BaseSetup {
 
         int256 perpMargin = int256(3000 * ONE_USDC);
         int256 openNotional = int256(4000 ether);
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, openNotional, false, "");
-        Position memory openPosition = contracts.riskManager.getMarketPosition(bobMarginAccount, perpAaveKey);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            openNotional,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
             bobMarginAccount,
@@ -122,20 +182,40 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -1000 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable,) = contracts.riskManager.isAccountLiquidatable(bobMarginAccount);
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
+            .riskManager
+            .isAccountLiquidatable(bobMarginAccount);
 
-        assertEq(isLiquidatable, true, "IsLiquidatable is not working properly");
-        LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
-        contracts.marginManager.liquidate(bob, params.activeMarkets, params.destinations, params.data);
-        openPosition = contracts.riskManager.getMarketPosition(bobMarginAccount, perpAaveKey);
         assertEq(
-            IAccountBalance(perpAccountBalance).getTotalPositionValue(bobMarginAccount, perpAaveMarket),
+            isLiquidatable,
+            true,
+            "IsLiquidatable is not working properly"
+        );
+        LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
+        contracts.marginManager.liquidate(
+            bob,
+            params.activeMarkets,
+            params.destinations,
+            params.data
+        );
+        openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
+        assertEq(
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            ),
             openPosition.openNotional,
             "Incorrect position value on chronux after liquidation"
         );
 
         assertEq(
-            IAccountBalance(perpAccountBalance).getTotalPositionValue(bobMarginAccount, perpAaveMarket),
+            IAccountBalance(perpAccountBalance).getTotalPositionValue(
+                bobMarginAccount,
+                perpAaveMarket
+            ),
             0,
             "Position must be close/liquidated"
         );
@@ -149,9 +229,24 @@ contract LiquidationPerpfi is BaseSetup {
 
         int256 perpMargin = int256(2000 * ONE_USDC);
         int256 openNotional = int256(2500 ether);
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, openNotional, false, "");
-        Position memory openPosition = contracts.riskManager.getMarketPosition(bobMarginAccount, perpAaveKey);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            openNotional,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
         // utils.mineBlocks(365 days, 365 days);
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
@@ -161,9 +256,15 @@ contract LiquidationPerpfi is BaseSetup {
             openPosition.size,
             -450 ether
         );
-        (bool isLiquidatable, bool isFullyLiquidatable,) = contracts.riskManager.isAccountLiquidatable(bobMarginAccount);
+        (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
+            .riskManager
+            .isAccountLiquidatable(bobMarginAccount);
 
-        assertEq(isLiquidatable, false, "IsLiquidatable is not working properly");
+        assertEq(
+            isLiquidatable,
+            false,
+            "IsLiquidatable is not working properly"
+        );
         // assertApproxEqAbs(
         //     perpfiUtils.getAccountValue(bobMarginAccount),
         //     perpMargin - int256(450 * ONE_USDC),
@@ -172,7 +273,12 @@ contract LiquidationPerpfi is BaseSetup {
         // ); // Note: fee+funding is missing
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         vm.expectRevert("PRM: Account not liquidatable");
-        contracts.marginManager.liquidate(bob, params.activeMarkets, params.destinations, params.data);
+        contracts.marginManager.liquidate(
+            bob,
+            params.activeMarkets,
+            params.destinations,
+            params.data
+        );
         // check fetchMargin third party events and value by using static call.
     }
 }

@@ -39,7 +39,10 @@ contract UpdatePositionPerpfi is BaseSetup {
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 37274241);
+        uint256 forkId = vm.createFork(
+            vm.envString("ARCHIVE_NODE_URL_L2"),
+            37274241
+        );
         vm.selectFork(forkId);
         utils = new Utils();
         setupPrmFixture();
@@ -53,18 +56,41 @@ contract UpdatePositionPerpfi is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        vm.assume(notional > 100 ether && notional < expectedRemainingNotional / 2);
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, -notional, false, "");
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -notional,
+            false,
+            ""
+        );
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - notional
         // );
         int256 deltaNotional = expectedRemainingNotional / 3;
 
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, -deltaNotional, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -deltaNotional,
+            false,
+            ""
+        );
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - deltaNotional - notional
@@ -77,20 +103,47 @@ contract UpdatePositionPerpfi is BaseSetup {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMargin = int256(1000 * ONE_USDC);
 
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        vm.assume(notional > 100 ether && notional < expectedRemainingNotional / 2);
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, -notional, false, "");
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -notional,
+            false,
+            ""
+        );
 
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - notional
         // );
-        expectedRemainingNotional = int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
         int256 deltaNotional = expectedRemainingNotional / 3;
 
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, deltaNotional, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            deltaNotional,
+            false,
+            ""
+        );
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - (notional - deltaNotional)
@@ -102,20 +155,46 @@ contract UpdatePositionPerpfi is BaseSetup {
         uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMargin = int256(1000 * ONE_USDC);
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        vm.assume(notional > 100 ether && notional < expectedRemainingNotional / 2);
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            notional,
+            false,
+            ""
+        );
         utils.mineBlocks(2, 10_000);
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - notional
         // );
-        int256 expectedRemainingNotional2 =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
+        int256 expectedRemainingNotional2 = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
         int256 deltaNotional = expectedRemainingNotional / 3;
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, -deltaNotional, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            -deltaNotional,
+            false,
+            ""
+        );
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - (notional - deltaNotional)
@@ -127,11 +206,28 @@ contract UpdatePositionPerpfi is BaseSetup {
         uint256 chronuxMargin = 500 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMargin = int256(1000 * ONE_USDC);
-        int256 expectedRemainingNotional =
-            int256(contracts.riskManager.getRemainingPositionOpenNotional(bobMarginAccount));
-        perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
-        vm.assume(notional > 100 ether && notional < expectedRemainingNotional / 2);
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
+        int256 expectedRemainingNotional = int256(
+            contracts.riskManager.getRemainingPositionOpenNotional(
+                bobMarginAccount
+            )
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            perpMargin,
+            false,
+            ""
+        );
+        vm.assume(
+            notional > 100 ether && notional < expectedRemainingNotional / 2
+        );
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            notional,
+            false,
+            ""
+        );
 
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
@@ -139,7 +235,13 @@ contract UpdatePositionPerpfi is BaseSetup {
         // );
 
         int256 deltaNotional = expectedRemainingNotional / 3;
-        perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, deltaNotional, false, "");
+        perpfiUtils.updateAndVerifyPositionNotional(
+            bob,
+            perpAaveKey,
+            deltaNotional,
+            false,
+            ""
+        );
         // chronuxUtils.verifyRemainingPositionNotional(
         //     bob,
         //     expectedRemainingNotional - (notional + deltaNotional)

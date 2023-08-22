@@ -100,13 +100,11 @@ contract CollateralManagerTest is BaseSetup {
         int256 notional = 4500 ether; // max withdrawable amount = 600
         perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, int256(_depositAmt), false, "");
         perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
-        // healthyMarginRequirement = 4500 * 0.25 = 1125
-        // freeCollateral = 1500 - 1125 = 375
-        // 375
-        assertEq(contracts.collateralManager.getFreeCollateralValue(bobMarginAccount), 375 ether);
+
+        assertEq(contracts.collateralManager.getFreeCollateralValue(bobMarginAccount),cle 600 ether);
         vm.startPrank(bob);
         vm.expectRevert("CM: Withdrawing more than free collateral not allowed");
-        contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC);
+        contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC); //
         vm.stopPrank();
     }
 
@@ -120,7 +118,7 @@ contract CollateralManagerTest is BaseSetup {
         perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, perpMargin, false, "");
 
         perpfiUtils.updateAndVerifyPositionNotional(bob, perpAaveKey, notional, false, "");
-        assertEq(contracts.collateralManager.getFreeCollateralValue(bobMarginAccount), 375 ether);
+        assertEq(contracts.collateralManager.getFreeCollateralValue(bobMarginAccount), 600 ether);
         perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
         uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(bobMarginAccount);
         perpfiUtils.updateAndVerifyMargin(bob, perpAaveKey, -int256(freeCollateralPerp), false, "");
