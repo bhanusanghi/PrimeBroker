@@ -404,26 +404,6 @@ contract BaseSetup is Test, IEvents {
         vm.stopPrank();
     }
 
-    // function setupPrmFixture() internal {
-    //     _setupCommonFixture(usdc);
-    //     // =============================== Get Market Addresses from SNX using Keys ===============================
-    //     // =============================== Add Markets to Market Manager and setup Whitelist ===============================
-    //     vm.startPrank(deployerAdmin);
-    //     contracts.marketManager.addMarket(
-    //         snxUniKey, uniFuturesMarket, address(contracts.snxRiskManager), address(0), susd
-    //     );
-    //     contracts.marketManager.addMarket(
-    //         snxEthKey, ethFuturesMarket, address(contracts.snxRiskManager), address(0), susd
-    //     );
-    //     contracts.snxRiskManager.toggleAddressWhitelisting(uniFuturesMarket, true);
-    //     contracts.snxRiskManager.toggleAddressWhitelisting(ethFuturesMarket, true);
-    //     contracts.contractRegistry.addCurvePool(usdc, susd, 0x061b87122Ed14b9526A813209C8a59a633257bAb);
-    //     contracts.contractRegistry.addCurvePool(susd, usdc, 0x061b87122Ed14b9526A813209C8a59a633257bAb);
-    //     contracts.contractRegistry.updateCurvePoolTokenIndex(0x061b87122Ed14b9526A813209C8a59a633257bAb, susd, 0);
-    //     contracts.contractRegistry.updateCurvePoolTokenIndex(0x061b87122Ed14b9526A813209C8a59a633257bAb, usdc, 2);
-    //     vm.stopPrank();
-    // }
-
     function setupPrmFixture() internal {
         _setupCommonFixture(usdc);
         addMarkets();
