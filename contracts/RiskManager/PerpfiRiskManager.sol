@@ -37,8 +37,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     using SignedMath for int256;
     using SettlementTokenMath for int256;
     using SignedSafeMath for int256;
-    // address public perp
-    // function getPositionOpenNotional(address marginAccount) public override {}
     bytes4 public ADD_MARGIN = 0x47e7ef24;
     bytes4 public APPROVE_TRANSFER = 0x095ea7b3;
     bytes4 public OPEN_POSITION = 0xb6b1b6c3;

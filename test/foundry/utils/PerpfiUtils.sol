@@ -118,7 +118,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes32 marketKey,
         int256 expectedPositionSize
     ) public {
-        // Position memory positionChronux = IMarginAccount(marginAccount).getPosition(marketKey);
         (
             int256 marketPositionSize,
             int256 marketPositionNotional
@@ -128,7 +127,6 @@ contract PerpfiUtils is Test, Constants, IEvents {
             expectedPositionSize,
             "expectedPositionSize not equal to chronux position size"
         );
-        // assertEq(positionChronux.size, marketPositionSize, "Market Position Size not equal to chronux position size");
     }
 
     function verifyPositionNotional(
@@ -136,18 +134,10 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes32 marketKey,
         int256 expectedPositionNotional
     ) public {
-        // Position memory positionChronux = IMarginAccount(marginAccount)
-        //     .getPosition(marketKey);
         (
             int256 marketPositionSize,
             int256 marketPositionNotional
         ) = fetchPosition(marginAccount, marketKey);
-        // assertApproxEqAbs(
-        //     positionChronux.openNotional,
-        //     expectedPositionNotional,
-        //     DUST_THRESHOLD,
-        //     "expected and chronux openNotional do not match"
-        // );
         assertApproxEqAbs(
             expectedPositionNotional,
             marketPositionNotional,

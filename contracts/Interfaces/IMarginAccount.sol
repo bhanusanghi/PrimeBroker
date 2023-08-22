@@ -31,10 +31,6 @@ interface IMarginAccount {
         bytes memory data
     ) external returns (bytes memory);
 
-    function getPosition(
-        bytes32 marketKey
-    ) external view returns (Position memory);
-
     function existingPosition(bytes32 marketKey) external view returns (bool);
 
     // function updateMarginInMarket(address market, int256 transferredMargin)

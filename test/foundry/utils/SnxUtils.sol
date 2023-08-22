@@ -54,14 +54,11 @@ contract SnxUtils is Test, IEvents {
         bytes32 marketKey,
         int256 expectedPositionSize
     ) public {
-        // Position memory positionChronux = MarginAccount(marginAccount)
-        //     .getPosition(marketKey);
         (int256 snxPositionSize, int256 snxPositionNotional) = fetchPosition(
             marginAccount,
             marketKey
         );
         assertEq(snxPositionSize, expectedPositionSize);
-        // assertEq(positionChronux.size, snxPositionSize);
     }
 
     function borrowAssets(uint256 amount) public {}

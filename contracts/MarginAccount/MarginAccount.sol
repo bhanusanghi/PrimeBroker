@@ -31,7 +31,7 @@ contract MarginAccount is IMarginAccount {
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     mapping(bytes32 => bool) public existingPosition;
-    bytes32[] public activeMarkets;
+    // bytes32[] public activeMarkets;
     /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
      serves multiple purposes
      1. Affects buyingPower correctly
@@ -78,16 +78,6 @@ contract MarginAccount is IMarginAccount {
             "MarginAccount: Only collateral manager"
         );
         _;
-    }
-
-    function getPosition(
-        bytes32 market
-    ) public view override returns (Position memory position) {
-        // position = positions[market];
-    }
-
-    function getActiveMarkets() public view returns (bytes32[] memory) {
-        return activeMarkets;
     }
 
     function isActivePosition(
@@ -161,7 +151,7 @@ contract MarginAccount is IMarginAccount {
         bytes32 marketKey
     ) external override onlyMarginManager {
         if (!existingPosition[marketKey]) existingPosition[marketKey] = true;
-        activeMarkets.push(marketKey);
+        // activeMarkets.push(marketKey);
     }
 
     function removePosition(
