@@ -8,4 +8,8 @@ interface IMarginAccountFactory {
     // ) external returns (address);
 
     function updateMarginManager(address _marginManager) external;
+
+    function closeMarginAccount(address marginAccount) external;
+
+    function getUnusedMarginAccounts() external view returns (address[] memory);
 }

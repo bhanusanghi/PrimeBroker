@@ -55,7 +55,7 @@ interface IMarginManager {
 
     function drainAllMarginAccounts(address _token) external;
 
-    function closeMarginAccount(address marginAccount) external;
+    function closeMarginAccount() external;
 
     function updatePosition(
         bytes32 marketKey,
