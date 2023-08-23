@@ -38,6 +38,8 @@ contract MarginAccount is IMarginAccount {
      2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
      3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
     */
+    address owner;
+
     IContractRegistry contractRegistry;
     bytes32 constant VAULT = keccak256("Vault");
 
@@ -81,6 +83,16 @@ contract MarginAccount is IMarginAccount {
         _;
     }
 
+    modifier onlyMarginAccountFactory() {
+        require(
+            contractRegistry.getContractByName(
+                keccak256("MarginAccountFactory")
+            ) == msg.sender,
+            "MarginAccount: Only margin account factory"
+        );
+        _;
+    }
+
     function getPosition(
         bytes32 market
     ) public view override returns (Position memory position) {
@@ -93,21 +105,6 @@ contract MarginAccount is IMarginAccount {
         return existingPosition[marketKey];
     }
 
-    // function getTotalOpeningAbsoluteNotional()
-    //     public
-    //     view
-    //     override
-    //     returns (uint256 totalNotional)
-    // {
-    //     bytes32[] memory marketKeys = IMarketManager(
-    //         contractRegistry.getContractByName(keccak256("MarketManager"))
-    //     ).getAllMarketKeys();
-    //     uint256 len = marketKeys.length;
-    //     for (uint256 i = 0; i < len; i++) {
-    //         totalNotional += positions[marketKeys[i]].openNotional.abs();
-    //     }
-    // }
-
     function addCollateral(
         address from,
         address token,
@@ -116,16 +113,6 @@ contract MarginAccount is IMarginAccount {
         IERC20(token).safeTransferFrom(from, address(this), amount);
     }
 
-    // function approveToProtocol(
-    //     address token,
-    //     address protocol
-    // ) external override {
-    //     // onlyMarginmanager
-    //     IERC20(token).approve(protocol, type(uint256).max);
-    // }
-
-    // Cannot be only MarginManager.
-    // Risk Manager also calls this.
     function transferTokens(
         address token,
         address to,
@@ -248,6 +235,14 @@ contract MarginAccount is IMarginAccount {
         return _getInterestAccruedX18();
     }
 
+    // @dev -> does not update positions storing as it is being removed
+    function resetMarginAccount() public onlyMarginAccountFactory {
+        totalBorrowed = 0;
+        cumulativeIndexAtOpen = 1;
+        cumulative_RAY = 0;
+    }
+
+    // -------------- Internal Functions ------------------ //
     function _getInterestAccruedX18() private view returns (uint256 interest) {
         if (totalBorrowed == 0) return 0;
         IVault vault = IVault(contractRegistry.getContractByName(VAULT));
@@ -256,10 +251,3 @@ contract MarginAccount is IMarginAccount {
             cumulativeIndexAtOpen) - totalBorrowed);
     }
 }
-
-/*
- Unit Testing
-    1. Swap Token, failure cases
-Feature Testing 
-    - NA -
-*/

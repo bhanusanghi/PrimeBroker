@@ -4,7 +4,21 @@ OpenMarginAccount_MarginManager_UnitTest.t.sol
 ├── When valid factory
     ├── when duplicate trader
     ├── when valid new trader
-        ├── creates a new MarginAccount with its initial values set properly, sets tokenAllowance of vault asset to allow repay, adds to traders array, emits event
+        ├── when unused accounts
+        │   └── Assigns unused account to trader
+        ├── when no unused accounts
+            ├── creates a new MarginAccount with its initial values set properly, sets tokenAllowance of vault asset to allow repay, adds to traders array, emits event
+
+CloseMarginAccount_MarginManager_UnitTest.t.sol
+├── When invalid factory
+├── When valid factory
+    ├── when invalid trader
+    ├── when valid existing trader
+        ├── Collateral > 0
+        │   └── It should revert
+        ├── Collateral = 0
+        │   └── It should closeAccount and put in unused accounts
+
 
 GetMarginAccount_MarginManager_UnitTest.t.sol
 ├── valid trader

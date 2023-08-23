@@ -77,14 +77,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return newMarginAccountAddress;
     }
 
-    function closeMarginAccount(address trader) external {
+    function closeMarginAccount() external {
         /**
          * TBD
-        close positions
-        take interest
-        return funds
         burn contract account and remove mappings
          */
+        IMarginAccount marginAccount = IMarginAccount(
+            _requireAndGetMarginAccount(msg.sender)
+        );
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
+        IMarginAccountFactory marginAccountFactory = IMarginAccountFactory(
+            contractRegistry.getContractByName(
+                keccak256("MarginAccountFactory")
+            )
+        );
+        require(
+            collateralManager.totalCollateralValue(address(marginAccount)) == 0,
+            "MM: Cannot close account with collateral"
+        );
+        marginAccountFactory.closeMarginAccount(address(marginAccount));
+        delete marginAccounts[msg.sender];
+        emit MarginAccountClosed(msg.sender, address(marginAccount));
     }
 
     function getMarginAccount(address trader) external view returns (address) {
