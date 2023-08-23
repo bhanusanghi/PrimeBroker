@@ -6,7 +6,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 interface IACLManager is IAccessControl {
     function CHRONUX_ADMIN_ROLE() external view returns (bytes32);
 
-    function MARGIN_MANAGER_ROLE() external view returns (bytes32);
+    function LEND_BORROW_MANAGER_ROLE() external view returns (bytes32);
 
     function COLLATERAL_MANAGER_ROLE() external view returns (bytes32);
 

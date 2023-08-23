@@ -19,23 +19,26 @@ contract MarginAccountFactory is IMarginAccountFactory {
         _;
     }
 
-    modifier onlyAdmin() {
-        require(aclManager.hasRole(CHRONUX_ADMIN_ROLE, msg.sender), "MarginAccountFactory: Chronux Admin only");
-        _;
-    }
-
-    constructor(address _marginManager, address _contractRegistry, address _aclManager) {
+    constructor(
+        address _marginManager,
+        address _contractRegistry,
+        address _aclManager
+    ) {
         marginManager = _marginManager;
         aclManager = IACLManager(_aclManager);
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 
     // Address setters
-    function updateMarginManager(address _marginManager) public onlyMarginManager {
+    function updateMarginManager(
+        address _marginManager
+    ) public onlyMarginManager {
         marginManager = _marginManager;
     }
 
-    function updateContractRegistry(address _contractRegistry) public onlyMarginManager {
+    function updateContractRegistry(
+        address _contractRegistry
+    ) public onlyMarginManager {
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 

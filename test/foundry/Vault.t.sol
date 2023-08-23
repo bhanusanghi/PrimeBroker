@@ -98,7 +98,7 @@ contract VaultTest is Test {
         vm.startPrank(admin);
         aclManager = new ACLManager(admin);
         aclManager.grantRole(aclManager.CHRONUX_ADMIN_ROLE(), admin);
-        aclManager.grantRole(aclManager.MARGIN_MANAGER_ROLE(), admin);
+        aclManager.grantRole(aclManager.LEND_BORROW_MANAGER_ROLE(), admin);
         vm.stopPrank();
         // maxExpectedLiquidity = type(uint256).max;
         vault = new Vault(

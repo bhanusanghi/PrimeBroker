@@ -6,7 +6,7 @@ import {IACLManager} from "../Interfaces/IACLManager.sol";
 
 contract ACLManager is AccessControl, IACLManager {
     bytes32 public constant override CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
-    bytes32 public constant override MARGIN_MANAGER_ROLE = keccak256("CHRONUX.MARGIN_MANAGER");
+    bytes32 public constant override LEND_BORROW_MANAGER_ROLE = keccak256("CHRONUX.MARGIN_MANAGER");
     bytes32 public constant override COLLATERAL_MANAGER_ROLE = keccak256("CHRONUX.COLLATERAL_MANAGER");
 
     modifier onlyAdmin() {

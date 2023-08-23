@@ -180,7 +180,7 @@ contract BaseSetup is Test, IEvents {
             address(contracts.aclManager)
         );
         contracts.contractRegistry.addContractToRegistry(keccak256("MarginManager"), address(contracts.marginManager));
-        contracts.aclManager.grantRole(contracts.aclManager.MARGIN_MANAGER_ROLE(), address(contracts.marginManager));
+        contracts.aclManager.grantRole(contracts.aclManager.LEND_BORROW_MANAGER_ROLE(), address(contracts.marginManager));
         vm.stopPrank();
     }
 
