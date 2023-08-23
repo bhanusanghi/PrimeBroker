@@ -11,39 +11,29 @@ import {IACLManager} from "../Interfaces/IACLManager.sol";
 contract MarginAccountFactory is IMarginAccountFactory {
     address marginManager;
     IContractRegistry contractRegistry;
-    IACLManager aclManager;
-    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
+    bytes32 internal constant CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE =
+        keccak256("CHRONUX.CHRONUX_MARGIN_ACCOUNT_MANAGER");
+    bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
-    modifier onlyMarginManager() {
-        require(msg.sender == marginManager, "Only Margin Manager");
+    modifier onlyMarginAccountManager() {
+        require(
+            IACLManager(contractRegistry.getContractByName(ACL_MANAGER))
+                .hasRole(CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE, msg.sender),
+            "MarginAccountFactory: Only margin account manager"
+        );
         _;
     }
 
-    constructor(
-        address _marginManager,
-        address _contractRegistry,
-        address _aclManager
-    ) {
-        marginManager = _marginManager;
-        aclManager = IACLManager(_aclManager);
-        contractRegistry = IContractRegistry(_contractRegistry);
-    }
-
-    // Address setters
-    function updateMarginManager(
-        address _marginManager
-    ) public onlyMarginManager {
-        marginManager = _marginManager;
-    }
-
-    function updateContractRegistry(
-        address _contractRegistry
-    ) public onlyMarginManager {
+    constructor(address _contractRegistry) {
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 
     // creates new instance of MarginAccount
-    function createMarginAccount() public onlyMarginManager returns (address) {
+    function createMarginAccount()
+        public
+        onlyMarginAccountManager
+        returns (address)
+    {
         MarginAccount newMarginAccount = new MarginAccount(
             marginManager,
             address(contractRegistry)

@@ -170,6 +170,10 @@ contract BaseSetup is Test, IEvents {
             contracts.aclManager.CHRONUX_ADMIN_ROLE(),
             deployerAdmin
         );
+        contracts.contractRegistry.addContractToRegistry(
+            keccak256("AclManager"),
+            address(contracts.aclManager)
+        );
         vm.stopPrank();
     }
 
@@ -203,6 +207,10 @@ contract BaseSetup is Test, IEvents {
             contracts.aclManager.MARGIN_ACCOUNT_FUND_MANAGER_ROLE(),
             address(contracts.marginManager)
         );
+        contracts.aclManager.grantRole(
+            contracts.aclManager.CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE(),
+            address(contracts.marginManager)
+        );
         vm.stopPrank();
     }
 
@@ -231,7 +239,7 @@ contract BaseSetup is Test, IEvents {
         );
         contracts.aclManager.grantRole(
             contracts.aclManager.MARGIN_ACCOUNT_FUND_MANAGER_ROLE(),
-            address(contracts.riskManager)
+            address(contracts.collateralManager)
         );
         vm.stopPrank();
     }
@@ -239,9 +247,7 @@ contract BaseSetup is Test, IEvents {
     function setupMarginAccountFactory() internal {
         vm.startPrank(deployerAdmin);
         contracts.marginAccountFactory = new MarginAccountFactory(
-            address(contracts.marginManager),
-            address(contracts.contractRegistry),
-            address(contracts.aclManager)
+            address(contracts.contractRegistry)
         );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarginAccountFactory"),

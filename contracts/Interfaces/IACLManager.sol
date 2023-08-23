@@ -10,5 +10,10 @@ interface IACLManager is IAccessControl {
 
     function MARGIN_ACCOUNT_FUND_MANAGER_ROLE() external view returns (bytes32);
 
+    function CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE()
+        external
+        view
+        returns (bytes32);
+
     function setRoleAdmin(bytes32 role, bytes32 adminRole) external;
 }

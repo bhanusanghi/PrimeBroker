@@ -5,12 +5,13 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IACLManager} from "../Interfaces/IACLManager.sol";
 
 contract ACLManager is AccessControl, IACLManager {
-    bytes32 public constant override CHRONUX_ADMIN_ROLE =
-        keccak256("CHRONUX.ADMIN");
-    bytes32 public constant override LEND_BORROW_MANAGER_ROLE =
+    bytes32 public constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
+    bytes32 public constant LEND_BORROW_MANAGER_ROLE =
         keccak256("CHRONUX.MARGIN_MANAGER");
-    bytes32 public constant override MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
+    bytes32 public constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
         keccak256("CHRONUX.MARGIN_ACCOUNT_FUND_MANAGER");
+    bytes32 public constant CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE =
+        keccak256("CHRONUX.CHRONUX_MARGIN_ACCOUNT_MANAGER");
 
     modifier onlyAdmin() {
         require(hasRole(CHRONUX_ADMIN_ROLE, _msgSender()), "ACL: not admin");

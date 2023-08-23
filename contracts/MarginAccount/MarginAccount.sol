@@ -14,6 +14,7 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IACLManager} from "../Interfaces/IACLManager.sol";
 import {IVault} from "../Interfaces/IVault.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -35,6 +36,7 @@ contract MarginAccount is IMarginAccount {
     IContractRegistry contractRegistry;
     bytes32 internal constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
         keccak256("CHRONUX.MARGIN_ACCOUNT_FUND_MANAGER");
+    bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
     constructor(
         address _marginManager, //  address _marketManager
@@ -47,7 +49,8 @@ contract MarginAccount is IMarginAccount {
 
     modifier onlyMarginAccountFundManager() {
         require(
-            aclManager.hasRole(MARGIN_ACCOUNT_FUND_MANAGER_ROLE, _msgSender()),
+            IACLManager(contractRegistry.getContractByName(ACL_MANAGER))
+                .hasRole(MARGIN_ACCOUNT_FUND_MANAGER_ROLE, msg.sender),
             "MarginAccount: Only margin account fund manager"
         );
         _;
