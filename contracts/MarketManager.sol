@@ -1,6 +1,8 @@
 pragma solidity ^0.8.10;
 
 import {IMarketManager} from "./Interfaces/IMarketManager.sol";
+import {IContractRegistry} from "./Interfaces/IContractRegistry.sol";
+import {IACLManager} from "./Interfaces/IACLManager.sol";
 import "hardhat/console.sol";
 
 contract MarketManager is IMarketManager {
@@ -22,22 +24,21 @@ contract MarketManager is IMarketManager {
     // There save all this stuff in a marketRegistry mapping with keccak256 keys just like in contractRegistry to make this work ez.
     mapping(bytes32 => address) public marketBaseToken;
     mapping(bytes32 => address) public marketMarginToken;
-    address public override owner;
+    IContractRegistry public contractRegistry;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
+    bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "MM: Only Owner");
+    modifier onlyAdmin() {
+        require(
+            IACLManager(contractRegistry.getContractByName(ACL_MANAGER))
+                .hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
+            "MarketManager: not admin"
+        );
         _;
     }
 
-    /**
-     * add maping for market to fee and maybe other hot params which can cached here
-     */
-    constructor() {
-        owner = msg.sender;
-    }
-
-    function updateOwner(address _owner) external onlyOwner {
-        owner = _owner;
+    constructor(address _contractRegistry) {
+        contractRegistry = IContractRegistry(_contractRegistry);
     }
 
     function addMarket(
@@ -46,7 +47,7 @@ contract MarketManager is IMarketManager {
         address _riskManager,
         address _baseToken,
         address _marginToken
-    ) external onlyOwner {
+    ) external onlyAdmin {
         require(
             marketRegistry[_marketKey] == address(0),
             "MM: Market already exists"
@@ -116,7 +117,7 @@ contract MarketManager is IMarketManager {
         address _riskManager,
         address _baseToken,
         address _marginToken
-    ) external onlyOwner {
+    ) external onlyAdmin {
         require(
             marketRegistry[_marketKey] != address(0),
             "MM: Market doesn't exist"
@@ -128,7 +129,7 @@ contract MarketManager is IMarketManager {
     }
 
     // TODO - Handle closing of all remaining positions in this market etc.
-    function removeMarket(bytes32 marketName) external onlyOwner {
+    function removeMarket(bytes32 marketName) external onlyAdmin {
         require(
             marketRegistry[marketName] != address(0),
             "MM: Market doesn't exist"

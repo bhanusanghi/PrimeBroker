@@ -19,7 +19,7 @@ import {IMarginManager} from "./Interfaces/IMarginManager.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccountFactory} from "./Interfaces/IMarginAccountFactory.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "forge-std/console2.sol";
+import {IACLManager} from "./Interfaces/IACLManager.sol";
 
 contract MarginManager is IMarginManager, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -34,6 +34,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     IVault public vault;
     IRiskManager public riskManager;
     IContractRegistry public contractRegistry;
+    IACLManager public aclManager;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     mapping(address => address) public marginAccounts;
     address[] private traders;
 
@@ -42,16 +44,17 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _;
     }
 
-    address owner;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "MM: Unauthorized, only owner allowed");
+    modifier onlyAdmin() {
+        require(
+            aclManager.hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
+            "MM: Chronux Admin only"
+        );
         _;
     }
 
-    constructor(IContractRegistry _contractRegistry) {
-        owner = msg.sender;
+    constructor(IContractRegistry _contractRegistry, address _aclManager) {
         contractRegistry = _contractRegistry;
+        aclManager = IACLManager(_aclManager);
     }
 
     function openMarginAccount() external returns (address) {
@@ -77,14 +80,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         return newMarginAccountAddress;
     }
 
-    function closeMarginAccount(address trader) external {
+    function closeMarginAccount() external {
         /**
          * TBD
-         *     close positions
-         *     take interest
-         *     return funds
-         *     burn contract account and remove mappings
+        burn contract account and remove mappings
          */
+        IMarginAccount marginAccount = IMarginAccount(
+            _requireAndGetMarginAccount(msg.sender)
+        );
+        ICollateralManager collateralManager = ICollateralManager(
+            contractRegistry.getContractByName(keccak256("CollateralManager"))
+        );
+        IMarginAccountFactory marginAccountFactory = IMarginAccountFactory(
+            contractRegistry.getContractByName(
+                keccak256("MarginAccountFactory")
+            )
+        );
+        require(
+            collateralManager.totalCollateralValue(address(marginAccount)) == 0,
+            "MM: Cannot close account with collateral"
+        );
+        marginAccountFactory.closeMarginAccount(address(marginAccount));
+        delete marginAccounts[msg.sender];
+        emit MarginAccountClosed(msg.sender, address(marginAccount));
     }
 
     function getMarginAccount(address trader) external view returns (address) {
@@ -176,11 +194,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        console2.log(
-            "closePosition: ",
-            marginAccount.isActivePosition(marketKey)
-        );
-        console2.logBytes32(marketKey);
         require(
             marginAccount.isActivePosition(marketKey),
             "MM: Trader does not have active position in this market"
@@ -449,12 +462,15 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // ----------------- Team functions ---------------------
 
     // TODO: remove while deploying on mainnet
-    function drainAllMarginAccounts(address _token) external onlyOwner {
+    function drainAllMarginAccounts(
+        address _token,
+        address _receiver
+    ) external onlyAdmin {
         for (uint256 i = 0; i < traders.length; i += 1) {
             if (IERC20(_token).balanceOf(marginAccounts[traders[i]]) > 0) {
                 IMarginAccount(marginAccounts[traders[i]]).transferTokens(
                     _token,
-                    owner,
+                    _receiver,
                     IERC20(_token).balanceOf(marginAccounts[traders[i]])
                 );
             }
@@ -463,13 +479,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
     function setRiskManager(
         address _riskmgr
-    ) external nonZeroAddress(_riskmgr) onlyOwner {
+    ) external nonZeroAddress(_riskmgr) onlyAdmin {
         riskManager = IRiskManager(_riskmgr);
     }
 
     function setVault(
         address _vault
-    ) external nonZeroAddress(_vault) onlyOwner {
+    ) external nonZeroAddress(_vault) onlyAdmin {
         vault = IVault(_vault);
     }
 }

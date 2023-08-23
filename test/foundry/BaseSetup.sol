@@ -39,6 +39,7 @@ import {SettlementTokenMath} from "../../contracts/Libraries/SettlementTokenMath
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IEvents} from "./IEvents.sol";
+import {ACLManager} from "../../contracts/Utils/ACLManager.sol";
 
 struct RoundData {
     uint80 roundId;
@@ -153,10 +154,25 @@ contract BaseSetup is Test, IEvents {
 
     function setupMarketManager() internal {
         vm.startPrank(deployerAdmin);
-        contracts.marketManager = new MarketManager();
+        contracts.marketManager = new MarketManager(
+            address(contracts.contractRegistry)
+        );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarketManager"),
             address(contracts.marketManager)
+        );
+    }
+
+    function setupACLManager() internal {
+        vm.startPrank(deployerAdmin);
+        contracts.aclManager = new ACLManager(deployerAdmin);
+        contracts.aclManager.grantRole(
+            contracts.aclManager.CHRONUX_ADMIN_ROLE(),
+            deployerAdmin
+        );
+        contracts.contractRegistry.addContractToRegistry(
+            keccak256("AclManager"),
+            address(contracts.aclManager)
         );
         vm.stopPrank();
     }
@@ -175,9 +191,24 @@ contract BaseSetup is Test, IEvents {
 
     function setupMarginManager() internal {
         vm.startPrank(deployerAdmin);
-        contracts.marginManager = new MarginManager(contracts.contractRegistry);
+        contracts.marginManager = new MarginManager(
+            contracts.contractRegistry,
+            address(contracts.aclManager)
+        );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("MarginManager"),
+            address(contracts.marginManager)
+        );
+        contracts.aclManager.grantRole(
+            contracts.aclManager.LEND_BORROW_MANAGER_ROLE(),
+            address(contracts.marginManager)
+        );
+        contracts.aclManager.grantRole(
+            contracts.aclManager.MARGIN_ACCOUNT_FUND_MANAGER_ROLE(),
+            address(contracts.marginManager)
+        );
+        contracts.aclManager.grantRole(
+            contracts.aclManager.CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE(),
             address(contracts.marginManager)
         );
         vm.stopPrank();
@@ -199,10 +230,15 @@ contract BaseSetup is Test, IEvents {
             address(contracts.marginManager),
             address(contracts.riskManager),
             address(contracts.priceOracle),
-            address(contracts.vault)
+            address(contracts.vault),
+            address(contracts.aclManager)
         );
         contracts.contractRegistry.addContractToRegistry(
             keccak256("CollateralManager"),
+            address(contracts.collateralManager)
+        );
+        contracts.aclManager.grantRole(
+            contracts.aclManager.MARGIN_ACCOUNT_FUND_MANAGER_ROLE(),
             address(contracts.collateralManager)
         );
         vm.stopPrank();
@@ -211,7 +247,6 @@ contract BaseSetup is Test, IEvents {
     function setupMarginAccountFactory() internal {
         vm.startPrank(deployerAdmin);
         contracts.marginAccountFactory = new MarginAccountFactory(
-            address(contracts.marginManager),
             address(contracts.contractRegistry)
         );
         contracts.contractRegistry.addContractToRegistry(
@@ -235,16 +270,13 @@ contract BaseSetup is Test, IEvents {
         );
         // uint256 maxExpectedLiquidity = 1_000_000 * ERC20(token).decimals();
         contracts.vault = new Vault(
+            address(contracts.aclManager),
             token,
             "GigaLP",
             "GLP",
             address(contracts.interestModel)
             // maxExpectedLiquidity
         );
-        contracts.vault.addLendingAddress(admin);
-        contracts.vault.addLendingAddress(address(contracts.marginManager));
-        contracts.vault.addRepayingAddress(admin);
-        contracts.vault.addRepayingAddress(address(contracts.marginManager));
         contracts.contractRegistry.addContractToRegistry(
             keccak256("InterestModel"),
             address(contracts.interestModel)
@@ -296,6 +328,7 @@ contract BaseSetup is Test, IEvents {
         vm.label(ethFuturesMarket, "ETH futures Market");
         setupUsers();
         setupContractRegistry();
+        setupACLManager();
         setupPriceOracle();
         setupMarketManager();
         setupMarginManager();
@@ -362,9 +395,7 @@ contract BaseSetup is Test, IEvents {
     }
 
     function addMarkets() internal {
-        console2.log("Adding Markets");
         vm.startPrank(deployerAdmin);
-        console2.log(contracts.marketManager.owner(), address(deployerAdmin));
         contracts.marketManager.addMarket(
             snxUniKey,
             uniFuturesMarket,

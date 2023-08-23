@@ -11,6 +11,7 @@ import {ICollateralManager} from "../../contracts/Interfaces/ICollateralManager.
 import {IInterestRateModel} from "../../contracts/Interfaces/IInterestRateModel.sol";
 import {IFuturesMarketManager} from "../../contracts/Interfaces/SNX/IFuturesMarketManager.sol";
 import {Vault} from "../../contracts/MarginPool/Vault.sol";
+import {IACLManager} from "../../contracts/Interfaces/IACLManager.sol";
 
 interface IEvents {
     struct Contracts {
@@ -25,6 +26,7 @@ interface IEvents {
         IInterestRateModel interestModel;
         Vault vault;
         IMarginAccountFactory marginAccountFactory;
+        IACLManager aclManager;
     }
     struct OpenPositionParams {
         address baseToken;
@@ -107,6 +109,11 @@ interface IEvents {
         address indexed,
         uint256 indexed tokenAmount
     );
+    event CollateralWithdrawn(
+        address indexed marginAccount,
+        address indexed token,
+        uint256 indexed amount
+    );
     // ============= Margin Manager Events =============
     event MarginTransferred(
         address indexed,
@@ -149,6 +156,10 @@ interface IEvents {
         uint256 amount
     );
     event MarginAccountOpened(
+        address indexed trader,
+        address indexed marginAccount
+    );
+    event MarginAccountClosed(
         address indexed trader,
         address indexed marginAccount
     );

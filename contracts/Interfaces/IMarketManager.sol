@@ -55,6 +55,4 @@ interface IMarketManager {
     function getMarketMarginToken(
         bytes32 marketKey
     ) external view returns (address);
-
-    function owner() external view returns (address);
 }
