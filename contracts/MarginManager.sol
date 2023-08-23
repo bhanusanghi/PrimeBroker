@@ -29,16 +29,21 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     using SignedMath for int256;
-    IVault public vault;
-    IRiskManager public riskManager;
+    
     IContractRegistry public contractRegistry;
     mapping(address => address) public marginAccounts;
     address[] private traders;
+    address owner;
+    constant COLLATERAL_MANAGER = keccak256("CollateralManager");
+    constant MARKET_MANAGER = keccak256("MarketManager");
+    constant RISK_MANAGER = keccak256("RiskManager");
+    constant MARGIN_ACCOUNT_FACTORY = keccak256("MarginAccountFactory");
+    constant VAULT = keccak256("Vault");
+    
     modifier nonZeroAddress(address _address) {
         require(_address != address(0));
         _;
     }
-    address owner;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "MM: Unauthorized, only owner allowed");
@@ -57,7 +62,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         IMarginAccountFactory marginAccountFactory = IMarginAccountFactory(
             contractRegistry.getContractByName(
-                keccak256("MarginAccountFactory")
+                MARGIN_ACCOUNT_FACTORY
             )
         );
         address newMarginAccountAddress = marginAccountFactory
@@ -115,7 +120,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(msg.sender)
         );
         ICollateralManager collateralManager = ICollateralManager(
-            contractRegistry.getContractByName(keccak256("CollateralManager"))
+            contractRegistry.getContractByName(COLLATERAL_MANAGER)
         );
         require( // required so that approve cannot be called on random malicious erc20s
             collateralManager.isAllowedCollateral(tokenIn),
@@ -136,7 +141,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         // check if health factor is good enough now.
         require(
-            riskManager.isAccountHealthy(address(marginAccount)),
+            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).isAccountHealthy(address(marginAccount)),
             "MM: Unhealthy account"
         );
     }
@@ -151,7 +156,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         _syncPositions(address(marginAccount));
         // @note fee is assumed to be in usdc value
-        VerifyTradeResult memory verificationResult = riskManager.verifyTrade(
+        VerifyTradeResult memory verificationResult = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).verifyTrade(
             marginAccount,
             marketKey,
             destinations,
@@ -180,7 +185,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
         // @note fee is assumed to be in usdc value
         // Add check for an existing position.
-        VerifyCloseResult memory result = riskManager.verifyClosePosition(
+        VerifyCloseResult memory result = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).verifyClosePosition(
             marketKey,
             destinations,
             data
@@ -202,7 +207,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _requireAndGetMarginAccount(trader)
         );
         _syncPositions(address(marginAccount));
-        VerifyLiquidationResult memory result = riskManager.verifyLiquidation(
+        VerifyLiquidationResult memory result = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).verifyLiquidation(
             marginAccount,
             marketKeys,
             destinations,
@@ -216,7 +221,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         _executePostLiquidationUpdates(marginAccount, result);
         uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
         uint256 interestAccruedX18 = marginAccount.getInterestAccruedX18();
-        bool hasBadDebt = riskManager.isTraderBankrupt(
+        bool hasBadDebt = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).isTraderBankrupt(
             address(marginAccount),
             totalBorrowedX18,
             result.liquidationPenaltyX18
@@ -261,12 +266,12 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // only used to update data of closed positions when liquidated on TPP. Think about getting rid of this asap.
     function _syncPositions(address marginAccount) private {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
         for (uint256 i = 0; i < marketKeys.length; i++) {
             bytes32 marketKey = marketKeys[i];
-            Position memory marketPosition = riskManager.getMarketPosition(
+            Position memory marketPosition = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).getMarketPosition(
                 marginAccount,
                 marketKey
             );
@@ -297,7 +302,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         VerifyTradeResult memory verificationResult
     ) private {
         // check slippage based on verification result and actual market position.
-        Position memory marketPosition = riskManager.getMarketPosition(
+        Position memory marketPosition = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).getMarketPosition(
             address(marginAccount),
             marketKey
         );
@@ -327,7 +332,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             );
         }
         require(
-            riskManager.isAccountHealthy(address(marginAccount)),
+            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).isAccountHealthy(address(marginAccount)),
             "MM: Unhealthy account"
         );
     }
@@ -336,7 +341,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         bytes32 marketKey
     ) private {
-        Position memory marketPosition = riskManager.getMarketPosition(
+        Position memory marketPosition = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).getMarketPosition(
             address(marginAccount),
             marketKey
         );
@@ -345,7 +350,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             "MM: Invalid close position call"
         );
         require(
-            riskManager.isAccountHealthy(address(marginAccount)),
+            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).isAccountHealthy(address(marginAccount)),
             "MM: Unhealthy account"
         );
     }
@@ -367,7 +372,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
     function _swapAllTokensToVaultAsset(IMarginAccount marginAccount) private {
         ICollateralManager collateralManager = ICollateralManager(
-            contractRegistry.getContractByName(keccak256("CollateralManager"))
+            contractRegistry.getContractByName(COLLATERAL_MANAGER)
         );
         address[] memory allowedCollaterals = collateralManager
             .getAllCollateralTokens();
@@ -433,7 +438,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         VerifyLiquidationResult memory result
     ) private {
         // check if all margin is transferred back to Chronux.
-        int256 marginInMarkets = riskManager.getCurrentDollarMarginInMarkets(
+        int256 marginInMarkets = IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).getCurrentDollarMarginInMarkets(
             address(marginAccount)
         );
         require(
@@ -447,7 +452,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount,
         uint256 amount
     ) private {
-        riskManager.verifyBorrowLimit(
+        IRiskManager(contractRegistry.getContractByName(RISK_MANAGER)).verifyBorrowLimit(
             address(marginAccount),
             amount.convertTokenDecimals(
                 IERC20Metadata(vault.asset()).decimals(),
