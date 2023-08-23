@@ -36,6 +36,8 @@ contract SNXRiskManager is IProtocolRiskManager {
     uint8 public positionDecimals;
     IContractRegistry contractRegistry;
     mapping(address => bool) whitelistedAddresses;
+    bytes32 constant MARKET_MANAGER = keccak256("MarketManager");
+    bytes32 constant PRICE_ORACLE = keccak256("PriceOracle");
 
     constructor(
         address _marginToken,
@@ -65,7 +67,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address marginAccount
     ) internal view returns (int256 margin) {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         address[] memory allMarkets = marketManager.getMarketsForRiskManager(
             address(this)
@@ -83,7 +85,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address account
     ) public view returns (int256 pnl) {
         address[] memory allMarkets = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketsForRiskManager(address(this));
         uint256 len = allMarkets.length;
         for (uint256 i = 0; i < len; i++) {
@@ -150,7 +152,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         result.tokenOut = marginToken;
         if (result.marginDelta != 0) {
             result.marginDeltaDollarValue = IPriceOracle(
-                contractRegistry.getContractByName(keccak256("PriceOracle"))
+                contractRegistry.getContractByName(PRICE_ORACLE)
             ).convertToUSD(result.marginDelta, result.tokenOut);
         }
     }
@@ -159,7 +161,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address marginAccount
     ) external view override returns (int256 dollarMarginX18) {
         dollarMarginX18 = IPriceOracle(
-            contractRegistry.getContractByName(keccak256("PriceOracle"))
+            contractRegistry.getContractByName(PRICE_ORACLE)
         ).convertToUSD(_getMarginAcrossMarkets(marginAccount), marginToken);
     }
 
@@ -168,7 +170,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address marginAccount
     ) internal view returns (int256 totalAccruedFunding) {
         address[] memory allMarkets = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketsForRiskManager(address(this));
         uint256 len = allMarkets.length;
         for (uint256 i = 0; i < len; i++) {
@@ -185,7 +187,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         address marginAccount
     ) public view returns (uint256 openNotional) {
         address[] memory allMarkets = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketsForRiskManager(address(this));
         for (uint256 i = 0; i < allMarkets.length; i++) {
             IFuturesMarket market = IFuturesMarket(allMarkets[i]);
@@ -215,7 +217,7 @@ contract SNXRiskManager is IProtocolRiskManager {
     ) external view override returns (Position memory position) {
         // TODO - need to fetch futures market address from market config.
         address market = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketAddress(marketKey);
         (, , , uint128 lastPrice, int128 size) = IFuturesMarket(market)
             .positions(marginAccount);
@@ -240,7 +242,7 @@ contract SNXRiskManager is IProtocolRiskManager {
             revert("PRM: Invalid Tx Data in close call");
         }
         address marketAddress = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketAddress(marketKey);
 
         if (destinations[0] != marketAddress) {
@@ -261,7 +263,7 @@ contract SNXRiskManager is IProtocolRiskManager {
         );
         bytes4 funSig = bytes4(data);
         address configuredBaseToken = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketBaseToken(marketKey);
         if (funSig != CLOSE_POSITION && funSig != WITHDRAW_ALL_MARGIN) {
             revert("PRM: Invalid Tx Data in liquidate call");

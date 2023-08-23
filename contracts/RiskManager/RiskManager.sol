@@ -36,6 +36,9 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
     uint256 public initialMarginFactor = 25; //in percent (Move this to config contract)
     uint256 public maintanaceMarginFactor = 20; //in percent (Move this to config contract)
     uint256 public liquidationPenaltyPercentage = 2; // lets say it is 2 percent for now.
+    bytes32 constant COLLATERAL_MANAGER = keccak256("CollateralManager");
+    bytes32 constant MARKET_MANAGER = keccak256("MarketManager");
+    bytes32 constant MARGIN_MANAGER = keccak256("MarginManager");
 
     constructor(IContractRegistry _contractRegistry) {
         require(
@@ -48,8 +51,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
 
     modifier onlyMarginManager() {
         require(
-            contractRegistry.getContractByName(keccak256("MarginManager")) ==
-                msg.sender,
+            contractRegistry.getContractByName(MARGIN_MANAGER) == msg.sender,
             "RiskManager: Only margin manager"
         );
         _;
@@ -70,7 +72,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data
     ) external returns (VerifyCloseResult memory result) {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         address _protocolRiskManager = marketManager.getRiskManagerByMarketName(
             marketKey
@@ -91,7 +93,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address marginAccount
     ) external view override returns (int256 totalCurrentDollarMargin) {
         address marketManager = contractRegistry.getContractByName(
-            keccak256("MarketManager")
+            MARKET_MANAGER
         );
         address[] memory _riskManagers = IMarketManager(marketManager)
             .getUniqueRiskManagers();
@@ -161,7 +163,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32 _marketKey
     ) public view returns (Position memory marketPosition) {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(_marketKey)
@@ -272,7 +274,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address marginAccount
     ) public view returns (uint256 totalAbsOpenNotional) {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         address[] memory protocolRiskManagers = marketManager
             .getUniqueRiskManagers();
@@ -320,7 +322,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes[] memory data
     ) internal returns (VerifyTradeResult memory result) {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
@@ -337,7 +339,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address marginAccount
     ) internal view returns (int256 totalUnrealizedPnL) {
         address marketManager = contractRegistry.getContractByName(
-            keccak256("MarketManager")
+            MARKET_MANAGER
         );
         address[] memory _riskManagers = IMarketManager(marketManager)
             .getUniqueRiskManagers();
@@ -375,7 +377,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes calldata data
     ) internal {
         IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         );
         IProtocolRiskManager protocolRiskManager = IProtocolRiskManager(
             marketManager.getRiskManagerByMarketName(marketKey)
@@ -428,7 +430,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         address marginAccount
     ) internal view returns (uint256) {
         ICollateralManager collateralManager = ICollateralManager(
-            contractRegistry.getContractByName(keccak256("CollateralManager"))
+            contractRegistry.getContractByName(COLLATERAL_MANAGER)
         );
         (bool success, bytes memory returnData) = marginAccount.staticcall(
             abi.encodeWithSignature("getInterestAccruedX18()")

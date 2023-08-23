@@ -39,6 +39,7 @@ contract MarginAccount is IMarginAccount {
      3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
     */
     IContractRegistry contractRegistry;
+    bytes32 constant VAULT = keccak256("Vault");
 
     constructor(
         address _contractRegistry //  address _marketManager
@@ -209,9 +210,7 @@ contract MarginAccount is IMarginAccount {
 
     // amount in vault decimals
     function increaseDebt(uint256 amount) public onlyMarginManager {
-        IVault vault = IVault(
-            contractRegistry.getContractByName(keccak256("Vault"))
-        );
+        IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 amountX18 = amount.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
@@ -235,9 +234,7 @@ contract MarginAccount is IMarginAccount {
             totalBorrowed >= amount,
             "MarginAccount: Decrease debt amount exceeds total debt"
         );
-        IVault vault = IVault(
-            contractRegistry.getContractByName(keccak256("Vault"))
-        );
+        IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 amountX18 = amount.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
@@ -253,9 +250,7 @@ contract MarginAccount is IMarginAccount {
 
     function _getInterestAccruedX18() private view returns (uint256 interest) {
         if (totalBorrowed == 0) return 0;
-        IVault vault = IVault(
-            contractRegistry.getContractByName(keccak256("Vault"))
-        );
+        IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY();
         interest = (((totalBorrowed * cumulativeIndexNow) /
             cumulativeIndexAtOpen) - totalBorrowed);

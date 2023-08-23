@@ -290,8 +290,6 @@ contract BaseSetup is Test, IEvents {
         setupVault(vaultAsset);
         setupCollateralManager();
         vm.startPrank(deployerAdmin);
-        contracts.marginManager.setVault(address(contracts.vault));
-        contracts.marginManager.SetRiskManager(address(contracts.riskManager));
         vm.stopPrank();
         setupProtocolRiskManagers();
         vm.startPrank(deployerAdmin);

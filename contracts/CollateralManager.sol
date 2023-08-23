@@ -32,6 +32,10 @@ contract CollateralManager is ICollateralManager {
     mapping(address => uint8) private _decimals;
     mapping(address => bool) public isAllowedCollateral;
     mapping(address => mapping(address => int256)) internal _balance;
+    bytes32 constant MARGIN_MANAGER = keccak256("MarginManager");
+    bytes32 constant RISK_MANAGER = keccak256("RiskManager");
+    bytes32 constant PRICE_ORACLE = keccak256("PriceOracle");
+
     // mapping(address => mapping(address => uint256)) internal _balance;
     event CollateralAdded(
         address indexed marginAccount,
@@ -99,7 +103,7 @@ contract CollateralManager is ICollateralManager {
     function addCollateral(address _token, uint256 _amount) external {
         require(isAllowedCollateral[_token], "CM: Unsupported collateral"); //@note move it to margin manager
         address marginAccount = IMarginManager(
-            contractRegistry.getContractByName(keccak256("MarginManager"))
+            contractRegistry.getContractByName(MARGIN_MANAGER)
         ).getMarginAccount(msg.sender);
         IMarginAccount(marginAccount).addCollateral(
             msg.sender,
@@ -118,15 +122,14 @@ contract CollateralManager is ICollateralManager {
         // If yes transfer and manage accounting.
         require(isAllowedCollateral[_token], "CM: Unsupported collateral");
         IMarginAccount marginAccount = IMarginAccount(
-            IMarginManager(
-                contractRegistry.getContractByName(keccak256("MarginManager"))
-            ).getMarginAccount(msg.sender)
+            IMarginManager(contractRegistry.getContractByName(MARGIN_MANAGER))
+                .getMarginAccount(msg.sender)
         );
         uint256 freeCollateralValueX18 = _getFreeCollateralValue(
             address(marginAccount)
         );
         uint256 withdrawAmount = IPriceOracle(
-            contractRegistry.getContractByName(keccak256("PriceOracle"))
+            contractRegistry.getContractByName(PRICE_ORACLE)
         )
             .convertToUSD(
                 _amount.convertTokenDecimals(_decimals[_token], 18).toInt256(),
@@ -158,9 +161,8 @@ contract CollateralManager is ICollateralManager {
         // free collateral
         freeCollateralValueX18 =
             _totalCurrentCollateralValue(_marginAccount) -
-            IRiskManager(
-                contractRegistry.getContractByName(keccak256("RiskManager"))
-            ).getHealthyMarginRequirement(_marginAccount);
+            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER))
+                .getHealthyMarginRequirement(_marginAccount);
     }
 
     function totalCollateralValue(
@@ -179,7 +181,7 @@ contract CollateralManager is ICollateralManager {
                 .balanceOf(_marginAccount)
                 .convertTokenDecimals(_decimals[token], 18);
             uint256 tokenAmountValueX18 = IPriceOracle(
-                contractRegistry.getContractByName(keccak256("PriceOracle"))
+                contractRegistry.getContractByName(PRICE_ORACLE)
             )
                 .convertToUSD(
                     int256(tokenAmountX18.mulDiv(collateralWeight[token], 100)),
@@ -203,7 +205,7 @@ contract CollateralManager is ICollateralManager {
                 _marginAccount
             );
         uint256 totalCollateralInMarketsX18 = IRiskManager(
-            contractRegistry.getContractByName(keccak256("RiskManager"))
+            contractRegistry.getContractByName(RISK_MANAGER)
         ).getCurrentDollarMarginInMarkets(_marginAccount).abs();
         // This will fail if invalid margin account is passed.
         // (bool success, bytes memory returnData) = _marginAccount.staticcall(
