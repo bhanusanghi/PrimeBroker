@@ -80,8 +80,7 @@ contract PerpfiIntegration is BaseSetup {
             false,
             ""
         );
-
-        vm.assume(positionSize > 1 ether && positionSize < 1200 ether); // safely assuming position size in range when aave = ~90$
+        vm.assume(positionSize > 1 ether && positionSize < 500 ether); // safely assuming position size in range when aave = ~70$
         perpfiUtils.updateAndVerifyPositionSize(
             bob,
             perpAaveKey,

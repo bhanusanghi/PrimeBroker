@@ -76,7 +76,8 @@ interface IRiskManager {
 
     function isTraderBankrupt(
         address marginAccount,
-        uint256 vaultLiability
+        uint256 totalBorrowedX18,
+        uint256 penaltyX18
     ) external view returns (bool isBankrupt);
 
     function verifyBorrowLimit(
@@ -104,6 +105,10 @@ interface IRiskManager {
     ) external view returns (bool isHealthy);
 
     function getMaintenanceMarginRequirement(
+        address marginAccount
+    ) external view returns (uint256);
+
+    function getHealthyMarginRequirement(
         address marginAccount
     ) external view returns (uint256);
 
