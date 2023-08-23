@@ -8,7 +8,7 @@ interface IACLManager is IAccessControl {
 
     function LEND_BORROW_MANAGER_ROLE() external view returns (bytes32);
 
-    function COLLATERAL_MANAGER_ROLE() external view returns (bytes32);
+    function MARGIN_ACCOUNT_FUND_MANAGER_ROLE() external view returns (bytes32);
 
     function setRoleAdmin(bytes32 role, bytes32 adminRole) external;
 }

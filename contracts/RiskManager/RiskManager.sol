@@ -46,15 +46,6 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         // marketManager = _marketManager;
     }
 
-    modifier onlyMarginManager() {
-        require(
-            contractRegistry.getContractByName(keccak256("MarginManager")) ==
-                msg.sender,
-            "RiskManager: Only margin manager"
-        );
-        _;
-    }
-
     function verifyTrade(
         IMarginAccount marginAccount,
         bytes32 marketKey,
@@ -189,7 +180,7 @@ contract RiskManager is IRiskManager, ReentrancyGuard {
         bytes32[] memory marketKeys,
         address[] memory destinations,
         bytes[] calldata data
-    ) public onlyMarginManager returns (VerifyLiquidationResult memory result) {
+    ) public returns (VerifyLiquidationResult memory result) {
         // check if account is liquidatable
         // restrict to only marginManager.
         (

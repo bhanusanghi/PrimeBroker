@@ -21,18 +21,23 @@ contract MarketManager is IMarketManager {
     // There save all this stuff in a marketRegistry mapping with keccak256 keys just like in contractRegistry to make this work ez.
     mapping(bytes32 => address) public marketBaseToken;
     mapping(bytes32 => address) public marketMarginToken;
-    address owner;
+    address public contractRegistry;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "MM: Only Owner");
+    modifier onlyAdmin() {
+        require(
+            IACLManager(
+                IContractRegistry(contractRegistry).getContractByName(
+                    "AclManager"
+                )
+            ).hasRole(CHRONUX_ADMIN_ROLE, _msgSender()),
+            "MarketManager: not admin"
+        );
         _;
     }
 
-    /**
-     add maping for market to fee and maybe other hot params which can cached here 
-     */
-    constructor() {
-        owner = msg.sender;
+    constructor(address _contractRegistry) {
+        contractRegistry = _contractRegistry;
     }
 
     function updateOwner(address _owner) external onlyOwner {
