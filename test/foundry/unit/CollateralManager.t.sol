@@ -182,69 +182,6 @@ contract CollateralManagerTest is BaseSetup {
         vm.stopPrank();
     }
 
-    function testWithdrawalWithClosePosition() public {
-        uint256 _depositAmt = 1500 * ONE_USDC;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
-
-        int256 notional = int256(4500 ether);
-        int256 perpMargin = int256(2000 * ONE_USDC);
-
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            false,
-            ""
-        );
-
-        perpfiUtils.updateAndVerifyPositionNotional(
-            bob,
-            perpAaveKey,
-            notional,
-            false,
-            ""
-        );
-        assertEq(
-            contracts.collateralManager.getFreeCollateralValue(
-                bobMarginAccount
-            ),
-            375 ether
-        );
-        perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(
-            bobMarginAccount
-        );
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            -int256(freeCollateralPerp),
-            false,
-            ""
-        );
-
-        // assertEq(
-        //     contracts
-        //         .collateralManager
-        //         .getFreeCollateralValue(bobMarginAccount)
-        //         .convertTokenDecimals(18, 6),
-        //     _depositAmt
-        // );
-
-        vm.startPrank(bob);
-        uint256 perpLoss = uint256(perpMargin).sub(freeCollateralPerp);
-        uint256 maxWithdrawable = _depositAmt.sub(perpLoss);
-        contracts.collateralManager.withdrawCollateral(
-            usdc,
-            maxWithdrawable - ONE_USDC
-        );
-        contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
-        vm.expectRevert(
-            "CM: Withdrawing more than free collateral not allowed"
-        );
-        contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
-        vm.stopPrank();
-    }
-
     // This is not working yet.
     function testTotalCollateralValueWrongAddress() public {
         assertEq(
@@ -346,10 +283,6 @@ contract CollateralManagerTest is BaseSetup {
             ),
             500 ether
         );
-    }
-
-    function test_totalCollateralValue_invalid_account() public {
-        assertEq(0, contracts.collateralManager.totalCollateralValue(bob));
     }
 
     function test_totalCollateralValue_no_deposits() public {

@@ -134,8 +134,6 @@ closePosition_MarginManager_UnitTest.t.sol
                     │   └── emits event
                     │   └── updates position in MA
 
-
-
 syncPositions_MarginManager_UnitTest.t.sol
 
 

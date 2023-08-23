@@ -43,7 +43,7 @@ freeCollateral_CollateralManager_UnitTest.t.sol
 
 totalCollateralValue
 ├── invalid MA
-│   └── returns 0
+│   └── returns value of tokens they have in account.We dont check if MA exists for view function. All mutative functions have this check in them already (No need to test)
 ├── valid MA
     ├── without deposit
     │   └── returns 0
