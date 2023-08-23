@@ -27,22 +27,20 @@ contract MarginAccount is IMarginAccount {
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-    address public marginManager;
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
     IContractRegistry contractRegistry;
+    bytes32 constant VAULT = keccak256("Vault");
     bytes32 internal constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
         keccak256("CHRONUX.MARGIN_ACCOUNT_FUND_MANAGER");
     bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
     constructor(
-        address _marginManager, //  address _marketManager
         address _contractRegistry //  address _marketManager
     ) {
-        marginManager = _marginManager;
         contractRegistry = IContractRegistry(_contractRegistry);
         cumulativeIndexAtOpen = 1;
     }
@@ -202,9 +200,7 @@ contract MarginAccount is IMarginAccount {
             totalBorrowed >= amount,
             "MarginAccount: Decrease debt amount exceeds total debt"
         );
-        IVault vault = IVault(
-            contractRegistry.getContractByName(keccak256("Vault"))
-        );
+        IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 amountX18 = amount.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
@@ -228,9 +224,7 @@ contract MarginAccount is IMarginAccount {
     // -------------- Internal Functions ------------------ //
     function _getInterestAccruedX18() private view returns (uint256 interest) {
         if (totalBorrowed == 0) return 0;
-        IVault vault = IVault(
-            contractRegistry.getContractByName(keccak256("Vault"))
-        );
+        IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY();
         interest = (((totalBorrowed * cumulativeIndexNow) /
             cumulativeIndexAtOpen) - totalBorrowed);

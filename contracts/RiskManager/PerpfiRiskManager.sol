@@ -54,8 +54,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     IMarketRegistry public marketRegistry;
     IClearingHouse public clearingHouse;
     IVault public perpVaultUsdc;
-    IPriceOracle public priceOracle;
     mapping(address => bool) whitelistedAddresses;
+    bytes32 constant MARKET_MANAGER = keccak256("MarketManager");
+    bytes32 constant PRICE_ORACLE = keccak256("PriceOracle");
 
     constructor(
         address _marginToken,
@@ -64,7 +65,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         address _marketRegistry,
         address _clearingHouse,
         address _perpVaultUsdc,
-        address _priceOracle,
         // uint8 _vaultAssetDecimals,
         uint8 _positionDecimals
     ) {
@@ -76,7 +76,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         positionDecimals = _positionDecimals;
         marginTokenDecimals = IERC20Metadata(_marginToken).decimals();
         marginToken = _marginToken;
-        priceOracle = IPriceOracle(_priceOracle);
     }
 
     //@note: use _init :pointup
@@ -86,10 +85,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
     ) external {
         require(contractAddress != address(0));
         whitelistedAddresses[contractAddress] = isAllowed;
-    }
-
-    function setPriceOracle(address _priceOracle) external override {
-        priceOracle = IPriceOracle(_priceOracle);
     }
 
     // function updateExchangeAddress(address _perpExchange) external {
@@ -138,10 +133,10 @@ contract PerpfiRiskManager is IProtocolRiskManager {
            32 bytes tracking code, or we can append hehe
         */
         address configuredBaseToken = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketBaseToken(marketKey);
         address market = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketAddress(marketKey);
         uint256 len = data.length; // limit to 2
         require(destinations.length == len, "should match");
@@ -221,10 +216,9 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         }
         result.tokenOut = marginToken;
         if (result.marginDelta != 0) {
-            result.marginDeltaDollarValue = priceOracle.convertToUSD(
-                result.marginDelta,
-                result.tokenOut
-            );
+            result.marginDeltaDollarValue = IPriceOracle(
+                contractRegistry.getContractByName(PRICE_ORACLE)
+            ).convertToUSD(result.marginDelta, result.tokenOut);
         }
     }
 
@@ -262,7 +256,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             )
         );
         marginInMarketsX18 = IPriceOracle(
-            contractRegistry.getContractByName(keccak256("PriceOracle"))
+            contractRegistry.getContractByName(PRICE_ORACLE)
         ).convertToUSD(balX18, marginToken);
         // is in usdc so no need to convert decimals.
     }
@@ -298,7 +292,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         bytes32 marketKey
     ) internal view returns (Position memory position) {
         address baseToken = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketBaseToken(marketKey);
         int256 marketSize = accountBalance.getTakerPositionSize(
             marginAccount,
@@ -332,7 +326,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
             revert("PRM: Unsupported Function call");
         }
         address configuredBaseToken = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketBaseToken(marketKey);
 
         (address baseToken, , , , ) = abi.decode(
@@ -357,7 +351,7 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         );
         bytes4 funSig = bytes4(data);
         address configuredBaseToken = IMarketManager(
-            contractRegistry.getContractByName(keccak256("MarketManager"))
+            contractRegistry.getContractByName(MARKET_MANAGER)
         ).getMarketBaseToken(marketKey);
 
         if (funSig == CLOSE_POSITION) {

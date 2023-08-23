@@ -21,8 +21,6 @@ interface IMarginManager {
         int256 marginValueX18
     );
 
-    // marginAccount, protocol, assetOut, size, openNotional
-
     event PositionUpdated(
         address indexed marginAccount,
         bytes32 indexed marketKey,
@@ -46,10 +44,6 @@ interface IMarginManager {
     );
 
     function getMarginAccount(address trader) external view returns (address);
-
-    function SetRiskManager(address _riskmgr) external;
-
-    function setVault(address _vault) external;
 
     function openMarginAccount() external returns (address);
 

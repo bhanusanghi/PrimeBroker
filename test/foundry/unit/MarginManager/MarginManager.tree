@@ -135,7 +135,6 @@ closePosition_MarginManager_UnitTest.t.sol
         │   └── It should revert
     ├── closing non existent position because of liquidation on TPP
         │   └── It should revert
-        │   └── updates the position in MA (need to resolve bug here)
     ├── closing existing position
         ├── Invalid close call
         ├── Valid close call
