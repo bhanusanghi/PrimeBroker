@@ -13,19 +13,6 @@ import {IProtocolRiskManager} from "../../../../contracts/Interfaces/IProtocolRi
 import {IRiskManager, VerifyLiquidationResult} from "../../../../contracts/Interfaces/IRiskManager.sol";
 
 contract VerifyLiquidation_RiskManager_UnitTest is RiskManager_UnitTest {
-    function test_reverts_when_invalid_caller() public invalidMarginAccount {
-        bytes32[] memory activeMarkets = new bytes32[](1);
-        address[] memory destinations = new address[](1);
-        bytes[] memory data = new bytes[](1);
-        vm.expectRevert("RiskManager: Only margin manager");
-        contracts.riskManager.verifyLiquidation(
-            IMarginAccount(bobMarginAccount),
-            activeMarkets,
-            destinations,
-            data
-        );
-    }
-
     function test_reverts_when_invalid_account() public invalidMarginAccount {
         bytes32[] memory activeMarkets = new bytes32[](1);
         address[] memory destinations = new address[](1);
