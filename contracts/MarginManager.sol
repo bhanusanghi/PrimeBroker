@@ -1,7 +1,6 @@
 pragma solidity ^0.8.10;
 // This is useless force push comment, please remove after use
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
@@ -18,10 +17,9 @@ import {IMarginManager} from "./Interfaces/IMarginManager.sol";
 import {ICollateralManager} from "./Interfaces/ICollateralManager.sol";
 import {IMarginAccountFactory} from "./Interfaces/IMarginAccountFactory.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "hardhat/console.sol";
+import {IACLManager} from "./Interfaces/IACLManager.sol";
 
 contract MarginManager is IMarginManager, ReentrancyGuard {
-    using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using Math for uint256;
     using SafeCast for uint256;
@@ -31,6 +29,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     using SignedMath for int256;
 
     IContractRegistry public contractRegistry;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     mapping(address => address) public marginAccounts;
     address[] private traders;
     address owner;
@@ -39,19 +38,23 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     bytes32 constant RISK_MANAGER = keccak256("RiskManager");
     bytes32 constant MARGIN_ACCOUNT_FACTORY = keccak256("MarginAccountFactory");
     bytes32 constant VAULT = keccak256("Vault");
+    bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
     modifier nonZeroAddress(address _address) {
         require(_address != address(0));
         _;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "MM: Unauthorized, only owner allowed");
+    modifier onlyAdmin() {
+        require(
+            IACLManager(contractRegistry.getContractByName(ACL_MANAGER))
+                .hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
+            "MM: Chronux Admin only"
+        );
         _;
     }
 
     constructor(IContractRegistry _contractRegistry) {
-        owner = msg.sender;
         contractRegistry = _contractRegistry;
     }
 
@@ -497,12 +500,15 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     // ----------------- Team functions ---------------------
 
     // TODO: remove while deploying on mainnet
-    function drainAllMarginAccounts(address _token) external onlyOwner {
+    function drainAllMarginAccounts(
+        address _token,
+        address _receiver
+    ) external onlyAdmin {
         for (uint256 i = 0; i < traders.length; i += 1) {
             if (IERC20(_token).balanceOf(marginAccounts[traders[i]]) > 0) {
                 IMarginAccount(marginAccounts[traders[i]]).transferTokens(
                     _token,
-                    owner,
+                    _receiver,
                     IERC20(_token).balanceOf(marginAccounts[traders[i]])
                 );
             }

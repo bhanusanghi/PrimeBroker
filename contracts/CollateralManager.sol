@@ -14,7 +14,7 @@ import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/Signed
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 import {SettlementTokenMath} from "./Libraries/SettlementTokenMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import "hardhat/console.sol";
+import {IACLManager} from "./Interfaces/IACLManager.sol";
 
 contract CollateralManager is ICollateralManager {
     using SafeMath for uint256;
@@ -25,8 +25,8 @@ contract CollateralManager is ICollateralManager {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
-    address owner;
     IContractRegistry public contractRegistry;
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     address[] public allowedCollateral; // allowed tokens
     mapping(address => uint256) public collateralWeight;
     mapping(address => uint8) private _decimals;
@@ -35,6 +35,7 @@ contract CollateralManager is ICollateralManager {
     bytes32 constant MARGIN_MANAGER = keccak256("MarginManager");
     bytes32 constant RISK_MANAGER = keccak256("RiskManager");
     bytes32 constant PRICE_ORACLE = keccak256("PriceOracle");
+    bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
     // mapping(address => mapping(address => uint256)) internal _balance;
     event CollateralAdded(
@@ -48,13 +49,16 @@ contract CollateralManager is ICollateralManager {
         uint256 indexed amount
     );
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "CM: Only Owner");
+    modifier onlyAdmin() {
+        require(
+            IACLManager(contractRegistry.getContractByName(ACL_MANAGER))
+                .hasRole(CHRONUX_ADMIN_ROLE, msg.sender),
+            "Vault: Chronux Admin only"
+        );
         _;
     }
 
     constructor(address _contractRegistry) {
-        owner = msg.sender;
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 
@@ -65,7 +69,7 @@ contract CollateralManager is ICollateralManager {
     function addAllowedCollaterals(
         address[] calldata _allowed,
         uint256[] calldata _collateralWeights
-    ) public onlyOwner {
+    ) public onlyAdmin {
         require(
             _allowed.length == _collateralWeights.length,
             "CM: No array parity"
@@ -88,7 +92,7 @@ contract CollateralManager is ICollateralManager {
     function addAllowedCollateral(
         address _allowed,
         uint256 _collateralWeight
-    ) public onlyOwner {
+    ) public onlyAdmin {
         require(_allowed != address(0), "CM: Zero Address");
         require(
             isAllowedCollateral[_allowed] == false,
@@ -149,7 +153,7 @@ contract CollateralManager is ICollateralManager {
     function updateCollateralWeight(
         address _token,
         uint256 _collateralWeight
-    ) external onlyOwner {
+    ) external onlyAdmin {
         require(isAllowedCollateral[_token], "CM: Collateral not found");
         collateralWeight[_token] = _collateralWeight;
     }

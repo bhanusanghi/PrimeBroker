@@ -14,6 +14,7 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount, Position} from "../Interfaces/IMarginAccount.sol";
 import {IStableSwap} from "../Interfaces/Curve/IStableSwap.sol";
 import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
+import {IACLManager} from "../Interfaces/IACLManager.sol";
 import {IVault} from "../Interfaces/IVault.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -31,17 +32,11 @@ contract MarginAccount is IMarginAccount {
     uint256 public cumulativeIndexAtOpen;
     mapping(bytes32 => Position) public positions;
     mapping(bytes32 => bool) public existingPosition;
-
-    /* This variable tracks the PnL realized at different protocols but not yet settled on our protocol.
-     serves multiple purposes
-     1. Affects buyingPower correctly
-     2. Correctly calculates the margin transfer health. If we update marginInProtocol directly, and even though the trader is in profit he would get affected completely adversly
-     3. Tracks this value without having to settle everytime, thus can batch actual transfers later.
-    */
-    address owner;
-
     IContractRegistry contractRegistry;
     bytes32 constant VAULT = keccak256("Vault");
+    bytes32 internal constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
+        keccak256("CHRONUX.MARGIN_ACCOUNT_FUND_MANAGER");
+    bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
     constructor(
         address _contractRegistry //  address _marketManager
@@ -50,35 +45,11 @@ contract MarginAccount is IMarginAccount {
         cumulativeIndexAtOpen = 1;
     }
 
-    modifier onlyMarginManager() {
+    modifier onlyMarginAccountFundManager() {
         require(
-            contractRegistry.getContractByName(keccak256("MarginManager")) ==
-                msg.sender,
-            "MarginAccount: Only margin manager"
-        );
-        _;
-    }
-    modifier onlyCollateralManager() {
-        require(
-            contractRegistry.getContractByName(
-                keccak256("CollateralManager")
-            ) == msg.sender,
-            "MarginAccount: Only collateral manager"
-        );
-        _;
-    }
-
-    modifier onlyMarginManagerOrCollateralManager() {
-        require(
-            contractRegistry.getContractByName(
-                keccak256("CollateralManager")
-            ) ==
-                msg.sender ||
-                contractRegistry.getContractByName(
-                    keccak256("MarginManager")
-                ) ==
-                msg.sender,
-            "MarginAccount: Only collateral manager"
+            IACLManager(contractRegistry.getContractByName(ACL_MANAGER))
+                .hasRole(MARGIN_ACCOUNT_FUND_MANAGER_ROLE, msg.sender),
+            "MarginAccount: Only margin account fund manager"
         );
         _;
     }
@@ -109,7 +80,7 @@ contract MarginAccount is IMarginAccount {
         address from,
         address token,
         uint256 amount
-    ) external override onlyCollateralManager {
+    ) external override onlyMarginAccountFundManager {
         IERC20(token).safeTransferFrom(from, address(this), amount);
     }
 
@@ -117,14 +88,14 @@ contract MarginAccount is IMarginAccount {
         address token,
         address to,
         uint256 amount
-    ) external onlyMarginManagerOrCollateralManager {
+    ) external onlyMarginAccountFundManager {
         IERC20(token).safeTransfer(to, amount);
     }
 
     function executeTx(
         address destination,
         bytes memory data
-    ) external override onlyMarginManager returns (bytes memory) {
+    ) external override onlyMarginAccountFundManager returns (bytes memory) {
         bytes memory returnData = destination.functionCall(data);
         return returnData;
     }
@@ -132,7 +103,12 @@ contract MarginAccount is IMarginAccount {
     function execMultiTx(
         address[] calldata destinations,
         bytes[] memory dataArray
-    ) external override onlyMarginManager returns (bytes memory returnData) {
+    )
+        external
+        override
+        onlyMarginAccountFundManager
+        returns (bytes memory returnData)
+    {
         uint8 len = destinations.length.toUint8();
         for (uint8 i = 0; i < len; i++) {
             if (destinations[i] == address(0)) continue;
@@ -144,14 +120,14 @@ contract MarginAccount is IMarginAccount {
     function updatePosition(
         bytes32 marketKey,
         Position memory position
-    ) external override onlyMarginManager {
+    ) external override onlyMarginAccountFundManager {
         if (!existingPosition[marketKey]) existingPosition[marketKey] = true;
         positions[marketKey] = position;
     }
 
     function removePosition(
         bytes32 marketKey
-    ) public override onlyMarginManager {
+    ) public override onlyMarginAccountFundManager {
         // only riskmanagger
         existingPosition[marketKey] = false;
         delete positions[marketKey];
@@ -161,7 +137,8 @@ contract MarginAccount is IMarginAccount {
         address token,
         address spender,
         uint256 amount
-    ) public override onlyMarginManager {
+    ) public override onlyMarginAccountFundManager {
+        // only marginManager
         // TODO - add acl
         IERC20(token).approve(spender, type(uint256).max);
     }
@@ -171,7 +148,7 @@ contract MarginAccount is IMarginAccount {
         address tokenOut,
         uint256 amountIn,
         uint256 minAmountOut
-    ) public onlyMarginManager returns (uint256 amountOut) {
+    ) public onlyMarginAccountFundManager returns (uint256 amountOut) {
         IStableSwap pool = IStableSwap(
             contractRegistry.getCurvePool(tokenIn, tokenOut)
         );
@@ -196,8 +173,10 @@ contract MarginAccount is IMarginAccount {
     }
 
     // amount in vault decimals
-    function increaseDebt(uint256 amount) public onlyMarginManager {
-        IVault vault = IVault(contractRegistry.getContractByName(VAULT));
+    function increaseDebt(uint256 amount) public onlyMarginAccountFundManager {
+        IVault vault = IVault(
+            contractRegistry.getContractByName(keccak256("Vault"))
+        );
         uint256 amountX18 = amount.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
@@ -216,7 +195,7 @@ contract MarginAccount is IMarginAccount {
     }
 
     // needs to be sent in vault asset decimals
-    function decreaseDebt(uint256 amount) public onlyMarginManager {
+    function decreaseDebt(uint256 amount) public onlyMarginAccountFundManager {
         require(
             totalBorrowed >= amount,
             "MarginAccount: Decrease debt amount exceeds total debt"
