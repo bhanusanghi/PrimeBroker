@@ -429,14 +429,6 @@ contract LiquidationSnx is BaseSetup {
             bobMarginAccount,
             perpAaveKey
         );
-        assertEq(
-            IMarginAccount(bobMarginAccount).existingPosition(snxUniKey),
-            false
-        );
-        assertEq(
-            IMarginAccount(bobMarginAccount).existingPosition(perpAaveKey),
-            false
-        );
         assertEq(snxPosition.size, 0, "position after liquidation is not zero");
         assertEq(
             perpPosition.size,

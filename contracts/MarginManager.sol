@@ -194,10 +194,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        require(
-            marginAccount.isActivePosition(marketKey),
-            "MM: Trader does not have active position in this market"
-        );
         // @note fee is assumed to be in usdc value
         // Add check for an existing position.
         VerifyCloseResult memory result = riskManager.verifyClosePosition(
@@ -209,7 +205,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         marginAccount.execMultiTx(destinations, data);
         // TO DO - repay interest and stuff.
         _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
-        marginAccount.removePosition(marketKey);
     }
 
     function liquidate(
@@ -232,7 +227,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
         _verifyPostLiquidation(marginAccount, result);
-        _executePostLiquidationUpdates(marginAccount, marketKeys);
         uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
         uint256 interestAccruedX18 = marginAccount.getInterestAccruedX18();
         bool hasBadDebt = riskManager.isTraderBankrupt(
@@ -301,7 +295,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 verificationResult.position.size,
                 verificationResult.position.openNotional
             );
-            marginAccount.updatePosition(marketKey);
         }
         if (verificationResult.marginDelta.abs() > 0) {
             emit MarginTransferred(
@@ -402,15 +395,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
         } else {
             _repayVault(marginAccount, totalBorrowed);
-        }
-    }
-
-    function _executePostLiquidationUpdates(
-        IMarginAccount marginAccount,
-        bytes32[] memory marketKeys
-    ) private {
-        for (uint256 i = 0; i < marketKeys.length; i++) {
-            marginAccount.removePosition(marketKeys[i]);
         }
     }
 
