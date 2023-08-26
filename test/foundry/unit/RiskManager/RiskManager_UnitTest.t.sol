@@ -22,7 +22,7 @@ contract RiskManager_UnitTest is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
@@ -31,69 +31,91 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier invalidContractAddresses() {
         _;
     }
+
     modifier invalidMarginAccount() {
         _;
     }
+
     modifier validMarginAccount() {
         _;
     }
+
     modifier invalidMarketKey() {
         _;
     }
+
     modifier validMarketKey() {
         _;
     }
+
     modifier invalidDestination() {
         _;
     }
+
     modifier zeroCollateral() {
         _;
     }
+
     modifier nonZeroCollateral() {
         _;
     }
+
     modifier noUnrealisePnL() {
         _;
     }
+
     modifier hasUnrealisedPnL() {
         _;
     }
+
     modifier hasInterestAccrued() {
         _;
     }
+
     modifier zeroInterestAccrued() {
         _;
     }
+
     modifier hasCollateralOnTPPs() {
         _;
     }
+
     modifier multipleTPPs() {
         _;
     }
+
     modifier multipleMarkets() {
         _;
     }
+
     modifier noCollateralOnTPPs() {
         _;
     }
+
     modifier hasPositionOnTPPs() {
         _;
     }
+
     modifier noOpenPosition() {
         _;
     }
+
     modifier liquidatedOnTPP() {
         _;
     }
+
     modifier negativePnL() {
         _;
     }
+
     modifier positivePnL() {
         _;
     }
+
     modifier freshBorrow() {
         _;
     }
+
     modifier previouslyBorrowed() {
         _;
     }
@@ -104,9 +126,11 @@ contract RiskManager_UnitTest is BaseSetup {
     modifier depositCollateral() {
         _;
     }
+
     modifier reducedNotional() {
         _;
     }
+
     modifier finallyHealthy() {
         _;
     }

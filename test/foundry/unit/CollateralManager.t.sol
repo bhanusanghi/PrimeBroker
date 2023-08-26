@@ -1,5 +1,6 @@
 pragma solidity ^0.8.10;
 pragma abicoder v2;
+
 import {BaseSetup} from "../BaseSetup.sol";
 import {Utils} from "../utils/Utils.sol";
 import "forge-std/Test.sol";
@@ -29,6 +30,7 @@ contract CollateralManagerTest is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     SnxUtils snxUtils;
     ChronuxUtils chronuxUtils;
@@ -40,7 +42,7 @@ contract CollateralManagerTest is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
         snxUtils = new SnxUtils(contracts);
@@ -165,9 +167,7 @@ contract CollateralManagerTest is BaseSetup {
             false,
             ""
         );
-        // healthyMarginRequirement = 4500 * 0.25 = 1125
-        // freeCollateral = 1500 - 1125 = 375
-        // 375
+
         assertEq(
             contracts.collateralManager.getFreeCollateralValue(
                 bobMarginAccount
@@ -178,7 +178,7 @@ contract CollateralManagerTest is BaseSetup {
         vm.expectRevert(
             "CM: Withdrawing more than free collateral not allowed"
         );
-        contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC);
+        contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC); //
         vm.stopPrank();
     }
 

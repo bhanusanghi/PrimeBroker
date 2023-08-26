@@ -24,6 +24,7 @@ contract LiquidationPerpfi is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
@@ -34,7 +35,7 @@ contract LiquidationPerpfi is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
     }
@@ -67,8 +68,10 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(perpAaveKey);
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
             bobMarginAccount,
@@ -116,8 +119,11 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(perpAaveKey);
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
+
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
             bobMarginAccount,
@@ -164,8 +170,10 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(perpAaveKey);
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,
             bobMarginAccount,
@@ -190,7 +198,8 @@ contract LiquidationPerpfi is BaseSetup {
             params.destinations,
             params.data
         );
-        openPosition = IMarginAccount(bobMarginAccount).getPosition(
+        openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
             perpAaveKey
         );
         assertEq(
@@ -234,8 +243,10 @@ contract LiquidationPerpfi is BaseSetup {
             false,
             ""
         );
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(perpAaveKey);
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
         // utils.mineBlocks(365 days, 365 days);
         utils.simulateUnrealisedPnLPerpfi(
             perpAccountBalance,

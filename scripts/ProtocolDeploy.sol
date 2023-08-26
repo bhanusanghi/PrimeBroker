@@ -37,8 +37,6 @@ contract ProtocolDeploy is Script, BaseDeployer {
 
         // riskManager.setCollateralManager(address(collateralManager));
         // riskManager.setVault(address(vault));
-        marginManager.setVault(address(vault));
-        marginManager.SetRiskManager(address(riskManager));
         setupProtocolRiskManagers();
         collateralManager.whitelistCollateral(usdc, 100);
         collateralManager.whitelistCollateral(susd, 100);

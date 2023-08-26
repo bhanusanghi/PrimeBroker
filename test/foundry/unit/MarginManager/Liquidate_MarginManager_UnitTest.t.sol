@@ -1,4 +1,5 @@
 pragma solidity ^0.8.10;
+
 import "forge-std/console2.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
@@ -100,7 +101,13 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
         );
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, 1 ether, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            1 ether,
+            false,
+            ""
+        );
         vm.mockCall(
             address(contracts.riskManager),
             abi.encodeWithSelector(IRiskManager.verifyLiquidation.selector),
@@ -133,10 +140,18 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         int256 positionSize = (notional * 1 ether) / int256(assetPrice);
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
         utils.mineBlocks(100, 1 days); // accrues funding rate and interest
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,

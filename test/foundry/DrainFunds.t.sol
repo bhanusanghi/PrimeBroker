@@ -24,6 +24,7 @@ contract DrainFunds is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
@@ -34,7 +35,7 @@ contract DrainFunds is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         perpfiUtils = new PerpfiUtils(contracts);
         chronuxUtils = new ChronuxUtils(contracts);
     }
@@ -43,17 +44,11 @@ contract DrainFunds is BaseSetup {
         vm.startPrank(bob);
         uint256 amount = 200 ether;
         IERC20(susd).transfer(bobMarginAccount, amount);
-        assertEq(
-            IERC20(susd).balanceOf(bobMarginAccount),
-            amount
-        );
+        assertEq(IERC20(susd).balanceOf(bobMarginAccount), amount);
         vm.stopPrank();
         vm.startPrank(alice);
         IERC20(susd).transfer(aliceMarginAccount, amount);
-        assertEq(
-            IERC20(susd).balanceOf(aliceMarginAccount),
-            amount
-        );
+        assertEq(IERC20(susd).balanceOf(aliceMarginAccount), amount);
         vm.stopPrank();
         vm.startPrank(deployerAdmin);
         uint256 adminBalance = IERC20(susd).balanceOf(deployerAdmin);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
+
 import {Test} from "forge-std/Test.sol";
 import {ICircuitBreaker} from "../../../contracts/Interfaces/SNX/ICircuitBreaker.sol";
 import {SettlementTokenMath} from "../../../contracts/Libraries/SettlementTokenMath.sol";
@@ -27,6 +28,7 @@ contract SnxUtils is Test, IEvents {
     using SettlementTokenMath for uint256;
     using SettlementTokenMath for int256;
     using SignedMath for int256;
+
     Contracts contracts;
     address susd = 0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9;
     address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
@@ -52,14 +54,11 @@ contract SnxUtils is Test, IEvents {
         bytes32 marketKey,
         int256 expectedPositionSize
     ) public {
-        Position memory positionChronux = MarginAccount(marginAccount)
-            .getPosition(marketKey);
         (int256 snxPositionSize, int256 snxPositionNotional) = fetchPosition(
             marginAccount,
             marketKey
         );
-        assertEq(positionChronux.size, expectedPositionSize);
-        assertEq(positionChronux.size, snxPositionSize);
+        assertEq(snxPositionSize, expectedPositionSize);
     }
 
     function borrowAssets(uint256 amount) public {}

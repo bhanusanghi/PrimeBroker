@@ -21,6 +21,7 @@ contract ClosePositionSnx is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     SnxUtils snxUtils;
     ChronuxUtils chronuxUtils;
 
@@ -31,7 +32,7 @@ contract ClosePositionSnx is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupSNXFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
     }
@@ -48,7 +49,13 @@ contract ClosePositionSnx is BaseSetup {
         );
         address market = contracts.marketManager.getMarketAddress(snxUniKey);
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
         snxUtils.closeAndVerifyPosition(bob, snxUniKey);
     }
 }

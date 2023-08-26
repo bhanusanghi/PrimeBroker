@@ -16,13 +16,10 @@ contract MarginManager_UnitTest is BaseSetup {
     PerpfiUtils perpfiUtils;
 
     function setUp() public virtual {
-        uint256 forkId = vm.createFork(
-            vm.envString("ARCHIVE_NODE_URL_L2"),
-            69164900
-        );
+        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 69164900);
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
@@ -31,48 +28,63 @@ contract MarginManager_UnitTest is BaseSetup {
     modifier invalidContractAddresses() {
         _;
     }
+
     modifier invalidMarginAccount() {
         _;
     }
+
     modifier validMarginAccount() {
         _;
     }
+
     modifier invalidMarginAccountFactory() {
         _;
     }
+
     modifier invalidMarketKey() {
         _;
     }
+
     modifier validMarketKey() {
         _;
     }
+
     modifier isLiquidatable() {
         _;
     }
+
     modifier isExistingPosition() {
         _;
     }
+
     modifier invalidTrade() {
         _;
     }
+
     modifier noCollateralOnTPPs() {
         _;
     }
+
     modifier hasPositionOnTPPs() {
         _;
     }
+
     modifier noOpenPosition() {
         _;
     }
+
     modifier liquidatedOnTPP() {
         _;
     }
+
     modifier negativePnL() {
         _;
     }
+
     modifier positivePnL() {
         _;
     }
+
     modifier freshBorrow() {
         _;
     }

@@ -10,7 +10,6 @@ import {IACLManager} from "../Interfaces/IACLManager.sol";
 // Reuse clones
 //
 contract MarginAccountFactory is IMarginAccountFactory {
-    address marginManager;
     IContractRegistry contractRegistry;
     bytes32 internal constant CHRONUX_MARGIN_ACCOUNT_MANAGER_ROLE =
         keccak256("CHRONUX.CHRONUX_MARGIN_ACCOUNT_MANAGER");
@@ -30,7 +29,6 @@ contract MarginAccountFactory is IMarginAccountFactory {
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 
-    // creates new instance of MarginAccount
     function createMarginAccount()
         public
         onlyMarginAccountManager
@@ -44,7 +42,6 @@ contract MarginAccountFactory is IMarginAccountFactory {
             return marginAccount;
         }
         MarginAccount newMarginAccount = new MarginAccount(
-            marginManager,
             address(contractRegistry)
         );
         return address(newMarginAccount);
