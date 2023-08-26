@@ -3,5 +3,3 @@ forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 chainlink/=lib/chainlink/
 v3-periphery/=lib/v3-periphery
-@uniswap/=node_modules/@uniswap/
-pyth-sdk-solidity/=lib/pyth-sdk-solidity/
