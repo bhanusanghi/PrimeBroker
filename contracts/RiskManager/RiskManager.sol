@@ -19,7 +19,6 @@ import {IMarketManager} from "../Interfaces/IMarketManager.sol";
 import {IMarginAccount} from "../Interfaces/IMarginAccount.sol";
 import {ICollateralManager} from "../Interfaces/ICollateralManager.sol";
 import {SettlementTokenMath} from "../Libraries/SettlementTokenMath.sol";
-import "hardhat/console.sol";
 
 contract RiskManager is IRiskManager, ReentrancyGuard {
     using SafeERC20 for IERC20;

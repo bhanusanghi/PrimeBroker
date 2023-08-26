@@ -3,8 +3,6 @@ pragma abicoder v2;
 
 import {BaseSetup} from "../BaseSetup.sol";
 import {Utils} from "../utils/Utils.sol";
-import "forge-std/Test.sol";
-import "forge-std/console2.sol";
 import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
 import {IMarginAccount} from "../../../contracts/Interfaces/IMarginAccount.sol";
 import {IRiskManager} from "../../../contracts/Interfaces/IRiskManager.sol";
@@ -317,7 +315,6 @@ contract CollateralManagerTest is BaseSetup {
             false,
             ""
         );
-        console.log("idhar hu");
         snxUtils.updateAndVerifyMargin(
             bob,
             snxEthKey,
@@ -325,7 +322,6 @@ contract CollateralManagerTest is BaseSetup {
             false,
             ""
         );
-        console.log("idhar hu 2");
         assertEq(
             (deposit1 * 10 ** 12) + deposit2,
             contracts.collateralManager.totalCollateralValue(bobMarginAccount),
