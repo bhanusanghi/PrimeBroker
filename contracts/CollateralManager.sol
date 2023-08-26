@@ -81,14 +81,15 @@ contract CollateralManager is ICollateralManager {
     function depositCollateral(address _token, uint256 _amount) external {
         require(isAllowedCollateral[_token], "CM: Unsupported collateral"); //@note move it to margin manager
         IMarginAccount marginAccount = IMarginAccount(
-            marginManager.marginAccounts(msg.sender)
+            IMarginManager(contractRegistry.getContractByName(MARGIN_MANAGER))
+                .getMarginAccount(msg.sender)
         );
-        IMarginAccount(marginAccount).addCollateral(
+        IMarginAccount(marginAccount).depositCollateral(
             msg.sender,
             _token,
             _amount
         );
-        emit CollateralAdded(address(marginAccount), _token, _amount);
+        emit CollateralDeposited(address(marginAccount), _token, _amount);
     }
 
     // Should be accessed by Margin Manager only??
@@ -128,16 +129,6 @@ contract CollateralManager is ICollateralManager {
         collateralWeight[_token] = _collateralWeight;
     }
 
-    // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
-    function _getFreeCollateralValue(
-        address _marginAccount
-    ) internal view returns (uint256 freeCollateralValueX18) {
-        // free collateral
-        freeCollateralValueX18 =
-            _totalCurrentCollateralValue(_marginAccount) -
-            riskManager.getHealthyMarginRequirement(_marginAccount);
-    }
-
     function totalCollateralValue(
         address _marginAccount
     ) external view returns (uint256 totalAmount) {
@@ -173,7 +164,8 @@ contract CollateralManager is ICollateralManager {
             _marginAccount
         );
         uint256 freeCollateral = _totalCurrentCollateralValue(_marginAccount) -
-            riskManager.getHealthyMarginRequirement(_marginAccount);
+            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER))
+                .getHealthyMarginRequirement(_marginAccount);
         if (collateralValueInMA <= freeCollateral) return collateralValueInMA;
         else return freeCollateral;
     }
@@ -204,9 +196,9 @@ contract CollateralManager is ICollateralManager {
         uint256 collateralHeldInMarginAccountX18 = _getCollateralValueInMarginAccount(
                 _marginAccount
             );
-        uint256 totalCollateralInMarketsX18 = riskManager
-            .getCurrentDollarMarginInMarkets(_marginAccount)
-            .abs();
+        uint256 totalCollateralInMarketsX18 = IRiskManager(
+            contractRegistry.getContractByName(RISK_MANAGER)
+        ).getCurrentDollarMarginInMarkets(_marginAccount).abs();
         // This will fail if invalid margin account is passed.
         // (bool success, bytes memory returnData) = _marginAccount.staticcall(
         //     abi.encodeWithSelector(IMarginAccount.totalBorrowed.selector)
