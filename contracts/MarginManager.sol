@@ -1,5 +1,6 @@
 pragma solidity ^0.8.10;
 // This is useless force push comment, please remove after use
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -32,7 +33,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
     bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
     mapping(address => address) public marginAccounts;
     address[] private traders;
-    address owner;
     bytes32 constant COLLATERAL_MANAGER = keccak256("CollateralManager");
     bytes32 constant MARKET_MANAGER = keccak256("MarketManager");
     bytes32 constant RISK_MANAGER = keccak256("RiskManager");
@@ -172,7 +172,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        _syncPositions(address(marginAccount));
         // @note fee is assumed to be in usdc value
         VerifyTradeResult memory verificationResult = IRiskManager(
             contractRegistry.getContractByName(RISK_MANAGER)
@@ -193,11 +192,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(msg.sender)
         );
-        _syncPositions(address(marginAccount));
-        require(
-            marginAccount.isActivePosition(marketKey),
-            "MM: Trader does not have active position in this market"
-        );
         // @note fee is assumed to be in usdc value
         // Add check for an existing position.
         VerifyCloseResult memory result = IRiskManager(
@@ -207,7 +201,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         marginAccount.execMultiTx(destinations, data);
         // TO DO - repay interest and stuff.
         _executePostPositionCloseUpdates(marginAccount, marketKey); // add a check to repay the interest to vault here.
-        marginAccount.removePosition(marketKey);
     }
 
     function liquidate(
@@ -219,7 +212,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         IMarginAccount marginAccount = IMarginAccount(
             _requireAndGetMarginAccount(trader)
         );
-        _syncPositions(address(marginAccount));
         VerifyLiquidationResult memory result = IRiskManager(
             contractRegistry.getContractByName(RISK_MANAGER)
         ).verifyLiquidation(marginAccount, marketKeys, destinations, data);
@@ -228,7 +220,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
 
         // Should verify if all TPP positions are closed and all margin is transferred back to Chronux.
         _verifyPostLiquidation(marginAccount, result);
-        _executePostLiquidationUpdates(marginAccount, result);
         uint256 totalBorrowedX18 = marginAccount.totalBorrowed();
         uint256 interestAccruedX18 = marginAccount.getInterestAccruedX18();
         bool hasBadDebt = IRiskManager(
@@ -272,33 +263,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         );
     }
 
-    function syncPositions(address trader) public {
-        address marginAccount = _requireAndGetMarginAccount(trader);
-        _syncPositions(marginAccount);
-    }
-
     // ---------------- Internal and private functions --------------------
-
-    // only used to update data of closed positions when liquidated on TPP. Think about getting rid of this asap.
-    function _syncPositions(address marginAccount) private {
-        IMarketManager marketManager = IMarketManager(
-            contractRegistry.getContractByName(MARKET_MANAGER)
-        );
-        bytes32[] memory marketKeys = marketManager.getAllMarketKeys();
-        for (uint256 i = 0; i < marketKeys.length; i++) {
-            bytes32 marketKey = marketKeys[i];
-            Position memory marketPosition = IRiskManager(
-                contractRegistry.getContractByName(RISK_MANAGER)
-            ).getMarketPosition(marginAccount, marketKey);
-            // @note - compa
-            Position memory storedPosition = IMarginAccount(marginAccount)
-                .getPosition(marketKey);
-            if (
-                storedPosition.openNotional != 0 &&
-                marketPosition.openNotional == 0
-            ) IMarginAccount(marginAccount).removePosition(marketKey);
-        }
-    }
 
     function _requireAndGetMarginAccount(
         address trader
@@ -323,17 +288,13 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         // merge verification result and marketPosition.
         verificationResult.position.size = marketPosition.size;
         verificationResult.position.openNotional = marketPosition.openNotional;
-
+        // @note these events are useless imo.
         if (verificationResult.position.size.abs() > 0) {
             emit PositionUpdated(
                 address(marginAccount),
                 marketKey,
                 verificationResult.position.size,
                 verificationResult.position.openNotional
-            );
-            marginAccount.updatePosition(
-                marketKey,
-                verificationResult.position
             );
         }
         if (verificationResult.marginDelta.abs() > 0) {
@@ -422,8 +383,9 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
             address(marginAccount)
         );
         // Will this ever hinder liquidation. If yes, then we need to remove this check
-        if (vaultAssetBalance == 0)
+        if (vaultAssetBalance == 0) {
             revert("MM: Not enough balance in MA to repay vault debt");
+        }
         uint256 interestAccrued = interestAccruedX18.convertTokenDecimals(
             18,
             vaultAssetDecimals
@@ -440,13 +402,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         } else {
             _repayVault(marginAccount, totalBorrowed);
         }
-    }
-
-    function _executePostLiquidationUpdates(
-        IMarginAccount marginAccount,
-        VerifyLiquidationResult memory result
-    ) private {
-        _syncPositions(address(marginAccount));
     }
 
     // @note - this function validates the following points

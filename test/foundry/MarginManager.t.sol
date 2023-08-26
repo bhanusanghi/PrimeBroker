@@ -24,6 +24,7 @@ contract RiskManagerTest is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     SnxUtils snxUtils;
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
@@ -36,7 +37,7 @@ contract RiskManagerTest is BaseSetup {
         vm.selectFork(forkId);
         // need to be done in this order only.
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
@@ -59,5 +60,5 @@ contract RiskManagerTest is BaseSetup {
     _getAbsTotalCollateralValue tests.
     _getRemainingPositionOpenNotional
 
-  */
+    */
 }

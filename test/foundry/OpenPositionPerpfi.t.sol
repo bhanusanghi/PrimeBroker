@@ -35,6 +35,7 @@ contract OpenPositionPerpfi is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
@@ -45,7 +46,7 @@ contract OpenPositionPerpfi is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
     }

@@ -24,11 +24,8 @@ interface IMarginManager {
     event PositionUpdated(
         address indexed marginAccount,
         bytes32 indexed marketKey,
-        int256 size, //final size
-        int256 openNotional // final openNotional
-        // uint256 lastPrice,
-        // int256 deltaSize,
-        // int256 deltaNotional,
+        int256 size,
+        int256 openNotional
     );
     event PositionClosed(
         address indexed marginAccount,
@@ -39,8 +36,6 @@ interface IMarginManager {
         address indexed marginAccount,
         address indexed liquidator,
         uint256 liquidationPenaltyX18
-        // bool hasBadDebt,
-        // uint256 badDebtAmount
     );
 
     function getMarginAccount(address trader) external view returns (address);

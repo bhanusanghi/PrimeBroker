@@ -27,14 +27,6 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
         contracts.marginManager.closePosition(snxUniKey, destinations, data);
     }
 
-    function test_closePosition_without_active_position() public {
-        perpfiUtils.revertClosePosition(
-            bob,
-            perpAaveKey,
-            "MM: Trader does not have active position in this market"
-        );
-    }
-
     function test_closePosition_when_liquidated_on_TPP() public {
         uint256 margin = 1000 * ONE_USDC;
         int256 notional = int256(2000 ether);
@@ -192,9 +184,5 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             ""
         );
         perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        assertEq(
-            IMarginAccount(bobMarginAccount).isActivePosition(perpAaveKey),
-            false
-        );
     }
 }

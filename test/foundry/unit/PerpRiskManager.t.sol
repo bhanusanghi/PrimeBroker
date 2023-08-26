@@ -25,19 +25,17 @@ contract PerpRiskManagerTest is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     SnxUtils snxUtils;
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
-        uint256 forkId = vm.createFork(
-            vm.envString("ARCHIVE_NODE_URL_L2"),
-            71255016
-        );
+        uint256 forkId = vm.createFork(vm.envString("ARCHIVE_NODE_URL_L2"), 71255016);
         vm.selectFork(forkId);
         // need to be done in this order only.
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
@@ -60,11 +58,7 @@ contract PerpRiskManagerTest is BaseSetup {
         destinations[0] = perpAccountBalance;
         data[0] = openPositionData;
         vm.expectRevert("PRM: Calling non whitelisted contract");
-        contracts.perpfiRiskManager.decodeTxCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeTxCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertInvalidFunSig() public {
@@ -84,11 +78,7 @@ contract PerpRiskManagerTest is BaseSetup {
         destinations[0] = perpClearingHouse;
         data[0] = openPositionData;
         vm.expectRevert("PRM: Unsupported Function call");
-        contracts.perpfiRiskManager.decodeTxCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeTxCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertInvalidBaseToken() public {
@@ -108,11 +98,7 @@ contract PerpRiskManagerTest is BaseSetup {
         destinations[0] = perpClearingHouse;
         data[0] = openPositionData;
         vm.expectRevert("PRM: Invalid Base Token");
-        contracts.perpfiRiskManager.decodeTxCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeTxCalldata(perpAaveKey, destinations, data);
     }
 
     function testDecodeDataFailure() public {
@@ -131,11 +117,7 @@ contract PerpRiskManagerTest is BaseSetup {
         destinations[0] = perpClearingHouse;
         data[0] = openPositionData;
         vm.expectRevert();
-        contracts.perpfiRiskManager.decodeTxCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeTxCalldata(perpAaveKey, destinations, data);
     }
 
     function testDecodeDataFailureDataType() public {
@@ -154,11 +136,7 @@ contract PerpRiskManagerTest is BaseSetup {
         destinations[0] = perpClearingHouse;
         data[0] = openPositionData;
         vm.expectRevert();
-        contracts.perpfiRiskManager.decodeTxCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeTxCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertClosingWithInvalidFunSig() public {
@@ -174,31 +152,16 @@ contract PerpRiskManagerTest is BaseSetup {
             bytes32(0)
         );
         vm.expectRevert("PRM: Unsupported Function call");
-        contracts.perpfiRiskManager.decodeClosePositionCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeClosePositionCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertClosingWithInvalidDestination() public {
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = perpEthMarket;
-        data[0] = abi.encodeWithSelector(
-            0x00aa9a89,
-            perpAaveMarket,
-            0,
-            0,
-            type(uint256).max,
-            bytes32(0)
-        );
+        data[0] = abi.encodeWithSelector(0x00aa9a89, perpAaveMarket, 0, 0, type(uint256).max, bytes32(0));
         vm.expectRevert("PRM: Calling non whitelisted contract");
-        contracts.perpfiRiskManager.decodeClosePositionCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeClosePositionCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertClosingWithInvalidBaseToken() public {
@@ -214,11 +177,7 @@ contract PerpRiskManagerTest is BaseSetup {
             bytes32(0)
         );
         vm.expectRevert("PRM: Invalid base token in close call");
-        contracts.perpfiRiskManager.decodeClosePositionCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeClosePositionCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertLiquidatingWithInvalidFunSig() public {
@@ -234,31 +193,16 @@ contract PerpRiskManagerTest is BaseSetup {
             bytes32(0)
         );
         vm.expectRevert("PRM: Unsupported Function call");
-        contracts.perpfiRiskManager.decodeClosePositionCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeClosePositionCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertLiquidatingWithInvalidDestination() public {
         address[] memory destinations = new address[](1);
         bytes[] memory data = new bytes[](1);
         destinations[0] = perpEthMarket;
-        data[0] = abi.encodeWithSelector(
-            0x00aa9a89,
-            perpAaveMarket,
-            0,
-            0,
-            type(uint256).max,
-            bytes32(0)
-        );
+        data[0] = abi.encodeWithSelector(0x00aa9a89, perpAaveMarket, 0, 0, type(uint256).max, bytes32(0));
         vm.expectRevert("PRM: Calling non whitelisted contract");
-        contracts.perpfiRiskManager.decodeClosePositionCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeClosePositionCalldata(perpAaveKey, destinations, data);
     }
 
     function testRevertLiquidatingWithInvalidBaseToken() public {
@@ -274,11 +218,7 @@ contract PerpRiskManagerTest is BaseSetup {
             bytes32(0)
         );
         vm.expectRevert("PRM: Invalid base token in close call");
-        contracts.perpfiRiskManager.decodeClosePositionCalldata(
-            perpAaveKey,
-            destinations,
-            data
-        );
+        contracts.perpfiRiskManager.decodeClosePositionCalldata(perpAaveKey, destinations, data);
     }
 }
 

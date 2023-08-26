@@ -13,7 +13,7 @@ interface IExchange {
         uint256 amountOutMinimum;
     }
 
-    function swap(SwapParams memory _swapParams)
-        external
-        returns (uint256 amountOut);
+    function swap(
+        SwapParams memory _swapParams
+    ) external returns (uint256 amountOut);
 }

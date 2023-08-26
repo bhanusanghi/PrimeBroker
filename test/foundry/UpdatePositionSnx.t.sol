@@ -35,6 +35,7 @@ contract UpdatePositionSnx is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     SnxUtils snxUtils;
     ChronuxUtils chronuxUtils;
 
@@ -45,7 +46,7 @@ contract UpdatePositionSnx is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupSNXFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
     }

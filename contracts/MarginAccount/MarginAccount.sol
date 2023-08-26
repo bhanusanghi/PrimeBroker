@@ -30,8 +30,6 @@ contract MarginAccount is IMarginAccount {
     uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
     uint256 public cumulativeIndexAtOpen;
-    mapping(bytes32 => Position) public positions;
-    mapping(bytes32 => bool) public existingPosition;
     IContractRegistry contractRegistry;
     bytes32 constant VAULT = keccak256("Vault");
     bytes32 internal constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
@@ -62,18 +60,6 @@ contract MarginAccount is IMarginAccount {
             "MarginAccount: Only margin account factory"
         );
         _;
-    }
-
-    function getPosition(
-        bytes32 market
-    ) public view override returns (Position memory position) {
-        position = positions[market];
-    }
-
-    function isActivePosition(
-        bytes32 marketKey
-    ) public view override returns (bool) {
-        return existingPosition[marketKey];
     }
 
     function addCollateral(
@@ -115,22 +101,6 @@ contract MarginAccount is IMarginAccount {
             returnData = destinations[i].functionCall(dataArray[i]);
         }
         return returnData;
-    }
-
-    function updatePosition(
-        bytes32 marketKey,
-        Position memory position
-    ) external override onlyMarginAccountFundManager {
-        if (!existingPosition[marketKey]) existingPosition[marketKey] = true;
-        positions[marketKey] = position;
-    }
-
-    function removePosition(
-        bytes32 marketKey
-    ) public override onlyMarginAccountFundManager {
-        // only riskmanagger
-        existingPosition[marketKey] = false;
-        delete positions[marketKey];
     }
 
     function setTokenAllowance(

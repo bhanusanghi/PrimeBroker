@@ -28,6 +28,7 @@ contract LiquidationSnx is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     SnxUtils snxUtils;
     ChronuxUtils chronuxUtils;
@@ -39,7 +40,7 @@ contract LiquidationSnx is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         snxUtils = new SnxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
@@ -59,9 +60,17 @@ contract LiquidationSnx is BaseSetup {
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -98,9 +107,17 @@ contract LiquidationSnx is BaseSetup {
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
 
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
         (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
@@ -126,9 +143,17 @@ contract LiquidationSnx is BaseSetup {
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
 
         (assetPrice, ) = IFuturesMarket(market).assetPrice();
         (bool isLiquidatable, bool isFullyLiquidatable, ) = contracts
@@ -167,9 +192,17 @@ contract LiquidationSnx is BaseSetup {
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
 
         accountValue = contracts.riskManager.getAccountValue(bobMarginAccount);
     }
@@ -189,9 +222,17 @@ contract LiquidationSnx is BaseSetup {
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
 
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
 
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
@@ -223,9 +264,17 @@ contract LiquidationSnx is BaseSetup {
         (uint256 assetPrice, ) = IFuturesMarket(market).assetPrice();
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
 
         uint256 accountValue = contracts.riskManager.getAccountValue(
             bobMarginAccount
@@ -257,9 +306,17 @@ contract LiquidationSnx is BaseSetup {
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
         (int256 notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
         );
@@ -311,7 +368,13 @@ contract LiquidationSnx is BaseSetup {
             ""
         );
 
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
         perpfiUtils.updateAndVerifyPositionNotional(
             bob,
             perpAaveKey,
@@ -319,10 +382,20 @@ contract LiquidationSnx is BaseSetup {
             false,
             ""
         );
-        Position memory snxPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
-        Position memory perpPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(perpAaveKey);
+        Position memory snxPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
+        console2.log("snxPosition.openNotional");
+        console2.logInt(snxPosition.openNotional);
+        console2.logInt(snxPosition.size);
+        Position memory perpPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            perpAaveKey
+        );
+        console2.log("perpPosition.openNotional");
+        console2.logInt(perpPosition.openNotional);
+        console2.logInt(perpPosition.size);
         utils.simulateUnrealisedPnLSnx(
             circuitBreaker,
             bobMarginAccount,
@@ -339,6 +412,7 @@ contract LiquidationSnx is BaseSetup {
             perpPosition.size,
             20 ether
         );
+
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
         contracts.marginManager.liquidate(
             bob,
@@ -347,17 +421,13 @@ contract LiquidationSnx is BaseSetup {
             params.data
         );
 
-        snxPosition = IMarginAccount(bobMarginAccount).getPosition(snxUniKey);
-        perpPosition = IMarginAccount(bobMarginAccount).getPosition(
+        snxPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
+        perpPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
             perpAaveKey
-        );
-        assertEq(
-            IMarginAccount(bobMarginAccount).existingPosition(snxUniKey),
-            false
-        );
-        assertEq(
-            IMarginAccount(bobMarginAccount).existingPosition(perpAaveKey),
-            false
         );
         assertEq(snxPosition.size, 0, "position after liquidation is not zero");
         assertEq(
@@ -375,6 +445,7 @@ contract LiquidationSnx is BaseSetup {
             0,
             "position after liquidation is not zero"
         );
+        console2.log("here done");
         // TODO -> ADD repay
         assertEq(
             IMarginAccount(bobMarginAccount).totalBorrowed(),
@@ -388,6 +459,7 @@ contract LiquidationSnx is BaseSetup {
             0,
             "totalDollarMarginInMarkets after liquidation is not zero"
         );
+        console2.log("here don1e");
         assertEq(
             ERC20(susd).balanceOf(bobMarginAccount),
             0,
@@ -426,9 +498,17 @@ contract LiquidationSnx is BaseSetup {
         int256 positionSize = (openNotional * 1 ether) / assetPrice.toInt256();
         snxUtils.updateAndVerifyMargin(bob, snxUniKey, snxMargin, false, "");
 
-        snxUtils.updateAndVerifyPositionSize(bob, snxUniKey, positionSize, false, "");
-        Position memory openPosition = IMarginAccount(bobMarginAccount)
-            .getPosition(snxUniKey);
+        snxUtils.updateAndVerifyPositionSize(
+            bob,
+            snxUniKey,
+            positionSize,
+            false,
+            ""
+        );
+        Position memory openPosition = contracts.riskManager.getMarketPosition(
+            bobMarginAccount,
+            snxUniKey
+        );
         (int256 notionalOnSnx, ) = IFuturesMarket(market).notionalValue(
             bobMarginAccount
         );

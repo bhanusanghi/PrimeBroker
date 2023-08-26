@@ -141,7 +141,11 @@ contract ChronuxUtils is Test, Constants, IEvents {
         );
         for (uint256 i = 0; i < allMarketKeys.length; i++) {
             bytes32 marketKey = allMarketKeys[i];
-            if (IMarginAccount(marginAccount).isActivePosition(marketKey)) {
+            Position memory position = contracts.riskManager.getMarketPosition(
+                marginAccount,
+                marketKey
+            );
+            if (position.openNotional != 0) {
                 activeCount++;
             }
         }
@@ -149,7 +153,11 @@ contract ChronuxUtils is Test, Constants, IEvents {
         uint256 filledLength = 0;
         for (uint256 i = 0; i < allMarketKeys.length; i++) {
             bytes32 marketKey = allMarketKeys[i];
-            if (IMarginAccount(marginAccount).isActivePosition(marketKey)) {
+            Position memory position = contracts.riskManager.getMarketPosition(
+                marginAccount,
+                marketKey
+            );
+            if (position.openNotional != 0) {
                 activeMarkets[filledLength] = marketKey;
                 filledLength++;
             }

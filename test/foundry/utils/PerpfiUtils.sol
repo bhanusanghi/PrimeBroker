@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.10;
+
 import {Test} from "forge-std/Test.sol";
 import {FixedPoint96} from "../../../contracts/Libraries/FixedPoint96.sol";
 import {FullMath} from "../../../contracts/Libraries/FullMath.sol";
@@ -32,6 +33,7 @@ contract PerpfiUtils is Test, Constants, IEvents {
     using Math for int256;
     using SignedMath for int256;
     using SettlementTokenMath for int256;
+
     address perpVault = 0xAD7b4C162707E0B2b5f6fdDbD3f8538A5fbA0d60;
     Contracts contracts;
     address usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
@@ -116,21 +118,14 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes32 marketKey,
         int256 expectedPositionSize
     ) public {
-        Position memory positionChronux = IMarginAccount(marginAccount)
-            .getPosition(marketKey);
         (
             int256 marketPositionSize,
             int256 marketPositionNotional
         ) = fetchPosition(marginAccount, marketKey);
         assertEq(
-            positionChronux.size,
+            marketPositionSize,
             expectedPositionSize,
             "expectedPositionSize not equal to chronux position size"
-        );
-        assertEq(
-            positionChronux.size,
-            marketPositionSize,
-            "Market Position Size not equal to chronux position size"
         );
     }
 
@@ -139,21 +134,14 @@ contract PerpfiUtils is Test, Constants, IEvents {
         bytes32 marketKey,
         int256 expectedPositionNotional
     ) public {
-        Position memory positionChronux = IMarginAccount(marginAccount)
-            .getPosition(marketKey);
         (
             int256 marketPositionSize,
             int256 marketPositionNotional
         ) = fetchPosition(marginAccount, marketKey);
         assertApproxEqAbs(
-            positionChronux.openNotional,
             expectedPositionNotional,
-            DUST_THRESHOLD,
-            "expected and chronux openNotional do not match"
-        );
-        assertEq(
-            positionChronux.openNotional,
             marketPositionNotional,
+            DUST_THRESHOLD,
             "Perp position notional does not match"
         );
     }

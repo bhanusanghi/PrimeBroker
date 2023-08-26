@@ -21,6 +21,7 @@ contract ClosePositionPerp is BaseSetup {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SignedMath for int256;
+
     PerpfiUtils perpfiUtils;
     ChronuxUtils chronuxUtils;
 
@@ -31,12 +32,12 @@ contract ClosePositionPerp is BaseSetup {
         );
         vm.selectFork(forkId);
         utils = new Utils();
-        setupPerpfiFixture();
+        setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
     }
 
-    function testClosingPosition(int notional) public {
+    function testClosingPosition(int256 notional) public {
         uint256 chronuxMargin = 2000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, chronuxMargin);
         int256 perpMargin = int256(1000 * ONE_USDC);
