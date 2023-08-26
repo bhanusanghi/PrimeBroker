@@ -38,7 +38,8 @@ contract CollateralManager is ICollateralManager {
     bytes32 constant ACL_MANAGER = keccak256("AclManager");
 
     // mapping(address => mapping(address => uint256)) internal _balance;
-    event CollateralAdded(
+    // mapping(address => mapping(address => uint256)) internal _balance;
+    event CollateralDeposited(
         address indexed marginAccount,
         address indexed token,
         uint256 indexed amount
@@ -62,34 +63,7 @@ contract CollateralManager is ICollateralManager {
         contractRegistry = IContractRegistry(_contractRegistry);
     }
 
-    function updateCollateralAmount(uint256 amount) external {
-        // only marginManager
-    }
-
-    function addAllowedCollaterals(
-        address[] calldata _allowed,
-        uint256[] calldata _collateralWeights
-    ) public onlyAdmin {
-        require(
-            _allowed.length == _collateralWeights.length,
-            "CM: No array parity"
-        );
-        uint256 len = _allowed.length;
-        for (uint256 i = 0; i < len; i++) {
-            // @todo use mapping instead
-            // Needed otherwise borrowing power can be inflated by pushing same collateral multiple times.
-            require(
-                isAllowedCollateral[_allowed[i]] == false,
-                "CM: Collateral already added"
-            );
-            allowedCollateral.push(_allowed[i]);
-            collateralWeight[_allowed[i]] = _collateralWeights[i];
-            isAllowedCollateral[_allowed[i]] = true;
-            _decimals[_allowed[i]] = IERC20Metadata(_allowed[i]).decimals();
-        }
-    }
-
-    function addAllowedCollateral(
+    function whitelistCollateral(
         address _allowed,
         uint256 _collateralWeight
     ) public onlyAdmin {
@@ -104,26 +78,23 @@ contract CollateralManager is ICollateralManager {
         _decimals[_allowed] = IERC20Metadata(_allowed).decimals();
     }
 
-    function addCollateral(address _token, uint256 _amount) external {
+    function depositCollateral(address _token, uint256 _amount) external {
         require(isAllowedCollateral[_token], "CM: Unsupported collateral"); //@note move it to margin manager
-        address marginAccount = IMarginManager(
-            contractRegistry.getContractByName(MARGIN_MANAGER)
-        ).getMarginAccount(msg.sender);
-        IMarginAccount(marginAccount).addCollateral(
+        IMarginAccount marginAccount = IMarginAccount(
+            IMarginManager(contractRegistry.getContractByName(MARGIN_MANAGER))
+                .getMarginAccount(msg.sender)
+        );
+        IMarginAccount(marginAccount).depositCollateral(
             msg.sender,
             _token,
             _amount
         );
-        emit CollateralAdded(marginAccount, _token, _amount);
+        emit CollateralDeposited(address(marginAccount), _token, _amount);
     }
 
     // Should be accessed by Margin Manager only??
     // While withdraw check free collateral, only that much is allowed to be taken out.
     function withdrawCollateral(address _token, uint256 _amount) external {
-        // only marginManager
-        //
-        // check if _amount is allowed to be taken out.
-        // If yes transfer and manage accounting.
         require(isAllowedCollateral[_token], "CM: Unsupported collateral");
         IMarginAccount marginAccount = IMarginAccount(
             IMarginManager(contractRegistry.getContractByName(MARGIN_MANAGER))
@@ -158,17 +129,6 @@ contract CollateralManager is ICollateralManager {
         collateralWeight[_token] = _collateralWeight;
     }
 
-    // free collateral = totalCollateralHeldInMarginAccount - vaultInterestLiability
-    function _getFreeCollateralValue(
-        address _marginAccount
-    ) internal view returns (uint256 freeCollateralValueX18) {
-        // free collateral
-        freeCollateralValueX18 =
-            _totalCurrentCollateralValue(_marginAccount) -
-            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER))
-                .getHealthyMarginRequirement(_marginAccount);
-    }
-
     function totalCollateralValue(
         address _marginAccount
     ) external view returns (uint256 totalAmount) {
@@ -176,7 +136,41 @@ contract CollateralManager is ICollateralManager {
     }
 
     // sends result in 18 decimals.
-    function _getCollateralHeldInMarginAccount(
+
+    function getCollateralValueInMarginAccount(
+        address _marginAccount
+    ) external view returns (uint256 totalAmount) {
+        return _getCollateralValueInMarginAccount(_marginAccount);
+    }
+
+    function getAllCollateralTokens() public view returns (address[] memory) {
+        return allowedCollateral;
+    }
+
+    function getFreeCollateralValue(
+        address _marginAccount
+    ) external view returns (uint256) {
+        return _getFreeCollateralValue(_marginAccount);
+    }
+
+    // --------------- Internal Functions ------------------
+
+    // accValue - MMForHealthy
+    function _getFreeCollateralValue(
+        address _marginAccount
+    ) internal view returns (uint256) {
+        // free collateral
+        uint256 collateralValueInMA = _getCollateralValueInMarginAccount(
+            _marginAccount
+        );
+        uint256 freeCollateral = _totalCurrentCollateralValue(_marginAccount) -
+            IRiskManager(contractRegistry.getContractByName(RISK_MANAGER))
+                .getHealthyMarginRequirement(_marginAccount);
+        if (collateralValueInMA <= freeCollateral) return collateralValueInMA;
+        else return freeCollateral;
+    }
+
+    function _getCollateralValueInMarginAccount(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
         for (uint256 i = 0; i < allowedCollateral.length; i++) {
@@ -196,16 +190,10 @@ contract CollateralManager is ICollateralManager {
         }
     }
 
-    function getCollateralHeldInMarginAccount(
-        address _marginAccount
-    ) external view returns (uint256 totalAmount) {
-        return _getCollateralHeldInMarginAccount(_marginAccount);
-    }
-
     function _totalCurrentCollateralValue(
         address _marginAccount
     ) internal view returns (uint256 totalAmountX18) {
-        uint256 collateralHeldInMarginAccountX18 = _getCollateralHeldInMarginAccount(
+        uint256 collateralHeldInMarginAccountX18 = _getCollateralValueInMarginAccount(
                 _marginAccount
             );
         uint256 totalCollateralInMarketsX18 = IRiskManager(
@@ -224,15 +212,5 @@ contract CollateralManager is ICollateralManager {
         totalAmountX18 =
             collateralHeldInMarginAccountX18 +
             totalCollateralInMarketsX18;
-    }
-
-    function getAllCollateralTokens() public view returns (address[] memory) {
-        return allowedCollateral;
-    }
-
-    function getFreeCollateralValue(
-        address _marginAccount
-    ) external view returns (uint256) {
-        return _getFreeCollateralValue(_marginAccount);
     }
 }

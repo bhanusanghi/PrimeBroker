@@ -56,8 +56,8 @@ contract ChronuxUtils is Test, Constants, IEvents {
             address(contracts.collateralManager)
         );
         // TODO -> This wont work when depositing collateral second time in same test.
-        emit CollateralAdded(marginAccount, token, amount);
-        contracts.collateralManager.addCollateral(token, amount);
+        emit CollateralDeposited(marginAccount, token, amount);
+        contracts.collateralManager.depositCollateral(token, amount);
         vm.stopPrank();
     }
 
@@ -97,7 +97,7 @@ contract ChronuxUtils is Test, Constants, IEvents {
         );
         uint256 totalCollateralInMarginAccount = contracts
             .collateralManager
-            .getCollateralHeldInMarginAccount(marginAccount);
+            .getCollateralValueInMarginAccount(marginAccount);
         uint256 availableBorrowLimit = contracts
             .riskManager
             .getRemainingBorrowLimit(marginAccount);

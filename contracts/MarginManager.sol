@@ -452,7 +452,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         marginAccount.decreaseDebt(amount);
     }
 
-    // ----------------- Team functions ---------------------
+    // ----------------- Admin functions ---------------------
 
     // TODO: remove while deploying on mainnet
     function drainAllMarginAccounts(

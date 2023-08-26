@@ -107,8 +107,8 @@ contract UpdatePositionSnx is BaseSetup {
     //     setupProtocolRiskManagers();
     //     // collaterals.push(usdc);
     //     // collaterals.push(susd);
-    //     contracts.collateralManager.addAllowedCollateral(usdc, 100);
-    //     contracts.collateralManager.addAllowedCollateral(susd, 100);
+    //     contracts.collateralManager.whitelistCollateral(usdc, 100);
+    //     contracts.collateralManager.whitelistCollateral(susd, 100);
     //     //fetch snx market addresses.
     //     snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
     //         .getAddress(bytes32("FuturesMarketManager"));
@@ -169,8 +169,8 @@ contract UpdatePositionSnx is BaseSetup {
     //     vm.startPrank(bob);
     //     IERC20(usdc).approve(bobMarginAccount, margin);
     //     IERC20(susd).approve(bobMarginAccount, marginInEther);
-    //     // contracts.collateralManager.addCollateral(usdc, margin);
-    //     contracts.collateralManager.addCollateral(susd, marginInEther);
+    //     // contracts.collateralManager.depositCollateral(usdc, margin);
+    //     contracts.collateralManager.depositCollateral(susd, marginInEther);
     //     bytes memory transferMarginData = abi.encodeWithSignature(
     //         "transferMargin(int256)",
     //         marginSNX

@@ -414,12 +414,10 @@ contract Vault is IVault, ERC4626 {
         // Update cumulativeIndex
         _cumulativeIndex_RAY = calcLinearCumulative_RAY(); // T:[PS-27]
         // update borrow APY
-        // console.log("_cumulativeIndex_RAY", _cumulativeIndex_RAY);
         borrowAPY_RAY = interestRateModel.calcBorrowRate(
             expectedLiquidityLastUpdated,
             totalAssets()
         ); // T:[PS-27]
-        // console.log("borrowAPY_RAY", borrowAPY_RAY);
         timestampLastUpdated = block.timestamp; // T:[PS-27]
     }
 }

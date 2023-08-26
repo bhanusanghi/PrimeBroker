@@ -103,7 +103,7 @@ contract IsAccountHealthy_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         validMarginAccount
         negativePnL
-        addCollateral
+        depositCollateral
         finallyHealthy
     {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
@@ -143,7 +143,7 @@ contract IsAccountHealthy_RiskManager_UnitTest is RiskManager_UnitTest {
         public
         validMarginAccount
         negativePnL
-        addCollateral
+        depositCollateral
     {
         chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * 1e6);
         perpfiUtils.updateAndVerifyMargin(

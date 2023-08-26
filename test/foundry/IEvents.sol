@@ -104,7 +104,7 @@ interface IEvents {
     }
 
     // ============= Collateral Manager Events =============
-    event CollateralAdded(
+    event CollateralDeposited(
         address indexed,
         address indexed,
         uint256 indexed tokenAmount

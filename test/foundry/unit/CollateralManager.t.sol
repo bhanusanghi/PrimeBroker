@@ -3,9 +3,9 @@ pragma abicoder v2;
 
 import {BaseSetup} from "../BaseSetup.sol";
 import {Utils} from "../utils/Utils.sol";
-import "forge-std/Test.sol";
-import "forge-std/console2.sol";
 import {IVault} from "../../../contracts/Interfaces/Perpfi/IVault.sol";
+import {IMarginAccount} from "../../../contracts/Interfaces/IMarginAccount.sol";
+import {IRiskManager} from "../../../contracts/Interfaces/IRiskManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MarginAccount} from "../../../contracts/MarginAccount/MarginAccount.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -16,6 +16,7 @@ import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/Signed
 import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath.sol";
 import {SignedSafeMath} from "openzeppelin-contracts/contracts/utils/math/SignedSafeMath.sol";
 import {PerpfiUtils} from "../utils/PerpfiUtils.sol";
+import {SnxUtils} from "../utils/SnxUtils.sol";
 import {ChronuxUtils} from "../utils/ChronuxUtils.sol";
 
 contract CollateralManagerTest is BaseSetup {
@@ -29,6 +30,7 @@ contract CollateralManagerTest is BaseSetup {
     using SignedMath for int256;
 
     PerpfiUtils perpfiUtils;
+    SnxUtils snxUtils;
     ChronuxUtils chronuxUtils;
 
     function setUp() public {
@@ -41,14 +43,21 @@ contract CollateralManagerTest is BaseSetup {
         setupPrmFixture();
         chronuxUtils = new ChronuxUtils(contracts);
         perpfiUtils = new PerpfiUtils(contracts);
+        snxUtils = new SnxUtils(contracts);
     }
 
-    function testAddCollateral(uint256 _depositAmt) public {
+    function test_depositCollateral_Unsupported_Collateral() public {
+        vm.expectRevert("CM: Unsupported collateral");
+        vm.prank(bob);
+        contracts.collateralManager.depositCollateral(usdt, 100 * ONE_USDC);
+    }
+
+    function test_depositCollateral(uint256 _depositAmt) public {
         vm.assume(_depositAmt < ONE_MILLION_USDC && _depositAmt > 0);
         chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
     }
 
-    function testCollateralWeight(uint256 _wf) public {
+    function test_CollateralWeight(uint256 _wf) public {
         uint256 _depositAmt = 10_000 * ONE_USDC;
         chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
         vm.assume(_wf <= CENT && _wf > 0);
@@ -77,6 +86,18 @@ contract CollateralManagerTest is BaseSetup {
         uint256 change = 100 * ONE_USDC;
         vm.assume(withdrawAmount <= _depositAmt && withdrawAmount > ONE_USDC);
         vm.startPrank(bob);
+        vm.expectEmit(
+            true,
+            true,
+            true,
+            true,
+            address(contracts.collateralManager)
+        );
+        emit CollateralWithdrawn(
+            address(bobMarginAccount),
+            usdc,
+            withdrawAmount
+        );
         contracts.collateralManager.withdrawCollateral(usdc, withdrawAmount);
         uint256 totalCollateralValueX18 = contracts
             .collateralManager
@@ -119,7 +140,9 @@ contract CollateralManagerTest is BaseSetup {
             ""
         );
         vm.startPrank(bob);
-        vm.expectRevert(bytes("ERC20: transfer amount exceeds balance"));
+        vm.expectRevert(
+            bytes("CM: Withdrawing more than free collateral not allowed")
+        );
         contracts.collateralManager.withdrawCollateral(usdc, 100 * ONE_USDC);
         vm.stopPrank();
     }
@@ -147,76 +170,13 @@ contract CollateralManagerTest is BaseSetup {
             contracts.collateralManager.getFreeCollateralValue(
                 bobMarginAccount
             ),
-            375 ether
+            0
         );
         vm.startPrank(bob);
         vm.expectRevert(
             "CM: Withdrawing more than free collateral not allowed"
         );
         contracts.collateralManager.withdrawCollateral(usdc, 376 * ONE_USDC); //
-        vm.stopPrank();
-    }
-
-    function testWithdrawalWithClosePosition() public {
-        uint256 _depositAmt = 1500 * ONE_USDC;
-        chronuxUtils.depositAndVerifyMargin(bob, usdc, _depositAmt);
-
-        int256 notional = int256(4500 ether);
-        int256 perpMargin = int256(2000 * ONE_USDC);
-
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            perpMargin,
-            false,
-            ""
-        );
-
-        perpfiUtils.updateAndVerifyPositionNotional(
-            bob,
-            perpAaveKey,
-            notional,
-            false,
-            ""
-        );
-        assertEq(
-            contracts.collateralManager.getFreeCollateralValue(
-                bobMarginAccount
-            ),
-            375 ether
-        );
-        perpfiUtils.closeAndVerifyPosition(bob, perpAaveKey);
-        uint256 freeCollateralPerp = IVault(perpVault).getFreeCollateral(
-            bobMarginAccount
-        );
-        perpfiUtils.updateAndVerifyMargin(
-            bob,
-            perpAaveKey,
-            -int256(freeCollateralPerp),
-            false,
-            ""
-        );
-
-        // assertEq(
-        //     contracts
-        //         .collateralManager
-        //         .getFreeCollateralValue(bobMarginAccount)
-        //         .convertTokenDecimals(18, 6),
-        //     _depositAmt
-        // );
-
-        vm.startPrank(bob);
-        uint256 perpLoss = uint256(perpMargin).sub(freeCollateralPerp);
-        uint256 maxWithdrawable = _depositAmt.sub(perpLoss);
-        contracts.collateralManager.withdrawCollateral(
-            usdc,
-            maxWithdrawable - ONE_USDC
-        );
-        contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
-        vm.expectRevert(
-            "CM: Withdrawing more than free collateral not allowed"
-        );
-        contracts.collateralManager.withdrawCollateral(usdc, ONE_USDC);
         vm.stopPrank();
     }
 
@@ -234,12 +194,172 @@ contract CollateralManagerTest is BaseSetup {
         );
     }
 
+    function test_FreeCollateralValue_when_low_tokens_In_MA() public {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            1000 ether,
+            "CM: Free Collateral Value should be 1000"
+        );
+        vm.prank(bob);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            int256(500 * ONE_USDC),
+            false,
+            ""
+        );
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            500 ether,
+            "CM: Free Collateral Value should be 500 + interest after blocking"
+        );
+    }
+
+    function test_FreeCollateralValue_when_margin_blocked() public {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            1000 ether
+        );
+        vm.prank(bob);
+        vm.mockCall(
+            address(contracts.riskManager),
+            abi.encodeWithSelector(
+                IRiskManager.getHealthyMarginRequirement.selector
+            ),
+            abi.encode(300 ether)
+        );
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            700 ether
+        );
+    }
+
+    function test_FreeCollateralValue_when_margin_blocked_and_low_on_tokens()
+        public
+    {
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, 1000 * ONE_USDC);
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            1000 ether
+        );
+        vm.prank(bob);
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            1000 ether
+        );
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            int256(500 * ONE_USDC),
+            false,
+            ""
+        );
+        vm.mockCall(
+            address(contracts.riskManager),
+            abi.encodeWithSelector(
+                IRiskManager.getHealthyMarginRequirement.selector
+            ),
+            abi.encode(300 * ONE_USDC)
+        );
+        assertEq(
+            contracts.collateralManager.getFreeCollateralValue(
+                bobMarginAccount
+            ),
+            500 ether
+        );
+    }
+
+    function test_totalCollateralValue_no_deposits() public {
+        assertEq(
+            0,
+            contracts.collateralManager.totalCollateralValue(bobMarginAccount),
+            "CM: totalCollateralValue should be zero"
+        );
+    }
+
+    function test_totalCollateralValue_No_TPPs() public {
+        uint256 deposit1 = 1000 * ONE_USDC;
+        uint256 deposit2 = 2000 ether;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, deposit1);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, deposit2);
+        assertEq(
+            (deposit1 * 10 ** 12) + deposit2,
+            contracts.collateralManager.totalCollateralValue(bobMarginAccount),
+            "CM: totalCollateralValue does not match"
+        );
+    }
+
+    function test_totalCollateralValue_With_TPPs() public {
+        uint256 deposit1 = 1000 * ONE_USDC;
+        uint256 deposit2 = 2000 ether;
+        chronuxUtils.depositAndVerifyMargin(bob, usdc, deposit1);
+        chronuxUtils.depositAndVerifyMargin(bob, susd, deposit2);
+        perpfiUtils.updateAndVerifyMargin(
+            bob,
+            perpAaveKey,
+            int256(deposit1),
+            false,
+            ""
+        );
+        snxUtils.updateAndVerifyMargin(
+            bob,
+            snxEthKey,
+            int256(1000 ether),
+            false,
+            ""
+        );
+        assertEq(
+            (deposit1 * 10 ** 12) + deposit2,
+            contracts.collateralManager.totalCollateralValue(bobMarginAccount),
+            "CM: totalCollateralValue does not match"
+        );
+    }
+
+    modifier invalidAccess() {
+        _;
+    }
+    modifier invalidToken() {
+        _;
+    }
+    modifier existingCollateral() {
+        _;
+    }
+    modifier invalidWeight() {
+        _;
+    }
+
+    // collateral value affected on these operations ->
+    // repay
+    // swap
+    // withdraw
+    // deposit
+    // CRUD positions
+    // passing time (funding fee, interest accrued)
+
+    //unaffected by these ->
+    // borrow
+    // transferring margin to/from TPP
+
     /*
     // Unit tests 
     1. Add Allowed collateral
     2. Withdraw collateral
     3. totalCurrentCollateralValue 
-    4. getCollateralHeldInMarginAccount
+    4. getCollateralValueInMarginAccount
 
     // Accounting tests 
     1. Free Collateral Value

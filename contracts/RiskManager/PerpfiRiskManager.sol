@@ -27,7 +27,6 @@ import {IVault} from "../Interfaces/Perpfi/IVault.sol";
 import {VerifyCloseResult, VerifyTradeResult, VerifyLiquidationResult} from "../Interfaces/IRiskManager.sol";
 import {Position} from "../Interfaces/IMarginAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import "hardhat/console.sol";
 
 contract PerpfiRiskManager is IProtocolRiskManager {
     using SafeMath for uint256;
@@ -234,12 +233,6 @@ contract PerpfiRiskManager is IProtocolRiskManager {
         //or periodically update the margin in tpp and before executing any new transactions from the same account
         (owedRealizedPnl, unrealizedPnl, pendingFee) = accountBalance
             .getPnlAndPendingFee(marginAccount);
-        // console.log("owedRealizedPnl");
-        // console.logInt(owedRealizedPnl);
-        // console.log("unrealizedPnl");
-        // console.logInt(unrealizedPnl);
-        // console.log("pendingFee");
-        // console.log(pendingFee);
         pnl = (unrealizedPnl.add(owedRealizedPnl).add(pendingFee.toInt256()));
     }
 

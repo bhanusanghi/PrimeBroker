@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 interface ICollateralManager {
-    function addCollateral(address token, uint256 amount) external;
+    function depositCollateral(address token, uint256 amount) external;
 
     function withdrawCollateral(address token, uint256 amount) external;
 
@@ -15,12 +15,7 @@ interface ICollateralManager {
         address marginAccount
     ) external view returns (uint256 amount);
 
-    function addAllowedCollaterals(
-        address[] calldata _allowed,
-        uint256[] calldata _collateralWeights
-    ) external;
-
-    function addAllowedCollateral(
+    function whitelistCollateral(
         address _allowed,
         uint256 _collateralWeight
     ) external;
@@ -29,7 +24,7 @@ interface ICollateralManager {
         address _marginAccount
     ) external returns (uint256);
 
-    function getCollateralHeldInMarginAccount(
+    function getCollateralValueInMarginAccount(
         address _marginAccount
     ) external view returns (uint256 totalAmount);
 

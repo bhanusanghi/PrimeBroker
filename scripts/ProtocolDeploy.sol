@@ -38,8 +38,8 @@ contract ProtocolDeploy is Script, BaseDeployer {
         // riskManager.setCollateralManager(address(collateralManager));
         // riskManager.setVault(address(vault));
         setupProtocolRiskManagers();
-        collateralManager.addAllowedCollateral(usdc, 100);
-        collateralManager.addAllowedCollateral(susd, 100);
+        collateralManager.whitelistCollateral(usdc, 100);
+        collateralManager.whitelistCollateral(susd, 100);
 
         address snxFuturesMarketManager = IAddressResolver(SNX_ADDRESS_RESOLVER)
             .getAddress(bytes32("FuturesMarketManager"));
