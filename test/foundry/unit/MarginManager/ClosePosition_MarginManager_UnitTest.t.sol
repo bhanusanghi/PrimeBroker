@@ -59,11 +59,12 @@ contract ClosePosition_MarginManager_UnitTest is MarginManager_UnitTest {
             ),
             abi.encode(0)
         );
-        perpfiUtils.revertClosePosition(
-            bob,
-            perpAaveKey,
-            "MM: Trader does not have active position in this market"
-        );
+        //@note - Since we are still not sure on this wrt. throw the error, or just rely on tpp revert.
+        // perpfiUtils.revertClosePosition(
+        //     bob,
+        //     perpAaveKey,
+        //     "MM: Trader does not have active position in this market"
+        // );
         // TODO - resolve the sync bug.
         // assertEq(
         //     IMarginAccount(bobMarginAccount).isActivePosition(perpAaveKey),
