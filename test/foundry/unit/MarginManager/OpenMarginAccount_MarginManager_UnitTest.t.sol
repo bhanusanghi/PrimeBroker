@@ -46,4 +46,24 @@ contract OpenMarginAccount_MarginManager_UnitTest is MarginManager_UnitTest {
         );
         vm.stopPrank();
     }
+
+    function test_open_margin_account_when_unused_accounts_exist() public {
+        chronuxUtils.depositAndVerifyMargin(bob, susd, 100 ether);
+        chronuxUtils.withdrawAndVerifyMargin(bob, susd, 100 ether);
+        vm.prank(bob);
+        contracts.marginManager.closeMarginAccount();
+
+        vm.startPrank(david);
+        vm.expectEmit(true, true, true, true, address(contracts.marginManager));
+        emit MarginAccountOpened(david, bobMarginAccount);
+        address marginAccount = contracts.marginManager.openMarginAccount();
+        assertEq(
+            IERC20(contracts.vault.asset()).allowance(
+                marginAccount,
+                address(contracts.vault)
+            ),
+            type(uint256).max
+        );
+        vm.stopPrank();
+    }
 }

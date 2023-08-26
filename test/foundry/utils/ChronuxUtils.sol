@@ -55,13 +55,31 @@ contract ChronuxUtils is Test, Constants, IEvents {
             true,
             address(contracts.collateralManager)
         );
-        uint256 collateralValue = contracts
-            .priceOracle
-            .convertToUSD(int256(amount), token)
-            .abs();
         // TODO -> This wont work when depositing collateral second time in same test.
         emit CollateralDeposited(marginAccount, token, amount);
         contracts.collateralManager.depositCollateral(token, amount);
+        vm.stopPrank();
+    }
+
+    function withdrawAndVerifyMargin(
+        address trader,
+        address token,
+        uint256 amount
+    ) external {
+        vm.startPrank(trader);
+        address marginAccount = contracts.marginManager.getMarginAccount(
+            trader
+        );
+        vm.expectEmit(
+            true,
+            true,
+            true,
+            true,
+            address(contracts.collateralManager)
+        );
+        // TODO -> This wont work when depositing collateral second time in same test.
+        emit CollateralWithdrawn(marginAccount, token, amount);
+        contracts.collateralManager.withdrawCollateral(token, amount);
         vm.stopPrank();
     }
 

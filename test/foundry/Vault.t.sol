@@ -12,15 +12,19 @@ import {LinearInterestRateModel} from "../../contracts/MarginPool/LinearInterest
 import {Utils} from "./utils/Utils.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {PercentageMath, PERCENTAGE_FACTOR} from "../../contracts/Libraries/PercentageMath.sol";
+import {ACLManager} from "../../contracts/Utils/ACLManager.sol";
+import {IContractRegistry} from "../../contracts/Interfaces/IContractRegistry.sol";
 
 contract VaultTest is Test {
     using WadRayMath for uint256;
     using Math for uint256;
     using PercentageMath for uint256;
+
     Vault public vault;
 
     LinearInterestRateModel public interestModel;
     MockERC20 public underlyingToken;
+    ACLManager public aclManager;
     // uint256 public maxExpectedLiquidity;
     uint256 public constant CENT = 100;
     Utils internal utils;
@@ -34,18 +38,9 @@ contract VaultTest is Test {
 
     // ================ EVENTS =================
 
-    event Deposit(
-        address indexed caller,
-        address indexed owner,
-        uint256 assets,
-        uint256 shares
-    );
+    event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
     event Withdraw(
-        address indexed sender,
-        address indexed receiver,
-        address indexed owner,
-        uint256 assets,
-        uint256 shares
+        address indexed sender, address indexed receiver, address indexed owner, uint256 assets, uint256 shares
     );
     event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -77,15 +72,6 @@ contract VaultTest is Test {
             rSlope2
         );
         underlyingToken = new MockERC20("FakeDAI", "FDAI");
-        // maxExpectedLiquidity = type(uint256).max;
-        vault = new Vault(
-            address(underlyingToken),
-            "GigaLP",
-            "GLP",
-            address(interestModel)
-            // maxExpectedLiquidity
-        );
-
         // ======= Setup and fund Users ========
         users = utils.createUsers(5);
         admin = users[0];
@@ -109,10 +95,20 @@ contract VaultTest is Test {
         underlyingToken.mint(david, 100000 ether);
         vm.deal(david, 1000 ether);
 
-        vault.addLendingAddress(admin);
-        vault.addRepayingAddress(admin);
-        vault.addLendingAddress(alice);
-        vault.addRepayingAddress(alice);
+        vm.startPrank(admin);
+        aclManager = new ACLManager(admin);
+        aclManager.grantRole(aclManager.CHRONUX_ADMIN_ROLE(), admin);
+        aclManager.grantRole(aclManager.LEND_BORROW_MANAGER_ROLE(), admin);
+        vm.stopPrank();
+        // maxExpectedLiquidity = type(uint256).max;
+        vault = new Vault(
+            address(aclManager),
+            address(underlyingToken),
+            "GigaLP",
+            "GLP",
+            address(interestModel)
+            // maxExpectedLiquidity
+        );
 
         // Setup Alice and Bob's allowance for vault.
         vm.prank(alice);
@@ -353,11 +349,7 @@ contract VaultTest is Test {
         vm.stopPrank();
     }
 
-    function repay(
-        address trader,
-        uint256 amount,
-        uint256 interestAmount
-    ) internal {
+    function repay(address trader, uint256 amount, uint256 interestAmount) internal {
         vm.startPrank(trader);
         underlyingToken.approve(address(vault), amount + interestAmount);
         vault.repay(trader, amount, interestAmount);

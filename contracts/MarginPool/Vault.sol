@@ -2,17 +2,14 @@ pragma solidity ^0.8.10;
 
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol";
 import "../Interfaces/IInterestRateModel.sol";
-import "./LPToken.sol";
 import "../Libraries/Errors.sol";
 import {WadRayMath, RAY} from "../Libraries/WadRayMath.sol";
 import {SECONDS_PER_YEAR} from "../Libraries/Constants.sol";
-import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import "hardhat/console.sol";
+import {IACLManager} from "../Interfaces/IACLManager.sol";
 
 interface IVault {
     event InterestRateModelUpdated(address indexed newInterestRateModel);
@@ -61,27 +58,42 @@ contract Vault is IVault, ERC4626 {
     // uint256 public maxExpectedLiquidity;
 
     IInterestRateModel interestRateModel; // move this later to contractName => implementationAddress contract registry
-
+    IACLManager aclManager;
+    // keeping these internal so no public methods,
+    //@todo set these consts directly from aclmanager and set it one time at deployment
+    bytes32 internal constant CHRONUX_ADMIN_ROLE = keccak256("CHRONUX.ADMIN");
+    bytes32 internal constant LEND_BORROW_MANAGER_ROLE =
+        keccak256("CHRONUX.MARGIN_MANAGER");
     mapping(address => bool) public lendingAllowed;
     mapping(address => bool) public repayingAllowed;
     address[] whitelistedCreditors;
 
     // Cumulative index in RAY
     uint256 public _cumulativeIndex_RAY;
-    // Current borrow rate in RAY: https://dev.gearbox.fi/developers/pools/economy#borrow-apy
     uint256 public borrowAPY_RAY;
 
     // used to calculate next timestamp values quickly
     uint256 expectedLiquidityLastUpdated;
     uint256 timestampLastUpdated;
-    address contractOwner;
 
-    modifier onlyOwner() {
-        require(msg.sender == contractOwner, "Vault: Only Owner");
+    modifier onlyAdmin() {
+        require(
+            aclManager.hasRole(CHRONUX_ADMIN_ROLE, _msgSender()),
+            "Vault: Chronux Admin only"
+        );
+        _;
+    }
+
+    modifier onlyLendBorrowManager() {
+        require(
+            aclManager.hasRole(LEND_BORROW_MANAGER_ROLE, _msgSender()),
+            "Vault: Invalid Access, Lend/Borrow manager only"
+        );
         _;
     }
 
     constructor(
+        address _aclManager,
         address _asset,
         string memory _lpTokenName,
         string memory _lpTokenSymbol,
@@ -98,19 +110,13 @@ contract Vault is IVault, ERC4626 {
 
         _cumulativeIndex_RAY = RAY; // T:[PS-5]
         _updateInterestRateModel(_interestRateModelAddress);
-        contractOwner = msg.sender;
+        aclManager = IACLManager(_aclManager);
         // maxExpectedLiquidity = _maxExpectedLiquidity;
     }
 
-    function updateOwner(address _owner) external onlyOwner {
-        contractOwner = _owner;
-    }
-
-    // function asset() public view override(ERC4626) returns (address) {
-    //     return address(_asset);
-    // }
-
-    /** @dev See {IERC4262-deposit}. */
+    /**
+     * @dev See {IERC4262-deposit}.
+     */
     function deposit(
         uint256 assets,
         address receiver
@@ -132,7 +138,9 @@ contract Vault is IVault, ERC4626 {
         return shares;
     }
 
-    /** @dev See {IERC4262-mint}. */
+    /**
+     * @dev See {IERC4262-mint}.
+     */
     function mint(
         uint256 shares,
         address receiver
@@ -150,7 +158,9 @@ contract Vault is IVault, ERC4626 {
         return assets;
     }
 
-    /** @dev See {IERC4262-withdraw}. */
+    /**
+     * @dev See {IERC4262-withdraw}.
+     */
     function withdraw(
         uint256 assets,
         address receiver,
@@ -170,7 +180,9 @@ contract Vault is IVault, ERC4626 {
         return shares;
     }
 
-    /** @dev See {IERC4262-redeem}. */
+    /**
+     * @dev See {IERC4262-redeem}.
+     */
     function redeem(
         uint256 shares,
         address receiver,
@@ -187,7 +199,7 @@ contract Vault is IVault, ERC4626 {
     }
 
     // TODO: remove while deploying on mainnet
-    function drain(address _token) public onlyOwner {
+    function drain(address _token) public onlyAdmin {
         IERC20(_token).transfer(
             _msgSender(),
             IERC20(_token).balanceOf(address(this))
@@ -232,27 +244,10 @@ contract Vault is IVault, ERC4626 {
         return (expectedLiquidity() * RAY) / _totalSupply; // T:[PS-6]
     }
 
-    modifier onlyAllowedLendingMarginManager() {
-        require(lendingAllowed[msg.sender] == true, "Unauthorized Lend");
-        _;
-    }
-    modifier onlyAllowedRepayingMarginManager() {
-        require(repayingAllowed[msg.sender] == true, "Unauthorized Repay");
-        _;
-    }
-
-    function addLendingAddress(address _lendAddress) public {
-        lendingAllowed[_lendAddress] = true;
-    }
-
-    function addRepayingAddress(address _repayAddress) public {
-        repayingAllowed[_repayAddress] = true;
-    }
-
     function borrow(
         address borrower,
         uint256 amount
-    ) external override onlyAllowedLendingMarginManager {
+    ) external override onlyLendBorrowManager {
         // should check borrower limits as well or will that be done by credit manager ??
         require(totalAssets() >= amount, "Vault: Not enough assets");
         // update total borrowed
@@ -272,7 +267,7 @@ contract Vault is IVault, ERC4626 {
         address borrower,
         uint256 borrowedAmount, // exact amount that is returned as principle
         uint256 interest
-    ) external override onlyAllowedRepayingMarginManager {
+    ) external override onlyLendBorrowManager {
         //repay
 
         // update total borrowed
@@ -293,8 +288,9 @@ contract Vault is IVault, ERC4626 {
             borrower,
             address(this),
             borrowedAmount.add(interest)
-            // .add(profit)
         );
+        // .add(profit)
+
         _updateBorrowRate(0);
         totalBorrowed = totalBorrowed.sub(borrowedAmount);
         // }
@@ -337,7 +333,8 @@ contract Vault is IVault, ERC4626 {
         //
         uint256 linearAccumulated_RAY = RAY +
             (currentBorrowRate_RAY * timeDifference) /
-            SECONDS_PER_YEAR; // T:[GM-2]
+            SECONDS_PER_YEAR;
+        // T:[GM-2]
         return cumulativeIndex_RAY.rayMul(linearAccumulated_RAY); // T:[GM-2]
     }
 
@@ -377,7 +374,8 @@ contract Vault is IVault, ERC4626 {
             borrowAPY_RAY *
             timeDifference) /
             RAY /
-            SECONDS_PER_YEAR; // T:[PS-29]
+            SECONDS_PER_YEAR;
+        // T:[PS-29]
         return expectedLiquidityLastUpdated + interestAccrued; // T:[PS-29]
     }
 
