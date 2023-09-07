@@ -1,6 +1,6 @@
 pragma solidity ^0.8.10;
 // This is useless force push comment, please remove after use
-
+import "forge-std/console2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -397,6 +397,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 vaultLiability = totalBorrowed + interestAccrued;
         if (vaultLiability == 0) return;
         if (vaultAssetBalance < vaultLiability) {
+            console2.log("in repay max:", vaultAssetBalance, interestAccrued);
             // max repayment possible here is amount - interestAccrued because interest gets added in vault function automatically.
             _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
         } else {
@@ -444,12 +445,29 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 interestAccrued = marginAccount
             .getInterestAccruedX18()
             .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
-        require(
-            amount + interestAccrued > 0,
-            "MM: repaying 0 amount not allowed"
-        );
-        vault.repay(address(marginAccount), amount, interestAccrued);
-        marginAccount.decreaseDebt(amount);
+        // require(amount > 0, "MM: repaying 0 amount not allowed");
+        // Check if user doesn't have erc20 balance
+
+        /**
+            if amount is greater than interestAccrued, 
+            then we need to repay interestAccrued first and then repay the remaining amount, reset cumIndex to current.
+            else repay whatever and update index.
+            move the whole effin call to margin account.
+            just the acl check should be here.
+         */
+
+        if (amount >= interestAccrued) {
+            vault.repay(
+                address(marginAccount),
+                amount - interestAccrued,
+                interestAccrued
+            );
+            marginAccount.decreaseDebt(amount - interestAccrued, 0); // amount, delta
+        } else {
+            // address borrower,uint256 borrowedAmount, uint256 interest
+            vault.repay(address(marginAccount), 0, amount);
+            marginAccount.decreaseDebt(0, interestAccrued - amount);
+        }
     }
 
     // ----------------- Admin functions ---------------------

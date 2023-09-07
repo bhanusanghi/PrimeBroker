@@ -1,0 +1,33 @@
+increaseDebt.t.sol
+├── when called by someone other than MarginAccountFundManager
+│  └── it should revert
+└── when called by MarginAccountFundManager
+   ├── when the passed amount is zero,
+   │  └── it should revert (or no change in debt, depending on your logic)
+   ├── when the passed amount is valid
+   │  ├── and the Vault contract is not set
+   │  │  └── it should revert
+   │  ├── and the Vault contract is set
+   │  │     ├── and totalBorrowed is zero
+   │  │     │  └── it should set the new totalBorrowed and cumulativeIndexAtOpen correctly
+   │  │     └── and totalBorrowed is non-zero
+   │  │        └── it should update the totalBorrowed and cumulativeIndexAtOpen correctly
+   └── edge cases
+      └── it should handle overflow, underflow or other arithmetic anomalies
+
+decreaseDebt.t.sol
+├── when called by someone other than MarginAccountFundManager
+│  └── it should revert
+└── when called by MarginAccountFundManager
+   ├── when the passed amount is zero,
+   │  └── it should revert (or no change in debt, depending on your logic)
+   ├── when the passed amount is valid
+   │  ├── and the Vault contract is not set
+   │  │  └── it should revert
+   │  ├── and the Vault contract is set
+   │  │     ├── and totalBorrowed is zero
+   │  │     │  └── it should set the new totalBorrowed and cumulativeIndexAtOpen correctly
+   │  │     └── and totalBorrowed is non-zero
+   │  │        └── it should update the totalBorrowed and cumulativeIndexAtOpen correctly
+   └── edge cases
+      └── it should handle overflow, underflow or other arithmetic anomalies

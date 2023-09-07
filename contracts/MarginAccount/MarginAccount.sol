@@ -17,6 +17,7 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IACLManager} from "../Interfaces/IACLManager.sol";
 import {IVault} from "../Interfaces/IVault.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "forge-std/console2.sol";
 
 contract MarginAccount is IMarginAccount {
     using SafeERC20 for IERC20;
@@ -27,9 +28,9 @@ contract MarginAccount is IMarginAccount {
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-    uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
-    uint256 public cumulativeIndexAtOpen;
+    uint256 public cumulativeIndexAtOpen = 10 ** 27;
+    uint256 constant RAY_PRECISION = 10 ** 9;
     IContractRegistry contractRegistry;
     bytes32 constant VAULT = keccak256("Vault");
     bytes32 internal constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
@@ -40,7 +41,6 @@ contract MarginAccount is IMarginAccount {
         address _contractRegistry //  address _marketManager
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
-        cumulativeIndexAtOpen = 1;
     }
 
     modifier onlyMarginAccountFundManager() {
@@ -108,8 +108,6 @@ contract MarginAccount is IMarginAccount {
         address spender,
         uint256 amount
     ) public override onlyMarginAccountFundManager {
-        // only marginManager
-        // TODO - add acl
         IERC20(token).approve(spender, type(uint256).max);
     }
 
@@ -152,20 +150,22 @@ contract MarginAccount is IMarginAccount {
             18
         );
         uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
-        // the fuck is this ?
         uint256 prevBorrowedAmount = totalBorrowed;
         totalBorrowed += amountX18;
-        // Computes new cumulative index which accrues previous debt
-        cumulativeIndexAtOpen =
-            (cumulativeIndexNow * cumulativeIndexAtOpen * totalBorrowed) /
-            (cumulativeIndexNow *
-                prevBorrowedAmount +
-                amountX18 *
-                cumulativeIndexAtOpen);
+        cumulativeIndexAtOpen = ((cumulativeIndexNow *
+            totalBorrowed *
+            RAY_PRECISION) /
+            ((RAY_PRECISION * cumulativeIndexNow * prevBorrowedAmount) /
+                cumulativeIndexAtOpen +
+                RAY_PRECISION *
+                amountX18));
     }
 
     // needs to be sent in vault asset decimals
-    function decreaseDebt(uint256 amount) public onlyMarginAccountFundManager {
+    function decreaseDebt(
+        uint256 amount, // to be reduced from principal
+        uint256 interestDelta // amount to be added in interest
+    ) public onlyMarginAccountFundManager {
         require(
             totalBorrowed >= amount,
             "MarginAccount: Decrease debt amount exceeds total debt"
@@ -175,9 +175,22 @@ contract MarginAccount is IMarginAccount {
             IERC20Metadata(vault.asset()).decimals(),
             18
         );
-        totalBorrowed = totalBorrowed.sub(amountX18);
-        // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
-        cumulativeIndexAtOpen = vault.calcLinearCumulative_RAY();
+        uint256 interestDeltaX18 = interestDelta.convertTokenDecimals(
+            IERC20Metadata(vault.asset()).decimals(),
+            18
+        );
+        uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
+        if (interestDelta != 0) {
+            cumulativeIndexAtOpen =
+                (RAY_PRECISION * cumulativeIndexNow * cumulativeIndexAtOpen) /
+                (RAY_PRECISION *
+                    cumulativeIndexNow -
+                    (RAY_PRECISION * interestDeltaX18 * cumulativeIndexAtOpen) /
+                    totalBorrowed);
+        } else {
+            totalBorrowed = totalBorrowed.sub(amountX18);
+            cumulativeIndexAtOpen = cumulativeIndexNow;
+        }
     }
 
     function getInterestAccruedX18() public view returns (uint256) {
@@ -188,7 +201,6 @@ contract MarginAccount is IMarginAccount {
     function resetMarginAccount() public onlyMarginAccountFactory {
         totalBorrowed = 0;
         cumulativeIndexAtOpen = 1;
-        cumulative_RAY = 0;
     }
 
     // -------------- Internal Functions ------------------ //
