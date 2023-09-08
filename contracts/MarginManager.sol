@@ -445,16 +445,8 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 interestAccrued = marginAccount
             .getInterestAccruedX18()
             .convertTokenDecimals(18, IERC20Metadata(vault.asset()).decimals());
-        // require(amount > 0, "MM: repaying 0 amount not allowed");
+        require(amount > 0, "MM: repaying 0 amount not allowed");
         // Check if user doesn't have erc20 balance
-
-        /**
-            if amount is greater than interestAccrued, 
-            then we need to repay interestAccrued first and then repay the remaining amount, reset cumIndex to current.
-            else repay whatever and update index.
-            move the whole effin call to margin account.
-            just the acl check should be here.
-         */
 
         if (amount >= interestAccrued) {
             vault.repay(
@@ -462,7 +454,7 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
                 amount - interestAccrued,
                 interestAccrued
             );
-            marginAccount.decreaseDebt(amount - interestAccrued, 0); // amount, delta
+            marginAccount.decreaseDebt(amount - interestAccrued, 0); // amount, interestDelta
         } else {
             // address borrower,uint256 borrowedAmount, uint256 interest
             vault.repay(address(marginAccount), 0, amount);
