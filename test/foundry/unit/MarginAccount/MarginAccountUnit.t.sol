@@ -80,14 +80,10 @@ contract MarginAccountUnitTest is BaseSetup {
         bobMA.increaseDebt(100 * ONE_USDC);
         assertEq(bobMA.totalBorrowed(), 100 * 1 ether);
         utils.mineBlocks(100, 365 days);
-        console2.log(
-            "totalBorrowed",
-            bobMA.totalBorrowed(),
-            bobMA.getInterestAccruedX18()
+        vm.expectRevert(
+            "MarginAccount: Decrease debt amount exceeds total debt"
         );
-        // bobMA.decreaseDebt(150 * ONE_USDC, 0);
-        // vm.expectRevert("MarginAccount: Decrease debt amount too high");
-        // bobMA.decreaseDebt(150 * ONE_USDC, 0);
+        bobMA.decreaseDebt(150 * ONE_USDC, 0);
         vm.stopPrank();
     }
 

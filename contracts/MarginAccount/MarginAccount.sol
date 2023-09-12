@@ -166,14 +166,14 @@ contract MarginAccount is IMarginAccount {
         uint256 amount, // to be reduced from principal
         uint256 interestDelta // amount to be added in interest
     ) public onlyMarginAccountFundManager {
-        require(
-            totalBorrowed >= amount,
-            "MarginAccount: Decrease debt amount exceeds total debt"
-        );
         IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 amountX18 = amount.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
+        );
+        require(
+            totalBorrowed >= amountX18,
+            "MarginAccount: Decrease debt amount exceeds total debt"
         );
         uint256 interestDeltaX18 = interestDelta.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
