@@ -17,7 +17,6 @@ import {IContractRegistry} from "../Interfaces/IContractRegistry.sol";
 import {IACLManager} from "../Interfaces/IACLManager.sol";
 import {IVault} from "../Interfaces/IVault.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "forge-std/console2.sol";
 
 contract MarginAccount is IMarginAccount {
     using SafeERC20 for IERC20;

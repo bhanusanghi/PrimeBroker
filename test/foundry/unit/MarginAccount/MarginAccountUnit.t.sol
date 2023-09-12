@@ -60,8 +60,14 @@ contract MarginAccountUnitTest is BaseSetup {
             abi.encode(true)
         );
         IMarginAccount bobMA = IMarginAccount(bobMarginAccount);
+        contracts.vault.borrow(bobMarginAccount, 100 * ONE_USDC);
         bobMA.increaseDebt(100 * ONE_USDC);
         assertEq(bobMA.totalBorrowed(), 100 * 1 ether);
+        assertEq(
+            bobMA.cumulativeIndexAtOpen(),
+            contracts.vault.calcLinearCumulative_RAY(),
+            "Cumulative index at open should be same as vault/current cumulative index"
+        );
         vm.stopPrank();
     }
 
@@ -102,6 +108,7 @@ contract MarginAccountUnitTest is BaseSetup {
         vm.stopPrank();
     }
 
+    // repay full borrow amount and interest accured
     function test_cumulativeIndexAtOpen_CloseBorrow() external {
         vm.startPrank(bob);
         vm.mockCall(

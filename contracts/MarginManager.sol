@@ -1,6 +1,4 @@
 pragma solidity ^0.8.10;
-// This is useless force push comment, please remove after use
-import "forge-std/console2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -397,7 +395,6 @@ contract MarginManager is IMarginManager, ReentrancyGuard {
         uint256 vaultLiability = totalBorrowed + interestAccrued;
         if (vaultLiability == 0) return;
         if (vaultAssetBalance < vaultLiability) {
-            console2.log("in repay max:", vaultAssetBalance, interestAccrued);
             // max repayment possible here is amount - interestAccrued because interest gets added in vault function automatically.
             _repayVault(marginAccount, vaultAssetBalance - interestAccrued);
         } else {
