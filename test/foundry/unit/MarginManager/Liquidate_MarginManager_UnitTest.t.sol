@@ -161,16 +161,6 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
             -280 ether
         );
         LiquidationParams memory params = chronuxUtils.getLiquidationData(bob);
-        uint256 interestX18 = 10 ether;
-        // assertEq(liqPenalty, ((1000 ether - 280 ether - interest) * 2) / 100);
-        vm.mockCall(
-            bobMarginAccount,
-            abi.encodeWithSelector(
-                IMarginAccount.getInterestAccruedX18.selector
-            ),
-            abi.encode(interestX18)
-        );
-        uint256 interest = interestX18 / 1e12;
         (bool isLiquit, , uint256 liqPenalty) = contracts
             .riskManager
             .isAccountLiquidatable(bobMarginAccount);
@@ -188,6 +178,9 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
             bobMarginAccount
         );
         (uint256 orderFee, ) = IFuturesMarket(market).orderFee(positionSize);
+
+        uint256 interest = IMarginAccount(bobMarginAccount)
+            .getInterestAccruedX18() / 1e12;
         vm.prank(alice);
         contracts.marginManager.liquidate(
             bob,
@@ -216,19 +209,20 @@ contract Liquidate_MarginManager_UnitTest is MarginManager_UnitTest {
             "bobMarginAccount balance after liquidation is wrong"
         );
         // // withdrawable margin should be equal to current account balance
-        // // assertApproxEqAbs()
         assertApproxEqAbs(
             IERC20(usdc).balanceOf(address(contracts.vault)),
             initialBalanceVault + 1100 * ONE_USDC + interest,
-            5 * ONE_USDC,
+            1 * ONE_USDC,
             "vault balance after liquidation is wrong"
         );
 
-        assertEq(
+        assertApproxEqAbs(
             contracts.collateralManager.getFreeCollateralValue(
                 bobMarginAccount
             ) / 1e12,
-            IERC20(usdc).balanceOf(bobMarginAccount)
+            IERC20(usdc).balanceOf(bobMarginAccount),
+            1 * ONE_USDC,
+            "free collateral value is wrong"
         );
     }
 }

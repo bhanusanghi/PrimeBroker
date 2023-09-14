@@ -60,6 +60,7 @@ contract MarginAccountUnitTest is BaseSetup {
             abi.encode(true)
         );
         IMarginAccount bobMA = IMarginAccount(bobMarginAccount);
+        assertEq(bobMA.getInterestAccruedX18(), 0);
         assertEq(
             bobMA.cumulativeIndexAtOpen(),
             contracts.vault.calcLinearCumulative_RAY(),

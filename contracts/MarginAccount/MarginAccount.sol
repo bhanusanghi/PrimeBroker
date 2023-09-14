@@ -163,7 +163,7 @@ contract MarginAccount is IMarginAccount {
     // needs to be sent in vault asset decimals
     function decreaseDebt(
         uint256 amount, // to be reduced from principal
-        uint256 interestDelta // amount to be added in interest
+        uint256 remainingInterest // amount to be added in interest
     ) public onlyMarginAccountFundManager {
         IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 amountX18 = amount.convertTokenDecimals(
@@ -174,17 +174,19 @@ contract MarginAccount is IMarginAccount {
             totalBorrowed >= amountX18,
             "MarginAccount: Decrease debt amount exceeds total debt"
         );
-        uint256 interestDeltaX18 = interestDelta.convertTokenDecimals(
+        uint256 remainingInterestX18 = remainingInterest.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
         );
         uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
-        if (interestDelta != 0) {
+        if (remainingInterest != 0) {
             cumulativeIndexAtOpen =
                 (RAY_PRECISION * cumulativeIndexNow * cumulativeIndexAtOpen) /
                 (RAY_PRECISION *
                     cumulativeIndexNow -
-                    (RAY_PRECISION * interestDeltaX18 * cumulativeIndexAtOpen) /
+                    (RAY_PRECISION *
+                        remainingInterestX18 *
+                        cumulativeIndexAtOpen) /
                     totalBorrowed);
         } else {
             totalBorrowed = totalBorrowed.sub(amountX18);
