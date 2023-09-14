@@ -410,14 +410,14 @@ contract Vault is IVault, ERC4626 {
     ///  - stores new cumulative index and timestamp when it was updated
     function _updateBorrowRate(uint256 loss) internal {
         // Update total expectedLiquidityLastUpdated
-        expectedLiquidityLastUpdated = expectedLiquidity() - loss; // T:[PS-27]
+        expectedLiquidityLastUpdated = expectedLiquidity() - loss;
         // Update cumulativeIndex
-        _cumulativeIndex_RAY = calcLinearCumulative_RAY(); // T:[PS-27]
+        _cumulativeIndex_RAY = calcLinearCumulative_RAY();
         // update borrow APY
         borrowAPY_RAY = interestRateModel.calcBorrowRate(
             expectedLiquidityLastUpdated,
             totalAssets()
         ); // T:[PS-27]
-        timestampLastUpdated = block.timestamp; // T:[PS-27]
+        timestampLastUpdated = block.timestamp;
     }
 }

@@ -57,7 +57,7 @@ contract RepayVault_MarginManager_UnitTest is MarginManager_UnitTest {
         contracts.marginManager.borrowFromVault(borrowAmount);
         vm.expectCall(
             bobMarginAccount,
-            abi.encodeCall(IMarginAccount.decreaseDebt, (borrowAmount))
+            abi.encodeCall(IMarginAccount.decreaseDebt, (borrowAmount, 0))
         );
         vm.expectCall(
             address(contracts.vault),

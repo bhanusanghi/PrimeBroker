@@ -53,7 +53,7 @@ interface IMarginAccount {
 
     function increaseDebt(uint256 amount) external;
 
-    function decreaseDebt(uint256 amount) external;
+    function decreaseDebt(uint256 amount, uint256 interestDelta) external;
 
     function resetMarginAccount() external;
 }

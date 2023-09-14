@@ -27,9 +27,9 @@ contract MarginAccount is IMarginAccount {
     using SignedMath for int256;
     using SignedMath for uint256;
     using SignedSafeMath for int256;
-    uint256 public cumulative_RAY;
     uint256 public totalBorrowed; // in usd terms
-    uint256 public cumulativeIndexAtOpen;
+    uint256 public cumulativeIndexAtOpen = 10 ** 27;
+    uint256 constant RAY_PRECISION = 10 ** 9;
     IContractRegistry contractRegistry;
     bytes32 constant VAULT = keccak256("Vault");
     bytes32 internal constant MARGIN_ACCOUNT_FUND_MANAGER_ROLE =
@@ -40,7 +40,6 @@ contract MarginAccount is IMarginAccount {
         address _contractRegistry //  address _marketManager
     ) {
         contractRegistry = IContractRegistry(_contractRegistry);
-        cumulativeIndexAtOpen = 1;
     }
 
     modifier onlyMarginAccountFundManager() {
@@ -108,8 +107,6 @@ contract MarginAccount is IMarginAccount {
         address spender,
         uint256 amount
     ) public override onlyMarginAccountFundManager {
-        // only marginManager
-        // TODO - add acl
         IERC20(token).approve(spender, type(uint256).max);
     }
 
@@ -152,32 +149,49 @@ contract MarginAccount is IMarginAccount {
             18
         );
         uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
-        // the fuck is this ?
         uint256 prevBorrowedAmount = totalBorrowed;
         totalBorrowed += amountX18;
-        // Computes new cumulative index which accrues previous debt
-        cumulativeIndexAtOpen =
-            (cumulativeIndexNow * cumulativeIndexAtOpen * totalBorrowed) /
-            (cumulativeIndexNow *
-                prevBorrowedAmount +
-                amountX18 *
-                cumulativeIndexAtOpen);
+        cumulativeIndexAtOpen = ((cumulativeIndexNow *
+            totalBorrowed *
+            RAY_PRECISION) /
+            ((RAY_PRECISION * cumulativeIndexNow * prevBorrowedAmount) /
+                cumulativeIndexAtOpen +
+                RAY_PRECISION *
+                amountX18));
     }
 
     // needs to be sent in vault asset decimals
-    function decreaseDebt(uint256 amount) public onlyMarginAccountFundManager {
-        require(
-            totalBorrowed >= amount,
-            "MarginAccount: Decrease debt amount exceeds total debt"
-        );
+    function decreaseDebt(
+        uint256 amount, // to be reduced from principal
+        uint256 remainingInterest // amount to be added in interest
+    ) public onlyMarginAccountFundManager {
         IVault vault = IVault(contractRegistry.getContractByName(VAULT));
         uint256 amountX18 = amount.convertTokenDecimals(
             IERC20Metadata(vault.asset()).decimals(),
             18
         );
-        totalBorrowed = totalBorrowed.sub(amountX18);
-        // Gets updated cumulativeIndex, which could be changed after repaymarginAccount
-        cumulativeIndexAtOpen = vault.calcLinearCumulative_RAY();
+        require(
+            totalBorrowed >= amountX18,
+            "MarginAccount: Decrease debt amount exceeds total debt"
+        );
+        uint256 remainingInterestX18 = remainingInterest.convertTokenDecimals(
+            IERC20Metadata(vault.asset()).decimals(),
+            18
+        );
+        uint256 cumulativeIndexNow = vault.calcLinearCumulative_RAY(); //
+        if (remainingInterest != 0) {
+            cumulativeIndexAtOpen =
+                (RAY_PRECISION * cumulativeIndexNow * cumulativeIndexAtOpen) /
+                (RAY_PRECISION *
+                    cumulativeIndexNow -
+                    (RAY_PRECISION *
+                        remainingInterestX18 *
+                        cumulativeIndexAtOpen) /
+                    totalBorrowed);
+        } else {
+            totalBorrowed = totalBorrowed.sub(amountX18);
+            cumulativeIndexAtOpen = cumulativeIndexNow;
+        }
     }
 
     function getInterestAccruedX18() public view returns (uint256) {
@@ -188,7 +202,6 @@ contract MarginAccount is IMarginAccount {
     function resetMarginAccount() public onlyMarginAccountFactory {
         totalBorrowed = 0;
         cumulativeIndexAtOpen = 1;
-        cumulative_RAY = 0;
     }
 
     // -------------- Internal Functions ------------------ //

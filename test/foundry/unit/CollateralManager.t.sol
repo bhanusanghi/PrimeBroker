@@ -203,7 +203,6 @@ contract CollateralManagerTest is BaseSetup {
             1000 ether,
             "CM: Free Collateral Value should be 1000"
         );
-        vm.prank(bob);
         perpfiUtils.updateAndVerifyMargin(
             bob,
             perpAaveKey,

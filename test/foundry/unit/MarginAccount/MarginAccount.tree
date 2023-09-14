@@ -1,0 +1,17 @@
+increaseDebt.t.sol
+├── when called by someone other than MarginAccountFundManager
+│  └── it should revert
+└── when called by MarginAccountFundManager
+      - when increase debt
+         - should increase totalBorrowed and update cumulative index acc to remaining
+
+decreaseDebt.t.sol
+├── when called by someone other than MarginAccountFundManager
+│  └── it should revert
+└── when called by MarginAccountFundManager
+      - when repayment of partial interest amount
+         - should not change totalBorrowed and update cumulative index acc to remaining
+      - when repayment of full interest amount
+         - should not change totalBorrowed and update cumulative index to current cumulative index.
+      - when repayment of partial principal amount and full interestDelta
+         - should decrease totalBorrowed and update cumulative index to current cumulative index.
